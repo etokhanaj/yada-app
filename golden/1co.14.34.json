@@ -1,0 +1,197 @@
+{
+  "verse_id": "1CO.14.34",
+  "pericope_id": "1CO.14.26-14.40",
+  "schema_version": "1.0.0",
+  "prompt_version": "verse@0.1.0-seed",
+
+  "gloss": [
+    { "surface": "αἱ", "translit": "hai", "gloss": "the", "strongs": "G3588" },
+    { "surface": "γυναῖκες", "translit": "gynaikes", "gloss": "women", "strongs": "G1135" },
+    { "surface": "ἐν", "translit": "en", "gloss": "in", "strongs": "G1722" },
+    { "surface": "ταῖς", "translit": "tais", "gloss": "the", "strongs": "G3588" },
+    { "surface": "ἐκκλησίαις", "translit": "ekklēsiais", "gloss": "assemblies", "strongs": "G1577" },
+    { "surface": "σιγάτωσαν", "translit": "sigatōsan", "gloss": "let them be silent", "strongs": "G4601" },
+    { "surface": "οὐ", "translit": "ou", "gloss": "not", "strongs": "G3756" },
+    { "surface": "γὰρ", "translit": "gar", "gloss": "for", "strongs": "G1063" },
+    { "surface": "ἐπιτρέπεται", "translit": "epitrepetai", "gloss": "it is permitted", "strongs": "G2010" },
+    { "surface": "αὐταῖς", "translit": "autais", "gloss": "to them", "strongs": "G846" },
+    { "surface": "λαλεῖν", "translit": "lalein", "gloss": "to speak", "strongs": "G2980" },
+    { "surface": "ἀλλὰ", "translit": "alla", "gloss": "but", "strongs": "G235" },
+    { "surface": "ὑποτασσέσθωσαν", "translit": "hypotassesthōsan", "gloss": "let them submit", "strongs": "G5293" },
+    { "surface": "καθὼς", "translit": "kathōs", "gloss": "just as", "strongs": "G2531" },
+    { "surface": "καὶ", "translit": "kai", "gloss": "also", "strongs": "G2532" },
+    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588" },
+    { "surface": "νόμος", "translit": "nomos", "gloss": "law", "strongs": "G3551" },
+    { "surface": "λέγει", "translit": "legei", "gloss": "says", "strongs": "G3004" }
+  ],
+
+  "close_rendering": "Let the women be silent in the assemblies, for it is not permitted for them to speak; rather, let them submit, just as the law also says.",
+
+  "whats_happening": "Paul is closing a long section on how the Corinthian assembly should conduct its gatherings, where prophets and tongue-speakers have been talking over one another. He has already told tongue-speakers and prophets to stop speaking under certain conditions, using the same verb he uses here. This verse applies that same instruction to a third group, and the disagreement is over exactly which speech, and which women, are in view.",
+
+  "key_words": [
+    {
+      "surface": "σιγάτωσαν",
+      "lemma": "σιγάω",
+      "gloss": "let them be silent",
+      "note": "The same verb is used of tongue-speakers in v. 28 and prophets in v. 30, in both cases as a situational instruction rather than a permanent ban.",
+      "strongs": "G4601"
+    },
+    {
+      "surface": "λαλεῖν",
+      "lemma": "λαλέω",
+      "gloss": "to speak",
+      "note": "A general verb for speaking, used across this chapter for tongues, prophecy, and ordinary talk.",
+      "strongs": "G2980"
+    },
+    {
+      "surface": "ὑποτασσέσθωσαν",
+      "lemma": "ὑποτάσσω",
+      "gloss": "let them submit",
+      "strongs": "G5293"
+    },
+    {
+      "surface": "νόμος",
+      "lemma": "νόμος",
+      "gloss": "law",
+      "note": "No specific text is cited, which is unusual for Paul when he appeals to the law.",
+      "strongs": "G3551"
+    }
+  ],
+
+  "translation_note": "BSB, WEB, and KJV agree closely here; the divergence between English versions in this passage is mainly punctuation and paragraphing, which affects where the sentence is felt to begin and end.",
+
+  "claims": [
+    {
+      "id": "1CO.14.34.c1",
+      "claim": "σιγάτωσαν is a present active imperative, third person plural.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "lexical", "lemma": "σιγάω", "strongs": "G4601", "dataset": "MorphGNT", "note": "V-PAM-3P" },
+        { "type": "verse", "ref": "1CO.14.34" }
+      ],
+      "sources": [],
+      "display_rank": 1
+    },
+    {
+      "id": "1CO.14.34.c2",
+      "claim": "The subject of σιγάτωσαν is αἱ γυναῖκες, a nominative plural.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "lexical", "lemma": "γυνή", "strongs": "G1135", "dataset": "MorphGNT", "note": "N-NFP" },
+        { "type": "verse", "ref": "1CO.14.34" }
+      ],
+      "sources": [],
+      "display_rank": 2
+    },
+    {
+      "id": "1CO.14.34.c3",
+      "claim": "The same verb σιγάω is used as an instruction to two other groups earlier in the chapter.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "1CO.14.28", "note": "tongue-speakers, if no interpreter is present" },
+        { "type": "verse", "ref": "1CO.14.30", "note": "a prophet, if a revelation comes to another" },
+        { "type": "lexical", "lemma": "σιγάω", "strongs": "G4601", "dataset": "MorphGNT" }
+      ],
+      "sources": [],
+      "display_rank": 3
+    },
+    {
+      "id": "1CO.14.34.c4",
+      "claim": "The verse sits inside a block of instructions about order in the gathered assembly (1 Cor 14:26-40).",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [{ "type": "verse", "ref": "1CO.14.26-14.40" }],
+      "sources": [],
+      "display_rank": 4
+    },
+    {
+      "id": "1CO.14.34.c5",
+      "claim": "Earlier in the same letter Paul describes women praying and prophesying in the assembly without objecting to the practice itself.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [{ "type": "verse", "ref": "1CO.11.5" }],
+      "sources": [],
+      "display_rank": 5
+    },
+    {
+      "id": "1CO.14.34.c6",
+      "claim": "Formal rhetorical and scriptural education was generally less available to women than to men in first-century Greco-Roman cities.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "medium",
+      "grounding": "model_knowledge",
+      "evidence": [],
+      "sources": [],
+      "display_rank": 6
+    },
+    {
+      "id": "1CO.14.34.c7",
+      "claim": "Who the instruction addresses is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "1CO.14.34-35" },
+        { "type": "lexical", "lemma": "γυνή", "strongs": "G1135", "dataset": "STEP lexicon", "note": "the same noun covers both 'woman' and 'wife'" }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "Women in the assembly generally",
+          "case": "The plural αἱ γυναῖκες is unqualified in v. 34, and the appeal to the law and to the churches is stated in general terms rather than about a household relationship.",
+          "evidence": [
+            { "type": "verse", "ref": "1CO.14.33" },
+            { "type": "verse", "ref": "1CO.14.34" }
+          ]
+        },
+        {
+          "label": "Wives specifically",
+          "case": "Verse 35 tells them to ask their own husbands at home, and γυνή is the ordinary word for wife, so the following verse supplies the domestic frame the noun leaves open.",
+          "evidence": [
+            { "type": "verse", "ref": "1CO.14.35" },
+            { "type": "lexical", "lemma": "ἀνήρ", "strongs": "G435", "dataset": "STEP lexicon", "note": "'their own men' in v. 35 is the standard idiom for husbands" }
+          ]
+        }
+      ],
+      "display_rank": 1
+    }
+  ],
+
+  "related_passages": [
+    {
+      "ref": "1CO.11.5",
+      "relationship": "contrast",
+      "note": "The same letter pictures women praying and prophesying in the assembly."
+    },
+    {
+      "ref": "1CO.14.26-14.40",
+      "relationship": "development",
+      "note": "The surrounding argument, where the same silence instruction is given to two other groups."
+    },
+    {
+      "ref": "1TI.2.11-12",
+      "relationship": "thematic",
+      "note": "The other passage in the Pauline letters on women, teaching, and quietness."
+    }
+  ],
+
+  "review": {
+    "status": "human_reviewed",
+    "flags": []
+  }
+}

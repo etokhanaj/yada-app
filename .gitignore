@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Working data: raw sources, staging.db, batch files. Re-fetchable or replicated,
+# never committed. Review judgments are exported separately (see build plan §2).
+content/*
+!content/.gitkeep
+
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
