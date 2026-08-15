@@ -1,0 +1,282 @@
+{
+  "verse_id": "JHN.1.1",
+  "pericope_id": "JHN.1.1-1.18",
+  "schema_version": "1.0.0",
+  "prompt_version": "hand-authored@0a-spike",
+
+  "gloss": [
+    { "surface": "Ἐν", "translit": "en", "gloss": "in", "strongs": "G1722" },
+    { "surface": "ἀρχῇ", "translit": "archē", "gloss": "beginning", "strongs": "G746" },
+    { "surface": "ἦν", "translit": "ēn", "gloss": "was", "strongs": "G1510" },
+    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588" },
+    { "surface": "λόγος", "translit": "logos", "gloss": "word", "strongs": "G3056" },
+    { "surface": "καὶ", "translit": "kai", "gloss": "and", "strongs": "G2532" },
+    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588" },
+    { "surface": "λόγος", "translit": "logos", "gloss": "word", "strongs": "G3056" },
+    { "surface": "ἦν", "translit": "ēn", "gloss": "was", "strongs": "G1510" },
+    { "surface": "πρὸς", "translit": "pros", "gloss": "with", "strongs": "G4314" },
+    { "surface": "τὸν", "translit": "ton", "gloss": "the", "strongs": "G3588" },
+    { "surface": "θεόν", "translit": "theon", "gloss": "God", "strongs": "G2316" },
+    { "surface": "καὶ", "translit": "kai", "gloss": "and", "strongs": "G2532" },
+    { "surface": "θεὸς", "translit": "theos", "gloss": "God", "strongs": "G2316" },
+    { "surface": "ἦν", "translit": "ēn", "gloss": "was", "strongs": "G1510" },
+    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588" },
+    { "surface": "λόγος", "translit": "logos", "gloss": "word", "strongs": "G3056" }
+  ],
+
+  "close_rendering": "In the beginning was the Word, and the Word was with God, and the Word was God.",
+
+  "whats_happening": "John opens his Gospel not with a birth or a genealogy but before the world exists, using the same first words as the opening of Genesis. Three short clauses each use the same verb: the Word already was, the Word was with God, and the Word was God. The third clause is where the Greek repays close attention, because of what it does and does not put the article on.",
+
+  "key_words": [
+    {
+      "surface": "λόγος",
+      "lemma": "λόγος",
+      "gloss": "word",
+      "note": "A common Greek noun for a spoken word, an account, or a reasoned principle. It carried weight in both Greek philosophy and Jewish wisdom writing before John used it.",
+      "strongs": "G3056"
+    },
+    {
+      "surface": "ἦν",
+      "lemma": "εἰμί",
+      "gloss": "was",
+      "note": "Imperfect: continuous existing state rather than a point of origin. Verse 3 switches to the aorist ἐγένετο for things that came into being.",
+      "strongs": "G1510"
+    },
+    {
+      "surface": "πρὸς",
+      "lemma": "πρός",
+      "gloss": "with",
+      "note": "With the accusative this preposition normally carries motion or orientation toward something, not static position beside it.",
+      "strongs": "G4314"
+    },
+    {
+      "surface": "θεός",
+      "lemma": "θεός",
+      "gloss": "God",
+      "note": "Appears twice in the verse: articular in the second clause, without the article in the third.",
+      "strongs": "G2316"
+    }
+  ],
+
+  "translation_note": "The third clause reads θεὸς ἦν ὁ λόγος in Greek, putting θεός first. English word order cannot show this, so every English translation makes a choice the Greek does not force.",
+
+  "claims": [
+    {
+      "id": "JHN.1.1.c1",
+      "claim": "ἦν is an imperfect active indicative, third person singular.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "lexical", "lemma": "εἰμί", "strongs": "G1510", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "V- 3IAI-S--" },
+        { "type": "verse", "ref": "JHN.1.1" }
+      ],
+      "sources": [],
+      "display_rank": 1
+    },
+    {
+      "id": "JHN.1.1.c2",
+      "claim": "All three clauses of the verse use the same verb form, ἦν.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "JHN.1.1" },
+        { "type": "lexical", "lemma": "εἰμί", "strongs": "G1510", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "three occurrences, all V- 3IAI-S--" }
+      ],
+      "sources": [],
+      "display_rank": 2
+    },
+    {
+      "id": "JHN.1.1.c3",
+      "claim": "In the third clause θεός stands without the article while ὁ λόγος carries it.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "JHN.1.1" },
+        { "type": "lexical", "lemma": "θεός", "strongs": "G2316", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "N- ----NSM- with no preceding RA" }
+      ],
+      "sources": [],
+      "display_rank": 3
+    },
+    {
+      "id": "JHN.1.1.c4",
+      "claim": "In the third clause the predicate noun θεός stands before the verb.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [{ "type": "verse", "ref": "JHN.1.1" }],
+      "sources": [],
+      "display_rank": 4
+    },
+    {
+      "id": "JHN.1.1.c5",
+      "claim": "In the second clause θεόν is accusative and articular, governed by πρός.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "lexical", "lemma": "θεός", "strongs": "G2316", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "N- ----ASM- preceded by RA ----ASM-" },
+        { "type": "verse", "ref": "JHN.1.1" }
+      ],
+      "sources": [],
+      "display_rank": 5
+    },
+    {
+      "id": "JHN.1.1.c6",
+      "claim": "ἀρχῇ is a dative singular feminine noun governed by the preposition ἐν.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "lexical", "lemma": "ἀρχή", "strongs": "G746", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "N- ----DSF-" },
+        { "type": "verse", "ref": "JHN.1.1" }
+      ],
+      "sources": [],
+      "display_rank": 6
+    },
+    {
+      "id": "JHN.1.1.c7",
+      "claim": "Two verses later the same writer switches to the aorist ἐγένετο for things that came into being.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "JHN.1.3" },
+        { "type": "lexical", "lemma": "γίνομαι", "strongs": "G1096", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "V- 3AMI-S--" }
+      ],
+      "sources": [],
+      "display_rank": 7
+    },
+    {
+      "id": "JHN.1.1.c8",
+      "claim": "The verse opens a prologue running to John 1:18, before the Gospel's narrative begins.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [{ "type": "verse", "ref": "JHN.1.1-1.18" }],
+      "sources": [],
+      "display_rank": 8
+    },
+    {
+      "id": "JHN.1.1.c9",
+      "claim": "The Greek Old Testament opens Genesis with the same two-word phrase, Ἐν ἀρχῇ.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "medium",
+      "grounding": "model_knowledge",
+      "evidence": [],
+      "sources": [],
+      "display_rank": 9
+    },
+    {
+      "id": "JHN.1.1.c10",
+      "claim": "λόγος carried established senses in both Greek philosophical usage and Jewish wisdom writing before this Gospel was composed.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "medium",
+      "grounding": "model_knowledge",
+      "evidence": [],
+      "sources": [],
+      "display_rank": 10
+    },
+    {
+      "id": "JHN.1.1.c11",
+      "claim": "What the missing article on θεός in the third clause signals is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "JHN.1.1" },
+        { "type": "lexical", "lemma": "θεός", "strongs": "G2316", "dataset": "MorphGNT/SBLGNT @ aaed91e" }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "Qualitative",
+          "case": "A predicate noun placed before the verb regularly drops the article in Greek, and doing so describes what something is by nature rather than identifying it with the person just named, so the clause says the Word shares God's nature without saying the Word is the Father.",
+          "evidence": [{ "type": "verse", "ref": "JHN.1.1" }]
+        },
+        {
+          "label": "Definite",
+          "case": "The absence of the article carries no independent weight in this position, because pre-verbal predicate nouns commonly lack it, so θεός is as definite as the articular τὸν θεόν of the previous clause.",
+          "evidence": [{ "type": "verse", "ref": "JHN.1.1" }]
+        },
+        {
+          "label": "Indefinite",
+          "case": "Read as an ordinary indefinite noun the clause says the Word was a god, a rendering adopted by the New World Translation and defended on the grounds that the writer distinguishes the articular θεόν from the anarthrous θεός deliberately.",
+          "evidence": [{ "type": "verse", "ref": "JHN.1.1" }]
+        }
+      ],
+      "display_rank": 1
+    },
+    {
+      "id": "JHN.1.1.c12",
+      "claim": "Whether ὁ λόγος denotes a personal figure from the first verse or becomes personal only at verse 14 is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "medium",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "JHN.1.1" },
+        { "type": "verse", "ref": "JHN.1.14" }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "Personal from verse 1",
+          "case": "The Word is said to be with God using a preposition of orientation toward a person, and the same subject continues unbroken into verse 14, so the personal reference is present from the opening clause.",
+          "evidence": [
+            { "type": "verse", "ref": "JHN.1.1" },
+            { "type": "verse", "ref": "JHN.1.14" }
+          ]
+        },
+        {
+          "label": "Personified expression first",
+          "case": "The prologue draws on wisdom language in which a divine attribute is spoken of as though it acted, and the decisive shift to a person occurs at verse 14 where the Word becomes flesh.",
+          "evidence": [{ "type": "verse", "ref": "JHN.1.14" }]
+        }
+      ],
+      "display_rank": 2
+    }
+  ],
+
+  "related_passages": [
+    {
+      "ref": "GEN.1.1",
+      "relationship": "allusion",
+      "note": "The same opening words, placing this before the creation account rather than inside it."
+    },
+    {
+      "ref": "JHN.1.3",
+      "relationship": "development",
+      "note": "The verb changes from was to came into being once created things are in view."
+    },
+    {
+      "ref": "JHN.1.14",
+      "relationship": "development",
+      "note": "Where the Word of the prologue becomes flesh."
+    },
+    {
+      "ref": "JHN.20.28",
+      "relationship": "thematic",
+      "note": "The Gospel closes with Thomas addressing Jesus in the same terms the prologue opens with."
+    }
+  ],
+
+  "review": {
+    "status": "flagged",
+    "flags": ["hand-authored spike fixture, not reviewed corpus"]
+  }
+}
