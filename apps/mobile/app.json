@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Yada Spike",
+    "slug": "yada-spike",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "scheme": "yada",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "studio.yada.spike",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-sqlite"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
