@@ -2,9 +2,12 @@
  * The spike screen: reader → verse selected → Understand → back to reading,
  * for all three test passages through one component set.
  *
- * The reader stays mounted underneath the Understand sheet, which is the design
- * brief's "looking underneath the verse" made literal — and it means reading
- * position is preserved structurally rather than restored by scroll maths.
+ * The reading surface follows the e-reader convention rather than the Bible-app
+ * one: chapter identity sits inside the scroll as a quiet centred head, there
+ * is no header bar and no bottom navigation, and the only chrome is two muted
+ * controls that stay out of the way. The reader stays mounted underneath the
+ * Understand sheet, so reading position is preserved structurally rather than
+ * restored by scroll maths.
  */
 
 import { router, useLocalSearchParams } from "expo-router";
@@ -12,6 +15,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SelectionPill } from "../components/SelectionPill";
 import { Understand } from "../components/Understand";
 import {
   PASSAGES,
@@ -21,7 +25,7 @@ import {
   focalVerseNumber,
   type Verse,
 } from "../data/passages";
-import { leading, METADATA_LABEL, SPACE, TYPE, usePalette } from "../design/tokens";
+import { leading, SPACE, TYPE, usePalette } from "../design/tokens";
 
 export default function ReaderScreen() {
   const palette = usePalette();
@@ -32,6 +36,7 @@ export default function ReaderScreen() {
   const [understandOpen, setUnderstandOpen] = useState(false);
   const [anchor, setAnchor] = useState<number | null>(null);
   const [rangeEnd, setRangeEnd] = useState<number | null>(null);
+  const [anchorY, setAnchorY] = useState(320);
   const [originalSeed, setOriginalSeed] = useState(false);
 
   const passage = PASSAGES[passageIndex]!;
@@ -89,10 +94,11 @@ export default function ReaderScreen() {
         ? `${chapterLabel(passage.chapterKey)}:${selection.start}`
         : `${chapterLabel(passage.chapterKey)}:${selection.start}–${selection.end}`;
 
-  /** Tap selects. Tapping again with a selection open extends the range —
-   *  selection never requires pixel-precise dragging. */
-  function onVersePress(verseNumber: number): void {
-    if (anchor === null || (rangeEnd !== null && anchor !== null)) {
+  /** Tap selects. Tapping again extends the range — selection never requires
+   *  pixel-precise dragging. Tapping the anchor again clears it. */
+  function onVersePress(verseNumber: number, pageY: number): void {
+    setAnchorY(pageY);
+    if (anchor === null || rangeEnd !== null) {
       setAnchor(verseNumber);
       setRangeEnd(null);
       return;
@@ -117,18 +123,14 @@ export default function ReaderScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.paper, paddingTop: insets.top }}>
-      <View style={[styles.header, { borderBottomColor: palette.divider }]}>
-        <Text style={[METADATA_LABEL, { color: palette.mutedInk }]}>
-          {chapterLabel(passage.chapterKey)} · {chapterTranslation(passage.chapterKey)}
-        </Text>
-        <View style={{ flexDirection: "row", gap: SPACE.md }}>
-          <Pressable onPress={() => router.push("/probe")} accessibilityRole="button">
-            <Text style={{ color: palette.mutedInk, fontSize: TYPE.meta.size }}>Probe</Text>
-          </Pressable>
-          <Pressable onPress={cyclePassage} accessibilityRole="button">
-            <Text style={{ color: palette.accent, fontSize: TYPE.meta.size }}>Next passage ›</Text>
-          </Pressable>
-        </View>
+      {/* The only chrome. Deliberately low-contrast: it should disappear while reading. */}
+      <View style={styles.chrome}>
+        <Pressable onPress={() => router.push("/probe")} accessibilityRole="button" hitSlop={12}>
+          <Text style={{ color: palette.mutedInk, fontSize: TYPE.meta.size }}>Probe</Text>
+        </Pressable>
+        <Pressable onPress={cyclePassage} accessibilityRole="button" hitSlop={12}>
+          <Text style={{ color: palette.mutedInk, fontSize: TYPE.meta.size }}>Next passage ›</Text>
+        </Pressable>
       </View>
 
       <FlatList
@@ -136,31 +138,77 @@ export default function ReaderScreen() {
         data={verses}
         keyExtractor={(verse) => String(verse.number)}
         contentContainerStyle={styles.readerBody}
-        onScrollToIndexFailed={({ index }) => {
-          // Verse rows are variable height, so an unmeasured target can fail.
-          listRef.current?.scrollToOffset({ offset: index * 120, animated: false });
+        showsVerticalScrollIndicator={false}
+        onScrollToIndexFailed={({ index, averageItemLength }) => {
+          // Verse rows are variable height, so a far-off target is not yet
+          // measured. Estimating a pixel offset is guesswork and lands on the
+          // wrong verse; instead get close, let the rows render, then ask for
+          // the verse again by index. Back-to-reading must be exact.
+          listRef.current?.scrollToOffset({
+            offset: index * averageItemLength,
+            animated: false,
+          });
+          setTimeout(() => {
+            listRef.current?.scrollToIndex({ index, viewPosition: 0.35, animated: false });
+          }, 180);
         }}
+        ListHeaderComponent={
+          <View style={styles.chapterHead}>
+            <Text
+              style={{
+                fontFamily: "Literata",
+                fontSize: TYPE.chapterHead.size,
+                letterSpacing: TYPE.chapterHead.tracking,
+                lineHeight: leading(TYPE.chapterHead.size, TYPE.chapterHead.ratio),
+                color: palette.mutedInk,
+                textTransform: "uppercase",
+                textAlign: "center",
+              }}
+            >
+              {chapterLabel(passage.chapterKey)}
+            </Text>
+            <View style={[styles.rule, { backgroundColor: palette.divider }]} />
+          </View>
+        }
+        ListFooterComponent={
+          <Text
+            style={{
+              fontSize: TYPE.meta.size,
+              color: palette.mutedInk,
+              textAlign: "center",
+              marginTop: SPACE.xl,
+            }}
+          >
+            {chapterTranslation(passage.chapterKey)}
+          </Text>
+        }
         renderItem={({ item }) => (
           <Pressable
-            onPress={() => onVersePress(item.number)}
-            onLongPress={() => onVersePress(item.number)}
-            style={{
-              backgroundColor: isSelected(item.number) ? palette.selection : "transparent",
-              borderRadius: 4,
-              paddingHorizontal: SPACE.xs,
-            }}
+            onPress={(event) => onVersePress(item.number, event.nativeEvent.pageY)}
+            onLongPress={(event) => onVersePress(item.number, event.nativeEvent.pageY)}
+            style={({ pressed }) => [
+              styles.verseRow,
+              {
+                backgroundColor: isSelected(item.number)
+                  ? palette.selection
+                  : pressed
+                    ? palette.selection
+                    : "transparent",
+              },
+            ]}
           >
             <Text
               style={{
                 fontFamily: "Literata",
                 fontSize: TYPE.scripture.size,
+                letterSpacing: TYPE.scripture.tracking,
                 lineHeight: leading(TYPE.scripture.size, TYPE.scripture.ratio),
                 color: palette.ink,
-                marginBottom: SPACE.sm,
               }}
             >
               <Text style={{ fontSize: TYPE.meta.size, color: palette.mutedInk }}>
-                {item.number}{"  "}
+                {item.number}
+                {"  "}
               </Text>
               {item.text}
             </Text>
@@ -169,29 +217,11 @@ export default function ReaderScreen() {
       />
 
       {selection !== null ? (
-        <View
-          style={[
-            styles.actionRow,
-            {
-              borderTopColor: palette.divider,
-              backgroundColor: palette.paper,
-              paddingBottom: insets.bottom + SPACE.sm,
-            },
-          ]}
-        >
-          <Pressable
-            onPress={() => setUnderstandOpen(true)}
-            style={[styles.primaryAction, { backgroundColor: palette.accent }]}
-            accessibilityRole="button"
-          >
-            <Text style={{ color: palette.paper, fontSize: TYPE.claim.size }}>
-              Understand {selectionLabel} →
-            </Text>
-          </Pressable>
-          <Text style={{ color: palette.mutedInk, fontSize: TYPE.meta.size }}>
-            Original · Compare · ⋯
-          </Text>
-        </View>
+        <SelectionPill
+          label={selectionLabel}
+          anchorY={anchorY}
+          onUnderstand={() => setUnderstandOpen(true)}
+        />
       ) : null}
 
       <Modal
@@ -216,34 +246,37 @@ export default function ReaderScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
+  chrome: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    // At accessibility sizes these two labels grow into each other and the
+    // chevron clips off the edge, so they are allowed to wrap and shrink.
+    flexWrap: "wrap",
+    columnGap: SPACE.md,
+    rowGap: SPACE.xs,
     paddingHorizontal: SPACE.lg,
     paddingBottom: SPACE.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   readerBody: {
     paddingHorizontal: SPACE.lg,
-    paddingTop: SPACE.lg,
-    paddingBottom: SPACE.xl * 3,
+    paddingBottom: SPACE.xxl * 2,
   },
-  actionRow: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: SPACE.lg,
-    paddingTop: SPACE.md,
-    flexDirection: "row",
+  chapterHead: {
     alignItems: "center",
-    justifyContent: "space-between",
+    paddingTop: SPACE.lg,
+    paddingBottom: SPACE.xl,
   },
-  primaryAction: {
-    paddingVertical: SPACE.sm,
-    paddingHorizontal: SPACE.md,
-    borderRadius: 6,
+  rule: {
+    height: StyleSheet.hairlineWidth,
+    width: 56,
+    marginTop: SPACE.md,
+  },
+  verseRow: {
+    borderRadius: 5,
+    paddingHorizontal: SPACE.sm,
+    paddingVertical: SPACE.xs,
+    marginHorizontal: -SPACE.sm,
+    marginBottom: SPACE.sm,
   },
 });

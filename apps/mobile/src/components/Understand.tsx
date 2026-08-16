@@ -10,7 +10,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import type { Claim, VerseEntry } from "@yada/schema";
 import type { Script } from "../data/passages";
-import { leading, METADATA_LABEL, SPACE, TYPE, usePalette } from "../design/tokens";
+import { leading, LTR_PROSE, METADATA_LABEL, SPACE, TYPE, usePalette } from "../design/tokens";
 import { ClaimList } from "./Claims";
 import { Original } from "./Original";
 
@@ -47,12 +47,17 @@ export function Understand({
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.paper }}>
-      <ScrollView contentContainerStyle={styles.body}>
+      <View style={styles.grabberWell}>
+        <View style={[styles.grabber, { backgroundColor: palette.divider }]} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         <Text style={[METADATA_LABEL, { color: palette.mutedInk }]}>{reference}</Text>
         <Text
           style={{
             fontFamily: "Literata",
             fontSize: TYPE.scripture.size,
+            letterSpacing: TYPE.scripture.tracking,
             lineHeight: leading(TYPE.scripture.size, TYPE.scripture.ratio),
             color: palette.ink,
             marginTop: SPACE.sm,
@@ -61,13 +66,18 @@ export function Understand({
           {verseText}
         </Text>
 
+        <View style={[styles.hairline, { backgroundColor: palette.divider }]} />
+
         <Text
-          style={{
-            fontSize: TYPE.explanation.size,
-            lineHeight: leading(TYPE.explanation.size, TYPE.explanation.ratio),
-            color: palette.ink,
-            marginTop: SPACE.lg,
-          }}
+          style={[
+            LTR_PROSE,
+            {
+              fontSize: TYPE.explanation.size,
+              letterSpacing: TYPE.explanation.tracking,
+              lineHeight: leading(TYPE.explanation.size, TYPE.explanation.ratio),
+              color: palette.ink,
+            },
+          ]}
         >
           {entry.whats_happening}
         </Text>
@@ -108,12 +118,15 @@ export function Understand({
                 Word-for-word gloss, derived from alignment data.
               </Text>
               <Text
-                style={{
-                  fontSize: TYPE.claim.size,
-                  lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
-                  color: palette.ink,
-                  marginTop: SPACE.sm,
-                }}
+                style={[
+                  LTR_PROSE,
+                  {
+                    fontSize: TYPE.claim.size,
+                    lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
+                    color: palette.ink,
+                    marginTop: SPACE.sm,
+                  },
+                ]}
               >
                 {entry.close_rendering}
               </Text>
@@ -128,12 +141,15 @@ export function Understand({
           <View style={{ marginTop: SPACE.xl }}>
             <Text style={[METADATA_LABEL, { color: palette.mutedInk }]}>Why this translation</Text>
             <Text
-              style={{
-                fontSize: TYPE.claim.size,
-                lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
-                color: palette.ink,
-                marginTop: SPACE.sm,
-              }}
+              style={[
+                LTR_PROSE,
+                {
+                  fontSize: TYPE.claim.size,
+                  lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
+                  color: palette.ink,
+                  marginTop: SPACE.sm,
+                },
+              ]}
             >
               {entry.translation_note}
             </Text>
@@ -226,6 +242,20 @@ function groupClaims(claims: Claim[]): { seen: Claim[]; differs: Claim[] } {
 }
 
 const styles = StyleSheet.create({
+  grabberWell: {
+    alignItems: "center",
+    paddingTop: SPACE.sm,
+    paddingBottom: SPACE.xs,
+  },
+  grabber: {
+    width: 36,
+    height: 5,
+    borderRadius: 3,
+  },
+  hairline: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: SPACE.lg,
+  },
   body: {
     padding: SPACE.lg,
     paddingBottom: SPACE.xl * 2,

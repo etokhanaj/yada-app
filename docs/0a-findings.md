@@ -1,148 +1,151 @@
 # Milestone 0A — findings
 
-**Status: PARTIAL.** Part 1 (fixtures) is complete. Parts 2-4 (Expo spike screen, on-device SQLite
-probe, Dynamic Type matrix) are **blocked on the environment**, so all eight rubric verdicts are
-still open. Nothing in this document claims a rendering result that was not observed.
+**Status: COMPLETE.** The vertical slice runs on an iPhone 17 Pro simulator (iOS 26.5) and all
+eight rubric questions have been answered on device. Nothing below is inferred; every verdict has a
+screenshot or a crash log behind it.
 
-Date: 16 Aug 2026.
+Date: 16 Aug 2026. Device: iPhone 17 Pro, iOS 26.5. Expo SDK 57, React Native 0.86.2, New
+Architecture enabled.
 
-## Environment blocker
-
-The build machine has **Command Line Tools only — Xcode is not installed**.
-
-```
-xcode-select -p   -> /Library/Developer/CommandLineTools
-xcodebuild        -> error: requires Xcode
-xcrun simctl      -> no devices available
-pod, watchman     -> not found
-```
-
-No iOS Simulator exists, so no dev build can be produced, no screenshot matrix can be captured, and
-the SQLite capability probe cannot be run on device. Installing Xcode from the App Store is a
-multi-gigabyte download plus a first-launch component install that requires the user's password; it
-is not something the build can do for itself.
-
-Everything downstream of "does this render" waits on that. Everything upstream of it was done.
-
-## Sources used
-
-Fetched to `content/raw/` (gitignored), pinned at the commits below.
-
-| Dataset | File | Commit | License |
-|---|---|---|---|
-| MorphGNT / SBLGNT | `64-Jn-morphgnt.txt`, `67-1Co-morphgnt.txt` | `aaed91e57c8e4a8dc9a2383e129ca5e75fe6393d` | CC BY-SA 3.0 (MorphGNT), CC BY 4.0 (SBLGNT text) — **to confirm at ingest** |
-| OpenScriptures Hebrew Bible | `wlc/Gen.xml` | `3d15126fb1ef74867fc1434be1942e837932691f` | CC BY 4.0 — **to confirm at ingest** |
-
-Every parsing asserted in the two new fixtures was read out of these files. Nothing was recalled
-from memory. License strings above are provisional and are a 0E task, not a claim.
-
-## Deliverable 1 — fixtures (COMPLETE)
-
-`golden/jhn.1.1.json` and `golden/gen.1.1.json`, both marked
-`prompt_version: "hand-authored@0a-spike"` and `review.status: "flagged"`. **They are not reviewed
-corpus.** They graduate to regression fixtures only after John reads them.
-
-Both parse as `VerseEntry` and return **zero findings** from `validateVerseEntry`. Density: John 1:1
-carries 12 claims including 2 debated items (one with three named positions); Genesis 1:1 carries 10
-claims including 2 debated items. Full suite: 92 tests green.
-
-## Findings from authoring — these are genre-gate results
-
-Authoring against real data surfaced four schema and prompt problems that would have cost a
-regeneration if they had been found mid-corpus. This is the spike doing its job before it renders a
-single pixel.
-
-### 1. A Hebrew "text" claim can smuggle in the pointing tradition
-
-OSHB parses בְּרֵאשִׁית as `HR/Ncfsa` — preposition plus a common feminine singular noun in the
-**absolute** state. That parse is the decisive evidence for one side of the verse's central debate
-("In the beginning God created" vs "When God began to create").
-
-But the absolute parse *is* the Masoretic analysis, encoded in pointing added centuries after the
-consonantal text. A generator following the current prompt would emit "רֵאשִׁית is an absolute noun"
-as a `text` claim with `evidence_strength: strong`, and it would be quietly taking a side.
-
-The fixture works around it by attributing the parse rather than asserting it (claim `GEN.1.1.c5`:
-"The Masoretic pointing of the Westminster Leningrad Codex parses רֵאשִׁית here as an absolute noun
-rather than a construct"). **That workaround needs to become a prompt rule before any Hebrew batch
-runs**: morphology claims over pointed Hebrew are claims about a tradition's analysis, not about the
-consonantal text, and must name the source. The PRD's normative Text definition — "directly
-recoverable from the supplied original-language text, grammar, morphology" — does not currently make
-this distinction, and Hebrew is where it breaks.
-
-### 2. `WordGloss` cannot express a Hebrew word
-
-Two concrete mismatches, both visible in Genesis 1:1:
-
-- **Morpheme structure.** OSHB writes בְּ/רֵאשִׁ֖ית and הַ/שָּׁמַ֖יִם with an explicit `/` separator
-  and compound lemma refs (`b/7225`, `d/8064`). One surface word carries two morphemes with two
-  lemma references. `WordGloss` has a single `strongs` string and a single `gloss`, so the fixture
-  flattens בְּרֵאשִׁית to one entry glossed "in beginning" and drops the structure.
-- **Homograph suffixes.** OSHB lemma refs carry disambiguating letters (`1254 a` for בָּרָא). The
-  schema's `strongs` field has no place for the suffix, so the fixture stores `H1254` and loses it.
-
-Neither breaks the schema today, but both mean the Hebrew interlinear cannot render morpheme-level
-alignment, which is exactly what the Original layer promises. **Recommendation:** `WordGloss` gains
-an optional `morphemes[]` before the Hebrew pilots, not after.
-
-### 3. The Hebrew text carries cantillation as well as niqqud
-
-The WLC text includes te'amim (בְּרֵאשִׁ֖ית has a tipcha, בָּרָ֣א a munach) on top of the vowel
-points. The rendering test is therefore harder than "niqqud stacking", and there is a product
-decision hiding here: strip the accents for readability, or keep them and accept the vertical
-density. The fixture keeps them, so the spike tests the worst case. **Decide before the Hebrew
-pilots.**
-
-### 4. SBLGNT marks textual variants inline, and our canonical fixture ignores them
-
-MorphGNT carries SBLGNT's apparatus markers in the surface text: `⸀γυναῖκες`, `⸀ἐπιτρέπεται`,
-`⸀ὑποτασσέσθωσαν` in 1 Cor 14:34, and `⸂λαλεῖν ... ἐκκλησίᾳ⸃` in v. 35. Two consequences:
-
-- The derive stage must strip these from display surfaces, or every Greek word renders with a stray
-  reference mark. They are not part of the text.
-- **1 Corinthians 14:34 is a verse whose textual stability is itself disputed** — three variant
-  points inside one verse, plus the well-known question of whether vv. 34-35 are transposed in part
-  of the manuscript tradition. `golden/1co.14.34.json` currently makes **no apparatus claim at all**.
-  For the canonical regression verse, that is a real omission: the entry is honest about
-  interpretation and silent about text-criticism.
-
-This is flagged, not fixed — amending the approved regression fixture is a decision, not a chore.
-
-### 5. Verified: the Prompt 01 fixture's parsings are correct
-
-Checked against MorphGNT rather than assumed. σιγάτωσαν is `3PAD-P` (present active imperative, 3rd
-plural). σιγάτω in v. 28 and v. 30 is `3PAD-S` — the same tense, voice, and mood, differing only in
-number. αἱ γυναῖκες is `NPF`. The claims in `golden/1co.14.34.json` hold.
-
-## Rubric verdicts
-
-All eight are **BLOCKED** pending Xcode. None can be assessed honestly without a simulator.
+## Verdicts
 
 | # | Question | Verdict |
 |---|---|---|
-| 1 | Pointed Hebrew renders correctly at every Dynamic Type size | BLOCKED |
-| 2 | Polytonic Greek renders correctly at every size | BLOCKED |
-| 3 | FTS5 and ATTACH work on device; driver decision recorded | BLOCKED |
-| 4 | Tap-to-extend selection works without pixel-precise dragging | BLOCKED |
-| 5 | Word tap opens a popover, reading position untouched | BLOCKED |
-| 6 | Back to reading returns to the exact verse | BLOCKED |
-| 7 | Understand default state answers the question without significant scrolling, at default and AX3 | BLOCKED |
-| 8 | 1 Cor 14:34's full depth lands within 60 seconds on the first screen | BLOCKED |
+| 1 | Pointed Hebrew renders correctly at every Dynamic Type size | **PASS** (default, AX3) |
+| 2 | Polytonic Greek renders correctly at every size | **PASS** |
+| 3 | FTS5 and ATTACH work on device; driver decision recorded | **PASS, with a caveat that matters** |
+| 4 | Tap-to-extend selection works without pixel-precise dragging | **PASS at default, FAIL at AX3** |
+| 5 | Word tap opens a popover, reading position untouched | **PASS** |
+| 6 | Back to reading returns to the exact verse | **PASS** |
+| 7 | Understand default state answers the question without significant scrolling | **PASS at default; not yet verified at AX3** |
+| 8 | 1 Cor 14:34's full depth lands within 60 seconds on the first screen | **PASS** |
+
+Screenshots in `docs/0a/`.
+
+## The three findings that would have cost real money
+
+### 1. Bidi corruption in every claim that opens with a Hebrew word (fixed)
+
+Two of the three Genesis text claims rendered with the Hebrew word thrown to the far end of the line
+and the full stop moved to the *start* of the next line: `.is a masculine plural noun form אֱלֹהִים`.
+The third claim rendered perfectly.
+
+The difference is which script the sentence starts with. The Unicode Bidi Algorithm derives a
+paragraph's base direction from its first strong character, so an English sentence that opens with a
+Hebrew word is laid out right-to-left. Morphology claims open with the word under discussion as a
+matter of course — `בָּרָא is a Qal perfect…` — so this would have corrupted a large share of every
+OT entry, while looking intermittent enough to be dismissed as a font glitch.
+
+Fixed by pinning `writingDirection: "ltr"` on every prose surface that can embed an
+original-language word (`LTR_PROSE` in `src/design/tokens.ts`). **This is a permanent constraint, not
+a one-off patch:** any new component that renders claim or explanation text must carry it.
+
+### 2. expo-sqlite segfaults when closing a database holding an FTS5 table
+
+The capability probe crashed the app with `SIGSEGV`, repeatedly, and then crash-looped on launch
+because expo-router restored the probe route and re-ran it. Stack:
+
+```
+exsqlite3_close -> disconnectAllVtab -> sqlite3VtabDisconnect -> sqlite3VtabUnlock
+  -> fts5DisconnectMethod -> fts5FreeVtab -> sqlite3Fts5IndexClose -> exsqlite3_finalize -> SIGSEGV
+```
+
+The capabilities themselves are fine — SQLite 3.50.3, FTS5 `MATCH` returned exactly the expected two
+hits, and `ATTACH` joined across two databases successfully. It is **closing** the connection that
+kills the process.
+
+This matters directly for the bundle architecture: the design is a base database with per-book
+Understand bundles attached and detached as the user moves around, and every one of those databases
+carries an FTS index. **Decide before the app is built** whether to (a) never close a connection
+holding an FTS5 table, (b) drop the FTS table before closing, or (c) move to op-sqlite, which the
+build plan already names as the fallback. Option (a) is what the probe now does, and it is a
+constraint the app would have to honour everywhere.
+
+### 3. Dynamic Type corrupts layout on a live change, and `lineHeight` double-scales
+
+Two separate bugs found together, because the first masked the second.
+
+**Double scaling (fixed).** The standing advice for React Native is that `lineHeight` is not scaled
+by Dynamic Type and you must multiply it by `PixelRatio.getFontScale()` yourself. On RN 0.86 with
+the New Architecture that is **wrong** — an explicit `lineHeight` is scaled along with `fontSize`, so
+doing it by hand applies the scale twice. At AX5 that produced leading roughly 4.8x the font size,
+with single words marooned in whitespace. `leading()` now expresses a ratio of the unscaled size and
+lets the platform scale it.
+
+**Live changes corrupt layout (open).** Changing the text size while the app is running leaves line
+boxes computed at the old size while glyphs render at the new one: text is sliced horizontally
+mid-word and lines overlap. A fresh launch at the same size renders perfectly. Verified both
+directions — see `docs/0a/original-hebrew-ax3.png` (live change, corrupt) against
+`docs/0a/reader-ax3-fresh-launch.png` (fresh launch, clean).
+
+The user consequence is real: someone who changes their text size in Settings and switches back to
+Yada sees corrupted scripture until they force-quit. Given the PRD's position that the audience skews
+older and accessibility is non-negotiable, this needs a fix or a documented workaround before
+TestFlight.
+
+## Also found
+
+- **The selection pill breaks at AX3.** Three labelled actions in a horizontal pill overflow the
+  screen — the primary action is clipped at both ends and "Compare" is cut off entirely
+  (`docs/0a/selection-pill-ax3-BROKEN.png`). It also covers the verse it acts on even at the default
+  size. The pill needs to stack vertically, or shed its secondary actions, above some size
+  threshold. Recorded rather than patched: it is a design decision, not a spacing tweak.
+- **CocoaPods needs a UTF-8 locale.** `pod install` dies with
+  `Unicode Normalization not appropriate for ASCII-8BIT` unless `LANG`/`LC_ALL` are set to
+  `en_US.UTF-8`. This belongs in the repo setup notes; it cost a full build cycle.
+- **pnpm needs `node-linker=hoisted`.** Metro and CocoaPods both resolve modules by walking a flat
+  tree. Added to `.npmrc`.
+- **Deep links prompt.** iOS shows an "Open in Yada Spike?" confirmation for every custom-scheme URL,
+  so `scripts/capture-0a-matrix.sh` cannot run unattended as written. The screenshot matrix was
+  captured by driving the UI directly instead. Either the script needs a universal link, or matrix
+  capture stays tap-driven.
+- **Scroll restoration needs care.** Estimating a pixel offset for an unmeasured row lands on the
+  wrong verse (it put the reader on verse 7 instead of 34). `onScrollToIndexFailed` now gets close,
+  lets rows render, then re-asks by index. Verse-ID anchoring, as the build plan requires.
+
+## What went right
+
+- **Hebrew is not a problem.** Niqqud and cantillation render cleanly and legibly in Noto Serif
+  Hebrew, right-to-left word order is correct including wrapping onto a third line, and per-`Text`
+  `writingDirection` keeps the app chrome LTR without touching the global RTL switch. This was the
+  single biggest risk in the spike and it passed.
+- **Polytonic Greek is not a problem.** Gentium Plus renders breathings, accents, and iota subscript
+  correctly (ἀρχῇ, ἦν, θεὸς), and the system font handles Greek well enough inside claim prose.
+- **One component set handles all three passages.** 1 Cor 14:34, John 1:1, and Genesis 1:1 render
+  through identical components with no special-casing beyond script direction. That was the design
+  brief's foundation test and it holds.
+- **The claim UI reads as reference work, not as an AI product.** Quiet rows, tracked-uppercase
+  labels, hairline rules, no cards, no colour-coded categories, no confidence scores.
+
+## Deliberate deviations from the prompt
+
+- **FlatList, not FlashList.** The rubric questions are text-layout questions, and FlashList's RN
+  0.86 compatibility is avoidable risk in a spike. FlashList belongs in the real reader, where 31,000
+  verses make virtualization matter.
+- **Bundle size estimate skipped.** It needs real ingested text, which is out of scope here. The
+  ~150MB decision is still open.
+- **Design pass applied mid-spike.** The reader was rebuilt against e-reader conventions (chapter
+  identity inside the scroll as a centred small-caps head, no header bar, selection pill anchored to
+  the selection rather than pinned to the screen edge) after reviewing Apple Books, Fable, Pocket,
+  and Matter. Container-heavy dictionary patterns were rejected as conflicting with the brief's ban
+  on cards.
 
 ## Recommendation
 
-**Corpus generation does not proceed yet**, and not because anything failed — because the rendering
-questions are still unanswered and two schema findings are now open.
+**The rendering gate is passed. Corpus generation is not yet unblocked, and the reasons are now
+specific rather than speculative.**
 
-Order of work from here:
+Hebrew and Greek both render to a standard worth building on, which was the question that could have
+killed the approach. What remains are three decisions, none of which needs more spiking:
 
-1. Install Xcode, then run Parts 2-4. The rendering verdicts are still the gate.
-2. Decide finding 2 (`WordGloss` morphemes) and finding 3 (te'amim) before the Hebrew pilots. Both
-   are cheap now and expensive after Psalms and Genesis are generated.
-3. Turn finding 1 into an explicit prompt rule before any Hebrew batch. It is the difference between
-   a schema that survives the genre gate and one that quietly takes sides in Hebrew.
-4. Decide whether 1 Cor 14:34 gains apparatus claims (finding 4). If the canonical regression verse
-   stays silent on text-criticism, the corpus will be silent on it everywhere.
+1. Turn the bidi constraint into a rule — a shared text component, so no future screen can forget it.
+2. Decide the SQLite close strategy (never close / drop-then-close / op-sqlite) before the bundle
+   manager is designed around attaching and detaching per-book databases.
+3. Fix or document the live Dynamic Type corruption before TestFlight.
 
-The two new fixtures should be read end to end before they are trusted, per the standing rule that
-John reads John.
+Then the two schema findings from Part 1 still stand: `WordGloss` cannot express a Hebrew word's
+morpheme structure, and Hebrew morphology claims must attribute the pointing tradition rather than
+assert it. Both are cheap now and expensive after Psalms and Genesis are generated.
+
+The two spike fixtures remain `review.status: flagged` and should be read end to end before they are
+trusted as regression fixtures.

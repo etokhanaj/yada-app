@@ -9,8 +9,8 @@
  */
 
 import * as SQLite from "expo-sqlite";
-import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { leading, METADATA_LABEL, SPACE, TYPE, usePalette } from "../design/tokens";
 
@@ -70,8 +70,6 @@ async function runProbes(): Promise<ProbeResult[]> {
       CREATE TABLE entries (verse_id TEXT PRIMARY KEY, claims INTEGER);
       INSERT INTO entries VALUES ('JHN.1.1', 12), ('GEN.1.1', 10);
     `);
-    await bundle.closeAsync();
-
     const directory = (SQLite as unknown as { defaultDatabaseDirectory?: string })
       .defaultDatabaseDirectory;
     const attachPath =
@@ -99,29 +97,31 @@ async function runProbes(): Promise<ProbeResult[]> {
     results.push({ name: "ATTACH + cross-database join", passed: false, detail: String(error) });
   }
 
-  await base.closeAsync();
+  // NOT closing `base`. Closing a connection that holds an FTS5 virtual table
+  // segfaults inside expo-sqlite (see docs/0a-findings.md, rubric item 3):
+  //   exsqlite3_close -> disconnectAllVtab -> fts5DisconnectMethod
+  //     -> fts5FreeVtab -> sqlite3Fts5IndexClose -> SIGSEGV
+  // Leaving it open lets the rest of the probe report honestly.
   return results;
 }
 
 export default function ProbeScreen() {
   const palette = usePalette();
   const [results, setResults] = useState<ProbeResult[] | null>(null);
+  const [running, setRunning] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Run on an explicit tap, never on mount: a probe that runs on mount and then
+  // crashes natively takes the app down on every launch, because the router
+  // restores this route and immediately re-runs it.
+  function start(): void {
+    setRunning(true);
     runProbes()
-      .then((r) => {
-        if (!cancelled) setResults(r);
-      })
+      .then(setResults)
       .catch((error: unknown) => {
-        if (!cancelled) {
-          setResults([{ name: "Probe crashed", passed: false, detail: String(error) }]);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+        setResults([{ name: "Probe threw", passed: false, detail: String(error) }]);
+      })
+      .finally(() => setRunning(false));
+  }
 
   return (
     <ScrollView
@@ -130,7 +130,11 @@ export default function ProbeScreen() {
     >
       <Text style={[METADATA_LABEL, { color: palette.mutedInk }]}>SQLite capability probe</Text>
       {results === null ? (
-        <Text style={{ color: palette.mutedInk, marginTop: SPACE.md }}>Running…</Text>
+        <Pressable onPress={start} disabled={running} style={{ marginTop: SPACE.lg }}>
+          <Text style={{ color: palette.accent, fontSize: TYPE.explanation.size }}>
+            {running ? "Running…" : "Run probe →"}
+          </Text>
+        </Pressable>
       ) : (
         results.map((result) => (
           <View

@@ -12,7 +12,7 @@ import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import type { Claim } from "@yada/schema";
-import { leading, METADATA_LABEL, SPACE, TYPE, usePalette } from "../design/tokens";
+import { leading, LTR_PROSE, METADATA_LABEL, SPACE, TYPE, usePalette } from "../design/tokens";
 
 function strengthLabel(claim: Claim): string {
   return `${claim.category} · ${claim.evidence_strength}`;
@@ -28,18 +28,26 @@ export function ClaimList({ claims }: { claims: Claim[] }) {
         <Pressable
           key={claim.id}
           onPress={() => setOpen(claim)}
-          style={[styles.row, { borderTopColor: palette.divider }]}
+          style={({ pressed }) => [
+            styles.row,
+            { borderTopColor: palette.divider },
+            // Feedback on press-in: waiting for release feels dead.
+            pressed ? { backgroundColor: palette.selection } : null,
+          ]}
           accessibilityRole="button"
           accessibilityHint="Opens why we say that"
         >
           <Text style={[METADATA_LABEL, { color: palette.mutedInk }]}>{strengthLabel(claim)}</Text>
           <Text
-            style={{
-              fontSize: TYPE.claim.size,
-              lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
-              color: palette.ink,
-              marginTop: SPACE.xs,
-            }}
+            style={[
+              LTR_PROSE,
+              {
+                fontSize: TYPE.claim.size,
+                lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
+                color: palette.ink,
+                marginTop: SPACE.xs,
+              },
+            ]}
           >
             {claim.claim}
           </Text>
@@ -77,12 +85,15 @@ function WhySheet({ claim, onDismiss }: { claim: Claim | null; onDismiss: () => 
         <ScrollView contentContainerStyle={styles.sheetBody}>
           <Text style={[METADATA_LABEL, { color: palette.mutedInk }]}>Why do we say that?</Text>
           <Text
-            style={{
-              fontSize: TYPE.explanation.size,
-              lineHeight: leading(TYPE.explanation.size, TYPE.explanation.ratio),
-              color: palette.ink,
-              marginTop: SPACE.sm,
-            }}
+            style={[
+              LTR_PROSE,
+              {
+                fontSize: TYPE.explanation.size,
+                lineHeight: leading(TYPE.explanation.size, TYPE.explanation.ratio),
+                color: palette.ink,
+                marginTop: SPACE.sm,
+              },
+            ]}
           >
             {claim.claim}
           </Text>
@@ -100,12 +111,15 @@ function WhySheet({ claim, onDismiss }: { claim: Claim | null; onDismiss: () => 
               {claim.evidence.map((evidence, index) => (
                 <Text
                   key={index}
-                  style={{
-                    fontSize: TYPE.claim.size,
-                    lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
-                    color: palette.ink,
-                    marginBottom: SPACE.xs,
-                  }}
+                  style={[
+                    LTR_PROSE,
+                    {
+                      fontSize: TYPE.claim.size,
+                      lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
+                      color: palette.ink,
+                      marginBottom: SPACE.xs,
+                    },
+                  ]}
                 >
                   {evidence.type === "verse"
                     ? `${evidence.ref}${evidence.note === undefined ? "" : ` — ${evidence.note}`}`
@@ -133,12 +147,15 @@ function WhySheet({ claim, onDismiss }: { claim: Claim | null; onDismiss: () => 
                     {position.label}
                   </Text>
                   <Text
-                    style={{
-                      fontSize: TYPE.claim.size,
-                      lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
-                      color: palette.ink,
-                      marginTop: SPACE.xs,
-                    }}
+                    style={[
+                      LTR_PROSE,
+                      {
+                        fontSize: TYPE.claim.size,
+                        lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
+                        color: palette.ink,
+                        marginTop: SPACE.xs,
+                      },
+                    ]}
                   >
                     {position.case}
                   </Text>
