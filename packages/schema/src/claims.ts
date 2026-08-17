@@ -48,14 +48,33 @@ export const VerseEvidenceRefSchema = z.object({
 });
 
 /**
- * Strong's number, with an optional homograph letter: `G4601`, `H1254`,
- * `H7462b`. Source datasets write the homograph separately (OSHB: `7462 b`);
- * Yada folds it onto the end, because dropping it silently merges two distinct
- * lexemes.
+ * Strong's number: testament letter, **at least four digits, zero-padded**, and
+ * an optional homograph letter — `G4601`, `G0746`, `H1254a`, `H0430`.
+ *
+ * The padding is load-bearing, not cosmetic. `G746` and `G0746` are the same
+ * number and different strings, so a corpus mixing them joins against a lexicon
+ * for some words and silently fails for others. The STEPBible lexicons (TBESG,
+ * TBESH) both write the padded form, so that is the form Yada canonicalises to;
+ * OSHB writes the bare number and is padded on the way in.
+ *
+ * Source datasets write the homograph separately (OSHB: `7462 b`); Yada folds it
+ * onto the end, because dropping it silently merges two distinct lexemes.
  */
 export const StrongsSchema = z
   .string()
-  .regex(/^[GH]\d{1,5}[a-z]?$/, "expected a Strong's number such as G4601 or H7462b");
+  .regex(/^[GH]\d{4,5}[a-z]?$/, "expected a zero-padded Strong's number such as G0746 or H7462b");
+
+/**
+ * Fold any of the spellings in the wild onto the canonical one. Accepts a bare
+ * or padded number, with or without a homograph letter, and with the letter
+ * either attached or space-separated as OSHB writes it.
+ */
+export function canonicalStrongs(raw: string, testament: "G" | "H"): string | undefined {
+  const match = /^([GH])?\s*(\d{1,5})\s*([a-z])?$/.exec(raw.trim());
+  if (match === null) return undefined;
+  const prefix = match[1] ?? testament;
+  return `${prefix}${(match[2] as string).padStart(4, "0")}${match[3] ?? ""}`;
+}
 
 export const LexicalEvidenceRefSchema = z.object({
   type: z.literal("lexical"),

@@ -4,11 +4,18 @@
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
+  "bin": {
+    "yada": "./src/cli.ts"
+  },
   "scripts": {
+    "yada": "node --experimental-strip-types src/cli.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@yada/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.12"
   }
 }

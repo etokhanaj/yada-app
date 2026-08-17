@@ -1,11 +1,11 @@
 {
   "verse_id": "1CO.14.34",
   "pericope_id": "1CO.14.26-14.40",
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "prompt_version": "verse@0.1.0-seed",
   "gloss": [
     {
-      "surface": "αἱ",
+      "surface": "Αἱ",
       "translit": "hai",
       "gloss": "the",
       "strongs": "G3588"
@@ -62,7 +62,7 @@
       "surface": "αὐταῖς",
       "translit": "autais",
       "gloss": "to them",
-      "strongs": "G846"
+      "strongs": "G0846"
     },
     {
       "surface": "λαλεῖν",
@@ -74,7 +74,7 @@
       "surface": "ἀλλὰ",
       "translit": "alla",
       "gloss": "but",
-      "strongs": "G235"
+      "strongs": "G0235"
     },
     {
       "surface": "ὑποτασσέσθωσαν",
@@ -310,7 +310,7 @@
             {
               "type": "lexical",
               "lemma": "ἀνήρ",
-              "strongs": "G435",
+              "strongs": "G0435",
               "dataset": "STEP lexicon",
               "note": "'their own men' in v. 35 is the standard idiom for husbands"
             }

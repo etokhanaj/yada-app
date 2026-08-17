@@ -30,8 +30,13 @@ import {
  * 1.2.0 — Versification: verse 0 addresses a superscription (see TITLE_VERSE),
  * and entries may name the numbering tradition their ids follow. Psalm titles
  * had no address at all before this, which is what the genre gate found.
+ *
+ * 1.3.0 — Strong's numbers are zero-padded to four digits (`G0746`, `H0430`).
+ * The old pattern accepted both spellings of the same number, so a corpus could
+ * join to a lexicon for some words and silently miss for others. Breaking: every
+ * existing `strongs` value with fewer than four digits is now invalid.
  */
-export const SCHEMA_VERSION = "1.2.0";
+export const SCHEMA_VERSION = "1.3.0";
 
 const SemverSchema = z.string().regex(/^\d+\.\d+\.\d+$/, "expected a semver string");
 

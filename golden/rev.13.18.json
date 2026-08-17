@@ -1,7 +1,7 @@
 {
   "verse_id": "REV.13.18",
   "pericope_id": "REV.13.11-13.18",
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "prompt_version": "hand-authored@genre-gate",
   "gloss": [
     {
@@ -71,7 +71,7 @@
       "surface": "ἀριθμὸν",
       "translit": "arithmon",
       "gloss": "number",
-      "strongs": "G706",
+      "strongs": "G0706",
       "morph": "N- ----ASM-"
     },
     {
@@ -92,7 +92,7 @@
       "surface": "ἀριθμὸς",
       "translit": "arithmos",
       "gloss": "number",
-      "strongs": "G706",
+      "strongs": "G0706",
       "morph": "N- ----NSM-"
     },
     {
@@ -106,7 +106,7 @@
       "surface": "ἀνθρώπου",
       "translit": "anthrōpou",
       "gloss": "of a man",
-      "strongs": "G444",
+      "strongs": "G0444",
       "morph": "N- ----GSM-"
     },
     {
@@ -134,14 +134,14 @@
       "surface": "ἀριθμὸς",
       "translit": "arithmos",
       "gloss": "number",
-      "strongs": "G706",
+      "strongs": "G0706",
       "morph": "N- ----NSM-"
     },
     {
       "surface": "αὐτοῦ",
       "translit": "autou",
       "gloss": "of it",
-      "strongs": "G846",
+      "strongs": "G0846",
       "morph": "RP ----GSN-"
     },
     {
@@ -181,7 +181,7 @@
       "lemma": "ἄνθρωπος",
       "gloss": "of a man",
       "note": "Genitive and without the article, which leaves open whether a particular person or humanity in general is meant.",
-      "strongs": "G444"
+      "strongs": "G0444"
     },
     {
       "surface": "ἑξακόσιοι",
@@ -250,7 +250,7 @@
         {
           "type": "lexical",
           "lemma": "ἄνθρωπος",
-          "strongs": "G444",
+          "strongs": "G0444",
           "dataset": "MorphGNT/SBLGNT @ aaed91e",
           "note": "N- ----GSM- with no preceding RA"
         },
@@ -386,7 +386,7 @@
         {
           "type": "lexical",
           "lemma": "ἄνθρωπος",
-          "strongs": "G444",
+          "strongs": "G0444",
           "dataset": "MorphGNT/SBLGNT @ aaed91e"
         },
         {
