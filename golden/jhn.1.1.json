@@ -1,33 +1,114 @@
 {
   "verse_id": "JHN.1.1",
   "pericope_id": "JHN.1.1-1.18",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "prompt_version": "hand-authored@0a-spike",
-
   "gloss": [
-    { "surface": "Ἐν", "translit": "en", "gloss": "in", "strongs": "G1722" },
-    { "surface": "ἀρχῇ", "translit": "archē", "gloss": "beginning", "strongs": "G746" },
-    { "surface": "ἦν", "translit": "ēn", "gloss": "was", "strongs": "G1510" },
-    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588" },
-    { "surface": "λόγος", "translit": "logos", "gloss": "word", "strongs": "G3056" },
-    { "surface": "καὶ", "translit": "kai", "gloss": "and", "strongs": "G2532" },
-    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588" },
-    { "surface": "λόγος", "translit": "logos", "gloss": "word", "strongs": "G3056" },
-    { "surface": "ἦν", "translit": "ēn", "gloss": "was", "strongs": "G1510" },
-    { "surface": "πρὸς", "translit": "pros", "gloss": "with", "strongs": "G4314" },
-    { "surface": "τὸν", "translit": "ton", "gloss": "the", "strongs": "G3588" },
-    { "surface": "θεόν", "translit": "theon", "gloss": "God", "strongs": "G2316" },
-    { "surface": "καὶ", "translit": "kai", "gloss": "and", "strongs": "G2532" },
-    { "surface": "θεὸς", "translit": "theos", "gloss": "God", "strongs": "G2316" },
-    { "surface": "ἦν", "translit": "ēn", "gloss": "was", "strongs": "G1510" },
-    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588" },
-    { "surface": "λόγος", "translit": "logos", "gloss": "word", "strongs": "G3056" }
+    {
+      "surface": "Ἐν",
+      "translit": "en",
+      "gloss": "in",
+      "strongs": "G1722"
+    },
+    {
+      "surface": "ἀρχῇ",
+      "translit": "archē",
+      "gloss": "beginning",
+      "strongs": "G746"
+    },
+    {
+      "surface": "ἦν",
+      "translit": "ēn",
+      "gloss": "was",
+      "strongs": "G1510"
+    },
+    {
+      "surface": "ὁ",
+      "translit": "ho",
+      "gloss": "the",
+      "strongs": "G3588"
+    },
+    {
+      "surface": "λόγος",
+      "translit": "logos",
+      "gloss": "word",
+      "strongs": "G3056"
+    },
+    {
+      "surface": "καὶ",
+      "translit": "kai",
+      "gloss": "and",
+      "strongs": "G2532"
+    },
+    {
+      "surface": "ὁ",
+      "translit": "ho",
+      "gloss": "the",
+      "strongs": "G3588"
+    },
+    {
+      "surface": "λόγος",
+      "translit": "logos",
+      "gloss": "word",
+      "strongs": "G3056"
+    },
+    {
+      "surface": "ἦν",
+      "translit": "ēn",
+      "gloss": "was",
+      "strongs": "G1510"
+    },
+    {
+      "surface": "πρὸς",
+      "translit": "pros",
+      "gloss": "with",
+      "strongs": "G4314"
+    },
+    {
+      "surface": "τὸν",
+      "translit": "ton",
+      "gloss": "the",
+      "strongs": "G3588"
+    },
+    {
+      "surface": "θεόν",
+      "translit": "theon",
+      "gloss": "God",
+      "strongs": "G2316"
+    },
+    {
+      "surface": "καὶ",
+      "translit": "kai",
+      "gloss": "and",
+      "strongs": "G2532"
+    },
+    {
+      "surface": "θεὸς",
+      "translit": "theos",
+      "gloss": "God",
+      "strongs": "G2316"
+    },
+    {
+      "surface": "ἦν",
+      "translit": "ēn",
+      "gloss": "was",
+      "strongs": "G1510"
+    },
+    {
+      "surface": "ὁ",
+      "translit": "ho",
+      "gloss": "the",
+      "strongs": "G3588"
+    },
+    {
+      "surface": "λόγος",
+      "translit": "logos",
+      "gloss": "word",
+      "strongs": "G3056"
+    }
   ],
-
   "close_rendering": "In the beginning was the Word, and the Word was with God, and the Word was God.",
-
   "whats_happening": "John opens his Gospel not with a birth or a genealogy but before the world exists, using the same first words as the opening of Genesis. Three short clauses each use the same verb: the Word already was, the Word was with God, and the Word was God. The third clause is where the Greek repays close attention, because of what it does and does not put the article on.",
-
   "key_words": [
     {
       "surface": "λόγος",
@@ -58,9 +139,7 @@
       "strongs": "G2316"
     }
   ],
-
   "translation_note": "The third clause reads θεὸς ἦν ὁ λόγος in Greek, putting θεός first. English word order cannot show this, so every English translation makes a choice the Greek does not force.",
-
   "claims": [
     {
       "id": "JHN.1.1.c1",
@@ -70,8 +149,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "lexical", "lemma": "εἰμί", "strongs": "G1510", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "V- 3IAI-S--" },
-        { "type": "verse", "ref": "JHN.1.1" }
+        {
+          "type": "lexical",
+          "lemma": "εἰμί",
+          "strongs": "G1510",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "V- 3IAI-S--"
+        },
+        {
+          "type": "verse",
+          "ref": "JHN.1.1"
+        }
       ],
       "sources": [],
       "display_rank": 1
@@ -84,8 +172,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "JHN.1.1" },
-        { "type": "lexical", "lemma": "εἰμί", "strongs": "G1510", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "three occurrences, all V- 3IAI-S--" }
+        {
+          "type": "verse",
+          "ref": "JHN.1.1"
+        },
+        {
+          "type": "lexical",
+          "lemma": "εἰμί",
+          "strongs": "G1510",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "three occurrences, all V- 3IAI-S--"
+        }
       ],
       "sources": [],
       "display_rank": 2
@@ -98,8 +195,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "JHN.1.1" },
-        { "type": "lexical", "lemma": "θεός", "strongs": "G2316", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "N- ----NSM- with no preceding RA" }
+        {
+          "type": "verse",
+          "ref": "JHN.1.1"
+        },
+        {
+          "type": "lexical",
+          "lemma": "θεός",
+          "strongs": "G2316",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "N- ----NSM- with no preceding RA"
+        }
       ],
       "sources": [],
       "display_rank": 3
@@ -111,7 +217,12 @@
       "evidence_strength": "strong",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "JHN.1.1" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "JHN.1.1"
+        }
+      ],
       "sources": [],
       "display_rank": 4
     },
@@ -123,8 +234,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "lexical", "lemma": "θεός", "strongs": "G2316", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "N- ----ASM- preceded by RA ----ASM-" },
-        { "type": "verse", "ref": "JHN.1.1" }
+        {
+          "type": "lexical",
+          "lemma": "θεός",
+          "strongs": "G2316",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "N- ----ASM- preceded by RA ----ASM-"
+        },
+        {
+          "type": "verse",
+          "ref": "JHN.1.1"
+        }
       ],
       "sources": [],
       "display_rank": 5
@@ -137,8 +257,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "lexical", "lemma": "ἀρχή", "strongs": "G746", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "N- ----DSF-" },
-        { "type": "verse", "ref": "JHN.1.1" }
+        {
+          "type": "lexical",
+          "lemma": "ἀρχή",
+          "strongs": "G746",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "N- ----DSF-"
+        },
+        {
+          "type": "verse",
+          "ref": "JHN.1.1"
+        }
       ],
       "sources": [],
       "display_rank": 6
@@ -151,8 +280,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "JHN.1.3" },
-        { "type": "lexical", "lemma": "γίνομαι", "strongs": "G1096", "dataset": "MorphGNT/SBLGNT @ aaed91e", "note": "V- 3AMI-S--" }
+        {
+          "type": "verse",
+          "ref": "JHN.1.3"
+        },
+        {
+          "type": "lexical",
+          "lemma": "γίνομαι",
+          "strongs": "G1096",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "V- 3AMI-S--"
+        }
       ],
       "sources": [],
       "display_rank": 7
@@ -164,7 +302,12 @@
       "evidence_strength": "supported",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "JHN.1.1-1.18" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "JHN.1.1-1.18"
+        }
+      ],
       "sources": [],
       "display_rank": 8
     },
@@ -198,25 +341,48 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "JHN.1.1" },
-        { "type": "lexical", "lemma": "θεός", "strongs": "G2316", "dataset": "MorphGNT/SBLGNT @ aaed91e" }
+        {
+          "type": "verse",
+          "ref": "JHN.1.1"
+        },
+        {
+          "type": "lexical",
+          "lemma": "θεός",
+          "strongs": "G2316",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e"
+        }
       ],
       "sources": [],
       "positions": [
         {
           "label": "Qualitative",
           "case": "A predicate noun placed before the verb regularly drops the article in Greek, and doing so describes what something is by nature rather than identifying it with the person just named, so the clause says the Word shares God's nature without saying the Word is the Father.",
-          "evidence": [{ "type": "verse", "ref": "JHN.1.1" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "JHN.1.1"
+            }
+          ]
         },
         {
           "label": "Definite",
           "case": "The absence of the article carries no independent weight in this position, because pre-verbal predicate nouns commonly lack it, so θεός is as definite as the articular τὸν θεόν of the previous clause.",
-          "evidence": [{ "type": "verse", "ref": "JHN.1.1" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "JHN.1.1"
+            }
+          ]
         },
         {
           "label": "Indefinite",
           "case": "Read as an ordinary indefinite noun the clause says the Word was a god, a rendering adopted by the New World Translation and defended on the grounds that the writer distinguishes the articular θεόν from the anarthrous θεός deliberately.",
-          "evidence": [{ "type": "verse", "ref": "JHN.1.1" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "JHN.1.1"
+            }
+          ]
         }
       ],
       "display_rank": 1
@@ -229,8 +395,14 @@
       "confidence": "medium",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "JHN.1.1" },
-        { "type": "verse", "ref": "JHN.1.14" }
+        {
+          "type": "verse",
+          "ref": "JHN.1.1"
+        },
+        {
+          "type": "verse",
+          "ref": "JHN.1.14"
+        }
       ],
       "sources": [],
       "positions": [
@@ -238,20 +410,30 @@
           "label": "Personal from verse 1",
           "case": "The Word is said to be with God using a preposition of orientation toward a person, and the same subject continues unbroken into verse 14, so the personal reference is present from the opening clause.",
           "evidence": [
-            { "type": "verse", "ref": "JHN.1.1" },
-            { "type": "verse", "ref": "JHN.1.14" }
+            {
+              "type": "verse",
+              "ref": "JHN.1.1"
+            },
+            {
+              "type": "verse",
+              "ref": "JHN.1.14"
+            }
           ]
         },
         {
           "label": "Personified expression first",
           "case": "The prologue draws on wisdom language in which a divine attribute is spoken of as though it acted, and the decisive shift to a person occurs at verse 14 where the Word becomes flesh.",
-          "evidence": [{ "type": "verse", "ref": "JHN.1.14" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "JHN.1.14"
+            }
+          ]
         }
       ],
       "display_rank": 2
     }
   ],
-
   "related_passages": [
     {
       "ref": "GEN.1.1",
@@ -274,9 +456,10 @@
       "note": "The Gospel closes with Thomas addressing Jesus in the same terms the prologue opens with."
     }
   ],
-
   "review": {
     "status": "flagged",
-    "flags": ["hand-authored spike fixture, not reviewed corpus"]
+    "flags": [
+      "hand-authored spike fixture, not reviewed corpus"
+    ]
   }
 }

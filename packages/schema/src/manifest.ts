@@ -13,17 +13,29 @@ export const LicenseSchema = z.enum([
   "PUBLIC_DOMAIN",
   "CC0-1.0",
   "CC-BY-4.0",
+  "CC-BY-SA-3.0",
   "CC-BY-SA-4.0",
   "OFL-1.1",
   "CC-BY-NC-ND-4.0",
+  /**
+   * A bespoke publisher licence, not a standard open one. The SBLGNT *text* is
+   * the case this exists for: its annotations are CC BY-SA 3.0, but the text
+   * itself is issued under its own EULA. Never assume such terms are
+   * compatible — `isCommercialSafe` returns false until a human clears it.
+   */
+  "CUSTOM_EULA",
 ]);
 export type License = z.infer<typeof LicenseSchema>;
 
 /**
- * Licenses excluded from commercial builds (PRD §11.1: BY-NC-ND excluded).
- * Enforced at ingest, not later.
+ * Licenses excluded from commercial builds. PRD §11.1 excludes BY-NC-ND;
+ * bespoke terms are excluded by default, because "we have not read it yet" must
+ * fail closed rather than open.
  */
-const NON_COMMERCIAL_LICENSES: ReadonlySet<License> = new Set<License>(["CC-BY-NC-ND-4.0"]);
+const NON_COMMERCIAL_LICENSES: ReadonlySet<License> = new Set<License>([
+  "CC-BY-NC-ND-4.0",
+  "CUSTOM_EULA",
+]);
 
 export function isCommercialSafe(license: License): boolean {
   return !NON_COMMERCIAL_LICENSES.has(license);

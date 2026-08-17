@@ -1,0 +1,309 @@
+{
+  "verse_id": "LEV.19.18",
+  "pericope_id": "LEV.19.11-19.18",
+  "schema_version": "1.1.0",
+  "prompt_version": "hand-authored@genre-gate",
+
+  "gloss": [
+    { "surface": "לֹֽא", "translit": "lōʾ", "gloss": "not", "strongs": "H3808", "morph": "HTn" },
+    {
+      "surface": "תִקֹּ֤ם",
+      "translit": "tiqqōm",
+      "gloss": "you shall take vengeance",
+      "strongs": "H5358",
+      "morph": "HVqi2ms"
+    },
+    {
+      "surface": "וְלֹֽא",
+      "translit": "wəlōʾ",
+      "gloss": "and not",
+      "strongs": "H3808",
+      "morph": "HC/Tn",
+      "morphemes": [
+        { "surface": "וְ", "gloss": "and", "role": "prefix", "lemma_ref": "c", "morph": "C" },
+        { "surface": "לֹא", "gloss": "not", "role": "stem", "lemma_ref": "3808", "strongs": "H3808", "morph": "Tn" }
+      ]
+    },
+    {
+      "surface": "תִטֹּר֙",
+      "translit": "tiṭṭōr",
+      "gloss": "you shall bear a grudge",
+      "strongs": "H5201",
+      "morph": "HVqi2ms"
+    },
+    { "surface": "אֶת", "translit": "ʾet", "gloss": "[direct object]", "strongs": "H853", "morph": "HTo" },
+    {
+      "surface": "בְּנֵ֣י",
+      "translit": "bənê",
+      "gloss": "sons of",
+      "strongs": "H1121a",
+      "morph": "HNcmpc"
+    },
+    {
+      "surface": "עַמֶּ֔ךָ",
+      "translit": "ʿammekā",
+      "gloss": "your people",
+      "strongs": "H5971a",
+      "morph": "HNcmsc/Sp2ms",
+      "morphemes": [
+        { "surface": "עַמֶּ", "gloss": "people of", "role": "stem", "lemma_ref": "5971 a", "strongs": "H5971a", "morph": "Ncmsc" },
+        { "surface": "ךָ", "gloss": "you", "role": "suffix", "morph": "Sp2ms" }
+      ]
+    },
+    {
+      "surface": "וְאָֽהַבְתָּ֥",
+      "translit": "wəʾāhabtā",
+      "gloss": "and you shall love",
+      "strongs": "H157",
+      "morph": "HC/Vqq2ms",
+      "morphemes": [
+        { "surface": "וְ", "gloss": "and", "role": "prefix", "lemma_ref": "c", "morph": "C" },
+        { "surface": "אָהַבְתָּ", "gloss": "you shall love", "role": "stem", "lemma_ref": "157", "strongs": "H157", "morph": "Vqq2ms" }
+      ]
+    },
+    {
+      "surface": "לְרֵעֲךָ֖",
+      "translit": "lərēʿăkā",
+      "gloss": "to your neighbour",
+      "strongs": "H7453",
+      "morph": "HR/Ncmsc/Sp2ms",
+      "morphemes": [
+        { "surface": "לְ", "gloss": "to", "role": "prefix", "lemma_ref": "l", "morph": "R" },
+        { "surface": "רֵעֲ", "gloss": "neighbour of", "role": "stem", "lemma_ref": "7453", "strongs": "H7453", "morph": "Ncmsc" },
+        { "surface": "ךָ", "gloss": "you", "role": "suffix", "morph": "Sp2ms" }
+      ]
+    },
+    {
+      "surface": "כָּמ֑וֹךָ",
+      "translit": "kāmôkā",
+      "gloss": "as yourself",
+      "strongs": "H3644",
+      "morph": "HR/Sp2ms",
+      "morphemes": [
+        { "surface": "כָּמוֹ", "gloss": "like", "role": "stem", "lemma_ref": "3644", "strongs": "H3644", "morph": "R" },
+        { "surface": "ךָ", "gloss": "you", "role": "suffix", "morph": "Sp2ms" }
+      ]
+    },
+    { "surface": "אֲנִ֖י", "translit": "ʾănî", "gloss": "I", "strongs": "H589", "morph": "HPp1cs" },
+    { "surface": "יְהוָֽה", "translit": "YHWH", "gloss": "the LORD", "strongs": "H3068", "morph": "HNp" }
+  ],
+
+  "close_rendering": "You shall not take vengeance and you shall not bear a grudge against the sons of your people, and you shall love your neighbour as yourself. I am the LORD.",
+
+  "whats_happening": "This is the last item in a run of short commands about how Israelites are to treat one another, and it moves from two prohibitions to a single positive command. The famous second half is grammatically bound to the first: the love commanded here is stated as the opposite of vengeance and grudge-bearing, not as a feeling. The verse ends by naming the speaker rather than giving a reason.",
+
+  "key_words": [
+    {
+      "surface": "וְאָֽהַבְתָּ֥",
+      "lemma": "אָהַב",
+      "gloss": "and you shall love",
+      "note": "A perfect with waw consecutive, which continues the force of the imperfect prohibitions before it rather than starting something new.",
+      "strongs": "H157"
+    },
+    {
+      "surface": "לְרֵעֲךָ֖",
+      "lemma": "רֵעַ",
+      "gloss": "to your neighbour",
+      "note": "One written word carrying three morphemes: preposition, noun in construct, and a second person suffix.",
+      "strongs": "H7453"
+    },
+    {
+      "surface": "תִקֹּ֤ם",
+      "lemma": "נָקַם",
+      "gloss": "you shall take vengeance",
+      "strongs": "H5358"
+    }
+  ],
+
+  "translation_note": "Most English versions render the command as love your neighbour, dropping the preposition. The Hebrew has the verb governing its object with לְ, which is unusual for this verb and is hard to carry into English without sounding odd.",
+
+  "claims": [
+    {
+      "id": "LEV.19.18.c1",
+      "claim": "וְאָהַבְתָּ is a Qal perfect with waw consecutive, second person masculine singular.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "אָהַב",
+          "strongs": "H157",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "HC/Vqq2ms"
+        },
+        { "type": "verse", "ref": "LEV.19.18" }
+      ],
+      "sources": [],
+      "display_rank": 1
+    },
+    {
+      "id": "LEV.19.18.c2",
+      "claim": "The verb אהב governs its object here with the preposition לְ rather than taking a direct object.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "רֵעַ",
+          "strongs": "H7453",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "HR/Ncmsc/Sp2ms, the R being the prefixed preposition"
+        },
+        { "type": "verse", "ref": "LEV.19.18" }
+      ],
+      "sources": [],
+      "display_rank": 2
+    },
+    {
+      "id": "LEV.19.18.c3",
+      "claim": "תִקֹּם and תִטֹּר are both Qal imperfects, second person masculine singular.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "נָקַם",
+          "strongs": "H5358",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "HVqi2ms, as is נָטַר"
+        },
+        { "type": "verse", "ref": "LEV.19.18" }
+      ],
+      "sources": [],
+      "display_rank": 3
+    },
+    {
+      "id": "LEV.19.18.c4",
+      "claim": "לְרֵעֲךָ is one written word carrying three morphemes.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "רֵעַ",
+          "strongs": "H7453",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "lemma written l/7453 with morph HR/Ncmsc/Sp2ms"
+        },
+        { "type": "verse", "ref": "LEV.19.18" }
+      ],
+      "sources": [],
+      "display_rank": 4
+    },
+    {
+      "id": "LEV.19.18.c5",
+      "claim": "The verse ends with אֲנִי יְהוָה, a clause with no verb.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "אֲנִי",
+          "strongs": "H589",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "HPp1cs followed by HNp"
+        },
+        { "type": "verse", "ref": "LEV.19.18" }
+      ],
+      "sources": [],
+      "display_rank": 5
+    },
+    {
+      "id": "LEV.19.18.c6",
+      "claim": "The command closes a run of case laws about conduct toward others running from Leviticus 19:11.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [{ "type": "verse", "ref": "LEV.19.11-19.18" }],
+      "sources": [],
+      "display_rank": 6
+    },
+    {
+      "id": "LEV.19.18.c7",
+      "claim": "Sixteen verses later the same chapter extends a command of the same form to the resident foreigner.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [{ "type": "verse", "ref": "LEV.19.34" }],
+      "sources": [],
+      "display_rank": 7
+    },
+    {
+      "id": "LEV.19.18.c8",
+      "claim": "Ancient Near Eastern law collections generally state case law without appending a motive clause.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "medium",
+      "grounding": "model_knowledge",
+      "evidence": [],
+      "sources": [],
+      "display_rank": 8
+    },
+    {
+      "id": "LEV.19.18.c9",
+      "claim": "How far רֵעֲךָ extends is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "LEV.19.18" },
+        { "type": "verse", "ref": "LEV.19.34" }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "Fellow Israelite",
+          "case": "The first half of the same verse names בְּנֵי עַמֶּךָ, the sons of your people, which sets the frame for the neighbour in the second half and keeps the command inside the community.",
+          "evidence": [{ "type": "verse", "ref": "LEV.19.18" }]
+        },
+        {
+          "label": "Any neighbour",
+          "case": "Verse 34 issues the same command in the same words about the resident foreigner, which shows the chapter itself does not treat the boundary of your people as the limit of the obligation.",
+          "evidence": [{ "type": "verse", "ref": "LEV.19.34" }]
+        }
+      ],
+      "display_rank": 1
+    }
+  ],
+
+  "related_passages": [
+    {
+      "ref": "LEV.19.34",
+      "relationship": "development",
+      "note": "The same command applied to the resident foreigner."
+    },
+    {
+      "ref": "MAT.22.39",
+      "relationship": "quotation",
+      "note": "Quoted as the second of the two greatest commandments."
+    },
+    {
+      "ref": "ROM.13.9",
+      "relationship": "quotation",
+      "note": "Quoted as the summary of the commands about neighbours."
+    }
+  ],
+
+  "review": {
+    "status": "flagged",
+    "flags": ["hand-authored genre-gate fixture, not reviewed corpus"]
+  }
+}

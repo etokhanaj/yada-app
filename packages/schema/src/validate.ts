@@ -11,7 +11,8 @@ import type { Claim, ClaimCategory, DisplayGroup } from "./claims.js";
 import { displayGroup } from "./claims.js";
 import type { BookEntry, PericopeEntry, VerseEntry } from "./entries.js";
 import { BOOK_ENTRY_SECTIONS } from "./entries.js";
-import { bookOfRef, parseVerseId, parseVerseRef } from "./refs.js";
+import type { Testament } from "./refs.js";
+import { BOOK_CODES, bookOfRef, parseVerseId, parseVerseRef } from "./refs.js";
 
 export type FindingLevel = "error" | "warn";
 
@@ -31,6 +32,7 @@ export const RULES = {
   ENTRY_REF_CONSISTENCY: "entry-ref-consistency",
   RELATED_PASSAGE_REF: "related-passage-ref",
   MOVEMENT_RANGE: "movement-range",
+  POINTED_HEBREW_ATTRIBUTION: "pointed-hebrew-attribution",
 } as const;
 
 export type Rule = (typeof RULES)[keyof typeof RULES];
@@ -215,9 +217,41 @@ function validateUniqueClaimIds(claims: readonly Claim[], findings: Finding[]): 
   }
 }
 
+/**
+ * A Text claim about pointed Hebrew is a claim about the Masoretic analysis,
+ * not about the consonantal text, so it has to name the tradition it rests on.
+ * Applied to Old Testament entries only: Greek needs no equivalent, because
+ * SBLGNT's accents do not carry the same interpretive weight as vocalisation.
+ *
+ * Genesis 1:1 is why this exists — "רֵאשִׁית is absolute" is the decisive
+ * evidence for one reading of the verse, and stating it bare takes a side.
+ */
+function validateHebrewAttribution(
+  claim: Claim,
+  testament: Testament | undefined,
+  findings: Finding[],
+): void {
+  if (testament !== "OT" || claim.category !== "text") return;
+  for (const evidence of claim.evidence) {
+    if (evidence.type !== "lexical") continue;
+    if (evidence.analysis_tradition === undefined) {
+      findings.push(
+        finding(
+          "error",
+          RULES.POINTED_HEBREW_ATTRIBUTION,
+          `Old Testament text claim cites lexical evidence for "${evidence.lemma}" without naming the analysis tradition the parse depends on`,
+          claim.id,
+        ),
+      );
+    }
+  }
+}
+
 export interface ValidateClaimsOptions {
   /** Entry-level "no significant dispute" marker. */
   noSignificantDispute?: boolean;
+  /** Drives the pointed-Hebrew attribution rule. */
+  testament?: Testament;
 }
 
 export function validateClaims(
@@ -232,6 +266,7 @@ export function validateClaims(
     validateGrounding(claim, findings);
     validateEvidence(claim, findings);
     validatePositions(claim, noSignificantDispute, findings);
+    validateHebrewAttribution(claim, options.testament, findings);
   }
   validateDisplayRanks(claims, findings);
   validateUniqueClaimIds(claims, findings);
@@ -261,11 +296,14 @@ function validateRelatedPassages(
 }
 
 export function validateVerseEntry(entry: VerseEntry): Finding[] {
+  const verse = parseVerseId(entry.verse_id);
+  const testament = verse === null ? undefined : BOOK_CODES[verse.book].testament;
+
   const findings: Finding[] = validateClaims(entry.claims, {
     noSignificantDispute: entry.no_significant_dispute ?? false,
+    ...(testament === undefined ? {} : { testament }),
   });
 
-  const verse = parseVerseId(entry.verse_id);
   const pericope = parseVerseRef(entry.pericope_id);
 
   if (verse === null) {
@@ -315,6 +353,7 @@ export function validateVerseEntry(entry: VerseEntry): Finding[] {
 export function validatePericopeEntry(entry: PericopeEntry): Finding[] {
   const findings: Finding[] = validateClaims(entry.claims, {
     noSignificantDispute: entry.no_significant_dispute ?? false,
+    testament: BOOK_CODES[entry.book].testament,
   });
 
   const start = parseVerseId(entry.span.start);
@@ -364,7 +403,7 @@ export function validateBookEntry(entry: BookEntry): Finding[] {
     const claims = entry[section];
     allClaims.push(...claims);
     // Ranks are scoped to a section here: each section renders as its own list.
-    findings.push(...validateClaims(claims));
+    findings.push(...validateClaims(claims, { testament: BOOK_CODES[entry.book].testament }));
   }
 
   validateUniqueClaimIds(allClaims, findings);

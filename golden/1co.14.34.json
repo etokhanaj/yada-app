@@ -1,34 +1,120 @@
 {
   "verse_id": "1CO.14.34",
   "pericope_id": "1CO.14.26-14.40",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "prompt_version": "verse@0.1.0-seed",
-
   "gloss": [
-    { "surface": "αἱ", "translit": "hai", "gloss": "the", "strongs": "G3588" },
-    { "surface": "γυναῖκες", "translit": "gynaikes", "gloss": "women", "strongs": "G1135" },
-    { "surface": "ἐν", "translit": "en", "gloss": "in", "strongs": "G1722" },
-    { "surface": "ταῖς", "translit": "tais", "gloss": "the", "strongs": "G3588" },
-    { "surface": "ἐκκλησίαις", "translit": "ekklēsiais", "gloss": "assemblies", "strongs": "G1577" },
-    { "surface": "σιγάτωσαν", "translit": "sigatōsan", "gloss": "let them be silent", "strongs": "G4601" },
-    { "surface": "οὐ", "translit": "ou", "gloss": "not", "strongs": "G3756" },
-    { "surface": "γὰρ", "translit": "gar", "gloss": "for", "strongs": "G1063" },
-    { "surface": "ἐπιτρέπεται", "translit": "epitrepetai", "gloss": "it is permitted", "strongs": "G2010" },
-    { "surface": "αὐταῖς", "translit": "autais", "gloss": "to them", "strongs": "G846" },
-    { "surface": "λαλεῖν", "translit": "lalein", "gloss": "to speak", "strongs": "G2980" },
-    { "surface": "ἀλλὰ", "translit": "alla", "gloss": "but", "strongs": "G235" },
-    { "surface": "ὑποτασσέσθωσαν", "translit": "hypotassesthōsan", "gloss": "let them submit", "strongs": "G5293" },
-    { "surface": "καθὼς", "translit": "kathōs", "gloss": "just as", "strongs": "G2531" },
-    { "surface": "καὶ", "translit": "kai", "gloss": "also", "strongs": "G2532" },
-    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588" },
-    { "surface": "νόμος", "translit": "nomos", "gloss": "law", "strongs": "G3551" },
-    { "surface": "λέγει", "translit": "legei", "gloss": "says", "strongs": "G3004" }
+    {
+      "surface": "αἱ",
+      "translit": "hai",
+      "gloss": "the",
+      "strongs": "G3588"
+    },
+    {
+      "surface": "γυναῖκες",
+      "translit": "gynaikes",
+      "gloss": "women",
+      "strongs": "G1135"
+    },
+    {
+      "surface": "ἐν",
+      "translit": "en",
+      "gloss": "in",
+      "strongs": "G1722"
+    },
+    {
+      "surface": "ταῖς",
+      "translit": "tais",
+      "gloss": "the",
+      "strongs": "G3588"
+    },
+    {
+      "surface": "ἐκκλησίαις",
+      "translit": "ekklēsiais",
+      "gloss": "assemblies",
+      "strongs": "G1577"
+    },
+    {
+      "surface": "σιγάτωσαν",
+      "translit": "sigatōsan",
+      "gloss": "let them be silent",
+      "strongs": "G4601"
+    },
+    {
+      "surface": "οὐ",
+      "translit": "ou",
+      "gloss": "not",
+      "strongs": "G3756"
+    },
+    {
+      "surface": "γὰρ",
+      "translit": "gar",
+      "gloss": "for",
+      "strongs": "G1063"
+    },
+    {
+      "surface": "ἐπιτρέπεται",
+      "translit": "epitrepetai",
+      "gloss": "it is permitted",
+      "strongs": "G2010"
+    },
+    {
+      "surface": "αὐταῖς",
+      "translit": "autais",
+      "gloss": "to them",
+      "strongs": "G846"
+    },
+    {
+      "surface": "λαλεῖν",
+      "translit": "lalein",
+      "gloss": "to speak",
+      "strongs": "G2980"
+    },
+    {
+      "surface": "ἀλλὰ",
+      "translit": "alla",
+      "gloss": "but",
+      "strongs": "G235"
+    },
+    {
+      "surface": "ὑποτασσέσθωσαν",
+      "translit": "hypotassesthōsan",
+      "gloss": "let them submit",
+      "strongs": "G5293"
+    },
+    {
+      "surface": "καθὼς",
+      "translit": "kathōs",
+      "gloss": "just as",
+      "strongs": "G2531"
+    },
+    {
+      "surface": "καὶ",
+      "translit": "kai",
+      "gloss": "also",
+      "strongs": "G2532"
+    },
+    {
+      "surface": "ὁ",
+      "translit": "ho",
+      "gloss": "the",
+      "strongs": "G3588"
+    },
+    {
+      "surface": "νόμος",
+      "translit": "nomos",
+      "gloss": "law",
+      "strongs": "G3551"
+    },
+    {
+      "surface": "λέγει",
+      "translit": "legei",
+      "gloss": "says",
+      "strongs": "G3004"
+    }
   ],
-
   "close_rendering": "Let the women be silent in the assemblies, for it is not permitted for them to speak; rather, let them submit, just as the law also says.",
-
   "whats_happening": "Paul is closing a long section on how the Corinthian assembly should conduct its gatherings, where prophets and tongue-speakers have been talking over one another. He has already told tongue-speakers and prophets to stop speaking under certain conditions, using the same verb he uses here. This verse applies that same instruction to a third group, and the disagreement is over exactly which speech, and which women, are in view.",
-
   "key_words": [
     {
       "surface": "σιγάτωσαν",
@@ -58,9 +144,7 @@
       "strongs": "G3551"
     }
   ],
-
   "translation_note": "BSB, WEB, and KJV agree closely here; the divergence between English versions in this passage is mainly punctuation and paragraphing, which affects where the sentence is felt to begin and end.",
-
   "claims": [
     {
       "id": "1CO.14.34.c1",
@@ -70,8 +154,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "lexical", "lemma": "σιγάω", "strongs": "G4601", "dataset": "MorphGNT", "note": "V-PAM-3P" },
-        { "type": "verse", "ref": "1CO.14.34" }
+        {
+          "type": "lexical",
+          "lemma": "σιγάω",
+          "strongs": "G4601",
+          "dataset": "MorphGNT",
+          "note": "V-PAM-3P"
+        },
+        {
+          "type": "verse",
+          "ref": "1CO.14.34"
+        }
       ],
       "sources": [],
       "display_rank": 1
@@ -84,8 +177,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "lexical", "lemma": "γυνή", "strongs": "G1135", "dataset": "MorphGNT", "note": "N-NFP" },
-        { "type": "verse", "ref": "1CO.14.34" }
+        {
+          "type": "lexical",
+          "lemma": "γυνή",
+          "strongs": "G1135",
+          "dataset": "MorphGNT",
+          "note": "N-NFP"
+        },
+        {
+          "type": "verse",
+          "ref": "1CO.14.34"
+        }
       ],
       "sources": [],
       "display_rank": 2
@@ -98,9 +200,22 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "1CO.14.28", "note": "tongue-speakers, if no interpreter is present" },
-        { "type": "verse", "ref": "1CO.14.30", "note": "a prophet, if a revelation comes to another" },
-        { "type": "lexical", "lemma": "σιγάω", "strongs": "G4601", "dataset": "MorphGNT" }
+        {
+          "type": "verse",
+          "ref": "1CO.14.28",
+          "note": "tongue-speakers, if no interpreter is present"
+        },
+        {
+          "type": "verse",
+          "ref": "1CO.14.30",
+          "note": "a prophet, if a revelation comes to another"
+        },
+        {
+          "type": "lexical",
+          "lemma": "σιγάω",
+          "strongs": "G4601",
+          "dataset": "MorphGNT"
+        }
       ],
       "sources": [],
       "display_rank": 3
@@ -112,7 +227,12 @@
       "evidence_strength": "supported",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "1CO.14.26-14.40" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "1CO.14.26-14.40"
+        }
+      ],
       "sources": [],
       "display_rank": 4
     },
@@ -123,7 +243,12 @@
       "evidence_strength": "supported",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "1CO.11.5" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "1CO.11.5"
+        }
+      ],
       "sources": [],
       "display_rank": 5
     },
@@ -146,8 +271,17 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "1CO.14.34-35" },
-        { "type": "lexical", "lemma": "γυνή", "strongs": "G1135", "dataset": "STEP lexicon", "note": "the same noun covers both 'woman' and 'wife'" }
+        {
+          "type": "verse",
+          "ref": "1CO.14.34-35"
+        },
+        {
+          "type": "lexical",
+          "lemma": "γυνή",
+          "strongs": "G1135",
+          "dataset": "STEP lexicon",
+          "note": "the same noun covers both 'woman' and 'wife'"
+        }
       ],
       "sources": [],
       "positions": [
@@ -155,23 +289,98 @@
           "label": "Women in the assembly generally",
           "case": "The plural αἱ γυναῖκες is unqualified in v. 34, and the appeal to the law and to the churches is stated in general terms rather than about a household relationship.",
           "evidence": [
-            { "type": "verse", "ref": "1CO.14.33" },
-            { "type": "verse", "ref": "1CO.14.34" }
+            {
+              "type": "verse",
+              "ref": "1CO.14.33"
+            },
+            {
+              "type": "verse",
+              "ref": "1CO.14.34"
+            }
           ]
         },
         {
           "label": "Wives specifically",
           "case": "Verse 35 tells them to ask their own husbands at home, and γυνή is the ordinary word for wife, so the following verse supplies the domestic frame the noun leaves open.",
           "evidence": [
-            { "type": "verse", "ref": "1CO.14.35" },
-            { "type": "lexical", "lemma": "ἀνήρ", "strongs": "G435", "dataset": "STEP lexicon", "note": "'their own men' in v. 35 is the standard idiom for husbands" }
+            {
+              "type": "verse",
+              "ref": "1CO.14.35"
+            },
+            {
+              "type": "lexical",
+              "lemma": "ἀνήρ",
+              "strongs": "G435",
+              "dataset": "STEP lexicon",
+              "note": "'their own men' in v. 35 is the standard idiom for husbands"
+            }
           ]
         }
       ],
       "display_rank": 1
+    },
+    {
+      "id": "1CO.14.34.c8",
+      "claim": "SBLGNT marks three points of textual variation inside this verse.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "apparatus",
+          "ref": "1CO.14.34",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "apparatus markers stand on γυναῖκες, ἐπιτρέπεται and ὑποτασσέσθωσαν"
+        },
+        {
+          "type": "verse",
+          "ref": "1CO.14.34"
+        }
+      ],
+      "sources": [],
+      "display_rank": 7
+    },
+    {
+      "id": "1CO.14.34.c9",
+      "claim": "Where verses 34 and 35 stood in the earliest text is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "medium",
+      "grounding": "model_knowledge",
+      "evidence": [
+        {
+          "type": "apparatus",
+          "ref": "1CO.14.34-35",
+          "note": "the competing placements are not supplied by the current datasets; an apparatus dataset is still to be selected"
+        }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "Here, after verse 33",
+          "case": "This is the placement printed by the standard editions and carried by the bulk of the manuscript tradition.",
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "1CO.14.33"
+            }
+          ]
+        },
+        {
+          "label": "After verse 40",
+          "case": "Part of the tradition places the two verses at the end of the chapter, which has been taken to bear on whether they were part of Paul's own argument at this point.",
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "1CO.14.40"
+            }
+          ]
+        }
+      ],
+      "display_rank": 2
     }
   ],
-
   "related_passages": [
     {
       "ref": "1CO.11.5",
@@ -189,7 +398,6 @@
       "note": "The other passage in the Pauline letters on women, teaching, and quietness."
     }
   ],
-
   "review": {
     "status": "human_reviewed",
     "flags": []

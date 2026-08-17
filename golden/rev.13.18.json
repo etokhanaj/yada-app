@@ -1,0 +1,279 @@
+{
+  "verse_id": "REV.13.18",
+  "pericope_id": "REV.13.11-13.18",
+  "schema_version": "1.1.0",
+  "prompt_version": "hand-authored@genre-gate",
+
+  "gloss": [
+    { "surface": "ὧδε", "translit": "hōde", "gloss": "here", "strongs": "G5602", "morph": "D-" },
+    { "surface": "ἡ", "translit": "hē", "gloss": "the", "strongs": "G3588", "morph": "RA ----NSF-" },
+    { "surface": "σοφία", "translit": "sophia", "gloss": "wisdom", "strongs": "G4678", "morph": "N- ----NSF-" },
+    { "surface": "ἐστίν", "translit": "estin", "gloss": "is", "strongs": "G1510", "morph": "V- 3PAI-S--" },
+    { "surface": "ὁ", "translit": "ho", "gloss": "the one", "strongs": "G3588", "morph": "RA ----NSM-" },
+    { "surface": "ἔχων", "translit": "echōn", "gloss": "having", "strongs": "G2192", "morph": "V- -PAPNSM-" },
+    { "surface": "νοῦν", "translit": "noun", "gloss": "mind", "strongs": "G3563", "morph": "N- ----ASM-" },
+    { "surface": "ψηφισάτω", "translit": "psēphisatō", "gloss": "let him calculate", "strongs": "G5585", "morph": "V- 3AAD-S--" },
+    { "surface": "τὸν", "translit": "ton", "gloss": "the", "strongs": "G3588", "morph": "RA ----ASM-" },
+    { "surface": "ἀριθμὸν", "translit": "arithmon", "gloss": "number", "strongs": "G706", "morph": "N- ----ASM-" },
+    { "surface": "τοῦ", "translit": "tou", "gloss": "of the", "strongs": "G3588", "morph": "RA ----GSN-" },
+    { "surface": "θηρίου", "translit": "thēriou", "gloss": "beast", "strongs": "G2342", "morph": "N- ----GSN-" },
+    { "surface": "ἀριθμὸς", "translit": "arithmos", "gloss": "number", "strongs": "G706", "morph": "N- ----NSM-" },
+    { "surface": "γὰρ", "translit": "gar", "gloss": "for", "strongs": "G1063", "morph": "C-" },
+    { "surface": "ἀνθρώπου", "translit": "anthrōpou", "gloss": "of a man", "strongs": "G444", "morph": "N- ----GSM-" },
+    { "surface": "ἐστίν", "translit": "estin", "gloss": "it is", "strongs": "G1510", "morph": "V- 3PAI-S--" },
+    { "surface": "καὶ", "translit": "kai", "gloss": "and", "strongs": "G2532", "morph": "C-" },
+    { "surface": "ὁ", "translit": "ho", "gloss": "the", "strongs": "G3588", "morph": "RA ----NSM-" },
+    { "surface": "ἀριθμὸς", "translit": "arithmos", "gloss": "number", "strongs": "G706", "morph": "N- ----NSM-" },
+    { "surface": "αὐτοῦ", "translit": "autou", "gloss": "of it", "strongs": "G846", "morph": "RP ----GSN-" },
+    { "surface": "ἑξακόσιοι", "translit": "hexakosioi", "gloss": "six hundred", "strongs": "G1812", "morph": "A- ----NPM-" },
+    { "surface": "ἑξήκοντα", "translit": "hexēkonta", "gloss": "sixty", "strongs": "G1835", "morph": "A- ----NPM-" },
+    { "surface": "ἕξ", "translit": "hex", "gloss": "six", "strongs": "G1803", "morph": "A- ----NPM-" }
+  ],
+
+  "close_rendering": "Here is wisdom. Let the one who has a mind calculate the number of the beast, for it is a number of a man, and its number is six hundred sixty-six.",
+
+  "whats_happening": "The passage about the second beast ends by turning to the reader and setting a task rather than giving an explanation. The number is written out as three ordinary words rather than as a figure, and the verse says it is a number of a man without saying which man. This is the only place in the book that explicitly invites the reader to work something out.",
+
+  "key_words": [
+    {
+      "surface": "ψηφισάτω",
+      "lemma": "ψηφίζω",
+      "gloss": "let him calculate",
+      "note": "An aorist imperative addressed to a third party. The verb is about reckoning or counting up, and is built on the word for a pebble used in counting.",
+      "strongs": "G5585"
+    },
+    {
+      "surface": "ἀνθρώπου",
+      "lemma": "ἄνθρωπος",
+      "gloss": "of a man",
+      "note": "Genitive and without the article, which leaves open whether a particular person or humanity in general is meant.",
+      "strongs": "G444"
+    },
+    {
+      "surface": "ἑξακόσιοι",
+      "lemma": "ἑξακόσιοι",
+      "gloss": "six hundred",
+      "note": "The number is spelled out in words here rather than written with letters standing for numerals.",
+      "strongs": "G1812"
+    }
+  ],
+
+  "translation_note": "English versions print 666 as a figure, which the Greek does not. Writing it out as three words is part of what the verse is doing, since the reader is being asked to count rather than to recognise a symbol.",
+
+  "claims": [
+    {
+      "id": "REV.13.18.c1",
+      "claim": "ψηφισάτω is an aorist active imperative, third person singular.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "ψηφίζω",
+          "strongs": "G5585",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "V- 3AAD-S--"
+        },
+        { "type": "verse", "ref": "REV.13.18" }
+      ],
+      "sources": [],
+      "display_rank": 1
+    },
+    {
+      "id": "REV.13.18.c2",
+      "claim": "The number is written as three separate words rather than as numerals.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "ἑξακόσιοι",
+          "strongs": "G1812",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "three adjectives, each A- ----NPM-"
+        },
+        { "type": "verse", "ref": "REV.13.18" }
+      ],
+      "sources": [],
+      "display_rank": 2
+    },
+    {
+      "id": "REV.13.18.c3",
+      "claim": "ἀνθρώπου is genitive and stands without the article.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "ἄνθρωπος",
+          "strongs": "G444",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "N- ----GSM- with no preceding RA"
+        },
+        { "type": "verse", "ref": "REV.13.18" }
+      ],
+      "sources": [],
+      "display_rank": 3
+    },
+    {
+      "id": "REV.13.18.c4",
+      "claim": "ὁ ἔχων is a present active participle used as the subject of the imperative.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "ἔχω",
+          "strongs": "G2192",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "V- -PAPNSM- preceded by RA ----NSM-"
+        },
+        { "type": "verse", "ref": "REV.13.18" }
+      ],
+      "sources": [],
+      "display_rank": 4
+    },
+    {
+      "id": "REV.13.18.c5",
+      "claim": "SBLGNT marks the closing number and the pronoun before it as points of textual variation.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "apparatus",
+          "ref": "REV.13.18",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "SBLGNT brackets ἑξακόσιοι ἑξήκοντα ἕξ and flags αὐτοῦ with its apparatus markers"
+        },
+        { "type": "verse", "ref": "REV.13.18" }
+      ],
+      "sources": [],
+      "display_rank": 5
+    },
+    {
+      "id": "REV.13.18.c6",
+      "claim": "The verse closes the account of the second beast running from Revelation 13:11.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [{ "type": "verse", "ref": "REV.13.11-13.18" }],
+      "sources": [],
+      "display_rank": 6
+    },
+    {
+      "id": "REV.13.18.c7",
+      "claim": "Assigning numeric values to the letters of a name was an established practice in Greek and Hebrew writing.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "medium",
+      "grounding": "model_knowledge",
+      "evidence": [],
+      "sources": [],
+      "display_rank": 7
+    },
+    {
+      "id": "REV.13.18.c8",
+      "claim": "What number the earliest text carried is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "medium",
+      "grounding": "model_knowledge",
+      "evidence": [
+        {
+          "type": "apparatus",
+          "ref": "REV.13.18",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e",
+          "note": "the variation point is marked, but the competing readings themselves are not supplied by this dataset"
+        }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "Six hundred sixty-six",
+          "case": "This is the reading printed by SBLGNT and carried by the bulk of the manuscript tradition, and it is what the editors judged original.",
+          "evidence": [{ "type": "verse", "ref": "REV.13.18" }]
+        },
+        {
+          "label": "Six hundred sixteen",
+          "case": "A reading of six hundred sixteen is attested in part of the tradition, and any name proposed as the solution has to account for which of the two numbers it is being counted against.",
+          "evidence": [
+            {
+              "type": "apparatus",
+              "ref": "REV.13.18",
+              "note": "reading not present in the supplied dataset; a textual-critical apparatus is still to be selected"
+            }
+          ]
+        }
+      ],
+      "display_rank": 1
+    },
+    {
+      "id": "REV.13.18.c9",
+      "claim": "Whether ἀριθμὸς ἀνθρώπου points to one person or characterises the number as human is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "medium",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "ἄνθρωπος",
+          "strongs": "G444",
+          "dataset": "MorphGNT/SBLGNT @ aaed91e"
+        },
+        { "type": "verse", "ref": "REV.13.18" }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "A particular person",
+          "case": "The instruction to calculate only makes sense if there is something to arrive at, which points to the number standing for a specific name.",
+          "evidence": [{ "type": "verse", "ref": "REV.13.18" }]
+        },
+        {
+          "label": "Human rather than divine",
+          "case": "An anarthrous genitive readily carries a qualitative sense, giving a human number, so the line would be contrasting the beast with what is divine rather than encoding a name.",
+          "evidence": [{ "type": "verse", "ref": "REV.13.18" }]
+        }
+      ],
+      "display_rank": 2
+    }
+  ],
+
+  "related_passages": [
+    {
+      "ref": "REV.13.11-13.17",
+      "relationship": "development",
+      "note": "The account of the second beast that this verse closes."
+    },
+    {
+      "ref": "REV.17.9",
+      "relationship": "parallel",
+      "note": "The other place in the book that calls for a mind with wisdom."
+    },
+    {
+      "ref": "DAN.7.1-7.28",
+      "relationship": "allusion",
+      "note": "The beast imagery this chapter draws on."
+    }
+  ],
+
+  "review": {
+    "status": "flagged",
+    "flags": [
+      "hand-authored genre-gate fixture, not reviewed corpus",
+      "apparatus: variation point is sourced, competing readings are model_knowledge pending an apparatus dataset"
+    ]
+  }
+}

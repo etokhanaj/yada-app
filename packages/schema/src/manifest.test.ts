@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -22,12 +23,35 @@ const sblgnt: SourceManifestEntry = {
 };
 
 describe("isCommercialSafe", () => {
-  it("excludes BY-NC-ND and allows everything else in the union", () => {
-    expect(isCommercialSafe("CC-BY-NC-ND-4.0")).toBe(false);
+  it("excludes BY-NC-ND and bespoke terms, allows the rest", () => {
+    const blocked = ["CC-BY-NC-ND-4.0", "CUSTOM_EULA"];
     for (const license of LicenseSchema.options) {
-      if (license === "CC-BY-NC-ND-4.0") continue;
-      expect(isCommercialSafe(license), license).toBe(true);
+      expect(isCommercialSafe(license), license).toBe(!blocked.includes(license));
     }
+  });
+});
+
+describe("the repo's own source manifest", () => {
+  const manifest = SourceManifestSchema.parse(
+    JSON.parse(
+      readFileSync(new URL("../../../sources.manifest.json", import.meta.url), "utf8"),
+    ) as unknown,
+  );
+
+  it("parses, and every dataset is pinned and attributed", () => {
+    expect(manifest.length).toBeGreaterThan(0);
+    for (const entry of manifest) {
+      expect(entry.commit_hash.length, entry.dataset).toBeGreaterThan(0);
+      expect(entry.attribution_text.length, entry.dataset).toBeGreaterThan(0);
+    }
+  });
+
+  it("flags the SBLGNT text as not cleared for commercial use", () => {
+    // Its annotations are CC BY-SA 3.0 but the text carries its own EULA, so
+    // the two are separate manifest entries with different verdicts.
+    const blocked = nonCommercialEntries(manifest).map((e) => e.dataset);
+    expect(blocked).toContain("SBLGNT (Greek text)");
+    expect(blocked).not.toContain("morphgnt/sblgnt (morphological annotations)");
   });
 });
 

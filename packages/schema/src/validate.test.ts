@@ -39,10 +39,10 @@ describe("the golden entry", () => {
 
   it("counts claims by category", () => {
     expect(countByCategory(golden.claims)).toEqual({
-      text: 3,
+      text: 4,
       context: 3,
       interpretation: 0,
-      debated: 1,
+      debated: 2,
     });
   });
 });
@@ -172,6 +172,43 @@ describe("display ranks", () => {
   it("allows the same rank in the other display group", () => {
     // The fixture already reuses rank 1 for the debated claim.
     expect(validateClaims(golden.claims)).toEqual([]);
+  });
+});
+
+describe("pointed Hebrew attribution", () => {
+  function loadEntry(name: string): VerseEntry {
+    const url = new URL(`../../../golden/${name}.json`, import.meta.url);
+    return VerseEntrySchema.parse(JSON.parse(readFileSync(url, "utf8")) as unknown);
+  }
+
+  it("errors when an Old Testament text claim cites morphology without naming the tradition", () => {
+    const entry = loadEntry("gen.1.1");
+    const claim = entry.claims.find((c) => c.id === "GEN.1.1.c1");
+    if (claim === undefined) throw new Error("fixture is missing GEN.1.1.c1");
+    for (const evidence of claim.evidence) {
+      if (evidence.type === "lexical") delete evidence.analysis_tradition;
+    }
+    const findings = validateVerseEntry(entry);
+    expect(findings).toContainEqual(
+      expect.objectContaining({
+        level: "error",
+        rule: RULES.POINTED_HEBREW_ATTRIBUTION,
+        claimId: "GEN.1.1.c1",
+      }),
+    );
+  });
+
+  it("does not fire on a New Testament text claim citing morphology", () => {
+    const entry = loadEntry("jhn.1.1");
+    const findings = validateVerseEntry(entry);
+    expect(findings.filter((f) => f.rule === RULES.POINTED_HEBREW_ATTRIBUTION)).toEqual([]);
+  });
+
+  it("does not fire on an Old Testament context claim", () => {
+    const entry = loadEntry("isa.53.5");
+    const claim = entry.claims.find((c) => c.category === "context");
+    expect(claim).toBeDefined();
+    expect(validateVerseEntry(entry)).toEqual([]);
   });
 });
 

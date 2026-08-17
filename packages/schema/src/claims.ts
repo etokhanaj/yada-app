@@ -47,13 +47,34 @@ export const VerseEvidenceRefSchema = z.object({
   note: z.string().min(1).optional(),
 });
 
+/**
+ * Strong's number, with an optional homograph letter: `G4601`, `H1254`,
+ * `H7462b`. Source datasets write the homograph separately (OSHB: `7462 b`);
+ * Yada folds it onto the end, because dropping it silently merges two distinct
+ * lexemes.
+ */
+export const StrongsSchema = z
+  .string()
+  .regex(/^[GH]\d{1,5}[a-z]?$/, "expected a Strong's number such as G4601 or H7462b");
+
 export const LexicalEvidenceRefSchema = z.object({
   type: z.literal("lexical"),
   lemma: z.string().min(1),
-  /** Strong's number, `G4601` / `H1254`. */
-  strongs: z.string().min(1).optional(),
+  strongs: StrongsSchema.optional(),
   /** Which dataset the parsing or gloss came from, e.g. "MorphGNT". */
   dataset: z.string().min(1).optional(),
+  /**
+   * The analytical tradition a parse depends on, where the parse is not
+   * recoverable from the base text alone.
+   *
+   * Pointed Hebrew is the case this exists for: OSHB parses רֵאשִׁית as
+   * absolute, but that parse *is* the Masoretic vocalisation, added centuries
+   * after the consonantal text — and in Genesis 1:1 it is the decisive evidence
+   * for one side of the verse's central dispute. Naming the tradition keeps a
+   * Text claim honest; asserting the parse bare takes a side while looking
+   * neutral. Required on Old Testament text claims (see validate.ts).
+   */
+  analysis_tradition: z.string().min(1).optional(),
   note: z.string().min(1).optional(),
 });
 

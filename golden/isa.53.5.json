@@ -1,0 +1,387 @@
+{
+  "verse_id": "ISA.53.5",
+  "pericope_id": "ISA.52.13-53.12",
+  "schema_version": "1.1.0",
+  "prompt_version": "hand-authored@genre-gate",
+
+  "gloss": [
+    {
+      "surface": "וְהוּא֙",
+      "translit": "wəhûʾ",
+      "gloss": "and he",
+      "strongs": "H1931",
+      "morph": "HC/Pp3ms",
+      "morphemes": [
+        { "surface": "וְ", "gloss": "and", "role": "prefix", "lemma_ref": "c", "morph": "C" },
+        { "surface": "הוּא", "gloss": "he", "role": "stem", "lemma_ref": "1931", "strongs": "H1931", "morph": "Pp3ms" }
+      ]
+    },
+    {
+      "surface": "מְחֹלָ֣ל",
+      "translit": "məḥōlāl",
+      "gloss": "pierced",
+      "strongs": "H2490a",
+      "morph": "HVOsmsa"
+    },
+    {
+      "surface": "מִפְּשָׁעֵ֔נוּ",
+      "translit": "mippəšāʿênû",
+      "gloss": "from our transgressions",
+      "strongs": "H6588",
+      "morph": "HR/Ncmpc/Sp1cp",
+      "morphemes": [
+        { "surface": "מִ", "gloss": "from", "role": "prefix", "lemma_ref": "m", "morph": "R" },
+        { "surface": "פְּשָׁעֵ", "gloss": "transgressions of", "role": "stem", "lemma_ref": "6588", "strongs": "H6588", "morph": "Ncmpc" },
+        { "surface": "נוּ", "gloss": "us", "role": "suffix", "morph": "Sp1cp" }
+      ]
+    },
+    {
+      "surface": "מְדֻכָּ֖א",
+      "translit": "mədukkāʾ",
+      "gloss": "crushed",
+      "strongs": "H1792",
+      "morph": "HVPsmsa"
+    },
+    {
+      "surface": "מֵעֲוֺנֹתֵ֑ינוּ",
+      "translit": "mēʿăwōnōtênû",
+      "gloss": "from our iniquities",
+      "strongs": "H5771",
+      "morph": "HR/Ncbpc/Sp1cp",
+      "morphemes": [
+        { "surface": "מֵ", "gloss": "from", "role": "prefix", "lemma_ref": "m", "morph": "R" },
+        { "surface": "עֲוֺנֹתֵ", "gloss": "iniquities of", "role": "stem", "lemma_ref": "5771", "strongs": "H5771", "morph": "Ncbpc" },
+        { "surface": "ינוּ", "gloss": "us", "role": "suffix", "morph": "Sp1cp" }
+      ]
+    },
+    {
+      "surface": "מוּסַ֤ר",
+      "translit": "mûsar",
+      "gloss": "chastisement of",
+      "strongs": "H4148",
+      "morph": "HNcmsc"
+    },
+    {
+      "surface": "שְׁלוֹמֵ֨נוּ֙",
+      "translit": "šəlômēnû",
+      "gloss": "our peace",
+      "strongs": "H7965",
+      "morph": "HNcmsc/Sp1cp",
+      "morphemes": [
+        { "surface": "שְׁלוֹמֵ", "gloss": "peace of", "role": "stem", "lemma_ref": "7965", "strongs": "H7965", "morph": "Ncmsc" },
+        { "surface": "נוּ", "gloss": "us", "role": "suffix", "morph": "Sp1cp" }
+      ]
+    },
+    {
+      "surface": "עָלָ֔יו",
+      "translit": "ʿālāyw",
+      "gloss": "upon him",
+      "strongs": "H5921a",
+      "morph": "HR/Sp3ms",
+      "morphemes": [
+        { "surface": "עָלָ", "gloss": "upon", "role": "stem", "lemma_ref": "5921 a", "strongs": "H5921a", "morph": "R" },
+        { "surface": "יו", "gloss": "him", "role": "suffix", "morph": "Sp3ms" }
+      ]
+    },
+    {
+      "surface": "וּבַחֲבֻרָת֖וֹ",
+      "translit": "ûbaḥăburātô",
+      "gloss": "and by his wound",
+      "strongs": "H2250",
+      "morph": "HC/R/Ncfsc/Sp3ms",
+      "morphemes": [
+        { "surface": "וּ", "gloss": "and", "role": "prefix", "lemma_ref": "c", "morph": "C" },
+        { "surface": "בַ", "gloss": "by", "role": "prefix", "lemma_ref": "b", "morph": "R" },
+        { "surface": "חֲבֻרָת", "gloss": "wound of", "role": "stem", "lemma_ref": "2250", "strongs": "H2250", "morph": "Ncfsc" },
+        { "surface": "וֹ", "gloss": "him", "role": "suffix", "morph": "Sp3ms" }
+      ]
+    },
+    {
+      "surface": "נִרְפָּא",
+      "translit": "nirpāʾ",
+      "gloss": "it was healed",
+      "strongs": "H7495",
+      "morph": "HVNp3ms"
+    },
+    {
+      "surface": "לָֽנוּ",
+      "translit": "lānû",
+      "gloss": "to us",
+      "morph": "HR/Sp1cp",
+      "morphemes": [
+        { "surface": "לָ", "gloss": "to", "role": "prefix", "lemma_ref": "l", "morph": "R" },
+        { "surface": "נוּ", "gloss": "us", "role": "suffix", "morph": "Sp1cp" }
+      ]
+    }
+  ],
+
+  "close_rendering": "And he was pierced from our transgressions, crushed from our iniquities. The chastisement of our peace was upon him, and by his wound there was healing for us.",
+
+  "whats_happening": "A group speaking as we describe what happened to a single figure, and the whole verse turns on the contrast between the two. Every noun of wrongdoing carries an our, and every verb of suffering is attached to a him. The Hebrew joins the two with a preposition that can mean either because of or away from, and that one preposition carries much of the weight of how the verse has been read.",
+
+  "key_words": [
+    {
+      "surface": "מְחֹלָ֣ל",
+      "lemma": "חָלַל",
+      "gloss": "pierced",
+      "note": "A passive participle. The root covers piercing and being fatally wounded.",
+      "strongs": "H2490a"
+    },
+    {
+      "surface": "מִפְּשָׁעֵ֔נוּ",
+      "lemma": "פֶּשַׁע",
+      "gloss": "from our transgressions",
+      "note": "The prefixed מִן can mark cause, source, or separation, and the choice between them changes what the line asserts.",
+      "strongs": "H6588"
+    },
+    {
+      "surface": "נִרְפָּא",
+      "lemma": "רָפָא",
+      "gloss": "it was healed",
+      "note": "A Niphal perfect, third person masculine singular, with the healing stated impersonally rather than of a named subject.",
+      "strongs": "H7495"
+    },
+    {
+      "surface": "וּבַחֲבֻרָת֖וֹ",
+      "lemma": "חַבּוּרָה",
+      "gloss": "and by his wound",
+      "note": "One written word carrying four morphemes: conjunction, preposition, noun in construct, and a third person suffix.",
+      "strongs": "H2250"
+    }
+  ],
+
+  "translation_note": "English versions differ on the preposition מִן: for our transgressions, because of our transgressions, and from our transgressions are all defensible renderings of the same consonants, and they do not assert the same thing.",
+
+  "claims": [
+    {
+      "id": "ISA.53.5.c1",
+      "claim": "מְחֹלָל is a passive participle, masculine singular.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "חָלַל",
+          "strongs": "H2490a",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "HVOsmsa"
+        },
+        { "type": "verse", "ref": "ISA.53.5" }
+      ],
+      "sources": [],
+      "display_rank": 1
+    },
+    {
+      "id": "ISA.53.5.c2",
+      "claim": "נִרְפָּא is a Niphal perfect, third person masculine singular.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "רָפָא",
+          "strongs": "H7495",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "HVNp3ms"
+        },
+        { "type": "verse", "ref": "ISA.53.5" }
+      ],
+      "sources": [],
+      "display_rank": 2
+    },
+    {
+      "id": "ISA.53.5.c3",
+      "claim": "וּבַחֲבֻרָתוֹ is one written word carrying four morphemes.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "חַבּוּרָה",
+          "strongs": "H2250",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "lemma written c/b/2250 with morph HC/R/Ncfsc/Sp3ms"
+        },
+        { "type": "verse", "ref": "ISA.53.5" }
+      ],
+      "sources": [],
+      "display_rank": 3
+    },
+    {
+      "id": "ISA.53.5.c4",
+      "claim": "The preposition מִן is prefixed to both פְּשָׁעֵנוּ and עֲוֺנֹתֵינוּ.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "פֶּשַׁע",
+          "strongs": "H6588",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "HR/Ncmpc/Sp1cp, matched by HR/Ncbpc/Sp1cp on עָוֺן"
+        },
+        { "type": "verse", "ref": "ISA.53.5" }
+      ],
+      "sources": [],
+      "display_rank": 4
+    },
+    {
+      "id": "ISA.53.5.c5",
+      "claim": "Every noun of wrongdoing in the verse carries a first person plural suffix while every reference to the sufferer is third person masculine singular.",
+      "category": "text",
+      "evidence_strength": "strong",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "עָוֺן",
+          "strongs": "H5771",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
+          "note": "Sp1cp against Sp3ms on עַל and חַבּוּרָה"
+        },
+        { "type": "verse", "ref": "ISA.53.5" }
+      ],
+      "sources": [],
+      "display_rank": 5
+    },
+    {
+      "id": "ISA.53.5.c6",
+      "claim": "The verse stands inside the passage running from Isaiah 52:13 to Isaiah 53:12.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [{ "type": "verse", "ref": "ISA.52.13-53.12" }],
+      "sources": [],
+      "display_rank": 6
+    },
+    {
+      "id": "ISA.53.5.c7",
+      "claim": "Earlier chapters of Isaiah address Israel directly as the servant of the LORD.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "ISA.41.8" },
+        { "type": "verse", "ref": "ISA.49.3" }
+      ],
+      "sources": [],
+      "display_rank": 7
+    },
+    {
+      "id": "ISA.53.5.c8",
+      "claim": "This passage has been read both collectively and individually since antiquity.",
+      "category": "context",
+      "evidence_strength": "supported",
+      "confidence": "medium",
+      "grounding": "model_knowledge",
+      "evidence": [],
+      "sources": [],
+      "display_rank": 8
+    },
+    {
+      "id": "ISA.53.5.c9",
+      "claim": "Who the sufferer of this passage is is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "high",
+      "grounding": "source_data",
+      "evidence": [
+        { "type": "verse", "ref": "ISA.52.13-53.12" },
+        { "type": "verse", "ref": "ISA.49.3" }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "Israel collectively",
+          "case": "Isaiah names Israel as the servant explicitly in the surrounding chapters, and reading the sufferer as the people among the nations keeps the term consistent across the book, with the speaking we understood as the nations looking on.",
+          "evidence": [
+            { "type": "verse", "ref": "ISA.41.8" },
+            { "type": "verse", "ref": "ISA.49.3" }
+          ]
+        },
+        {
+          "label": "An individual distinct from the people",
+          "case": "The sufferer is set over against the speaking we throughout the passage, bearing what belongs to them, which is difficult to sustain if the sufferer and the speakers are the same body.",
+          "evidence": [{ "type": "verse", "ref": "ISA.53.5" }]
+        }
+      ],
+      "display_rank": 1
+    },
+    {
+      "id": "ISA.53.5.c10",
+      "claim": "What relation the preposition מִן marks between the suffering and the transgressions is disputed.",
+      "category": "debated",
+      "evidence_strength": "disputed",
+      "confidence": "medium",
+      "grounding": "source_data",
+      "evidence": [
+        {
+          "type": "lexical",
+          "lemma": "פֶּשַׁע",
+          "strongs": "H6588",
+          "dataset": "OSHB morphhb @ 3d15126",
+          "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex"
+        },
+        { "type": "verse", "ref": "ISA.53.5" }
+      ],
+      "sources": [],
+      "positions": [
+        {
+          "label": "Cause",
+          "case": "מִן commonly marks cause, giving because of our transgressions, so the wrongdoing of the speakers is what brings the suffering about.",
+          "evidence": [{ "type": "verse", "ref": "ISA.53.5" }]
+        },
+        {
+          "label": "Separation",
+          "case": "מִן also marks movement away from something, giving a sense in which the suffering removes the speakers from their transgressions rather than being caused by them.",
+          "evidence": [{ "type": "verse", "ref": "ISA.53.5" }]
+        }
+      ],
+      "display_rank": 2
+    }
+  ],
+
+  "related_passages": [
+    {
+      "ref": "ISA.52.13-52.15",
+      "relationship": "development",
+      "note": "The opening of the same passage, where the servant is introduced."
+    },
+    {
+      "ref": "ISA.49.3",
+      "relationship": "contrast",
+      "note": "Where Isaiah names the servant as Israel explicitly."
+    },
+    {
+      "ref": "ACT.8.32-8.33",
+      "relationship": "quotation",
+      "note": "The passage read and asked about in Acts, with the identity question raised in the text itself."
+    },
+    {
+      "ref": "1PE.2.24",
+      "relationship": "allusion",
+      "note": "Takes up the wound and healing language of this verse."
+    }
+  ],
+
+  "review": {
+    "status": "flagged",
+    "flags": ["hand-authored genre-gate fixture, not reviewed corpus"]
+  }
+}

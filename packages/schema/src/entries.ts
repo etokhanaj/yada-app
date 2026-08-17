@@ -12,11 +12,17 @@
  */
 
 import { z } from "zod";
-import { ClaimSchema } from "./claims.js";
+import { ClaimSchema, StrongsSchema } from "./claims.js";
 import { BookCodeSchema, PericopeIdSchema, VerseIdSchema } from "./refs.js";
 
-/** Bumped when the entry shape changes; bundles and the app negotiate on it. */
-export const SCHEMA_VERSION = "1.0.0";
+/**
+ * Bumped when the entry shape changes; bundles and the app negotiate on it.
+ *
+ * 1.1.0 — Hebrew: WordGloss gains `morphemes[]`, because one Hebrew surface
+ * word routinely carries several morphemes with their own lemma references
+ * (`וּ/בַ/חֲבֻרָת/וֹ` is four), and lexical evidence gains `analysis_tradition`.
+ */
+export const SCHEMA_VERSION = "1.1.0";
 
 const SemverSchema = z.string().regex(/^\d+\.\d+\.\d+$/, "expected a semver string");
 
@@ -37,12 +43,37 @@ export const ReviewSchema = z.object({
 });
 export type Review = z.infer<typeof ReviewSchema>;
 
+export const MorphemeRoleSchema = z.enum(["prefix", "stem", "suffix"]);
+export type MorphemeRole = z.infer<typeof MorphemeRoleSchema>;
+
+/**
+ * One morpheme of a surface word. Hebrew needs this: OSHB writes a single
+ * written word as several morphemes with their own lemma references
+ * (`לְ/רֵעֲ/ךָ` is preposition + noun + pronominal suffix), and the Original
+ * layer promises morpheme-level alignment. Greek words are single morphemes and
+ * omit it.
+ */
+export const MorphemeSchema = z.object({
+  surface: z.string().min(1),
+  gloss: z.string().min(1),
+  role: MorphemeRoleSchema,
+  /** Raw lemma reference exactly as the source dataset writes it: `l`, `7462 b`. */
+  lemma_ref: z.string().min(1).optional(),
+  strongs: StrongsSchema.optional(),
+  /** Source morphology code for this morpheme, e.g. `HR` or `Ncmsc`. */
+  morph: z.string().min(1).optional(),
+});
+export type Morpheme = z.infer<typeof MorphemeSchema>;
+
 /** Derived, per-word, from the alignment tables. No AI touches this. */
 export const WordGlossSchema = z.object({
   surface: z.string().min(1),
   translit: z.string().min(1),
   gloss: z.string().min(1),
-  strongs: z.string().min(1).optional(),
+  strongs: StrongsSchema.optional(),
+  /** Source morphology code for the whole word, e.g. `HR/Ncmsc/Sp2ms`. */
+  morph: z.string().min(1).optional(),
+  morphemes: z.array(MorphemeSchema).optional(),
 });
 export type WordGloss = z.infer<typeof WordGlossSchema>;
 
@@ -51,7 +82,7 @@ export const KeyWordSchema = z.object({
   lemma: z.string().min(1),
   gloss: z.string().min(1),
   note: z.string().min(1).optional(),
-  strongs: z.string().min(1),
+  strongs: StrongsSchema,
 });
 export type KeyWord = z.infer<typeof KeyWordSchema>;
 

@@ -1,0 +1,90 @@
+[
+  {
+    "source": "Society of Biblical Literature / Logos Bible Software",
+    "dataset": "SBLGNT (Greek text)",
+    "version": "as distributed with MorphGNT at the pinned commit",
+    "commit_hash": "aaed91e57c8e4a8dc9a2383e129ca5e75fe6393d",
+    "license": "CUSTOM_EULA",
+    "attribution_text": "Scripture quotations marked SBLGNT are from the SBL Greek New Testament. Copyright © 2010 Society of Biblical Literature and Logos Bible Software.",
+    "url": "https://sblgnt.com/license/",
+    "retrieved_at": "2026-08-16T00:48:00Z",
+    "modifications": "Read only; apparatus markers stripped from display surfaces in fixtures. NOT CLEARED FOR COMMERCIAL USE — the text is under its own EULA, not a Creative Commons licence, and the terms have not been reviewed."
+  },
+  {
+    "source": "MorphGNT",
+    "dataset": "morphgnt/sblgnt (morphological annotations)",
+    "version": "master at pinned commit",
+    "commit_hash": "aaed91e57c8e4a8dc9a2383e129ca5e75fe6393d",
+    "license": "CC-BY-SA-3.0",
+    "attribution_text": "Morphological annotations from MorphGNT, licensed CC BY-SA 3.0.",
+    "url": "https://github.com/morphgnt/sblgnt",
+    "retrieved_at": "2026-08-16T00:48:00Z",
+    "modifications": "Parsed for lemma and morphology; no values altered. Share-alike obligations not yet assessed against a closed-source app."
+  },
+  {
+    "source": "Open Scriptures",
+    "dataset": "morphhb — Westminster Leningrad Codex text",
+    "version": "master at pinned commit",
+    "commit_hash": "3d15126fb1ef74867fc1434be1942e837932691f",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Hebrew text from the Westminster Leningrad Codex, public domain.",
+    "url": "https://github.com/openscriptures/morphhb",
+    "retrieved_at": "2026-08-16T00:47:00Z",
+    "modifications": "Morpheme separators retained in source; stripped from display surfaces in fixtures. Cantillation marks retained."
+  },
+  {
+    "source": "Open Scriptures",
+    "dataset": "morphhb — lemma and morphology data",
+    "version": "master at pinned commit",
+    "commit_hash": "3d15126fb1ef74867fc1434be1942e837932691f",
+    "license": "CC-BY-4.0",
+    "attribution_text": "Lemma and morphology data from the Open Scriptures Hebrew Bible, licensed CC BY 4.0.",
+    "url": "https://github.com/openscriptures/morphhb",
+    "retrieved_at": "2026-08-16T00:47:00Z",
+    "modifications": "Homograph letters folded onto Strong's numbers (7462 b becomes H7462b); morpheme structure carried into WordGloss.morphemes."
+  },
+  {
+    "source": "Google Fonts",
+    "dataset": "Literata",
+    "version": "main",
+    "commit_hash": "unpinned-main",
+    "license": "OFL-1.1",
+    "attribution_text": "Literata, licensed under the SIL Open Font License 1.1.",
+    "url": "https://github.com/google/fonts/tree/main/ofl/literata",
+    "retrieved_at": "2026-08-16T01:37:00Z",
+    "modifications": "None. Vendored with its OFL text. Fetched from main rather than a tag; pin before release."
+  },
+  {
+    "source": "SIL International / Google Fonts",
+    "dataset": "Gentium Plus",
+    "version": "main",
+    "commit_hash": "unpinned-main",
+    "license": "OFL-1.1",
+    "attribution_text": "Gentium Plus, copyright SIL International, licensed under the SIL Open Font License 1.1.",
+    "url": "https://github.com/google/fonts/tree/main/ofl/gentiumplus",
+    "retrieved_at": "2026-08-16T01:37:00Z",
+    "modifications": "None. Vendored with its OFL text. Fetched from main rather than a tag; pin before release."
+  },
+  {
+    "source": "Google Fonts",
+    "dataset": "Noto Serif Hebrew",
+    "version": "main",
+    "commit_hash": "unpinned-main",
+    "license": "OFL-1.1",
+    "attribution_text": "Noto Serif Hebrew, licensed under the SIL Open Font License 1.1.",
+    "url": "https://github.com/google/fonts/tree/main/ofl/notoserifhebrew",
+    "retrieved_at": "2026-08-16T01:37:00Z",
+    "modifications": "None. Vendored with its OFL text. Fetched from main rather than a tag; pin before release."
+  },
+  {
+    "source": "bible-api.com",
+    "dataset": "World English Bible — John 1, Genesis 1, 1 Corinthians 14",
+    "version": "unversioned API response",
+    "commit_hash": "none",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "World English Bible, public domain.",
+    "url": "https://bible-api.com",
+    "retrieved_at": "2026-08-16T01:37:00Z",
+    "modifications": "Whitespace normalised; three chapters vendored into the spike app. SPIKE ONLY — this is not the ingest path, and the API is not a pinned source."
+  }
+]

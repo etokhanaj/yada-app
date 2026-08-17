@@ -41,8 +41,10 @@ describe("golden/1co.14.34.json", () => {
     expect(modelKnowledge).toHaveLength(1);
     expect(modelKnowledge[0]?.evidence_strength).toBe("supported");
 
-    expect(debated).toHaveLength(1);
-    expect(debated[0]?.positions).toHaveLength(2);
+    // Two debated items since the apparatus decision: who is addressed, and
+    // where vv. 34-35 stood in the earliest text.
+    expect(debated).toHaveLength(2);
+    expect(debated.every((c) => (c.positions?.length ?? 0) >= 2)).toBe(true);
   });
 
   it("keeps the derived gloss separate from the composed close rendering", () => {
