@@ -1,9 +1,8 @@
 {
   "verse_id": "PSA.23.1",
   "pericope_id": "PSA.23.1-23.6",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "prompt_version": "hand-authored@genre-gate",
-
   "gloss": [
     {
       "surface": "יְהוָ֥ה",
@@ -27,7 +26,12 @@
           "strongs": "H7462b",
           "morph": "Vqrmsc"
         },
-        { "surface": "י", "gloss": "me", "role": "suffix", "morph": "Sp1cs" }
+        {
+          "surface": "י",
+          "gloss": "me",
+          "role": "suffix",
+          "morph": "Sp1cs"
+        }
       ]
     },
     {
@@ -45,11 +49,8 @@
       "morph": "HVqi1cs"
     }
   ],
-
   "close_rendering": "The LORD is my shepherd, I shall not lack.",
-
   "whats_happening": "The psalm opens by naming a relation and then stating what follows from it, in four Hebrew words with no verb joining the first two. The line is built as two halves, and almost everything the psalm goes on to say is an unpacking of the first half. The word rendered my shepherd is not a noun but a participle, so the claim is about something God is doing rather than a title God holds.",
-
   "key_words": [
     {
       "surface": "רֹ֝עִ֗י",
@@ -66,9 +67,7 @@
       "strongs": "H2637"
     }
   ],
-
   "translation_note": "Older English versions render the second half I shall not want, using want in its older sense of lack. The Hebrew verb concerns shortage, not appetite, which is why modern versions move away from want.",
-
   "claims": [
     {
       "id": "PSA.23.1.c1",
@@ -86,7 +85,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HVqrmsc/Sp1cs"
         },
-        { "type": "verse", "ref": "PSA.23.1" }
+        {
+          "type": "verse",
+          "ref": "PSA.23.1"
+        }
       ],
       "sources": [],
       "display_rank": 1
@@ -107,7 +109,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HVqi1cs"
         },
-        { "type": "verse", "ref": "PSA.23.1" }
+        {
+          "type": "verse",
+          "ref": "PSA.23.1"
+        }
       ],
       "sources": [],
       "display_rank": 2
@@ -119,7 +124,12 @@
       "evidence_strength": "strong",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "PSA.23.1" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "PSA.23.1"
+        }
+      ],
       "sources": [],
       "display_rank": 3
     },
@@ -139,7 +149,15 @@
           "analysis_tradition": "Masoretic versification, Westminster Leningrad Codex",
           "note": "OSHB marks the English verse boundary with an inline note, KJV:Ps.23.1"
         },
-        { "type": "verse", "ref": "PSA.23.1" }
+        {
+          "type": "verse",
+          "ref": "PSA.23.1"
+        },
+        {
+          "type": "verse",
+          "ref": "PSA.23.0",
+          "note": "the superscription, addressable as verse 0 since schema 1.2.0"
+        }
       ],
       "sources": [],
       "display_rank": 4
@@ -151,7 +169,12 @@
       "evidence_strength": "supported",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "PSA.23.1-23.6" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "PSA.23.1-23.6"
+        }
+      ],
       "sources": [],
       "display_rank": 5
     },
@@ -181,25 +204,37 @@
           "dataset": "OSHB morphhb @ 3d15126",
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex"
         },
-        { "type": "verse", "ref": "PSA.23.1" }
+        {
+          "type": "verse",
+          "ref": "PSA.23.1"
+        }
       ],
       "sources": [],
       "positions": [
         {
           "label": "Future",
           "case": "The Hebrew imperfect commonly carries future reference, which makes the line a statement of confidence about what is to come rather than a report of present circumstances.",
-          "evidence": [{ "type": "verse", "ref": "PSA.23.1" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "PSA.23.1"
+            }
+          ]
         },
         {
           "label": "General present",
           "case": "The imperfect also expresses habitual or characteristic action, which makes the line a statement about how things stand generally, matching the settled tone of the psalm's remaining verses.",
-          "evidence": [{ "type": "verse", "ref": "PSA.23.1-23.6" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "PSA.23.1-23.6"
+            }
+          ]
         }
       ],
       "display_rank": 1
     }
   ],
-
   "related_passages": [
     {
       "ref": "PSA.23.2-23.3",
@@ -217,12 +252,11 @@
       "note": "The good shepherd saying takes up the same image."
     }
   ],
-
   "review": {
     "status": "flagged",
     "flags": [
       "hand-authored genre-gate fixture, not reviewed corpus",
-      "versification: verse_id follows English numbering, superscription excluded from gloss"
+      "versification: verse_id follows English numbering; the superscription is addressable as PSA.23.0"
     ]
   }
 }

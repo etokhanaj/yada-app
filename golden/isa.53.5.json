@@ -1,9 +1,8 @@
 {
   "verse_id": "ISA.53.5",
   "pericope_id": "ISA.52.13-53.12",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "prompt_version": "hand-authored@genre-gate",
-
   "gloss": [
     {
       "surface": "וְהוּא֙",
@@ -12,8 +11,21 @@
       "strongs": "H1931",
       "morph": "HC/Pp3ms",
       "morphemes": [
-        { "surface": "וְ", "gloss": "and", "role": "prefix", "lemma_ref": "c", "morph": "C" },
-        { "surface": "הוּא", "gloss": "he", "role": "stem", "lemma_ref": "1931", "strongs": "H1931", "morph": "Pp3ms" }
+        {
+          "surface": "וְ",
+          "gloss": "and",
+          "role": "prefix",
+          "lemma_ref": "c",
+          "morph": "C"
+        },
+        {
+          "surface": "הוּא",
+          "gloss": "he",
+          "role": "stem",
+          "lemma_ref": "1931",
+          "strongs": "H1931",
+          "morph": "Pp3ms"
+        }
       ]
     },
     {
@@ -30,9 +42,27 @@
       "strongs": "H6588",
       "morph": "HR/Ncmpc/Sp1cp",
       "morphemes": [
-        { "surface": "מִ", "gloss": "from", "role": "prefix", "lemma_ref": "m", "morph": "R" },
-        { "surface": "פְּשָׁעֵ", "gloss": "transgressions of", "role": "stem", "lemma_ref": "6588", "strongs": "H6588", "morph": "Ncmpc" },
-        { "surface": "נוּ", "gloss": "us", "role": "suffix", "morph": "Sp1cp" }
+        {
+          "surface": "מִ",
+          "gloss": "from",
+          "role": "prefix",
+          "lemma_ref": "m",
+          "morph": "R"
+        },
+        {
+          "surface": "פְּשָׁעֵ",
+          "gloss": "transgressions of",
+          "role": "stem",
+          "lemma_ref": "6588",
+          "strongs": "H6588",
+          "morph": "Ncmpc"
+        },
+        {
+          "surface": "נוּ",
+          "gloss": "us",
+          "role": "suffix",
+          "morph": "Sp1cp"
+        }
       ]
     },
     {
@@ -49,9 +79,27 @@
       "strongs": "H5771",
       "morph": "HR/Ncbpc/Sp1cp",
       "morphemes": [
-        { "surface": "מֵ", "gloss": "from", "role": "prefix", "lemma_ref": "m", "morph": "R" },
-        { "surface": "עֲוֺנֹתֵ", "gloss": "iniquities of", "role": "stem", "lemma_ref": "5771", "strongs": "H5771", "morph": "Ncbpc" },
-        { "surface": "ינוּ", "gloss": "us", "role": "suffix", "morph": "Sp1cp" }
+        {
+          "surface": "מֵ",
+          "gloss": "from",
+          "role": "prefix",
+          "lemma_ref": "m",
+          "morph": "R"
+        },
+        {
+          "surface": "עֲוֺנֹתֵ",
+          "gloss": "iniquities of",
+          "role": "stem",
+          "lemma_ref": "5771",
+          "strongs": "H5771",
+          "morph": "Ncbpc"
+        },
+        {
+          "surface": "ינוּ",
+          "gloss": "us",
+          "role": "suffix",
+          "morph": "Sp1cp"
+        }
       ]
     },
     {
@@ -68,8 +116,20 @@
       "strongs": "H7965",
       "morph": "HNcmsc/Sp1cp",
       "morphemes": [
-        { "surface": "שְׁלוֹמֵ", "gloss": "peace of", "role": "stem", "lemma_ref": "7965", "strongs": "H7965", "morph": "Ncmsc" },
-        { "surface": "נוּ", "gloss": "us", "role": "suffix", "morph": "Sp1cp" }
+        {
+          "surface": "שְׁלוֹמֵ",
+          "gloss": "peace of",
+          "role": "stem",
+          "lemma_ref": "7965",
+          "strongs": "H7965",
+          "morph": "Ncmsc"
+        },
+        {
+          "surface": "נוּ",
+          "gloss": "us",
+          "role": "suffix",
+          "morph": "Sp1cp"
+        }
       ]
     },
     {
@@ -79,8 +139,20 @@
       "strongs": "H5921a",
       "morph": "HR/Sp3ms",
       "morphemes": [
-        { "surface": "עָלָ", "gloss": "upon", "role": "stem", "lemma_ref": "5921 a", "strongs": "H5921a", "morph": "R" },
-        { "surface": "יו", "gloss": "him", "role": "suffix", "morph": "Sp3ms" }
+        {
+          "surface": "עָלָ",
+          "gloss": "upon",
+          "role": "stem",
+          "lemma_ref": "5921 a",
+          "strongs": "H5921a",
+          "morph": "R"
+        },
+        {
+          "surface": "יו",
+          "gloss": "him",
+          "role": "suffix",
+          "morph": "Sp3ms"
+        }
       ]
     },
     {
@@ -90,10 +162,34 @@
       "strongs": "H2250",
       "morph": "HC/R/Ncfsc/Sp3ms",
       "morphemes": [
-        { "surface": "וּ", "gloss": "and", "role": "prefix", "lemma_ref": "c", "morph": "C" },
-        { "surface": "בַ", "gloss": "by", "role": "prefix", "lemma_ref": "b", "morph": "R" },
-        { "surface": "חֲבֻרָת", "gloss": "wound of", "role": "stem", "lemma_ref": "2250", "strongs": "H2250", "morph": "Ncfsc" },
-        { "surface": "וֹ", "gloss": "him", "role": "suffix", "morph": "Sp3ms" }
+        {
+          "surface": "וּ",
+          "gloss": "and",
+          "role": "prefix",
+          "lemma_ref": "c",
+          "morph": "C"
+        },
+        {
+          "surface": "בַ",
+          "gloss": "by",
+          "role": "prefix",
+          "lemma_ref": "b",
+          "morph": "R"
+        },
+        {
+          "surface": "חֲבֻרָת",
+          "gloss": "wound of",
+          "role": "stem",
+          "lemma_ref": "2250",
+          "strongs": "H2250",
+          "morph": "Ncfsc"
+        },
+        {
+          "surface": "וֹ",
+          "gloss": "him",
+          "role": "suffix",
+          "morph": "Sp3ms"
+        }
       ]
     },
     {
@@ -109,16 +205,24 @@
       "gloss": "to us",
       "morph": "HR/Sp1cp",
       "morphemes": [
-        { "surface": "לָ", "gloss": "to", "role": "prefix", "lemma_ref": "l", "morph": "R" },
-        { "surface": "נוּ", "gloss": "us", "role": "suffix", "morph": "Sp1cp" }
+        {
+          "surface": "לָ",
+          "gloss": "to",
+          "role": "prefix",
+          "lemma_ref": "l",
+          "morph": "R"
+        },
+        {
+          "surface": "נוּ",
+          "gloss": "us",
+          "role": "suffix",
+          "morph": "Sp1cp"
+        }
       ]
     }
   ],
-
   "close_rendering": "And he was pierced from our transgressions, crushed from our iniquities. The chastisement of our peace was upon him, and by his wound there was healing for us.",
-
   "whats_happening": "A group speaking as we describe what happened to a single figure, and the whole verse turns on the contrast between the two. Every noun of wrongdoing carries an our, and every verb of suffering is attached to a him. The Hebrew joins the two with a preposition that can mean either because of or away from, and that one preposition carries much of the weight of how the verse has been read.",
-
   "key_words": [
     {
       "surface": "מְחֹלָ֣ל",
@@ -149,9 +253,7 @@
       "strongs": "H2250"
     }
   ],
-
   "translation_note": "English versions differ on the preposition מִן: for our transgressions, because of our transgressions, and from our transgressions are all defensible renderings of the same consonants, and they do not assert the same thing.",
-
   "claims": [
     {
       "id": "ISA.53.5.c1",
@@ -169,7 +271,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HVOsmsa"
         },
-        { "type": "verse", "ref": "ISA.53.5" }
+        {
+          "type": "verse",
+          "ref": "ISA.53.5"
+        }
       ],
       "sources": [],
       "display_rank": 1
@@ -190,7 +295,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HVNp3ms"
         },
-        { "type": "verse", "ref": "ISA.53.5" }
+        {
+          "type": "verse",
+          "ref": "ISA.53.5"
+        }
       ],
       "sources": [],
       "display_rank": 2
@@ -211,7 +319,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "lemma written c/b/2250 with morph HC/R/Ncfsc/Sp3ms"
         },
-        { "type": "verse", "ref": "ISA.53.5" }
+        {
+          "type": "verse",
+          "ref": "ISA.53.5"
+        }
       ],
       "sources": [],
       "display_rank": 3
@@ -232,7 +343,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HR/Ncmpc/Sp1cp, matched by HR/Ncbpc/Sp1cp on עָוֺן"
         },
-        { "type": "verse", "ref": "ISA.53.5" }
+        {
+          "type": "verse",
+          "ref": "ISA.53.5"
+        }
       ],
       "sources": [],
       "display_rank": 4
@@ -253,7 +367,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "Sp1cp against Sp3ms on עַל and חַבּוּרָה"
         },
-        { "type": "verse", "ref": "ISA.53.5" }
+        {
+          "type": "verse",
+          "ref": "ISA.53.5"
+        }
       ],
       "sources": [],
       "display_rank": 5
@@ -265,7 +382,12 @@
       "evidence_strength": "supported",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "ISA.52.13-53.12" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "ISA.52.13-53.12"
+        }
+      ],
       "sources": [],
       "display_rank": 6
     },
@@ -277,8 +399,14 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "ISA.41.8" },
-        { "type": "verse", "ref": "ISA.49.3" }
+        {
+          "type": "verse",
+          "ref": "ISA.41.8"
+        },
+        {
+          "type": "verse",
+          "ref": "ISA.49.3"
+        }
       ],
       "sources": [],
       "display_rank": 7
@@ -302,8 +430,14 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "ISA.52.13-53.12" },
-        { "type": "verse", "ref": "ISA.49.3" }
+        {
+          "type": "verse",
+          "ref": "ISA.52.13-53.12"
+        },
+        {
+          "type": "verse",
+          "ref": "ISA.49.3"
+        }
       ],
       "sources": [],
       "positions": [
@@ -311,14 +445,25 @@
           "label": "Israel collectively",
           "case": "Isaiah names Israel as the servant explicitly in the surrounding chapters, and reading the sufferer as the people among the nations keeps the term consistent across the book, with the speaking we understood as the nations looking on.",
           "evidence": [
-            { "type": "verse", "ref": "ISA.41.8" },
-            { "type": "verse", "ref": "ISA.49.3" }
+            {
+              "type": "verse",
+              "ref": "ISA.41.8"
+            },
+            {
+              "type": "verse",
+              "ref": "ISA.49.3"
+            }
           ]
         },
         {
           "label": "An individual distinct from the people",
           "case": "The sufferer is set over against the speaking we throughout the passage, bearing what belongs to them, which is difficult to sustain if the sufferer and the speakers are the same body.",
-          "evidence": [{ "type": "verse", "ref": "ISA.53.5" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "ISA.53.5"
+            }
+          ]
         }
       ],
       "display_rank": 1
@@ -338,25 +483,37 @@
           "dataset": "OSHB morphhb @ 3d15126",
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex"
         },
-        { "type": "verse", "ref": "ISA.53.5" }
+        {
+          "type": "verse",
+          "ref": "ISA.53.5"
+        }
       ],
       "sources": [],
       "positions": [
         {
           "label": "Cause",
           "case": "מִן commonly marks cause, giving because of our transgressions, so the wrongdoing of the speakers is what brings the suffering about.",
-          "evidence": [{ "type": "verse", "ref": "ISA.53.5" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "ISA.53.5"
+            }
+          ]
         },
         {
           "label": "Separation",
           "case": "מִן also marks movement away from something, giving a sense in which the suffering removes the speakers from their transgressions rather than being caused by them.",
-          "evidence": [{ "type": "verse", "ref": "ISA.53.5" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "ISA.53.5"
+            }
+          ]
         }
       ],
       "display_rank": 2
     }
   ],
-
   "related_passages": [
     {
       "ref": "ISA.52.13-52.15",
@@ -379,9 +536,10 @@
       "note": "Takes up the wound and healing language of this verse."
     }
   ],
-
   "review": {
     "status": "flagged",
-    "flags": ["hand-authored genre-gate fixture, not reviewed corpus"]
+    "flags": [
+      "hand-authored genre-gate fixture, not reviewed corpus"
+    ]
   }
 }

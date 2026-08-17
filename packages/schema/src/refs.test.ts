@@ -4,7 +4,10 @@ import {
   BOOK_ALIAS_CONFLICTS,
   BOOK_CODES,
   BOOK_ORDER,
+  CANONICAL_VERSIFICATION,
   compareVerseRefs,
+  isTitleVerse,
+  VersificationSchema,
   formatDisplayRef,
   formatPericopeId,
   formatVerseId,
@@ -75,7 +78,9 @@ describe("verse ids", () => {
   });
 
   it("rejects malformed ids, unknown books, and out-of-range chapters", () => {
-    for (const bad of ["JHN.1", "JHN-1-1", "XYZ.1.1", "JHN.99.1", "JHN.0.1", "JHN.1.0", "jhn.1.1", ""]) {
+    // Note: verse 0 is deliberately absent from this list — since schema 1.2.0
+    // it addresses a superscription. Chapter 0 remains invalid.
+    for (const bad of ["JHN.1", "JHN-1-1", "XYZ.1.1", "JHN.99.1", "JHN.0.1", "jhn.1.1", ""]) {
       expect(parseVerseId(bad), bad).toBeNull();
     }
     expect(isVerseId("1CO.14.34")).toBe(true);
@@ -93,6 +98,34 @@ describe("verse ids", () => {
 
   it("formats a display reference", () => {
     expect(formatDisplayRef(parseVerseId("1CO.14.34")!)).toBe("1 Corinthians 14:34");
+  });
+});
+
+describe("superscriptions", () => {
+  it("addresses a Psalm title as verse 0", () => {
+    const title = parseVerseId("PSA.23.0");
+    expect(title).toEqual({ book: "PSA", chapter: 23, verse: 0 });
+    expect(isTitleVerse(title!)).toBe(true);
+    expect(isTitleVerse(parseVerseId("PSA.23.1")!)).toBe(false);
+  });
+
+  it("names a title rather than printing verse zero", () => {
+    expect(formatDisplayRef(parseVerseId("PSA.23.0")!)).toBe("Psalms 23, title");
+  });
+
+  it("lets a range start at the title", () => {
+    expect(parseVerseRef("PSA.23.0-23.6")?.start).toEqual({ chapter: 23, verse: 0 });
+  });
+
+  it("never accepts verse zero from human input", () => {
+    // Someone typing "Psalm 23:0" has made a mistake, not asked for the title.
+    expect(parseReference("Psalm 23:0")).toBeNull();
+    expect(parseReference("psalm 23 0")).toBeNull();
+  });
+
+  it("normalises the corpus to one numbering tradition", () => {
+    expect(CANONICAL_VERSIFICATION).toBe("english");
+    expect(VersificationSchema.options).toContain("hebrew");
   });
 });
 

@@ -1,11 +1,16 @@
 {
   "verse_id": "LEV.19.18",
   "pericope_id": "LEV.19.11-19.18",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "prompt_version": "hand-authored@genre-gate",
-
   "gloss": [
-    { "surface": "לֹֽא", "translit": "lōʾ", "gloss": "not", "strongs": "H3808", "morph": "HTn" },
+    {
+      "surface": "לֹֽא",
+      "translit": "lōʾ",
+      "gloss": "not",
+      "strongs": "H3808",
+      "morph": "HTn"
+    },
     {
       "surface": "תִקֹּ֤ם",
       "translit": "tiqqōm",
@@ -20,8 +25,21 @@
       "strongs": "H3808",
       "morph": "HC/Tn",
       "morphemes": [
-        { "surface": "וְ", "gloss": "and", "role": "prefix", "lemma_ref": "c", "morph": "C" },
-        { "surface": "לֹא", "gloss": "not", "role": "stem", "lemma_ref": "3808", "strongs": "H3808", "morph": "Tn" }
+        {
+          "surface": "וְ",
+          "gloss": "and",
+          "role": "prefix",
+          "lemma_ref": "c",
+          "morph": "C"
+        },
+        {
+          "surface": "לֹא",
+          "gloss": "not",
+          "role": "stem",
+          "lemma_ref": "3808",
+          "strongs": "H3808",
+          "morph": "Tn"
+        }
       ]
     },
     {
@@ -31,7 +49,13 @@
       "strongs": "H5201",
       "morph": "HVqi2ms"
     },
-    { "surface": "אֶת", "translit": "ʾet", "gloss": "[direct object]", "strongs": "H853", "morph": "HTo" },
+    {
+      "surface": "אֶת",
+      "translit": "ʾet",
+      "gloss": "[direct object]",
+      "strongs": "H853",
+      "morph": "HTo"
+    },
     {
       "surface": "בְּנֵ֣י",
       "translit": "bənê",
@@ -46,8 +70,20 @@
       "strongs": "H5971a",
       "morph": "HNcmsc/Sp2ms",
       "morphemes": [
-        { "surface": "עַמֶּ", "gloss": "people of", "role": "stem", "lemma_ref": "5971 a", "strongs": "H5971a", "morph": "Ncmsc" },
-        { "surface": "ךָ", "gloss": "you", "role": "suffix", "morph": "Sp2ms" }
+        {
+          "surface": "עַמֶּ",
+          "gloss": "people of",
+          "role": "stem",
+          "lemma_ref": "5971 a",
+          "strongs": "H5971a",
+          "morph": "Ncmsc"
+        },
+        {
+          "surface": "ךָ",
+          "gloss": "you",
+          "role": "suffix",
+          "morph": "Sp2ms"
+        }
       ]
     },
     {
@@ -57,8 +93,21 @@
       "strongs": "H157",
       "morph": "HC/Vqq2ms",
       "morphemes": [
-        { "surface": "וְ", "gloss": "and", "role": "prefix", "lemma_ref": "c", "morph": "C" },
-        { "surface": "אָהַבְתָּ", "gloss": "you shall love", "role": "stem", "lemma_ref": "157", "strongs": "H157", "morph": "Vqq2ms" }
+        {
+          "surface": "וְ",
+          "gloss": "and",
+          "role": "prefix",
+          "lemma_ref": "c",
+          "morph": "C"
+        },
+        {
+          "surface": "אָהַבְתָּ",
+          "gloss": "you shall love",
+          "role": "stem",
+          "lemma_ref": "157",
+          "strongs": "H157",
+          "morph": "Vqq2ms"
+        }
       ]
     },
     {
@@ -68,9 +117,27 @@
       "strongs": "H7453",
       "morph": "HR/Ncmsc/Sp2ms",
       "morphemes": [
-        { "surface": "לְ", "gloss": "to", "role": "prefix", "lemma_ref": "l", "morph": "R" },
-        { "surface": "רֵעֲ", "gloss": "neighbour of", "role": "stem", "lemma_ref": "7453", "strongs": "H7453", "morph": "Ncmsc" },
-        { "surface": "ךָ", "gloss": "you", "role": "suffix", "morph": "Sp2ms" }
+        {
+          "surface": "לְ",
+          "gloss": "to",
+          "role": "prefix",
+          "lemma_ref": "l",
+          "morph": "R"
+        },
+        {
+          "surface": "רֵעֲ",
+          "gloss": "neighbour of",
+          "role": "stem",
+          "lemma_ref": "7453",
+          "strongs": "H7453",
+          "morph": "Ncmsc"
+        },
+        {
+          "surface": "ךָ",
+          "gloss": "you",
+          "role": "suffix",
+          "morph": "Sp2ms"
+        }
       ]
     },
     {
@@ -80,18 +147,39 @@
       "strongs": "H3644",
       "morph": "HR/Sp2ms",
       "morphemes": [
-        { "surface": "כָּמוֹ", "gloss": "like", "role": "stem", "lemma_ref": "3644", "strongs": "H3644", "morph": "R" },
-        { "surface": "ךָ", "gloss": "you", "role": "suffix", "morph": "Sp2ms" }
+        {
+          "surface": "כָּמוֹ",
+          "gloss": "like",
+          "role": "stem",
+          "lemma_ref": "3644",
+          "strongs": "H3644",
+          "morph": "R"
+        },
+        {
+          "surface": "ךָ",
+          "gloss": "you",
+          "role": "suffix",
+          "morph": "Sp2ms"
+        }
       ]
     },
-    { "surface": "אֲנִ֖י", "translit": "ʾănî", "gloss": "I", "strongs": "H589", "morph": "HPp1cs" },
-    { "surface": "יְהוָֽה", "translit": "YHWH", "gloss": "the LORD", "strongs": "H3068", "morph": "HNp" }
+    {
+      "surface": "אֲנִ֖י",
+      "translit": "ʾănî",
+      "gloss": "I",
+      "strongs": "H589",
+      "morph": "HPp1cs"
+    },
+    {
+      "surface": "יְהוָֽה",
+      "translit": "YHWH",
+      "gloss": "the LORD",
+      "strongs": "H3068",
+      "morph": "HNp"
+    }
   ],
-
   "close_rendering": "You shall not take vengeance and you shall not bear a grudge against the sons of your people, and you shall love your neighbour as yourself. I am the LORD.",
-
   "whats_happening": "This is the last item in a run of short commands about how Israelites are to treat one another, and it moves from two prohibitions to a single positive command. The famous second half is grammatically bound to the first: the love commanded here is stated as the opposite of vengeance and grudge-bearing, not as a feeling. The verse ends by naming the speaker rather than giving a reason.",
-
   "key_words": [
     {
       "surface": "וְאָֽהַבְתָּ֥",
@@ -114,9 +202,7 @@
       "strongs": "H5358"
     }
   ],
-
   "translation_note": "Most English versions render the command as love your neighbour, dropping the preposition. The Hebrew has the verb governing its object with לְ, which is unusual for this verb and is hard to carry into English without sounding odd.",
-
   "claims": [
     {
       "id": "LEV.19.18.c1",
@@ -134,7 +220,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HC/Vqq2ms"
         },
-        { "type": "verse", "ref": "LEV.19.18" }
+        {
+          "type": "verse",
+          "ref": "LEV.19.18"
+        }
       ],
       "sources": [],
       "display_rank": 1
@@ -155,7 +244,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HR/Ncmsc/Sp2ms, the R being the prefixed preposition"
         },
-        { "type": "verse", "ref": "LEV.19.18" }
+        {
+          "type": "verse",
+          "ref": "LEV.19.18"
+        }
       ],
       "sources": [],
       "display_rank": 2
@@ -176,7 +268,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HVqi2ms, as is נָטַר"
         },
-        { "type": "verse", "ref": "LEV.19.18" }
+        {
+          "type": "verse",
+          "ref": "LEV.19.18"
+        }
       ],
       "sources": [],
       "display_rank": 3
@@ -197,7 +292,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "lemma written l/7453 with morph HR/Ncmsc/Sp2ms"
         },
-        { "type": "verse", "ref": "LEV.19.18" }
+        {
+          "type": "verse",
+          "ref": "LEV.19.18"
+        }
       ],
       "sources": [],
       "display_rank": 4
@@ -218,7 +316,10 @@
           "analysis_tradition": "Masoretic vocalisation, Westminster Leningrad Codex",
           "note": "HPp1cs followed by HNp"
         },
-        { "type": "verse", "ref": "LEV.19.18" }
+        {
+          "type": "verse",
+          "ref": "LEV.19.18"
+        }
       ],
       "sources": [],
       "display_rank": 5
@@ -230,7 +331,12 @@
       "evidence_strength": "supported",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "LEV.19.11-19.18" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "LEV.19.11-19.18"
+        }
+      ],
       "sources": [],
       "display_rank": 6
     },
@@ -241,7 +347,12 @@
       "evidence_strength": "supported",
       "confidence": "high",
       "grounding": "source_data",
-      "evidence": [{ "type": "verse", "ref": "LEV.19.34" }],
+      "evidence": [
+        {
+          "type": "verse",
+          "ref": "LEV.19.34"
+        }
+      ],
       "sources": [],
       "display_rank": 7
     },
@@ -264,26 +375,41 @@
       "confidence": "high",
       "grounding": "source_data",
       "evidence": [
-        { "type": "verse", "ref": "LEV.19.18" },
-        { "type": "verse", "ref": "LEV.19.34" }
+        {
+          "type": "verse",
+          "ref": "LEV.19.18"
+        },
+        {
+          "type": "verse",
+          "ref": "LEV.19.34"
+        }
       ],
       "sources": [],
       "positions": [
         {
           "label": "Fellow Israelite",
           "case": "The first half of the same verse names בְּנֵי עַמֶּךָ, the sons of your people, which sets the frame for the neighbour in the second half and keeps the command inside the community.",
-          "evidence": [{ "type": "verse", "ref": "LEV.19.18" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "LEV.19.18"
+            }
+          ]
         },
         {
           "label": "Any neighbour",
           "case": "Verse 34 issues the same command in the same words about the resident foreigner, which shows the chapter itself does not treat the boundary of your people as the limit of the obligation.",
-          "evidence": [{ "type": "verse", "ref": "LEV.19.34" }]
+          "evidence": [
+            {
+              "type": "verse",
+              "ref": "LEV.19.34"
+            }
+          ]
         }
       ],
       "display_rank": 1
     }
   ],
-
   "related_passages": [
     {
       "ref": "LEV.19.34",
@@ -301,9 +427,10 @@
       "note": "Quoted as the summary of the commands about neighbours."
     }
   ],
-
   "review": {
     "status": "flagged",
-    "flags": ["hand-authored genre-gate fixture, not reviewed corpus"]
+    "flags": [
+      "hand-authored genre-gate fixture, not reviewed corpus"
+    ]
   }
 }

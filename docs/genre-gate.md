@@ -192,3 +192,39 @@ as context — belong in the master prompt before Milestone 2, not in a reviewer
 
 All six hand-authored fixtures remain `review.status: flagged`. They are the seed of the permanent
 regression suite and should be read end to end before they are trusted as one.
+
+---
+
+## Addendum, same day: both conditions closed but one
+
+The verdicts above stand as written. What follows changed after them, and is recorded here rather
+than edited into the report, because the point-in-time judgement is part of the record.
+
+**Condition 2 (apparatus) is closed.** STEPBible TAGNT supplies edition-level variants under CC BY
+4.0 — see `docs/dataset-selection.md`. Text-critical claims can now be `source_data` at the level of
+"the printed editions differ here", though not at manuscript level.
+
+**Condition 1 is half closed.** Schema **1.2.0** adds `TITLE_VERSE`: verse 0 addresses a
+superscription, so `PSA.23.0` is now a real id, `formatDisplayRef` renders it as *Psalms 23, title*
+rather than *23:0*, and ranges may start at it. Human input still rejects verse zero, because someone
+typing "Psalm 23:0" has made a mistake rather than asked for a title. `VersificationSchema` and
+`CANONICAL_VERSIFICATION` name the scheme the corpus normalises to instead of leaving it implicit.
+STEPBible's TVTMS supplies the mappings. **The Psalms versification gap is closed.**
+
+**What remains open: parallelism, and it is harder than the report implied.** I suggested porting
+`movement[]` from `PericopeEntry` to `VerseEntry`. On inspection that does not work: `movement[]`
+addresses *verse ranges*, and the parts of a poetic line are cola, which have no addresses. There is
+no way to say "colon A of Psalm 23:1" in the current id scheme.
+
+A real fix needs one of:
+
+- **colon addressing** — extending verse ids again, which is a large change for one genre; or
+- **structure indexed into `gloss[]`** — a `structure[]` field on `VerseEntry` whose parts point at
+  word ranges within the entry rather than at verse ids. This is the cheaper option and it reuses
+  data the entry already carries.
+
+I would not decide this in passing. It is the last genuinely open schema question, it only affects
+poetry, and PRD §11.8 puts Psalms after the NT — so it can be settled before the Psalms pilot
+without holding anything else up. **The lock recommendation is therefore upgraded: schema 1.2.0 is
+ready to lock for the whole New Testament and for Hebrew prose, law, and prophecy, with poetic
+structure the single remaining amendment.**

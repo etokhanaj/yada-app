@@ -13,7 +13,12 @@
 
 import { z } from "zod";
 import { ClaimSchema, StrongsSchema } from "./claims.js";
-import { BookCodeSchema, PericopeIdSchema, VerseIdSchema } from "./refs.js";
+import {
+  BookCodeSchema,
+  PericopeIdSchema,
+  VerseIdSchema,
+  VersificationSchema,
+} from "./refs.js";
 
 /**
  * Bumped when the entry shape changes; bundles and the app negotiate on it.
@@ -21,8 +26,12 @@ import { BookCodeSchema, PericopeIdSchema, VerseIdSchema } from "./refs.js";
  * 1.1.0 — Hebrew: WordGloss gains `morphemes[]`, because one Hebrew surface
  * word routinely carries several morphemes with their own lemma references
  * (`וּ/בַ/חֲבֻרָת/וֹ` is four), and lexical evidence gains `analysis_tradition`.
+ *
+ * 1.2.0 — Versification: verse 0 addresses a superscription (see TITLE_VERSE),
+ * and entries may name the numbering tradition their ids follow. Psalm titles
+ * had no address at all before this, which is what the genre gate found.
  */
-export const SCHEMA_VERSION = "1.1.0";
+export const SCHEMA_VERSION = "1.2.0";
 
 const SemverSchema = z.string().regex(/^\d+\.\d+\.\d+$/, "expected a semver string");
 
@@ -137,6 +146,13 @@ export const VerseEntrySchema = z.object({
    * missing", instead of inferring silence.
    */
   no_significant_dispute: z.boolean().optional(),
+
+  /**
+   * The numbering tradition this entry's verse_id follows. Omitted means the
+   * corpus default (CANONICAL_VERSIFICATION); set it only where an entry
+   * deliberately departs from it.
+   */
+  versification: VersificationSchema.optional(),
 
   review: ReviewSchema,
 });

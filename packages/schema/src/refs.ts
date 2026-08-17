@@ -146,6 +146,37 @@ export interface VerseRef {
   verse: number;
 }
 
+/**
+ * Verse 0 addresses a superscription — canonical text standing before verse 1.
+ *
+ * Psalm titles are the case this exists for. The Masoretic text counts
+ * מִזְמוֹר לְדָוִד inside Psalm 23:1; English versification places it before the
+ * numbered verse, leaving it with no address at all. STEPBible's TVTMS carries
+ * the correspondence explicitly (`Psa.3:Title` in English against `Psa.3:1` in
+ * Hebrew) and flags it with a TextBeforeV1 field, so the data exists — the
+ * schema simply had nowhere to put it.
+ *
+ * Accepted in verse ids and ranges, never in human input: someone typing
+ * "Psalm 23:0" has made a mistake, not asked for the title.
+ */
+export const TITLE_VERSE = 0;
+
+export function isTitleVerse(ref: VerseRef): boolean {
+  return ref.verse === TITLE_VERSE;
+}
+
+/**
+ * Which numbering tradition a verse id follows. The corpus normalises to one
+ * scheme at ingest (build plan §2); this names it rather than leaving it
+ * implicit, because the sources disagree — OSHB is Hebrew, STEPBible's TAGNT is
+ * NRSV, and the shipped English translations are KJV-style.
+ */
+export const VersificationSchema = z.enum(["english", "hebrew", "greek", "latin"]);
+export type Versification = z.infer<typeof VersificationSchema>;
+
+/** The one scheme the corpus normalises to: what the reader's translation uses. */
+export const CANONICAL_VERSIFICATION: Versification = "english";
+
 const VERSE_ID_PATTERN = /^([A-Z0-9]{3})\.(\d{1,3})\.(\d{1,3})$/;
 
 /** Parses `JHN.1.1`. Returns null for anything else, never throws. */
@@ -158,7 +189,8 @@ export function parseVerseId(value: string): VerseRef | null {
   const chapter = Number(rawChapter);
   const verse = Number(rawVerse);
   if (chapter < 1 || chapter > BOOK_CODES[rawBook].chapters) return null;
-  if (verse < 1) return null;
+  // Verse 0 is a superscription; see TITLE_VERSE.
+  if (verse < TITLE_VERSE) return null;
   return { book: rawBook, chapter, verse };
 }
 
@@ -185,7 +217,9 @@ export const VerseIdSchema = z.custom<VerseId>((value) => isVerseId(value), {
 
 /** Human-readable form for display and share text: `1 Corinthians 14:34`. */
 export function formatDisplayRef(ref: VerseRef): string {
-  return `${BOOK_CODES[ref.book].name} ${ref.chapter}:${ref.verse}`;
+  const book = BOOK_CODES[ref.book].name;
+  if (isTitleVerse(ref)) return `${book} ${ref.chapter}, title`;
+  return `${book} ${ref.chapter}:${ref.verse}`;
 }
 
 export function compareVerseRefs(a: VerseRef, b: VerseRef): number {
@@ -240,7 +274,9 @@ export function parseVerseRef(value: string): VerseRange | null {
     if (parsed && parsed.book === start.book) end = parsed;
   }
   if (!end) return null;
-  if (end.verse < 1 || end.chapter < 1 || end.chapter > BOOK_CODES[start.book].chapters) return null;
+  if (end.verse < TITLE_VERSE || end.chapter < 1 || end.chapter > BOOK_CODES[start.book].chapters) {
+    return null;
+  }
   if (compareVerseRefs(start, end) > 0) return null;
 
   return {
