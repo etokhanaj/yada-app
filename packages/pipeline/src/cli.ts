@@ -8,12 +8,63 @@
 
 import { assertSchemaAlignment, openStaging } from "./db.js";
 import { ORACLE_FIXTURES, checkAgainstFixture, coverage } from "./derive.js";
-import { dryRun } from "./generate.js";
+import { CEILING_USD, spentSoFar } from "./budget.js";
+import { dryRun, loadPericopes } from "./generate.js";
+import { ensureDirs } from "./paths.js";
+import { MILESTONE_0_MODELS, generatePericope, type GenerationResult } from "./submit.js";
 import { normalize } from "./normalize.js";
 import { ingest } from "./sources.js";
 
 function pct(part: number, whole: number): string {
   return whole === 0 ? "n/a" : `${((part / whole) * 100).toFixed(1)}%`;
+}
+
+/**
+ * The spending path. Kept separate from the switch so that the thing which
+ * costs money is one named function that can be read end to end.
+ */
+async function confirmedRun(book: string): Promise<number> {
+  ensureDirs();
+  const pericopes = loadPericopes(book);
+  const spentBefore = spentSoFar();
+
+  console.log(`generate --confirm ${book}: THIS WILL SPEND MONEY`);
+  console.log(`  pericopes:     ${pericopes.length}`);
+  console.log(`  models:        ${MILESTONE_0_MODELS.join(", ")}`);
+  console.log(`  ceiling:       $${CEILING_USD} (already spent: $${spentBefore.toFixed(2)})`);
+  console.log(`  usage log:     content/usage.jsonl\n`);
+
+  const results: GenerationResult[] = [];
+  for (const model of MILESTONE_0_MODELS) {
+    for (const pericope of pericopes) {
+      try {
+        const result = await generatePericope(book, pericope, model, { confirm: true });
+        results.push(result);
+        const perVerse = Math.round(result.outputTokens / Math.max(result.verses.length, 1));
+        console.log(
+          `  ${model.padEnd(17)} ${result.pericopeId.padEnd(16)} ` +
+            `in ${result.inputTokens} out ${result.outputTokens} ` +
+            `(thinking ${result.thinkingTokens}, ${perVerse}/verse) ` +
+            `$${result.costUsd.toFixed(3)} ${result.stopReason ?? "?"} ${Math.round(result.elapsedMs / 1000)}s`,
+        );
+        if (result.stopReason === "max_tokens") {
+          console.log(`    TRUNCATED — max_tokens reached. This entry is incomplete.`);
+        }
+      } catch (error) {
+        // A failure here has usually already cost money, so it is reported and
+        // the run stops rather than pressing on into the ceiling.
+        console.error(`  FAILED ${model} ${pericope.id}: ${(error as Error).message}`);
+        console.error(`  stopping. $${(spentSoFar() - spentBefore).toFixed(2)} spent this run.`);
+        return 1;
+      }
+    }
+  }
+
+  console.log(`\n  spent this run: $${(spentSoFar() - spentBefore).toFixed(2)}`);
+  console.log(`  responses:      content/responses/`);
+  console.log(`\n  Nothing here is reviewed. Every entry is flagged and must stay that way`);
+  console.log(`  until a human has actually read it.`);
+  return 0;
 }
 
 async function main(): Promise<number> {
@@ -112,15 +163,20 @@ async function main(): Promise<number> {
     case "generate": {
       const book = rest.find((arg) => !arg.startsWith("--"));
       if (book === undefined) {
-        console.error("usage: yada generate --dry-run <BOOK>");
+        console.error("usage: yada generate [--dry-run | --confirm] <BOOK>");
         return 2;
       }
-      if (!rest.includes("--dry-run")) {
-        console.error("refusing to run: only --dry-run is implemented, by design");
-        return 2;
+      // Default to dry-run. Spending must be asked for explicitly and can never
+      // be the thing that happens because a flag was forgotten.
+      if (!rest.includes("--confirm")) {
+        if (!rest.includes("--dry-run")) {
+          console.error("refusing to run: pass --dry-run to price it, or --confirm to submit it");
+          return 2;
+        }
+        dryRun(book);
+        return 0;
       }
-      dryRun(book);
-      return 0;
+      return await confirmedRun(book);
     }
 
     default: {

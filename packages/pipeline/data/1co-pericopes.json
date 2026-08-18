@@ -1,0 +1,9 @@
+{
+  "book": "1CO",
+  "authority": "editorial, hand-authored for Milestone 0",
+  "note": "Editorial boundaries, hand-authored for Milestone 0. PRD §17 lists the pericope boundary source as open and docs/dataset-selection.md found no openly-licensed segmentation dataset (STEPBible's only sectioned Bible is CC BY-NC, which is excluded). Only the pericopes Milestone 0 generates are authored here; the rest of each book is deliberately absent. The boundary at 14:26 is itself contested — some segmentations start the unit at 14:20 and some run 14:26-33 and 14:34-40 as separate units, which is not a neutral choice given that the placement of vv. 34-35 is the disputed question. 14:26-40 is used because it keeps the disputed verses inside their argument rather than isolating them."
+  ,
+  "pericopes": [
+    { "id": "1CO.14.26-14.40", "label": "Order in the assembly" }
+  ]
+}

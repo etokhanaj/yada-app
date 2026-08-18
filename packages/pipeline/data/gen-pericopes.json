@@ -1,0 +1,8 @@
+{
+  "book": "GEN",
+  "authority": "editorial, hand-authored for Milestone 0",
+  "note": "Editorial boundaries, hand-authored for Milestone 0. PRD §17 lists the pericope boundary source as open and docs/dataset-selection.md found no openly-licensed segmentation dataset (STEPBible's only sectioned Bible is CC BY-NC, which is excluded). Only the pericopes Milestone 0 generates are authored here; the rest of each book is deliberately absent.",
+  "pericopes": [
+    { "id": "GEN.1.1-1.5", "label": "The first day" }
+  ]
+}

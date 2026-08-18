@@ -1,0 +1,8 @@
+{
+  "book": "PSA",
+  "authority": "editorial, hand-authored for Milestone 0",
+  "note": "Editorial boundaries, hand-authored for Milestone 0. PRD §17 lists the pericope boundary source as open and docs/dataset-selection.md found no openly-licensed segmentation dataset (STEPBible's only sectioned Bible is CC BY-NC, which is excluded). Only the pericopes Milestone 0 generates are authored here; the rest of each book is deliberately absent. A psalm is its own pericope, and the range opens at verse 0 because the superscription is canonical text: 'A psalm of David' is part of what the reader is reading, not a heading above it.",
+  "pericopes": [
+    { "id": "PSA.23.0-23.6", "label": "The LORD is my shepherd" }
+  ]
+}
