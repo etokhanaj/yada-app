@@ -14,8 +14,9 @@ import { CANONICAL_VERSIFICATION, parseVerseId } from "@yada/schema";
 
 import { openStaging } from "./db.js";
 import {
-  parseMorphGnt,
+  parseMorphGntWithCoverage,
   parseOshb,
+  type GreekLexiconCoverage,
   type Token,
   type VersificationReport,
 } from "./parsers.js";
@@ -48,14 +49,26 @@ export function parseTvtmsTitles(): Set<string> {
   return titles;
 }
 
-function loadTokens(): { tokens: Token[]; versification: VersificationReport } {
+function loadTokens(): {
+  tokens: Token[];
+  versification: VersificationReport;
+  lexicon: GreekLexiconCoverage;
+} {
   const tokens: Token[] = [];
   const versification: VersificationReport = { titles: 0, renumbered: 0, crossChapter: [] };
+  const lexicon: GreekLexiconCoverage = { routes: new Map(), unmatched: new Set() };
   for (const def of SOURCES) {
     for (const file of def.files) {
       const full = path.join(RAW, file.file);
       if (!existsSync(full)) continue;
-      if (def.key === "morphgnt") tokens.push(...parseMorphGnt(file.file));
+      if (def.key === "morphgnt") {
+        const parsed = parseMorphGntWithCoverage(file.file);
+        tokens.push(...parsed.tokens);
+        for (const [route, count] of parsed.coverage.routes) {
+          lexicon.routes.set(route, (lexicon.routes.get(route) ?? 0) + count);
+        }
+        for (const lemma of parsed.coverage.unmatched) lexicon.unmatched.add(lemma);
+      }
       if (def.key === "oshb") {
         const parsed = parseOshb(file.file);
         tokens.push(...parsed.tokens);
@@ -65,7 +78,7 @@ function loadTokens(): { tokens: Token[]; versification: VersificationReport } {
       }
     }
   }
-  return { tokens, versification };
+  return { tokens, versification, lexicon };
 }
 
 export interface NormalizeReport {
@@ -75,11 +88,12 @@ export interface NormalizeReport {
   titledChapters: number;
   unresolved: string[];
   versification: VersificationReport;
+  lexicon: GreekLexiconCoverage;
 }
 
 export function normalize(): NormalizeReport {
   const db = openStaging();
-  const { tokens, versification } = loadTokens();
+  const { tokens, versification, lexicon } = loadTokens();
   const titles = parseTvtmsTitles();
   const unresolved: string[] = [];
 
@@ -141,5 +155,6 @@ export function normalize(): NormalizeReport {
     titledChapters: titles.size,
     unresolved: [...new Set(unresolved)],
     versification: { ...versification, crossChapter: [...new Set(versification.crossChapter)] },
+    lexicon,
   };
 }

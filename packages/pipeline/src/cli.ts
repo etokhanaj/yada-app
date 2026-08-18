@@ -42,6 +42,21 @@ async function main(): Promise<number> {
             `${report.versification.crossChapter.slice(0, 4).join(", ")}`,
         );
       }
+      // Every route other than `direct` is an inference about orthography or
+      // citation convention, so each is counted separately rather than folded
+      // into a single coverage percentage that would hide them.
+      const routes = [...report.lexicon.routes].sort((a, b) => b[1] - a[1]);
+      const matched = routes.reduce((sum, [, n]) => sum + n, 0);
+      console.log(
+        `  Greek Strong's from TBESG: ${matched} matched ` +
+          `(${routes.map(([route, n]) => `${route} ${n}`).join(", ")})`,
+      );
+      if (report.lexicon.unmatched.size > 0) {
+        console.log(
+          `  no TBESG entry (${report.lexicon.unmatched.size} lemma forms): ` +
+            `${[...report.lexicon.unmatched].slice(0, 6).join(", ")}`,
+        );
+      }
       if (report.unresolved.length > 0) {
         console.log(`  UNRESOLVED refs: ${report.unresolved.slice(0, 10).join(", ")}`);
       }

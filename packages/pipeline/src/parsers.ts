@@ -11,7 +11,7 @@ import path from "node:path";
 
 import { BOOK_ORDER, canonicalStrongs, type BookCode } from "@yada/schema";
 
-import { greekStrongs } from "./lexicon.js";
+import { matchGreekLemma, type MatchRoute } from "./lexicon.js";
 import { RAW } from "./paths.js";
 
 export interface TokenMorpheme {
@@ -64,9 +64,25 @@ function greekBook(bookNumber: number): BookCode {
   return code;
 }
 
+export interface GreekLexiconCoverage {
+  /** How many tokens were resolved by each route. */
+  routes: Map<MatchRoute, number>;
+  /** Lemma forms TBESG has no entry for under any route. */
+  unmatched: Set<string>;
+}
+
 export function parseMorphGnt(file: string): Token[] {
+  return parseMorphGntWithCoverage(file).tokens;
+}
+
+export function parseMorphGntWithCoverage(file: string): {
+  tokens: Token[];
+  coverage: GreekLexiconCoverage;
+} {
   const text = readFileSync(path.join(RAW, file), "utf8");
   const tokens: Token[] = [];
+  const routes = new Map<MatchRoute, number>();
+  const unmatched = new Set<string>();
   let currentVerse = "";
   let position = 0;
 
@@ -98,7 +114,10 @@ export function parseMorphGnt(file: string): Token[] {
 
     const { clean, marked } = stripApparatus(rawText);
     // MorphGNT has no Strong's column; the number comes from TBESG by lemma.
-    const strongs = greekStrongs(lemma);
+    const match = matchGreekLemma(lemma);
+    const strongs = match?.strongs;
+    if (match !== undefined) routes.set(match.route, (routes.get(match.route) ?? 0) + 1);
+    else unmatched.add(lemma);
     tokens.push({
       verse_id: verseId,
       position,
@@ -110,7 +129,7 @@ export function parseMorphGnt(file: string): Token[] {
       variant_marked: marked,
     });
   }
-  return tokens;
+  return { tokens, coverage: { routes, unmatched } };
 }
 
 // ---------------------------------------------------------------------------

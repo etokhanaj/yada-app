@@ -3,8 +3,9 @@
 A Bible reader whose content is produced by an AI-built, human-reviewed pipeline and shipped as
 static per-book SQLite bundles. No runtime AI, no backend in v1.
 
-This repo is at step 1 of the engineering sequence: **the monorepo skeleton and the schema package**.
-Everything else is a deliberate stub.
+This repo is at step 4 of the engineering sequence: **the schema and the deterministic pipeline**,
+from raw sources up to a costed, inspectable request. Generation, the review tool and the app are
+deliberate stubs, each behind a stated gate.
 
 ## What exists
 
@@ -39,21 +40,37 @@ than throw:
   reader actually sees
 - an entry's verse falls inside its own pericope, and related passages resolve
 
-### `golden/1co.14.34.json`
+### `packages/pipeline` — raw sources to a costed request
 
-The seed of the permanent regression suite. 1 Corinthians 14:34 is the canonical test verse: if the
-system handles this verse honestly, it is credible on ordinary ones. The fixture carries three text
-claims, three context claims (one of them `model_knowledge`, capped at `supported`), and one debated
-claim with two positions.
+Deterministic, and it stops before money is spent. `ingest` fetches and pins sources, regenerating
+`sources.manifest.json`; `normalize` builds `content/staging.db`, resolving Hebrew versification
+into English once; `derive` produces mechanical glosses and morpheme decomposition; `generate
+--dry-run` builds and prices the exact requests that *would* be sent, and submits nothing.
+
+**No API call is made anywhere in this package, and there is no API key in this repo.**
+
+### `golden/` — seven fixtures, and the oracle that uses them
+
+The permanent regression suite. 1 Corinthians 14:34 is the canonical test verse: if the system
+handles this verse honestly, it is credible on ordinary ones. Six more cover the other genres.
+
+`yada oracle` — and `derive.test.ts`, so it runs in CI — checks derived output against every
+fixture: same surfaces, same morpheme decomposition, same Strong's numbers. On its first run it
+reproduced two of seven. Of the five failures, **four were errors in the fixtures** and one was a
+bug in the derivation. Assume the oracle is right and the fixture is suspect until you have
+checked which.
+
+`docs/derive-findings.md` records what those failures were and how each was resolved. Read it
+before changing `normalize` or the lexicon matching — two of the bugs it describes produced
+confident, well-formed, wrong data that no amount of reading the output would have caught.
 
 ## Deliberately a stub
 
 | Path | Status |
 |---|---|
-| `packages/pipeline` | Stage names only. No ingest, no derivation, **no API calls**. |
 | `packages/review` | Queue names only. The review web app comes later. |
 | `apps/mobile` | Type placeholders only. No app code until the Milestone 0 proof passes. |
-| `content/` | Gitignored working data: raw sources, `staging.db`, batch files. |
+| `content/` | Gitignored working data: raw sources, `staging.db`, request bodies. |
 
 Not built at all yet, and each has a scheduled arrival gate: generation, adversarial pass, bundle
 packaging, publishing, the review UI, and every screen of the app.
@@ -67,6 +84,16 @@ pnpm -r test          # vitest per package
 pnpm test             # same tests via the root runner
 ```
 
+The pipeline, from `packages/pipeline` (stages are ordered; each needs the one before it):
+
+```bash
+npx tsx src/cli.ts ingest                  # fetch + pin sources, regenerate the manifest
+npx tsx src/cli.ts normalize               # build content/staging.db
+npx tsx src/cli.ts derive JHN              # mechanical glosses + coverage
+npx tsx src/cli.ts oracle                  # derived output vs the golden fixtures
+npx tsx src/cli.ts generate --dry-run JHN  # build + price requests. Submits nothing.
+```
+
 Requires Node 22+ and pnpm 10.
 
 ## Conventions worth knowing before adding code
@@ -78,3 +105,17 @@ Requires Node 22+ and pnpm 10.
 - **`confidence` is internal** and must never reach the UI as a score. `evidence_strength` is the
   only user-facing signal.
 - **Schema changes are versioned.** Bump `SCHEMA_VERSION`; bundles and the app negotiate on it.
+- **Strong's numbers are zero-padded to four digits** — `G0746`, `H0430`. The lexicons write the
+  padded form and OSHB does not; a corpus mixing them joins for some words and silently misses for
+  others. Use `canonicalStrongs` rather than string-building one.
+- **Verse ids are English versification** (`CANONICAL_VERSIFICATION`), resolved once in `normalize`
+  and never again. Hebrew numbering diverges two different ways — a title inside verse 1 (Ps 23,
+  split) and a title *as* verse 1 (Ps 3, everything shifts) — plus cross-chapter shifts such as
+  Hebrew Gen 32:1 being English Gen 31:55. Superscriptions live at verse 0.
+- **Read licences from the source file, never from a repo badge.** This has caught three real
+  problems: SBLGNT is under its own EULA rather than the CC BY the PRD claims, TBESH's definitions
+  need Online Bible's permission, and morphhb carries a public-domain text and CC BY annotations
+  that must stay separate manifest entries.
+- **Never state a parse or a Strong's number the source data does not contain.** This binds the
+  pipeline as much as the generation prompt; the Greek fixtures failed it before the oracle caught
+  them.

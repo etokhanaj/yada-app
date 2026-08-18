@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-import { greekStrongs, loadGreekLexicon } from "./lexicon.js";
+import { greekStrongs, loadGreekLexicon, matchGreekLemma } from "./lexicon.js";
 import { RAW } from "./paths.js";
 
 const HAVE_SOURCES = existsSync(path.join(RAW, "TBESG.txt"));
@@ -50,5 +50,51 @@ describeIfIngested("Greek lemma -> Strong's", () => {
 
   it("misses cleanly on a form that is not in the lexicon", () => {
     expect(greekStrongs("notaword")).toBeUndefined();
+  });
+
+  // MorphGNT and TBESG disagree in four distinct ways, and each fallback is
+  // pinned separately so that removing one shows up here rather than as a quiet
+  // coverage drop. Together they recover ~294 tokens across John, 1 Cor and Rev.
+  it("resolves comma-separated spelling variants in one cell", () => {
+    // TBESG stores `Μωϋσῆς, Μωσῆς` in a single cell; indexing it verbatim
+    // matches neither spelling.
+    const match = matchGreekLemma("Μωϋσῆς");
+    expect(match?.strongs).toBe("G3475");
+    expect(match?.route).toBe("direct");
+  });
+
+  it("resolves MorphGNT's parenthesised optional ending", () => {
+    // MorphGNT writes οὕτω(ς); TBESG writes οὕτως.
+    const match = matchGreekLemma("οὕτω(ς)");
+    expect(match?.strongs).toBe("G3779");
+    expect(match?.route).toBe("optional-segment");
+  });
+
+  it("resolves an iota subscript the two sources spell differently", () => {
+    // MorphGNT ἀποθνῄσκω against TBESG ἀποθνήσκω — genuinely different letters,
+    // so NFC cannot reconcile them.
+    const match = matchGreekLemma("ἀποθνῄσκω");
+    expect(match?.strongs).toBe("G0599");
+    expect(match?.route).toBe("iota-subscript");
+  });
+
+  it("resolves a deponent against its active headword, and says that it did", () => {
+    // The one route here that is a linguistic rule rather than a spelling fix:
+    // TBESG cites ἀποκρίνω, MorphGNT cites ἀποκρίνομαι. It must stay labelled,
+    // because it is the only route whose correctness is an argument rather than
+    // an observation.
+    const match = matchGreekLemma("ἀποκρίνομαι");
+    expect(match?.strongs).toBe("G0611");
+    expect(match?.route).toBe("deponent");
+
+    // It must not fire where the direct lookup already succeeds.
+    expect(matchGreekLemma("λόγος")?.route).toBe("direct");
+  });
+
+  it("refuses a proper noun that two Strong's numbers share", () => {
+    // Βηθανία is G0962 and G0963 — Bethany beyond Jordan and Bethany near
+    // Jerusalem. The distinction is a real one, so no number is better than a
+    // coin toss between them.
+    expect(greekStrongs("Βηθανία")).toBeUndefined();
   });
 });
