@@ -10,6 +10,7 @@ import { assertSchemaAlignment, openStaging } from "./db.js";
 import { ORACLE_FIXTURES, checkAgainstFixture, coverage } from "./derive.js";
 import { CEILING_USD, spentSoFar } from "./budget.js";
 import { dryRun, loadPericopes } from "./generate.js";
+import { inspectAll } from "./inspect.js";
 import { ensureDirs } from "./paths.js";
 import { MILESTONE_0_MODELS, generatePericope, type GenerationResult } from "./submit.js";
 import { normalize } from "./normalize.js";
@@ -160,6 +161,46 @@ async function main(): Promise<number> {
       return failures === 0 ? 0 : 1;
     }
 
+    case "inspect": {
+      const report = inspectAll();
+      if (report.responses === 0) {
+        console.log("inspect: no responses in content/responses/ — nothing generated yet");
+        return 0;
+      }
+      console.log(`inspect: ${report.responses} responses, ${report.entries.length} entries`);
+      console.log(`  schema-valid:   ${report.parsed}`);
+      console.log(`  parse failures: ${report.parseFailures}`);
+      if (report.unreadable.length > 0) {
+        console.log(`  UNREADABLE (no JSON recovered): ${report.unreadable.join(", ")}`);
+      }
+
+      // The quality signal. A rule with zero violations is as informative as one
+      // with many — it says the prompt carried that rule successfully.
+      console.log(`\n  violations by rule:`);
+      const rules = [...report.byRule].sort((a, b) => b[1] - a[1]);
+      if (rules.length === 0) console.log(`    none`);
+      for (const [rule, count] of rules) {
+        console.log(`    ${rule.padEnd(28)} ${count} of ${report.entries.length} entries`);
+      }
+
+      const provenance = report.entries.filter((e) => e.provenance.length > 0);
+      if (provenance.length > 0) {
+        console.log(`\n  PROVENANCE PROBLEMS (${provenance.length}):`);
+        for (const entry of provenance.slice(0, 10)) {
+          console.log(`    ${entry.id} [${entry.model}]: ${entry.provenance.join("; ")}`);
+        }
+      }
+
+      const failures = report.entries.filter((e) => e.parseError !== undefined);
+      if (failures.length > 0) {
+        console.log(`\n  parse failures in detail:`);
+        for (const entry of failures.slice(0, 10)) {
+          console.log(`    ${entry.id} [${entry.model}]: ${entry.parseError}`);
+        }
+      }
+      return report.parseFailures > 0 || provenance.length > 0 ? 1 : 0;
+    }
+
     case "generate": {
       const book = rest.find((arg) => !arg.startsWith("--"));
       if (book === undefined) {
@@ -180,7 +221,7 @@ async function main(): Promise<number> {
     }
 
     default: {
-      console.log("usage: yada <ingest|normalize|derive BOOK|oracle|generate --dry-run BOOK>");
+      console.log("usage: yada <ingest|normalize|derive BOOK|oracle|generate [--dry-run|--confirm] BOOK|inspect>");
       return command === undefined ? 0 : 2;
     }
   }

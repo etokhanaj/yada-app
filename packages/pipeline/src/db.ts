@@ -80,6 +80,10 @@ CREATE INDEX IF NOT EXISTS verses_by_book ON verses (book, chapter, verse);
 export function openStaging(): DatabaseSync {
   ensureDirs();
   const db = new DatabaseSync(STAGING_DB);
+  // Wait rather than fail instantly when another reader holds the file. WAL
+  // itself is not enough: setting the journal mode is a write, so concurrent
+  // opens collide on it.
+  db.exec("PRAGMA busy_timeout = 5000");
   db.exec("PRAGMA journal_mode = WAL");
   db.exec(DDL);
   return db;

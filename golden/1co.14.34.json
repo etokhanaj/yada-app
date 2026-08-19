@@ -399,7 +399,10 @@
     }
   ],
   "review": {
-    "status": "human_reviewed",
-    "flags": []
+    "status": "flagged",
+    "flags": [
+      "hand-authored seed fixture, not reviewed corpus",
+      "provenance corrected: previously carried review.status human_reviewed, which no human ever gave"
+    ]
   }
 }
