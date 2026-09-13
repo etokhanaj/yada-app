@@ -5,10 +5,26 @@
   "type": "module",
   "main": "./src/index.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "dev": "tsx src/server/dev.ts",
+    "build": "vite build",
+    "start": "tsx src/server/main.ts",
+    "export": "tsx src/server/export.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.client.json"
   },
   "dependencies": {
-    "@yada/schema": "workspace:*"
-  }
+    "@yada/schema": "workspace:*",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "~19.2.7",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "vite": "7.3.6",
+    "vitest": "^3.2.7"
+  },
+  "description": "Local review tool over staging.db: queues, entry view, approve/reject with a durable log."
 }

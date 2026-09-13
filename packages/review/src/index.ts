@@ -1,22 +1,13 @@
 /**
- * @yada/review — STUB.
+ * @yada/review — John's local review tool over staging.db (build plan §5).
  *
- * Will become the local Vite + React review app over staging.db (build plan
- * §5): flagged queue, per-book random sample, adversary disagreements,
- * targeted expert selection, approve / reject-with-reason / rate 1-5.
+ * The server lives in src/server, the React client in src/client, and the
+ * contract between them in src/shared/api.ts. See README.md.
  */
 
 import type { ReviewStatus } from "@yada/schema";
 
-/** Queues John works through. Order is the order they are worked. */
-export const REVIEW_QUEUES = [
-  "flagged",
-  "adversary_disagreement",
-  "random_sample",
-  "targeted_expert",
-] as const;
-
-export type ReviewQueue = (typeof REVIEW_QUEUES)[number];
+export * from "./shared/api.js";
 
 /** Nothing ships below these statuses; see build plan §5. */
 export const SHIPPABLE_STATUSES: readonly ReviewStatus[] = [
