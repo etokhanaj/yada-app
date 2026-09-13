@@ -108,6 +108,19 @@ CREATE TABLE word_forms (
   PRIMARY KEY (search_key, occurrence_key)
 ) WITHOUT ROWID;
 
+-- One row per lexeme: dictionary form, its commonest sourced gloss, and how
+-- often it occurs. Powers word cards and English word search ("love" finds
+-- ἀγαπάω and אָהַב) without scanning 440,000 tokens.
+CREATE TABLE lexemes (
+  occurrence_key TEXT PRIMARY KEY,
+  script         TEXT NOT NULL,
+  lemma          TEXT NOT NULL,
+  translit       TEXT NOT NULL,
+  strongs        TEXT,
+  gloss          TEXT,
+  total          INTEGER NOT NULL
+) WITHOUT ROWID;
+
 -- "In this book": how often a lexeme occurs, precomputed per book.
 CREATE TABLE occurrences (
   book           TEXT NOT NULL,

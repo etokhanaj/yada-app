@@ -52,7 +52,7 @@ import {
 } from "@yada/schema";
 
 import { openStaging } from "./db.js";
-import { CONTENT, MANIFEST, PIPELINE_DATA } from "./paths.js";
+import { CONTENT, MANIFEST, PIPELINE_DATA, RAW } from "./paths.js";
 import { SOURCES } from "./sources.js";
 import { transliterate } from "./translit.js";
 
@@ -142,6 +142,27 @@ function freshDb(file: string, ddl: string): DatabaseSync {
   db.exec("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;");
   db.exec(ddl);
   return db;
+}
+
+/**
+ * Hebrew headwords by extended Strong's number, from TBESH column 3 only.
+ *
+ * TBESH's definitions (column 7) derive from the Abridged BDB and need Online
+ * Bible's permission, which Yada does not have. A headword is the dictionary
+ * form of the word — the same Hebrew the text itself contains — so it is read,
+ * and nothing else in the file is.
+ */
+function loadHebrewHeadwords(): Map<string, string> {
+  const map = new Map<string, string>();
+  const file = path.join(RAW, "TBESH.txt");
+  if (!existsSync(file)) return map;
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    const cols = line.split("\t");
+    const strongs = (cols[0] ?? "").trim();
+    const headword = (cols[3] ?? "").trim();
+    if (/^H\d{4,5}[a-z]?$/.test(strongs) && headword.length > 0 && !map.has(strongs)) map.set(strongs, headword);
+  }
+  return map;
 }
 
 function ordOf(verseId: string): number | null {
@@ -257,6 +278,11 @@ export function packageCore(): CoreReport {
   );
   const counts = new Map<string, Map<string, number>>();
   const forms = new Map<string, Set<string>>();
+  const hebrewHeadwords = loadHebrewHeadwords();
+  const lexemes = new Map<
+    string,
+    { script: "greek" | "hebrew"; lemma: string; strongs: string | null; glosses: Map<string, number>; total: number }
+  >();
   for (const t of tokenRows) {
     insertToken.run(
       t.ord, t.position, t.surface, t.translit, t.gloss, t.glossSource,
@@ -266,6 +292,19 @@ export function packageCore(): CoreReport {
     const bookCounts = counts.get(book) ?? new Map<string, number>();
     bookCounts.set(t.occurrenceKey, (bookCounts.get(t.occurrenceKey) ?? 0) + 1);
     counts.set(book, bookCounts);
+    const script: "greek" | "hebrew" = t.ord >= verseOrd("MAT", 1, 1) ? "greek" : "hebrew";
+    const lexeme = lexemes.get(t.occurrenceKey) ?? {
+      script,
+      // MorphGNT gives the Greek dictionary form directly. OSHB's lemma field is
+      // a Strong's reference, not a Hebrew word, so the headword comes from TBESH.
+      lemma: script === "greek" ? t.lemma : (hebrewHeadwords.get(t.strongs ?? "") ?? t.surface),
+      strongs: t.strongs,
+      glosses: new Map<string, number>(),
+      total: 0,
+    };
+    lexeme.total += 1;
+    if (t.gloss !== null && t.gloss !== "") lexeme.glosses.set(t.gloss, (lexeme.glosses.get(t.gloss) ?? 0) + 1);
+    lexemes.set(t.occurrenceKey, lexeme);
     if (t.searchKey.length > 0) {
       const set = forms.get(t.searchKey) ?? new Set<string>();
       set.add(t.occurrenceKey);
@@ -277,6 +316,17 @@ export function packageCore(): CoreReport {
   for (const [book, bookCounts] of counts) {
     for (const [occurrenceKey, count] of bookCounts) insertCount.run(book, occurrenceKey, count);
   }
+  const insertLexeme = out.prepare(
+    "INSERT INTO lexemes (occurrence_key, script, lemma, translit, strongs, gloss, total) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  );
+  for (const [key, lexeme] of [...lexemes].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    // The commonest contextual gloss stands in for a dictionary gloss; ties go
+    // to the shorter one, which is usually the bare form ("word", not "of word").
+    const gloss =
+      [...lexeme.glosses].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0]?.[0] ?? null;
+    insertLexeme.run(key, lexeme.script, lexeme.lemma, transliterate(lexeme.lemma, lexeme.script), lexeme.strongs, gloss, lexeme.total);
+  }
+
   const insertForm = out.prepare("INSERT INTO word_forms (search_key, occurrence_key) VALUES (?, ?)");
   for (const [searchKey, keys] of [...forms].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
     for (const occurrenceKey of [...keys].sort()) insertForm.run(searchKey, occurrenceKey);

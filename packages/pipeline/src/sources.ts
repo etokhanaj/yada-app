@@ -155,9 +155,10 @@ export const SOURCES: SourceDef[] = [
         url: `https://raw.githubusercontent.com/STEPBible/STEPBible-Data/${STEP_COMMIT}/Lexicons/TBESH%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Hebrew%20-%20STEPBible.org%20CC%20BY.txt`,
       },
     ],
-    modifications: "Parsed for lexical glosses keyed by extended Strong's number.",
+    modifications:
+      "Read for Hebrew headwords (column 3) only, to label word cards. Glosses and definitions are not read; interlinear glosses come from TAHOT.",
     encumbered:
-      "Definitions derive from the Abridged BDB by Online Bible; the file states permission should be gained before applying them in any project. Derive runs without it.",
+      "Definitions derive from the Abridged BDB by Online Bible; the file states permission should be gained before applying them in any project. Yada does not read or ship the definitions.",
   },
   {
     key: "tbesg",
