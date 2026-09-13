@@ -11,6 +11,7 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import type { DatabaseSync } from "node:sqlite";
 
 import { type BookCode, type VerseEntry } from "@yada/schema";
 
@@ -37,10 +38,18 @@ export function scriptFor(book: string): "greek" | "hebrew" {
 
 export function deriveVerse(verseId: string): DerivedWord[] {
   const db = openStaging();
+  try {
+    return deriveVerseFrom(db, verseId);
+  } finally {
+    db.close();
+  }
+}
+
+/** The same derivation against an already-open database (see openDatabase). */
+export function deriveVerseFrom(db: DatabaseSync, verseId: string): DerivedWord[] {
   const rows = db
     .prepare("SELECT * FROM tokens WHERE verse_id = ? ORDER BY position")
     .all(verseId);
-  db.close();
 
   const book = verseId.split(".")[0] ?? "";
   const script = scriptFor(book);
@@ -119,9 +128,29 @@ function loadFixture(name: string): VerseEntry {
 /** Compare derived output against a hand-authored fixture. */
 export function checkAgainstFixture(name: string): OracleResult {
   const fixture = loadFixture(name);
-  const derived = deriveVerse(fixture.verse_id);
-  const expected = fixture.gloss;
+  const comparison = compareGloss(deriveVerse(fixture.verse_id), fixture.gloss);
+  return { fixture: name, verse_id: fixture.verse_id, ...comparison };
+}
 
+/** The shape of a gloss word the comparison needs; WordGloss satisfies it. */
+export interface ComparableWord {
+  surface: string;
+  translit: string;
+  strongs?: string | undefined;
+  morphemes?: ReadonlyArray<{ role: string }> | undefined;
+}
+
+export type GlossComparison = Omit<OracleResult, "fixture" | "verse_id">;
+
+/**
+ * The oracle's comparison, separated from fixture loading so that `yada
+ * validate` holds every generated entry's `gloss[]` to the same bar as the
+ * golden corpus. One implementation matters here: the Greek fixtures carried
+ * Strong's numbers from recall precisely because nothing mechanical compared
+ * them, and a second, looser comparison would reopen that gap for generated
+ * entries.
+ */
+export function compareGloss(derived: readonly ComparableWord[], expected: readonly ComparableWord[]): GlossComparison {
   const surfaceMismatches: string[] = [];
   const strongsMismatches: string[] = [];
   const morphemeMismatches: string[] = [];
@@ -146,8 +175,6 @@ export function checkAgainstFixture(name: string): OracleResult {
   }
 
   return {
-    fixture: name,
-    verse_id: fixture.verse_id,
     derivedWords: derived.length,
     fixtureWords: expected.length,
     surfaceMismatches,

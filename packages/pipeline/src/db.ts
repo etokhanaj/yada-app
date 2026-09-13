@@ -87,13 +87,40 @@ CREATE TABLE IF NOT EXISTS texts (
   PRIMARY KEY (translation, verse_id)
 );
 
+-- One adversarial verdict per claim per attacking model (PRD §11.7.2). Keyed on
+-- the model as well as the claim because disagreement *between* models is the
+-- signal: a second adversary must add rows, not overwrite the first one's.
+-- The review tool reads this table directly, so its shape is a contract:
+--   verdict  upheld | unsupported | miscategorised | compound | overclaimed
+--   severity critical | minor | none
+CREATE TABLE IF NOT EXISTS adversary_flags (
+  verse_id   TEXT NOT NULL,
+  claim_id   TEXT NOT NULL,
+  verdict    TEXT NOT NULL,
+  severity   TEXT NOT NULL,
+  note       TEXT,
+  model      TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (verse_id, claim_id, model)
+);
+
 CREATE INDEX IF NOT EXISTS tokens_by_verse ON tokens (verse_id);
 CREATE INDEX IF NOT EXISTS verses_by_book ON verses (book, chapter, verse);
 `;
 
 export function openStaging(): DatabaseSync {
   ensureDirs();
-  const db = new DatabaseSync(STAGING_DB);
+  return openDatabase(STAGING_DB);
+}
+
+/**
+ * Open any file with the staging schema. Stages that take a database handle
+ * rather than opening staging.db themselves are testable against a temp file,
+ * which matters because the shared staging.db is absent in CI and a test that
+ * silently skips there proves nothing about the gate it claims to cover.
+ */
+export function openDatabase(file: string): DatabaseSync {
+  const db = new DatabaseSync(file);
   // Wait rather than fail instantly when another reader holds the file. WAL
   // itself is not enough: setting the journal mode is a write, so concurrent
   // opens collide on it.

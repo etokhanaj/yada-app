@@ -38,6 +38,12 @@ export interface UsageRecord {
   /** Billed as output tokens, and reported separately because they are easy to forget. */
   thinking_tokens: number;
   cost_usd: number;
+  /**
+   * Which stage spent it. Optional so that records written before the
+   * adversary and live regression existed still parse; every stage draws on
+   * the same ceiling, so spentSoFar sums all of them regardless.
+   */
+  stage?: "generate" | "adversary" | "regress-live";
 }
 
 export function priceUsage(model: string, inputTokens: number, outputTokens: number): number {
