@@ -3,3 +3,7 @@ node_modules/
 ios/
 android/
 *.log
+
+# Built by `pnpm --filter @yada/mobile bundles` from content/bundles. Regenerable,
+# ~85MB, and must never be committed.
+assets/bundles/

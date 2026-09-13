@@ -15,4 +15,8 @@ config.resolver.nodeModulesPaths = [
 ];
 config.resolver.disableHierarchicalLookup = true;
 
+// Bundles are prebuilt SQLite files shipped as assets (build plan §4). Without
+// this, Metro refuses to resolve require("…/core.v1.db").
+config.resolver.assetExts = [...config.resolver.assetExts, "db"];
+
 module.exports = config;

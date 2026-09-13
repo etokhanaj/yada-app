@@ -7,7 +7,8 @@
     "start": "expo start",
     "ios": "expo run:ios",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "bundles": "node scripts/sync-bundles.mjs"
   },
   "dependencies": {
     "@yada/schema": "workspace:*",
