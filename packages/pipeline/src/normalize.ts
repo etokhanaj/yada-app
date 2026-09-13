@@ -13,6 +13,8 @@ import path from "node:path";
 import { CANONICAL_VERSIFICATION, parseVerseId } from "@yada/schema";
 
 import { openStaging } from "./db.js";
+import { loadTexts, type TextReport } from "./english.js";
+import { attachGlosses, type GlossCoverage } from "./glosses.js";
 import {
   parseMorphGntWithCoverage,
   parseOshb,
@@ -89,24 +91,49 @@ export interface NormalizeReport {
   unresolved: string[];
   versification: VersificationReport;
   lexicon: GreekLexiconCoverage;
+  glosses: GlossCoverage;
+  texts: TextReport;
+  /** English verses with no interlinear, and interlinear verses with no English. */
+  textOnly: number;
+  originalOnly: string[];
 }
 
 export function normalize(): NormalizeReport {
   const db = openStaging();
   const { tokens, versification, lexicon } = loadTokens();
+
+  // Refuse duplicate keys rather than let INSERT OR REPLACE resolve them: a
+  // replaced row is a lost word, and nothing downstream could notice.
+  const keys = new Set<string>();
+  const duplicates: string[] = [];
+  for (const token of tokens) {
+    const key = `${token.verse_id}#${token.position}`;
+    if (keys.has(key)) duplicates.push(key);
+    keys.add(key);
+  }
+  if (duplicates.length > 0) {
+    throw new Error(
+      `${duplicates.length} duplicate token keys would overwrite words, e.g. ${duplicates.slice(0, 5).join(", ")}`,
+    );
+  }
+  const glosses = attachGlosses(tokens);
+  const { texts, report: textReport } = loadTexts();
   const titles = parseTvtmsTitles();
   const unresolved: string[] = [];
 
   db.exec("BEGIN");
-  db.exec("DELETE FROM tokens; DELETE FROM verses;");
+  db.exec("DELETE FROM tokens; DELETE FROM verses; DELETE FROM texts;");
 
   const insertVerse = db.prepare(
     "INSERT OR REPLACE INTO verses (verse_id, book, chapter, verse, source_scheme, has_title) VALUES (?, ?, ?, ?, ?, ?)",
   );
   const insertToken = db.prepare(
     `INSERT OR REPLACE INTO tokens
-     (verse_id, position, surface, raw_surface, lemma, strongs, morph, morphemes, variant_marked)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     (verse_id, position, surface, raw_surface, lemma, strongs, morph, morphemes, variant_marked, gloss, gloss_source)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  );
+  const insertText = db.prepare(
+    "INSERT OR REPLACE INTO texts (translation, verse_id, text) VALUES (?, ?, ?)",
   );
 
   const seenVerses = new Set<string>();
@@ -138,9 +165,20 @@ export function normalize(): NormalizeReport {
       token.morph,
       token.morphemes === undefined ? null : JSON.stringify(token.morphemes),
       token.variant_marked ? 1 : 0,
+      token.gloss ?? null,
+      token.gloss_source ?? null,
     );
   }
+
+  const englishVerses = new Set<string>();
+  for (const text of texts) {
+    insertText.run(text.translation, text.verse_id, text.text);
+    if (text.translation === "BSB") englishVerses.add(text.verse_id);
+  }
   db.exec("COMMIT");
+
+  const textOnly = [...englishVerses].filter((id) => !seenVerses.has(id)).length;
+  const originalOnly = [...seenVerses].filter((id) => !englishVerses.has(id) && !id.endsWith(".0"));
 
   const books = db
     .prepare("SELECT DISTINCT book FROM verses ORDER BY book")
@@ -156,5 +194,9 @@ export function normalize(): NormalizeReport {
     unresolved: [...new Set(unresolved)],
     versification: { ...versification, crossChapter: [...new Set(versification.crossChapter)] },
     lexicon,
+    glosses,
+    texts: textReport,
+    textOnly,
+    originalOnly,
   };
 }

@@ -20,6 +20,8 @@ export interface TokenMorpheme {
   lemma_ref?: string;
   strongs?: string;
   morph?: string;
+  /** Sourced gloss for this morpheme (TAHOT), when the split matches. */
+  gloss?: string;
 }
 
 export interface Token {
@@ -35,6 +37,9 @@ export interface Token {
   morphemes?: TokenMorpheme[];
   /** The source marks a textual variant at this word. */
   variant_marked: boolean;
+  /** Sourced contextual gloss, and which dataset it came from. Never generated. */
+  gloss?: string;
+  gloss_source?: "TAGNT" | "TAHOT" | "TBESG";
 }
 
 /**
@@ -52,6 +57,18 @@ export function stripApparatus(text: string): { clean: string; marked: boolean }
 
 /** Trailing punctuation MorphGNT carries on the surface form. */
 const GREEK_PUNCT = /[.,;·:!?]+$/u;
+
+/**
+ * SBLGNT numbers two verses differently from English Bibles, which are the
+ * canonical scheme. Found at full-NT scale: these were the only Greek verses
+ * with no English row, so their words would have been unreachable from the
+ * reader. File order already puts Rev 12:18 before 13:1 and 3 John 15 after
+ * 14, so folding the id is enough — positions continue in reading order.
+ */
+const SBLGNT_TO_ENGLISH: Readonly<Record<string, string>> = {
+  "3JN.1.15": "3JN.1.14",
+  "REV.12.18": "REV.13.1",
+};
 
 // ---------------------------------------------------------------------------
 // MorphGNT
@@ -105,7 +122,8 @@ export function parseMorphGntWithCoverage(file: string): {
     const book = greekBook(Number(bcv.slice(0, 2)));
     const chapter = Number(bcv.slice(2, 4));
     const verse = Number(bcv.slice(4, 6));
-    const verseId = `${book}.${chapter}.${verse}`;
+    const sourceId = `${book}.${chapter}.${verse}`;
+    const verseId = SBLGNT_TO_ENGLISH[sourceId] ?? sourceId;
     if (verseId !== currentVerse) {
       currentVerse = verseId;
       position = 0;
@@ -363,8 +381,21 @@ export function parseOshb(file: string): { tokens: Token[]; report: Versificatio
   return { tokens, report };
 }
 
+/**
+ * The last position written for each verse id, per parse.
+ *
+ * Positions must continue when two Hebrew verse elements land in one English
+ * verse — Ps 51's superscription spans two, as do the cross-chapter merges.
+ * Restarting at 1 for each segment produced duplicate (verse, position) keys,
+ * and staging's INSERT OR REPLACE silently kept only the second: Ps 51:0 lost
+ * "For the director. A Psalm of David" and 55 other words went the same way.
+ */
+const lastPositions = new WeakMap<Token[], Map<string, number>>();
+
 function collectWords(body: string, verseId: string, tokens: Token[]): void {
-  let position = 0;
+  const positions = lastPositions.get(tokens) ?? new Map<string, number>();
+  lastPositions.set(tokens, positions);
+  let position = positions.get(verseId) ?? 0;
   for (const wordMatch of body.matchAll(WORD_RE)) {
     const attrText = wordMatch[1] ?? "";
     const rawSurface = (wordMatch[2] ?? "").trim();
@@ -392,4 +423,5 @@ function collectWords(body: string, verseId: string, tokens: Token[]): void {
       variant_marked: false,
     });
   }
+  positions.set(verseId, position);
 }

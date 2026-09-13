@@ -8,3 +8,5 @@ export * from "./claims.js";
 export * from "./entries.js";
 export * from "./manifest.js";
 export * from "./validate.js";
+export * from "./search.js";
+export * from "./bundle.js";

@@ -23,15 +23,18 @@ import { PIPELINE_DATA, PROMPTS, REQUESTS } from "./paths.js";
 
 /**
  * Published rates, US dollars per million tokens, from the Claude API model
- * table cached 2026-06-24. Verify before quoting: rates move, and Sonnet 5 is
- * running an introductory price that expires.
+ * table cached 2026-06-24. Verify before quoting: rates move.
+ *
+ * Sonnet 5 ran an introductory $2/$10 through 2026-08-31 and is now at its
+ * standard rate. Anything priced before that date at the intro rate understates
+ * Sonnet by a third.
  */
 export const MODEL_RATES = {
   "claude-opus-5": { input: 5.0, output: 25.0, note: "" },
   "claude-sonnet-5": {
-    input: 2.0,
-    output: 10.0,
-    note: "introductory rate through 2026-08-31; reverts to $3.00/$15.00",
+    input: 3.0,
+    output: 15.0,
+    note: "standard rate; the $2/$10 introductory price ended 2026-08-31",
   },
   "claude-haiku-4-5": { input: 1.0, output: 5.0, note: "200K context, not 1M" },
 } as const;

@@ -58,6 +58,13 @@ CREATE TABLE IF NOT EXISTS entries (
   payload        TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS pericope_entries (
+  pericope_id    TEXT PRIMARY KEY,
+  schema_version TEXT NOT NULL,
+  prompt_version TEXT NOT NULL,
+  payload        TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS review_state (
   verse_id   TEXT PRIMARY KEY,
   status     TEXT NOT NULL,
@@ -73,6 +80,13 @@ CREATE TABLE IF NOT EXISTS batches (
   state      TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS texts (
+  translation TEXT NOT NULL,
+  verse_id    TEXT NOT NULL,
+  text        TEXT NOT NULL,
+  PRIMARY KEY (translation, verse_id)
+);
+
 CREATE INDEX IF NOT EXISTS tokens_by_verse ON tokens (verse_id);
 CREATE INDEX IF NOT EXISTS verses_by_book ON verses (book, chapter, verse);
 `;
@@ -86,7 +100,22 @@ export function openStaging(): DatabaseSync {
   db.exec("PRAGMA busy_timeout = 5000");
   db.exec("PRAGMA journal_mode = WAL");
   db.exec(DDL);
+  migrate(db);
   return db;
+}
+
+/**
+ * Additive column migrations for staging.db files created before a column
+ * existed. `CREATE TABLE IF NOT EXISTS` never alters an existing table, so
+ * without this an old staging.db silently lacks the column and every insert
+ * that names it fails.
+ */
+function migrate(db: DatabaseSync): void {
+  const columns = new Set(
+    db.prepare("PRAGMA table_info(tokens)").all().map((row) => String(row["name"])),
+  );
+  if (!columns.has("gloss")) db.exec("ALTER TABLE tokens ADD COLUMN gloss TEXT");
+  if (!columns.has("gloss_source")) db.exec("ALTER TABLE tokens ADD COLUMN gloss_source TEXT");
 }
 
 /**

@@ -11,6 +11,9 @@ import { ORACLE_FIXTURES, checkAgainstFixture, coverage } from "./derive.js";
 import { CEILING_USD, spentSoFar } from "./budget.js";
 import { dryRun, loadPericopes } from "./generate.js";
 import { inspectAll } from "./inspect.js";
+import { packageCore, packageUnderstand, readBundleManifest, understandBooks, writeBundleManifest } from "./package.js";
+import { importGolden } from "./store.js";
+import { isBookCode, type BundleInfo } from "@yada/schema";
 import { ensureDirs } from "./paths.js";
 import { MILESTONE_0_MODELS, generatePericope, type GenerationResult } from "./submit.js";
 import { normalize } from "./normalize.js";
@@ -109,6 +112,23 @@ async function main(): Promise<number> {
             `${[...report.lexicon.unmatched].slice(0, 6).join(", ")}`,
         );
       }
+      const g = report.glosses;
+      console.log(
+        `  glosses: TAGNT ${g.bySource.TAGNT}, TAHOT ${g.bySource.TAHOT}, TBESG fallback ${g.bySource.TBESG}, ` +
+          `unglossed ${g.unglossed} of ${g.tokens} (${((1 - g.unglossed / Math.max(g.tokens, 1)) * 100).toFixed(1)}% glossed)`,
+      );
+      if (g.weakBooks.length > 0) {
+        console.log(
+          `  books under 90% aligned: ${g.weakBooks.map((b) => `${b.book} ${(b.coverage * 100).toFixed(0)}%`).join(", ")}`,
+        );
+      }
+      const t = report.texts.byTranslation;
+      console.log(`  English: BSB ${t.BSB}, WEB ${t.WEB}, KJV ${t.KJV} verses`);
+      console.log(
+        `  English verses with no original-language tokens: ${report.textOnly}; ` +
+          `original verses with no English: ${report.originalOnly.length}` +
+          (report.originalOnly.length > 0 ? ` (${report.originalOnly.slice(0, 6).join(", ")})` : ""),
+      );
       if (report.unresolved.length > 0) {
         console.log(`  UNRESOLVED refs: ${report.unresolved.slice(0, 10).join(", ")}`);
       }
@@ -159,6 +179,51 @@ async function main(): Promise<number> {
       }
       console.log(`\n${ORACLE_FIXTURES.length - failures}/${ORACLE_FIXTURES.length} fixtures reproduced`);
       return failures === 0 ? 0 : 1;
+    }
+
+    case "import-golden": {
+      const report = importGolden();
+      console.log(`import-golden: ${report.imported.length} entries into staging.db as flagged`);
+      for (const id of report.imported) console.log(`  + ${id}`);
+      for (const r of report.rejected) console.log(`  REJECTED ${r.file}: ${r.problem}`);
+      return report.rejected.length > 0 ? 1 : 0;
+    }
+
+    case "package": {
+      // `package`            core + every book with content, reviewed entries only
+      // `package JHN`        one Understand bundle
+      // `--allow-unreviewed` include flagged entries, marked unreviewed-dev
+      const allowUnreviewed = rest.includes("--allow-unreviewed");
+      const only = rest.find((arg) => !arg.startsWith("--"));
+      const previous = readBundleManifest()?.bundles ?? [];
+      const built: BundleInfo[] = [];
+
+      if (only === undefined || only.toLowerCase() === "core") {
+        const core = packageCore();
+        built.push(core.info);
+        console.log(
+          `  core      ${core.info.file.padEnd(14)} ${(core.info.bytes / 1048576).toFixed(1)} MB  ` +
+            `${core.verses} verses, ${core.texts} texts, ${core.tokens} tokens`,
+        );
+      }
+      const books = only === undefined ? understandBooks() : only.toLowerCase() === "core" ? [] : [only.toUpperCase()];
+      for (const book of books) {
+        if (!isBookCode(book)) {
+          console.error(`unknown book ${book}`);
+          return 2;
+        }
+        const report = packageUnderstand(book, { allowUnreviewed });
+        built.push(report.info);
+        console.log(
+          `  ${book.padEnd(9)} ${report.info.file.padEnd(14)} ${(report.info.bytes / 1024).toFixed(0)} KB  ` +
+            `${report.included.length} entries${report.withheld.length > 0 ? `, ${report.withheld.length} withheld as unreviewed` : ""}` +
+            `${report.info.review_gate === "unreviewed-dev" ? "  [UNREVIEWED-DEV — never publishable]" : ""}`,
+        );
+      }
+      const merged = [...previous.filter((b) => !built.some((n) => n.name === b.name)), ...built];
+      writeBundleManifest(merged);
+      console.log(`\npackage: ${built.length} bundles built, manifest lists ${merged.length} -> content/bundles/manifest.json`);
+      return 0;
     }
 
     case "inspect": {
@@ -221,7 +286,7 @@ async function main(): Promise<number> {
     }
 
     default: {
-      console.log("usage: yada <ingest|normalize|derive BOOK|oracle|generate [--dry-run|--confirm] BOOK|inspect>");
+      console.log("usage: yada <ingest|normalize|derive BOOK|oracle|generate [--dry-run|--confirm] BOOK|inspect|import-golden|package [core|BOOK] [--allow-unreviewed]>");
       return command === undefined ? 0 : 2;
     }
   }
