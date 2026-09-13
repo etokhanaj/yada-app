@@ -16,7 +16,10 @@ const HAVE_SOURCES = existsSync(path.join(RAW, "Ps.xml"));
 const describeIfIngested = HAVE_SOURCES ? describe : describe.skip;
 
 describeIfIngested("Hebrew -> English versification", () => {
-  const psalms = parseOshb("Ps.xml");
+  // vitest still runs a skipped suite's body to collect its tests, so parsing
+  // here unguarded crashed every clean checkout — including CI — with ENOENT
+  // instead of skipping.
+  const psalms = HAVE_SOURCES ? parseOshb("Ps.xml") : { tokens: [] };
   const verseIds = new Set(psalms.tokens.map((t) => t.verse_id));
 
   it("splits a title that shares Hebrew verse 1 with English verse 1 (Ps 23)", () => {

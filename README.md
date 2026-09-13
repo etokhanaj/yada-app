@@ -47,7 +47,11 @@ Deterministic, and it stops before money is spent. `ingest` fetches and pins sou
 into English once; `derive` produces mechanical glosses and morpheme decomposition; `generate
 --dry-run` builds and prices the exact requests that *would* be sent, and submits nothing.
 
-**No API call is made anywhere in this package, and there is no API key in this repo.**
+Past that point every stage that could spend money or touch storage — `generate`, `adversary`,
+`regress --live`, `publish` — does nothing without `--confirm`, and model calls go through the
+ceiling in `budget.ts`. `ingest-responses`, `validate` and `regress` are deterministic and offline.
+
+**There is no API key or storage credential in this repo; keys are read from the environment only.**
 
 ### `golden/` — seven fixtures, and the oracle that uses them
 
@@ -72,8 +76,9 @@ confident, well-formed, wrong data that no amount of reading the output would ha
 | `apps/mobile` | Type placeholders only. No app code until the Milestone 0 proof passes. |
 | `content/` | Gitignored working data: raw sources, `staging.db`, request bodies. |
 
-Not built at all yet, and each has a scheduled arrival gate: generation, adversarial pass, bundle
-packaging, publishing, the review UI, and every screen of the app.
+Built but never yet run for real, because no key or R2 credential exists: generation, the
+adversarial pass, the live regression tier, and publishing. Each is tested only against injected
+fake clients. Not built at all yet: the review UI and every screen of the app.
 
 ## Commands
 
@@ -92,6 +97,11 @@ npx tsx src/cli.ts normalize               # build content/staging.db
 npx tsx src/cli.ts derive JHN              # mechanical glosses + coverage
 npx tsx src/cli.ts oracle                  # derived output vs the golden fixtures
 npx tsx src/cli.ts generate --dry-run JHN  # build + price requests. Submits nothing.
+npx tsx src/cli.ts ingest-responses        # store valid generated entries as flagged; reject truncated, invalid or "reviewed" ones
+npx tsx src/cli.ts validate JHN            # 0C contract vs staging: cited lemmas/Strong's exist, refs resolve, gloss matches derivation
+npx tsx src/cli.ts adversary --dry-run JHN # build adversarial requests (Sonnet attacks each claim); --confirm spends, behind the budget gate
+npx tsx src/cli.ts regress                 # CI tier: golden fixtures vs Zod, contract, provenance, oracle. --live --confirm regenerates 1 Cor 14:34
+npx tsx src/cli.ts publish --dry-run       # verify bundles vs manifest; --confirm uploads to R2, manifest last, never unreviewed-dev
 ```
 
 Requires Node 22+ and pnpm 10.

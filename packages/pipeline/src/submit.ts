@@ -56,6 +56,13 @@ export interface SubmitOptions {
   /** Injected in tests so the gate can be exercised without a network. */
   client?: Anthropic;
   now?: () => number;
+  /**
+   * Where the raw response is written. Defaults to content/responses/, which
+   * `ingest-responses` stores from — so a live regression run must write
+   * elsewhere, or its output would enter the corpus as if it were generation.
+   */
+  responsesDir?: string;
+  stage?: UsageRecord["stage"];
 }
 
 /**
@@ -120,7 +127,7 @@ export async function generatePericope(
   // Written before parsing, so a malformed response is still evidence rather
   // than something that vanishes when a parse throws.
   writeFileSync(
-    path.join(RESPONSES, `${pericope.id}.${model}.json`),
+    path.join(options.responsesDir ?? RESPONSES, `${pericope.id}.${model}.json`),
     `${JSON.stringify(
       { pericope_id: pericope.id, model, stop_reason: message.stop_reason, usage: message.usage, text },
       null,
@@ -137,6 +144,7 @@ export async function generatePericope(
     output_tokens: outputTokens,
     thinking_tokens: thinkingTokens,
     cost_usd: costUsd,
+    stage: options.stage ?? "generate",
   };
   recordUsage(record);
 

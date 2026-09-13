@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version comes from package.json's packageManager field.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm -r test
+
+      # The CI regression tier: golden corpus against the quality contract, zero
+      # API calls. content/raw is absent here, so the oracle is skipped with an
+      # explicit notice rather than silently.
+      - name: yada regress
+        working-directory: packages/pipeline
+        run: npx tsx src/cli.ts regress
