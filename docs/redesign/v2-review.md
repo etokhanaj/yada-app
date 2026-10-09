@@ -147,3 +147,22 @@ c11 has them; same layout as J01-09).
 | S12 | Home: `Start with John` / `Passage by passage, 46 passages` — "passage" three times. | `46 passages, in order`. **Departs from brief §4** copy. |
 | U9 | AX5: the explanation marker fell onto a line of its own (Psalm 23:1). | Marker binds to the verse's last word. |
 | U10 | AX5: chevrons and checks dropped below their rows (λόγος by book, Start here, Appearance). | Only Sources rows wrap at AX sizes. |
+
+### Slop pass 4: internals showing through (9 Oct)
+
+| # | Finding | Fix |
+|---|---|---|
+| S13 | Sources listed explanation bundles as `Genesis · 1 verse · 44 KB`: file sizes for files the reader can't manage. | `Explained so far · 7 verses`, each verse a row with its opening words; tapping opens it. |
+| S14 | `Bible text, Greek and Hebrew: 83.7 MB, built in.` | `All of it is on your iPhone. Nothing needs a connection.` |
+| S15 | Sources showed the team's open legal notes as if they were licence terms ("SBLGNT EULA has not been reviewed…", "Confirm the UK position with CUP… PRD 0E"). | Removed from the UI. Each row is the plain role (`Greek parsing`), then the dataset and licence (`MorphGNT · CC BY-SA 3.0`), grouped `Bible text` / `Word data`. |
+| S16 | Acronym-only names (TBESH, TVTMS) a reader can't decode. | Role first: `Hebrew dictionary forms`, `Verse numbering`. |
+| S17 | Contents' chapter grid under a subtitle `16 chapters` — the grid shows 16. | Subtitle cut. |
+| S18 | Psalm 23:1's excerpt began "A Psalm of David." | Excerpts drop the superscription. |
+
+**Offline:** the app is fully offline today. `bundled.generated.ts` ships `core.v2.db` and all seven
+explanation bundles in the binary; nothing is fetched. `publish` to R2 exists for later updates, but the app
+doesn't download yet. When John's Gospel is generated (~880 entries), bundles may need to download per
+book; that is the moment to design a download row (`John · Download explanations`), not before.
+
+**For John before release:** the `encumbered` notes are real open questions (SBLGNT EULA, KJV UK letters
+patent, STEPBible redistribution). Hiding them in the UI does not resolve them; PRD 0E still applies.

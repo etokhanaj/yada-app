@@ -580,7 +580,7 @@ if STYLE != "v1":
     under14 = reader("1CO", 14, 33, 40, offset=-8) + scrim()
     F("C-01", "Contents: books", under14 + sheet("lg", "Contents", None, seg("BSB") + sec("New Testament", ntl), foot=False), "hs")
     chg = '<div class="chg">' + "".join(f'<button class="{"on" if n == 14 else ""}" aria-label="Chapter {n}{", reading" if n == 14 else ""}">{n}</button>' for n in range(1, 17)) + "</div>"
-    F("C-02", "Contents: chapters of 1 Corinthians", under14 + sheet("lg", "1 Corinthians", "16 chapters", seg("BSB") + chg, back=True, foot=False), "hs")
+    F("C-02", "Contents: chapters of 1 Corinthians", under14 + sheet("lg", "1 Corinthians", None, seg("BSB") + chg, back=True, foot=False), "hs")
 
     # ---- Settings and saved ----
     steps = ('<div class="d stepper"><button class="stp" aria-label="Smaller text">A−</button><span class="stv" aria-live="polite">3 of 6</span><button class="stp" aria-label="Larger text">A+</button></div>'
@@ -633,24 +633,37 @@ if STYLE != "v1":
     F("ST-01", "Start here: John, passage by passage", page(("Home", "Home"), "The Gospel of John", strows, sub="46 passages"), "es")
 
     # ---- Sources ----
-    sizes = [("Genesis", "gen"), ("Leviticus", "lev"), ("Psalm", "psa"), ("Isaiah", "isa"), ("John", "jhn"), ("1 Corinthians", "1co"), ("Revelation", "rev")]
-    exp = "".join(lrow(E(n), right=f'<span class="note muted">1 verse · {round(os.path.getsize(f"{Y}/content/bundles/{k}.v1.db") / 1024)} KB</span>', chev=False) for n, k in sizes)
-    F("SO-01", "Sources: explanations", page(("Home", "Home"), "Sources",
-      sec("Explanations", '<p class="note muted">All unreviewed drafts.</p>' + exp, first=True)), "so")
+    # Readers care what is explained and where it comes from, not file sizes: everything ships in the app.
+    OFFLINE = "All of it is on your iPhone. Nothing needs a connection."
+    exv = db.execute("select v.verse_id, v.book, v.chapter, v.verse, t.text from verses v join texts t on t.ord=v.ord and t.translation='BSB' "
+                     f"where v.verse_id in ({','.join('?' * len(ENTRIES))}) order by v.ord", sorted(ENTRIES)).fetchall()
+    exrows = "".join(lrow(f'{E(BOOK[b])} {c}:{v}', sub=f'<span class="excerpt">{scripture(t.removeprefix("A Psalm of David. "))}</span>') for _, b, c, v, t in exv)
+    F("SO-01", "Sources: what is explained", page(("Home", "Home"), "Sources",
+      sec(f"Explained so far · {len(exv)} verses", exrows, first=True), sub=OFFLINE), "so")
     LIC = {"CC-BY-SA-3.0": "CC BY-SA 3.0", "CC-BY-4.0": "CC BY 4.0", "PUBLIC_DOMAIN": "Public domain", "CUSTOM_EULA": "Own licence", "OFL-1.1": "SIL OFL 1.1"}
-    SHORT_NAME = {"morphgnt/sblgnt (morphological annotations)": "MorphGNT", "SBLGNT (Greek text)": "SBLGNT",
-                  "morphhb — lemma and morphology data": "OSHB morphology", "morphhb — Westminster Leningrad Codex text": "Westminster Leningrad Codex",
-                  "Berean Standard Bible (text)": "Berean Standard Bible", "World English Bible, Protestant canon (engwebp)": "World English Bible",
-                  "King James Version, 1769 standardised text (eng-kjv2006)": "King James Version"}
-    src = db.execute("select dataset, license, coalesce(encumbered, '') from sources").fetchall()
-    srows = ""
-    for ds, li, enc in src[:9]:
-        nm = SHORT_NAME.get(ds, ds.split(" — ")[0])
-        sub_ = LIC.get(li, li) + (f'<span class="enc">{E(enc)}</span>' if enc else "")
-        srows += lrow(E(nm), sub=sub_, right=f'<span class="srcl">Source{ic("right", 16)}</span>', chev=False, cls="src")
-    size_core = round(os.path.getsize(f"{Y}/content/bundles/core.v2.db") / 1048576, 1)
+    # Plain-English role first; the dataset's own name second, where licences require it.
+    ROLE = {"Berean Standard Bible (text)": ("Bible text", "English: Berean Standard Bible", "BSB"),
+            "World English Bible, Protestant canon (engwebp)": ("Bible text", "English: World English Bible", "WEB"),
+            "King James Version, 1769 standardised text (eng-kjv2006)": ("Bible text", "English: King James Version", "KJV"),
+            "SBLGNT (Greek text)": ("Bible text", "Greek New Testament", "SBLGNT"),
+            "morphhb — Westminster Leningrad Codex text": ("Bible text", "Hebrew Bible", "Westminster Leningrad Codex"),
+            "morphgnt/sblgnt (morphological annotations)": ("Word data", "Greek parsing", "MorphGNT"),
+            "morphhb — lemma and morphology data": ("Word data", "Hebrew parsing", "OSHB"),
+            "TAGNT — Translators Amalgamated Greek NT (per-word English glosses)": ("Word data", "Greek word glosses", "STEPBible TAGNT"),
+            "TAHOT — Translators Amalgamated Hebrew OT (per-morpheme English glosses)": ("Word data", "Hebrew word glosses", "STEPBible TAHOT"),
+            "TBESG — brief Greek lexicon of Extended Strongs": ("Word data", "Greek dictionary forms", "STEPBible TBESG"),
+            "TBESH — brief Hebrew lexicon of Extended Strongs": ("Word data", "Hebrew dictionary forms", "STEPBible TBESH"),
+            "TVTMS — versification traditions": ("Word data", "Verse numbering", "STEPBible TVTMS")}
+    groups = {"Bible text": "", "Word data": ""}
+    for ds, li, enc in db.execute("select dataset, license, coalesce(encumbered, '') from sources").fetchall():
+        if ds not in ROLE:
+            continue  # fonts and the WEB excerpt file sit in the app's About, not here
+        g, role, name = ROLE[ds]
+        # `encumbered` holds the team's open legal questions (PRD 0E), not licence wording for readers.
+        sub_ = f'{E(name)} · {LIC.get(li, li)}'
+        groups[g] += lrow(E(role), sub=sub_, right=f'<span class="srcl">Source{ic("right", 16)}</span>', chev=False, cls="src")
     F("SO-02", "Sources: texts and data", page(("Home", "Home"), "Sources",
-      sec("Texts and data", f'<p class="note muted">Bible text, Greek and Hebrew: {size_core} MB, built in.</p>' + srows, first=True)), "so")
+      sec("Bible text", groups["Bible text"], first=True) + sec("Word data", groups["Word data"]), sub=OFFLINE), "so")
 
 # ================= Edge cases (v2) =================
 if STYLE != "v1":
