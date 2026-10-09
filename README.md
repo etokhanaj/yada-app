@@ -3,9 +3,10 @@
 A Bible reader whose content is produced by an AI-built, human-reviewed pipeline and shipped as
 static per-book SQLite bundles. No runtime AI, no backend in v1.
 
-This repo is at step 4 of the engineering sequence: **the schema and the deterministic pipeline**,
-from raw sources up to a costed, inspectable request. Generation, the review tool and the app are
-deliberate stubs, each behind a stated gate.
+This repo is between steps 4 and 5 of the engineering sequence: **the schema, the full pipeline
+from raw sources to published bundles, and the review tool** are built; App v1 is next. Generation
+and publishing are built but have never run for real, because no API key or storage credential
+exists. `docs/handoff-2026-09-13.md` has the current state.
 
 ## What exists
 
@@ -68,17 +69,17 @@ checked which.
 before changing `normalize` or the lexicon matching — two of the bugs it describes produced
 confident, well-formed, wrong data that no amount of reading the output would have caught.
 
-## Deliberately a stub
+## Not built yet, or built but never run for real
 
 | Path | Status |
 |---|---|
-| `packages/review` | Queue names only. The review web app comes later. |
-| `apps/mobile` | Type placeholders only. No app code until the Milestone 0 proof passes. |
-| `content/` | Gitignored working data: raw sources, `staging.db`, request bodies. |
+| `apps/mobile` | The 0A spike (reader, Understand, Original, word card over three test passages) plus App v1 groundwork: bundled databases, user data, reading settings. No App v1 screens yet. |
+| `packages/review` | Built: a local web app over `staging.db` — flagged, sampled, adversary and targeted-expert queues; approve (rating ≥4) and reject (reason required); every decision also written to `review/decisions.jsonl`. See its README. |
+| `content/` | Gitignored working data: raw sources, `staging.db`, request bodies, bundles. |
 
 Built but never yet run for real, because no key or R2 credential exists: generation, the
 adversarial pass, the live regression tier, and publishing. Each is tested only against injected
-fake clients. Not built at all yet: the review UI and every screen of the app.
+fake clients.
 
 ## Commands
 
@@ -102,6 +103,14 @@ npx tsx src/cli.ts validate JHN            # 0C contract vs staging: cited lemma
 npx tsx src/cli.ts adversary --dry-run JHN # build adversarial requests (Sonnet attacks each claim); --confirm spends, behind the budget gate
 npx tsx src/cli.ts regress                 # CI tier: golden fixtures vs Zod, contract, provenance, oracle. --live --confirm regenerates 1 Cor 14:34
 npx tsx src/cli.ts publish --dry-run       # verify bundles vs manifest; --confirm uploads to R2, manifest last, never unreviewed-dev
+```
+
+The review tool and the app's bundles:
+
+```bash
+pnpm --filter @yada/review dev             # review UI on localhost (API :4317, Vite :5173)
+pnpm --filter @yada/review export          # regenerate review/review_state.jsonl from staging.db
+pnpm --filter @yada/mobile bundles         # copy content/bundles into the app as assets
 ```
 
 Requires Node 22+ and pnpm 10.

@@ -13,7 +13,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 
-import { type BookCode, type VerseEntry } from "@yada/schema";
+import { BOOK_CODES, isBookCode, type BookCode, type VerseEntry } from "@yada/schema";
 
 import { openStaging } from "./db.js";
 import type { TokenMorpheme } from "./parsers.js";
@@ -30,10 +30,14 @@ export interface DerivedWord {
   variant_marked: boolean;
 }
 
-const OT_BOOKS = new Set(["GEN", "LEV", "PSA", "ISA"]);
-
+/**
+ * From the book's testament. This was a hard-coded set of the four Hebrew books
+ * ingested for the genre gate, which stopped being true when all 39 were: every
+ * other OT book was transliterated as Greek, and generation requests for Exodus
+ * would have told the model the script was Greek.
+ */
 export function scriptFor(book: string): "greek" | "hebrew" {
-  return OT_BOOKS.has(book) ? "hebrew" : "greek";
+  return isBookCode(book) && BOOK_CODES[book].testament === "OT" ? "hebrew" : "greek";
 }
 
 export function deriveVerse(verseId: string): DerivedWord[] {

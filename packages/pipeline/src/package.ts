@@ -410,7 +410,12 @@ export function packageUnderstand(book: BookCode, options: { allowUnreviewed: bo
       withheld.push(verseId);
       continue;
     }
-    insertEntry.run(verseId, ord, text(row, "pericope_id"), status, text(row, "payload"));
+    // review_state is the authority on status; the payload's own review field
+    // was written at generation time and still says `flagged` after approval.
+    // Shipping it unchanged would publish an entry that contradicts itself.
+    const payload = JSON.parse(text(row, "payload")) as { review?: { status?: string; flags?: string[] } };
+    payload.review = { flags: payload.review?.flags ?? [], status };
+    insertEntry.run(verseId, ord, text(row, "pericope_id"), status, JSON.stringify(payload));
     included.push(verseId);
   }
 

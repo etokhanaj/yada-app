@@ -25,21 +25,44 @@ import { GOLDEN } from "./paths.js";
 type Db = ReturnType<typeof openStaging>;
 
 export function storeVerseEntry(db: Db, entry: VerseEntry, status: ReviewStatus, reason?: string): void {
+  const payload = JSON.stringify(entry);
+  const previous = db.prepare("SELECT payload FROM entries WHERE verse_id = ?").get(entry.verse_id) as
+    | { payload?: string }
+    | undefined;
+
   db.prepare(
     `INSERT OR REPLACE INTO entries (verse_id, pericope_id, schema_version, prompt_version, payload)
      VALUES (?, ?, ?, ?, ?)`,
-  ).run(entry.verse_id, entry.pericope_id, entry.schema_version, entry.prompt_version, JSON.stringify(entry));
+  ).run(entry.verse_id, entry.pericope_id, entry.schema_version, entry.prompt_version, payload);
 
-  // An existing review decision is kept when the status is unchanged, so
-  // re-importing does not wipe a rating or a rejection reason.
+  // A review judged specific content. Re-storing identical content must leave
+  // that judgment alone — the first version of this function compared statuses
+  // instead, so re-importing a fixture as `flagged` silently wiped a human
+  // approval. Changed content is the opposite case: the approval was for text
+  // that no longer exists, so the entry goes back to review, on purpose and
+  // with the reason recorded.
   const existing = db.prepare("SELECT status FROM review_state WHERE verse_id = ?").get(entry.verse_id) as
     | { status?: string }
     | undefined;
-  if (existing?.status !== status) {
-    db.prepare(
-      `INSERT OR REPLACE INTO review_state (verse_id, status, rating, reason, updated_at)
-       VALUES (?, ?, NULL, ?, ?)`,
-    ).run(entry.verse_id, status, reason ?? null, new Date().toISOString());
+  if (existing?.status !== undefined && previous?.payload === payload) return;
+
+  const contentChanged = existing?.status !== undefined && previous?.payload !== payload;
+  const now = new Date().toISOString();
+  const why = contentChanged ? `content changed since last review; ${reason ?? "re-stored"}` : (reason ?? null);
+
+  // Update named columns rather than INSERT OR REPLACE, which rewrites the row
+  // and drops columns this module does not know about (the review tool's
+  // `decision`). Those are cleared deliberately below, not by accident.
+  db.prepare(
+    `INSERT INTO review_state (verse_id, status, rating, reason, updated_at) VALUES (?, ?, NULL, ?, ?)
+     ON CONFLICT(verse_id) DO UPDATE SET status = excluded.status, rating = NULL,
+       reason = excluded.reason, updated_at = excluded.updated_at`,
+  ).run(entry.verse_id, status, why, now);
+  const columns = new Set(
+    db.prepare("PRAGMA table_info(review_state)").all().map((row) => String((row as { name: unknown }).name)),
+  );
+  if (contentChanged && columns.has("decision")) {
+    db.prepare("UPDATE review_state SET decision = NULL WHERE verse_id = ?").run(entry.verse_id);
   }
 }
 
