@@ -6,8 +6,10 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { verseOrd } from "@yada/schema";
 import { describe, expect, it } from "vitest";
 
+import { SOURCE_GAPS } from "../lib/omissions";
 import { buildFtsQuery, planSearch, splitSnippet } from "../lib/searchQuery";
 import { resolvePassage } from "../lib/pericopes";
 import {
@@ -55,6 +57,14 @@ describe.skipIf(!haveBundles)("queries against the core bundle", () => {
 
   it("has no Greek under John 8:7", async () => {
     expect((await getTokens(core, 43008007)).words).toEqual([]);
+  });
+
+  it("has Greek through Romans 16:24 and none for the source gap after it", async () => {
+    expect((await getTokens(core, verseOrd("ROM", 16, 24))).words.length).toBeGreaterThan(0);
+    for (const id of SOURCE_GAPS) {
+      const [, chapter = 0, verse = 0] = id.split(".").map(Number);
+      expect((await getTokens(core, verseOrd("ROM", chapter, verse))).words).toEqual([]);
+    }
   });
 
   it("finds σιγάτωσαν with its parse and counts", async () => {

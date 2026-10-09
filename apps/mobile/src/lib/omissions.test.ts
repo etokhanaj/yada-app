@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MANUSCRIPT_OMISSIONS, missingOriginalNote } from "./omissions";
+import { MANUSCRIPT_OMISSIONS, missingOriginalNote, SOURCE_GAPS } from "./omissions";
 
 describe("verses with nothing underneath", () => {
   it("says nothing when the verse has original words", () => {
@@ -18,6 +18,22 @@ describe("verses with nothing underneath", () => {
     const note = missingOriginalNote("2CO.13.14", "greek", false) ?? "";
     expect(note).not.toMatch(/manuscripts/);
     expect(note).toMatch(/numbers this passage differently/);
+  });
+
+  // Romans 16:25–27 had been given the numbering note: the pinned MorphGNT file
+  // ends at 16:24, which is a gap in Yada's source, not in SBLGNT's numbering
+  // and not a manuscript omission.
+  it("calls Romans 16:25–27 a gap in Yada's data, not a manuscript omission", () => {
+    for (const id of ["ROM.16.25", "ROM.16.26", "ROM.16.27"]) {
+      const note = missingOriginalNote(id, "greek", false) ?? "";
+      expect(note).toMatch(/gap in Yada's data/);
+      expect(note).not.toMatch(/omit it|numbers this passage differently/);
+    }
+    expect(missingOriginalNote("ROM.16.24", "greek", true)).toBeNull();
+  });
+
+  it("keeps the manuscript and source-gap lists apart", () => {
+    expect([...SOURCE_GAPS].filter((id) => MANUSCRIPT_OMISSIONS.has(id))).toEqual([]);
   });
 
   it("speaks of Hebrew in the Old Testament", () => {
