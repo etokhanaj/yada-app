@@ -402,3 +402,9 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
     centred on the dark ground (#0E1814), in both light and dark appearance. In light mode the reader
     (chalk) follows it: fade the splash out over 150 ms so the change from dark to chalk is a dissolve,
     not a flash; instant under Reduce Motion. No wordmark, tagline or spinner.
+17. **Splash motion, "the page lifts"** (canvas SP-03–05, approved by John 9 Oct). Cold launch only, 520 ms total:
+    the leaf rotates −8° about the join (0–160 ms, SPRING.standard); then the whole symbol scales to 0.9 and
+    fades while the dark ground fades out over the reader, which fades in and rises 6 pt (160–520 ms).
+    Layers `splash-stem.png` + `splash-leaf.png` share `splash-symbol-dark.png`'s frame; pivot at 54.4% x,
+    57.0% y. Runs only once the reader is ready (never lengthens launch). Reduce Motion: 150 ms cross-fade.
+    Warm launch: none. No haptic. VoiceOver focus waits for the reader.

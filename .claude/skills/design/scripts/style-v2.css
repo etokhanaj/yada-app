@@ -355,3 +355,6 @@ h3,p{margin:0}
 .splsym{width:76px;height:76px}
 .spllock{width:200px;height:auto}
 .splash.fading .splsym{opacity:.35;transform:scale(.96)}
+.splash.on-dark{background:#0E1814;color:#DBEC9A}
+.splash .splsym{transition:none}
+.splash{z-index:10}

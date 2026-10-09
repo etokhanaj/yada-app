@@ -727,13 +727,33 @@ if STYLE != "v1":
         return f'<div class="splash {cls}" role="img" aria-label="Yada">{inner}</div>'
     symbol = f'<svg class="splsym" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><path d="{SYM_D}" transform="{SYM_T}" fill="currentColor"></path></svg>'
     lockup = f'<svg class="spllock" viewBox="0 0 450 140" xmlns="http://www.w3.org/2000/svg">{LOCK}</svg>'
-    F("SP-01", "Splash: symbol on the reading ground (recommended)", [
-        ("Light", "light", splash("on-paper", symbol)), ("Dark", "dark", splash("on-paper", symbol)), ("AX5 · unchanged", "ax5", splash("on-paper", symbol))], "sp")
+    F("SP-01", "Splash: chartreuse symbol on the dark ground (chosen)", [
+        ("Light mode", "light", splash("on-dark", symbol)), ("Dark mode", "dark", splash("on-dark", symbol)), ("AX5 · unchanged", "ax5", splash("on-dark", symbol))], "sp")
     F("SP-02", "Splash: lockup on forest (Fable pattern)", [
         ("Light", "light", splash("on-forest", lockup)), ("Dark", "dark", splash("on-forest", lockup)), ("AX5 · unchanged", "ax5", splash("on-forest", lockup))], "sp")
-    F("SP-03", "Splash to first frame (SP-01 → JN-01)", [
-        ("1 · Launch", "light", splash("on-paper", symbol)), ("2 · Symbol fades, 150 ms", "light", splash("on-paper fading", symbol)),
+    jn_rm = reader("JHN", 1, 1, 9, hint=True, scrolled=False) + f'<div class="splash on-dark" style="opacity: .5">{symbol}</div>'
+    F("SP-03", "Splash with Reduce Motion", [
+        ("1 · Launch", "light", splash("on-dark", symbol)), ("2 · Reduce Motion: cross-fade, 150 ms", "light", jn_rm),
         ("3 · Reader at John 1", "light", reader("JHN", 1, 1, 9, hint=True, scrolled=False))], "sp")
+
+    LEAF_CLIP = "M 144 161 L 164 119 L 260 119 L 260 -10 L 150 -10 Z"
+    STEM_CLIP = "M -10 -10 L 150 -10 L 144 161 L 164 119 L 260 119 L 260 270 L -10 270 Z"
+    def split_symbol(tilt, scale=1, op=1):
+        return (f'<svg class="splsym" style="transform: scale({scale}); opacity: {op}" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">'
+                f'<defs><clipPath id="lf"><path d="{LEAF_CLIP}"></path></clipPath><clipPath id="sm"><path d="{STEM_CLIP}"></path></clipPath></defs>'
+                f'<path d="{SYM_D}" transform="{SYM_T}" fill="currentColor" clip-path="url(#sm)"></path>'
+                f'<g transform="rotate({tilt} 144 161)"><path d="{SYM_D}" transform="{SYM_T}" fill="currentColor" clip-path="url(#lf)"></path></g></svg>')
+    def anim(reader_html, ground_op, tilt, scale, sym_op):
+        return reader_html + f'<div class="splash on-dark" style="opacity: {ground_op}">{split_symbol(tilt, scale, sym_op)}</div>'
+    jn = reader("JHN", 1, 1, 9, hint=True, scrolled=False)
+    F("SP-04", "Splash motion, light mode: the page lifts", [
+        ("1 · 160 ms · leaf lifts 8°", "light", anim(jn, 1, -8, 1, 1)),
+        ("2 · 340 ms · ground dissolves", "light", anim(jn, .5, -8, .95, .5)),
+        ("3 · 520 ms · John 1", "light", jn)], "sp")
+    F("SP-05", "Splash motion, dark mode", [
+        ("1 · 160 ms · leaf lifts 8°", "dark", anim(jn, 1, -8, 1, 1)),
+        ("2 · 340 ms · symbol settles", "dark", anim(jn, .5, -8, .95, .5)),
+        ("3 · 520 ms · John 1", "dark", jn)], "sp")
 
 # ---------- write files + index ----------
 W, H, GX, GY = 1430, 1026, 80, 120
