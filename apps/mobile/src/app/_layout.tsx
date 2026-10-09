@@ -96,13 +96,19 @@ export default function RootLayout() {
           <Stack.Screen name="why" options={sheet} />
           <Stack.Screen name="occurrences" options={sheet} />
           {/*
-            The word card is a page sheet like the other layers. A part-height
-            formSheet (the iOS Look Up shape) was tried first: react-native-screens
-            4.26 lays out a formSheet holding a ScrollView plus the Back to reading
-            bar as an empty sheet ("FormSheet with ScrollView expects at most 2
-            subviews"), and the card must scroll at accessibility sizes.
+            The word card opens part-height, the iOS Look Up shape, and drags or
+            scrolls up to full height — it must scroll at accessibility sizes.
+            SheetScreen's partHeight layout is what keeps it from rendering empty.
           */}
-          <Stack.Screen name="word" options={sheet} />
+          <Stack.Screen
+            name="word"
+            options={{
+              presentation: "formSheet",
+              sheetAllowedDetents: [0.55, 1],
+              sheetGrabberVisible: true,
+              contentStyle: { backgroundColor: palette.paper },
+            }}
+          />
           <Stack.Screen
             name="type-settings"
             options={{

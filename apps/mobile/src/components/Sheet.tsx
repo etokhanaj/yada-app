@@ -20,6 +20,7 @@ export function SheetScreen({
   scrollRef,
   contentStyle,
   backText,
+  partHeight = false,
 }: {
   children: ReactNode;
   /** Replaces "Back to reading" when the sheet was opened from somewhere else, e.g. Search. */
@@ -29,11 +30,60 @@ export function SheetScreen({
   verseId?: string;
   scrollRef?: React.Ref<ScrollView>;
   contentStyle?: ScrollViewProps["contentContainerStyle"];
+  /** Presented as a formSheet with detents; see the layout note below. */
+  partHeight?: boolean;
 }) {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
   const { backToReading } = useSheetNav();
   const log = useLog();
+
+  const backBar = (
+    <Pressable
+      onPress={() => {
+        if (backText === undefined) log("return_to_reading", verseId);
+        backToReading();
+      }}
+      collapsable={false}
+      style={({ pressed }) => [
+        styles.backBar,
+        partHeight
+          ? { borderBottomWidth: StyleSheet.hairlineWidth, paddingTop: SPACE.lg, paddingBottom: SPACE.md }
+          : { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: SPACE.md, paddingBottom: Math.max(insets.bottom, SPACE.md) },
+        { borderColor: palette.divider, backgroundColor: pressed ? palette.selection : palette.paper },
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={backText ?? (backLabel === null ? "Back to reading" : `Back to reading, ${backLabel}`)}
+      testID="back-to-reading"
+    >
+      {/* Chrome may cap its growth (scripture never does): at AX5 an uncapped
+          back bar would take a third of the sheet. */}
+      <Chrome size={16} numberOfLines={2} maxFontSizeMultiplier={1.8} style={{ textAlign: "center" }}>
+        {backText !== undefined ? `‹ ${backText}` : `‹ Back to reading${backLabel === null ? "" : ` — ${backLabel}`}`}
+      </Chrome>
+    </Pressable>
+  );
+
+  if (partHeight) {
+    // react-native-screens 4.26 lays a formSheet's content out with no bottom
+    // edge, so a flex: 1 column collapses to nothing (the empty word card).
+    // Its native side sizes the sheet's ScrollView to each detent itself, but
+    // only when the ScrollView is the first or second direct child, after at
+    // most one header (RNSScreenContentWrapper.mm). So the bar leads, and
+    // there is no wrapping View.
+    return (
+      <>
+        {backBar}
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={[styles.body, { paddingBottom: SPACE.xxl + insets.bottom }, contentStyle]}
+          showsVerticalScrollIndicator={false}
+        >
+          {children}
+        </ScrollView>
+      </>
+    );
+  }
 
   return (
     // A sheet is its own screen to VoiceOver (design brief, accessibility),
@@ -46,29 +96,7 @@ export function SheetScreen({
       >
         {children}
       </ScrollView>
-      <Pressable
-        onPress={() => {
-          if (backText === undefined) log("return_to_reading", verseId);
-          backToReading();
-        }}
-        style={({ pressed }) => [
-          styles.backBar,
-          {
-            borderTopColor: palette.divider,
-            backgroundColor: pressed ? palette.selection : palette.paper,
-            paddingBottom: Math.max(insets.bottom, SPACE.md),
-          },
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={backText ?? (backLabel === null ? "Back to reading" : `Back to reading, ${backLabel}`)}
-        testID="back-to-reading"
-      >
-        {/* Chrome may cap its growth (scripture never does): at AX5 an uncapped
-            back bar would take a third of the sheet. */}
-        <Chrome size={16} numberOfLines={2} maxFontSizeMultiplier={1.8} style={{ textAlign: "center" }}>
-          {backText !== undefined ? `‹ ${backText}` : `‹ Back to reading${backLabel === null ? "" : ` — ${backLabel}`}`}
-        </Chrome>
-      </Pressable>
+      {backBar}
     </View>
   );
 }
@@ -128,8 +156,6 @@ const styles = StyleSheet.create({
     paddingBottom: SPACE.xxl,
   },
   backBar: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: SPACE.md,
     paddingHorizontal: SPACE.lg,
     alignItems: "center",
   },
