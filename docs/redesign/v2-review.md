@@ -78,3 +78,14 @@ New tokens beyond brief §3 (each measured ≥ 4.5:1 for mutedInk text on it): `
 All four are written into `brief.md` §8. Also fixed after the passes: the reader title is now centred on
 the screen (measured 0 pt offset with `Home` and with `‹ 1 Cor 14:34`), and text scrolling under the
 header no longer shows through the translation label.
+
+## Slop pass 2: delight frames (9 Oct)
+
+| # | Finding | Fix |
+|---|---|---|
+| S6 | D-02 captions in invented milliseconds (`0 ms`, `120 ms`, `280 ms`) that contradicted the motion note (7 × 40 ms + 160 ms = 400 ms). | Captions say what happens; timings live only in the motion note. |
+| S7 | D-01's travelling word: white chip, drop shadow, 2° tilt, and its slot still showed the word, so it appeared twice. | No floating copy: the slot empties and the word rides up as the card's headword. |
+| S8 | The drawn `α` icon read as ∝; the Compare icon read as a list. | A real Gentium α at text size; Compare is a split pane. |
+| S9 | D-03 said "the same opening words" above a pair that shows them. | Sentence cut; label `Same first words`. |
+| S10 | The chosen word in the interlinear was a tinted box with an accent underline, like a text field; nothing else in the app looks like that. | Marked as everything chosen is: the selection tint, gloss in ink and semibold. No border. |
+| U8 | AX5: `submissiveness` ran off the screen edge. | Hyphenation on scripture, explanations and claims at AX sizes. |

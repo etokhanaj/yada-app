@@ -115,7 +115,9 @@ h3,p{margin:0}
 [lang="he"]{font-family:"Noto Serif Hebrew",serif}
 .il[dir="rtl"] .o{line-height:1.85}
 .gl{font-size:var(--note);color:var(--muted);line-height:1.3;direction:ltr;text-align:center}
-.w.mark,.wr.mark{background:var(--sel);box-shadow:inset 0 -2px 0 var(--accent)}
+/* A chosen word is marked like everything chosen in Yada: the selection tint, and its gloss in ink, semibold. No border. */
+.w.mark,.wr.mark{background:var(--sel)}
+.w.mark .gl,.wr.mark .gl{color:var(--ink);font-weight:600}
 .ilr{display:flex;flex-direction:column}
 .wr{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:0 12px;padding:10px 0}
 .wr .o{flex:none}
@@ -181,7 +183,7 @@ h3,p{margin:0}
 .rv-off{opacity:0}
 .rv-next{opacity:.35;transform:translateY(5px)}
 .sheet.rise{top:660px}
-.flyword{position:absolute;z-index:8;left:118px;top:560px;font-size:30px;padding:2px 10px;border-radius:12px;background:var(--sheet);box-shadow:0 10px 30px rgba(26,23,20,.18),0 0 0 .5px var(--edge);transform:rotate(-2deg)}
+.lifting .w.mark .o{visibility:hidden}
 .pair{margin:4px 0 18px}
 .pr{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0}
 .pr + .pr{box-shadow:0 -1px 0 var(--div)}
@@ -190,3 +192,5 @@ h3,p{margin:0}
 .light .hb-back,.dark .hb-back{font-size:16px;padding:0 13px 0 6px;gap:0}
 .light .hb-back .i,.dark .hb-back .i{width:18px;height:18px}
 .hrow.d{column-gap:6px;padding:0 12px}
+.ax5 .v,.ax5 .expl,.ax5 .claim{-webkit-hyphens:auto;hyphens:auto}
+.gly{font-family:"Gentium Plus",serif;font-size:21px;line-height:1;margin-top:-2px}

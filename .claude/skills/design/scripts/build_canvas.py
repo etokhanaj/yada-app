@@ -46,6 +46,9 @@ def lang(s):
 
 # ---------- icons (inline stroke SVG) ----------
 def ic(name, size=20):
+    if name == "alpha":
+        # A real Greek letter at text size; an alpha drawn inside a 24-unit icon box renders too small to read.
+        return '<span class="gly" lang="el" aria-hidden="true">α</span>'
     p = {
         "back": '<path d="M15 4 7 12l8 8"></path>',
         "down": '<path d="m6 9 6 6 6-6"></path>',
@@ -54,8 +57,8 @@ def ic(name, size=20):
         "x": '<path d="M6 6l12 12M18 6 6 18"></path>',
         "more": '<circle cx="5" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle>',
         "check": '<path d="m5 12.5 4.5 4.5L19 7"></path>',
-        "alpha": '<path d="M16.5 7c-.6 3.6-1.6 6.4-3.2 8.6C12.2 17.1 10.9 18 9.4 18 7 18 5.5 15.9 5.5 13s1.6-5.5 4.2-5.5c2.3 0 3.2 2.1 4.1 5.4.6 2.4 1.2 5.1 2.9 5.1.6 0 1.1-.2 1.8-.6"></path>',
-        "cols": '<path d="M4 6.5h6.5M4 10.5h6.5M4 14.5h6.5M4 18.5h4M13.5 6.5H20M13.5 10.5H20M13.5 14.5H20M13.5 18.5h4"></path>',
+        "alpha": '<text x="12" y="17.5" text-anchor="middle" font-size="19" font-family="Gentium Plus, serif" fill="currentColor" stroke="none">α</text>',
+        "cols": '<rect x="3.5" y="5" width="17" height="14" rx="3"></rect><path d="M12 5v14"></path>',
     }[name]
     return f'<svg class="i" width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{p}</svg>'
 
@@ -436,24 +439,23 @@ F("GN-05", "Occurrences: רֵאשִׁית in Genesis", reader("GEN", 1, 1, 4, se
 if STYLE != "v1":
     U_ORIG = lambda **kw: understand("1co.14.34", "lg", start="orig", orig=True, mark=5, **kw)
     base = reader("1CO", 14, 33, 36, sel=(34,)) + scrim()
-    fly = '<span class="flyword" lang="el" aria-hidden="true">σιγάτωσαν</span>'
     word_sheet = lambda pos: sheet(pos, "Word", "1 Corinthians 14:34", word_card("σιγάτωσαν", "el", "sigatōsan", "let them be silent", "Present active imperative, 3rd person plural",
         "σιγάω", "sigaō", "G4601", "were silent", kw1["note"], "3 times in 1 Corinthians", "9 in the Bible", "Gloss: TAGNT · Parsing: MorphGNT"))
     F("D-01", "Word lifts into its card", [
         ("1 · Tap the word", "light", base + U_ORIG()),
-        ("2 · It lifts, the card rises", "light", base + BACK_U("1co.14.34", start="orig", orig=True, mark=5) + scrim("s2") + word_sheet("rise") + fly),
+        ("2 · It leaves its place and rides up as the headword", "light", base + '<div class="lifting">' + BACK_U("1co.14.34", start="orig", orig=True, mark=5) + '</div>' + scrim("s2") + word_sheet("rise")),
         ("3 · It lands as the headword", "light", base + BACK_U("1co.14.34", start="orig", orig=True, mark=5) + scrim("s2") + word_sheet("med")),
     ], "dl")
     gbase = reader("GEN", 1, 1, 4, sel=(1,), scrolled=False) + scrim()
     F("D-02", "Hebrew arrives right to left", [
-        ("1 · 0 ms", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True, reveal=1)),
-        ("2 · 120 ms", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True, reveal=4)),
-        ("3 · Settled, 280 ms", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True)),
+        ("1 · The first word, from the right", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True, reveal=1)),
+        ("2 · Reading on, right to left", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True, reveal=4)),
+        ("3 · Settled", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True)),
     ], "dl")
     jg = G["jhn.1.1"]["gloss"]; gg = G["gen.1.1"]["gloss"]
     pair = (f'<div class="pair"><div class="pr"><span class="o" lang="el">{jg[0]["surface"]} {jg[1]["surface"]}</span><span class="gl">{E(jg[0]["gloss"])} {E(jg[1]["gloss"])} · John 1:1</span></div>'
             f'<div class="pr"><span class="o" lang="he" dir="rtl">{gg[0]["surface"]}</span><span class="gl">{E(gg[0]["gloss"])} · Genesis 1:1</span></div></div>')
-    echo = (f'<p class="lbl">Echoes</p><p class="note muted pk">{lang(G["jhn.1.1"]["related_passages"][0]["note"])}</p>{pair}'
+    echo = (f'<p class="lbl">Same first words</p>{pair}'
             + verses_html(text("BSB", "GEN", 1, 1)) + f'<button class="readbtn">Read Genesis 1{ic("right", 18)}</button>')
     F("D-03", "Same first words: John 1:1 and Genesis 1:1", reader("JHN", 1, 1, 6, sel=(1,), scrolled=False) + scrim() + BACK_U("jhn.1.1") + scrim("s2") +
       sheet("med", "Genesis 1:1", "From John 1:1", echo), "dl")
