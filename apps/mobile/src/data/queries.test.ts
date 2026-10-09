@@ -28,7 +28,9 @@ function open(file: string): Db {
   };
 }
 
-describe.skipIf(!haveBundles)("queries against the core bundle", () => {
+// Full-text search over the 88 MB core bundle takes ~1.7s alone and passed the
+// default 5s limit only when the four packages' suites ran in parallel.
+describe.skipIf(!haveBundles)("queries against the core bundle", { timeout: 30_000 }, () => {
   const core = haveBundles ? open(corePath) : (null as unknown as Db);
 
   it("reads a chapter without verse 0 or empty rows", async () => {
