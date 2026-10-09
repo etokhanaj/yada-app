@@ -3,8 +3,8 @@
  * headword, then what the sources say about it — without the bordered panels
  * dictionary apps wrap it in. Every line names its source; nothing
  * here is generated (handoff §3.4: never state a parse or Strong's number the
- * source data does not contain). Presented as a page sheet; see _layout.tsx
- * for why not the part-height Look Up sheet.
+ * source data does not contain). Presented part-height, like iOS Look Up;
+ * see _layout.tsx.
  */
 
 import {
@@ -55,7 +55,7 @@ export default function WordScreen() {
   }, [log, from, data?.token]);
 
   const backLabel = fromRef === null ? null : formatDisplayRef(fromRef);
-  if (data === undefined || data === null) return <SheetScreen backLabel={backLabel}>{null}</SheetScreen>;
+  if (data === undefined || data === null) return <SheetScreen backLabel={backLabel} partHeight>{null}</SheetScreen>;
 
   const { token, lexeme, inBook, keyWord, reviewStatus } = data;
   const parts = ordToParts(ord);
@@ -66,7 +66,7 @@ export default function WordScreen() {
   const where = formatDisplayRef(parts);
 
   return (
-    <SheetScreen backLabel={backLabel} verseId={from}>
+    <SheetScreen backLabel={backLabel} verseId={from} partHeight>
       <Label accessibilityRole="header">
         Original {language} · {where}
       </Label>

@@ -12,8 +12,12 @@
  *   - A few are numbering artefacts: the words exist in SBLGNT under a
  *     neighbouring verse number (2 Cor 13:14 is SBLGNT 13:13; Acts 19:41 is
  *     the end of SBLGNT 19:40), or the doxology of Romans moves between
- *     traditions. Telling a reader those verses are missing from the earliest
- *     manuscripts would state something the data does not show (handoff §3.4).
+ *     traditions (WEB prints it at 14:24–26). Telling a reader those verses
+ *     are missing from the earliest manuscripts would state something the data
+ *     does not show (handoff §3.4).
+ *   - Romans 16:25–27 is a gap in Yada's own source: the pinned MorphGNT
+ *     Romans file (66-Ro-morphgnt.txt) stops at 16:24. Neither the manuscript
+ *     sentence nor the numbering one is true of it.
  *   - Nehemiah 7:68 is Hebrew: the Leningrad Codex has no such verse.
  *
  * Only the first group gets the manuscript sentence. Everything else gets the
@@ -33,6 +37,9 @@ export const MANUSCRIPT_OMISSIONS: ReadonlySet<string> = new Set([
   "ACT.8.37", "ACT.15.34", "ACT.24.7", "ACT.28.29",
 ]);
 
+/** Verses missing because the pinned source file stops short, not because any text omits them. */
+export const SOURCE_GAPS: ReadonlySet<string> = new Set(["ROM.16.25", "ROM.16.26", "ROM.16.27"]);
+
 export function isNewTestament(book: BookCode, testamentOf: (b: BookCode) => "OT" | "NT"): boolean {
   return testamentOf(book) === "NT";
 }
@@ -45,6 +52,9 @@ export function missingOriginalNote(verseId: string, script: "greek" | "hebrew",
   if (hasTokens) return null;
   if (script === "hebrew") {
     return "There is no Hebrew for this verse. The Westminster Leningrad Codex, the Hebrew text Yada uses, has no words at this verse number.";
+  }
+  if (SOURCE_GAPS.has(verseId)) {
+    return "There is no Greek for this verse in Yada yet. The MorphGNT data Yada's Greek comes from stops at Romans 16:24, so this is a gap in Yada's data, not a verse the manuscripts leave out.";
   }
   if (MANUSCRIPT_OMISSIONS.has(verseId)) {
     return "There is no Greek for this verse. The earliest manuscripts omit it, so SBLGNT, the Greek text Yada uses, does not include it. The English is shown as the translation prints it.";
