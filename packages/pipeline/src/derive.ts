@@ -70,6 +70,7 @@ export function deriveVerseFrom(db: DatabaseSync, verseId: string): DerivedWord[
       surface,
       translit: transliterate(surface, script),
       ...(strongs === undefined ? {} : { strongs }),
+      ...(row["gloss"] == null ? {} : { gloss: String(row["gloss"]) }),
       morph: String(row["morph"]),
       ...(morphemes === undefined ? {} : { morphemes }),
       variant_marked: Number(row["variant_marked"]) === 1,

@@ -11,6 +11,7 @@
  * measurement this session exists to take.
  */
 
+import { assemble, isComposed } from "./assemble.js";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import path from "node:path";
 
@@ -145,6 +146,11 @@ function inspectEntry(raw: unknown, source: string, model: string): EntryReport 
   return { source, model, kind, id, findings, provenance: checkProvenance(record, model) };
 }
 
+/** `GEN.1.1-1.5.claude-opus-5.json` -> `GEN.1.1-1.5` */
+function pericopeFromFile(file: string): string | undefined {
+  return /^(.+?)\.claude-[a-z0-9-]+\.json$/.exec(file)?.[1];
+}
+
 /** `GEN.1.1-1.5.claude-opus-5.json` -> `claude-opus-5` */
 function modelFromFilename(file: string): string {
   const match = /\.(claude-[a-z0-9-]+)\.json$/.exec(file);
@@ -169,7 +175,11 @@ export function inspectAll(dir: string = RESPONSES): InspectReport {
     }
 
     const model = modelFromFilename(file);
-    for (const raw of collectEntries(extracted.value)) {
+    // Composed model output is assembled into full entries exactly as ingest does.
+    const pericopeId = pericopeFromFile(file);
+    const value =
+      isComposed(extracted.value) && pericopeId !== undefined ? assemble(extracted.value, pericopeId, model) : extracted.value;
+    for (const raw of collectEntries(value)) {
       const entry = inspectEntry(raw, file, model);
       report.entries.push(entry);
       if (entry.parseError === undefined) report.parsed += 1;

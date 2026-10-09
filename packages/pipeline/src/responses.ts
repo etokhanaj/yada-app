@@ -24,6 +24,7 @@
  * Everything stored is `flagged`. Nothing here can promote an entry.
  */
 
+import { assemble, isComposed } from "./assemble.js";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
@@ -124,7 +125,7 @@ export function ingestResponses(
     }
     const requested = typeof body.pericope_id === "string" ? body.pericope_id : undefined;
 
-    for (const raw of collectEntries(extracted.value)) {
+    for (const raw of collectEntries(isComposed(extracted.value) && requested !== undefined ? assemble(extracted.value, requested, modelOf(file, body)) : extracted.value)) {
       const record = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
       const isVerse = record["verse_id"] !== undefined;
       const id = String(record["verse_id"] ?? record["pericope_id"] ?? "?");

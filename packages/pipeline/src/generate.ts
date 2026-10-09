@@ -18,6 +18,7 @@ import path from "node:path";
 import { parseVerseRef } from "@yada/schema";
 
 import { openStaging } from "./db.js";
+import { GENERATION_SCHEMA } from "./assemble.js";
 import { deriveVerse, scriptFor } from "./derive.js";
 import { PIPELINE_DATA, PROMPTS, REQUESTS } from "./paths.js";
 
@@ -115,6 +116,15 @@ export function buildRequest(book: string, pericope: Pericope): BuiltRequest | n
 
   const body = [
     prompt,
+    "",
+    "## Output format",
+    // Structured outputs refused this schema as too large a grammar (after
+    // two rounds of simplification), so the contract travels in the prompt and
+    // is enforced afterwards by assemble + Zod, which reject rather than repair.
+    "Respond with one JSON object, and nothing else, matching this JSON Schema exactly. Use \"\" for an absent string and [] for an absent list.",
+    "```json",
+    JSON.stringify(GENERATION_SCHEMA),
+    "```",
     "",
     `## Pericope`,
     `${pericope.id} — ${pericope.label}`,

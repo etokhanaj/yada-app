@@ -32,7 +32,10 @@ export const MILESTONE_0_MODELS = ["claude-opus-5", "claude-sonnet-5"] as const;
  * worst case, because the real length is exactly what is unknown here.
  */
 export function maxTokensFor(verses: number): number {
-  return verses * 2500 + 8000;
+  // The first Milestone 0 run used 2,500/verse + 8,000 and three of six
+  // responses hit the cap: adaptive thinking alone spent 9-21k tokens, and one
+  // Sonnet run spent the entire budget thinking and wrote nothing.
+  return verses * 4000 + 24000;
 }
 
 export interface GenerationResult {
