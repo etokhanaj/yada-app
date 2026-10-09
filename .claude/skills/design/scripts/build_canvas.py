@@ -54,6 +54,8 @@ def ic(name, size=20):
         "x": '<path d="M6 6l12 12M18 6 6 18"></path>',
         "more": '<circle cx="5" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle>',
         "check": '<path d="m5 12.5 4.5 4.5L19 7"></path>',
+        "alpha": '<path d="M16.5 7c-.6 3.6-1.6 6.4-3.2 8.6C12.2 17.1 10.9 18 9.4 18 7 18 5.5 15.9 5.5 13s1.6-5.5 4.2-5.5c2.3 0 3.2 2.1 4.1 5.4.6 2.4 1.2 5.1 2.9 5.1.6 0 1.1-.2 1.8-.6"></path>',
+        "cols": '<path d="M4 6.5h6.5M4 10.5h6.5M4 14.5h6.5M4 18.5h4M13.5 6.5H20M13.5 10.5H20M13.5 14.5H20M13.5 18.5h4"></path>',
     }[name]
     return f'<svg class="i" width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{p}</svg>'
 
@@ -62,7 +64,11 @@ def ic(name, size=20):
 def header(back, title, scrolled=False, hint=None):
     cls = "hdr scrolled" if scrolled else "hdr"
     b = f'<button class="hb-back" aria-label="{E(back[1])}">{ic("back", 22)}<span>{E(back[0])}</span></button>'
-    t = f'<button class="hb-title" aria-label="{E(title)}, opens books, chapters and translations"><span>{E(title)}</span>{ic("down", 16)}</button>'
+    if STYLE == "v1":
+        t = f'<button class="hb-title" aria-label="{E(title)}, opens books, chapters and translations"><span>{E(title)}</span>{ic("down", 16)}</button>'
+    else:
+        name, tr = title.rsplit(" · ", 1)
+        t = f'<button class="hb-title" aria-label="{E(name)}, {tr}, opens books, chapters and translations"><span class="tt">{E(name)}</span><span class="tv">{tr}{ic("down", 12)}</span></button>'
     aa = '<button class="hb-aa" aria-label="Text size and appearance">Aa</button>'
     return f'<div class="{cls}"><div class="hrow d">{b}{t}{aa}</div><div class="a"><div class="hrow">{b}<span class="sp"></span>{aa}</div><div class="hrow2">{t}</div></div></div>'
 
@@ -92,7 +98,11 @@ def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, 
     if foot:
         foot_html = f'<div class="cfoot"><div class="clinks"><button class="clink">{ic("back", 18)}{E(foot[0])}</button><button class="clink">{E(foot[1])}{ic("right", 18)}</button></div><p class="note muted">Berean Standard Bible</p></div>'
     bar = ""
-    if abar:
+    if abar and STYLE != "v1":
+        bar = (f'<div class="abar"><div class="d abar-row"><button class="ab-u">Understand {E(abar)}</button><button class="ab-i">{ic("alpha", 18)}<span>Original</span></button>'
+               f'<button class="ab-i">{ic("cols", 18)}<span>Compare</span></button><button class="ab-m" aria-label="More actions">{ic("more", 22)}</button></div>'
+               f'<div class="a abar-list"><button class="ab-u">Understand {E(abar)}</button><button class="ab-i">More{ic("more", 30)}</button></div></div>')
+    elif abar:
         bar = (f'<div class="abar"><div class="d abar-row"><button class="ab-u">Understand {E(abar)}</button><button class="ab-i">Original</button>'
                f'<button class="ab-i">Compare</button><button class="ab-m" aria-label="More actions">{ic("more", 22)}</button></div>'
                f'<div class="a abar-list"><button class="ab-u">Understand {E(abar)}</button><button class="ab-i">Original</button><button class="ab-i">Compare</button><button class="ab-i">More actions</button></div></div>')
@@ -150,7 +160,8 @@ def interlinear(k, mark=None):
         rows_.append(f'<span class="wr{m}"><span class="gl">{gl}</span><span class="o" lang="{lng}">{w["surface"]}</span></span>' if rtl else
                      f'<span class="wr{m}"><span class="o" lang="{lng}">{w["surface"]}</span><span class="gl">{gl}</span></span>')
     d = ' dir="rtl"' if rtl else ""
-    return f'<div class="il d"{d}>{"".join(units)}</div><div class="ilr a">{"".join(rows_)}</div>'
+    rcls = " rtl" if rtl else ""
+    return f'<div class="il d"{d}>{"".join(units)}</div><div class="ilr a{rcls}">{"".join(rows_)}</div>'
 
 
 def original_section(k, expanded, mark=None):
@@ -204,8 +215,9 @@ FONTS = "https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..7
 
 
 def doc(fid, title, inner):
+    chrome_open, chrome_close = ("", "") if STYLE == "v1" else ('<div class="island" aria-hidden="true"></div>', '<div class="homeind" aria-hidden="true"></div>')
     cols = "".join(
-        f'<div class="col"><div class="cap">{fid} · {lab}</div><div class="ph {cls}">{inner}</div></div>'
+        f'<div class="col"><div class="cap">{fid} · {lab}</div><div class="ph {cls}">{chrome_open}{inner}{chrome_close}</div></div>'
         for lab, cls in (("Light", "light"), ("Dark", "dark"), ("AX5", "ax5")))
     return f'''<!doctype html>
 <html lang="en">
@@ -274,7 +286,7 @@ def bold(t, w):
     return E(t).replace(E(w), f"<b>{E(w)}</b>", 1)
 
 
-STOP = set("the a an and or but to of in for is are be as it they them their if at on with about this that let your own also any has have not must were was its so he she his her him from by do did no nor".split())
+STOP = set("unto saith thing anything any been keep also the a an and or but to of in for is are be as it they them their if at on with about this that let your own also any has have not must were was its so he she his her him from by do did no nor".split())
 
 
 def words(s):
@@ -284,10 +296,10 @@ def words(s):
 def mark_diff(s, others):
     pool = set()
     for o in others:
-        pool |= {w.lower() for w in re.findall(r"[A-Za-z’']+", o)}
+        pool |= {w.lower()[:5] for w in re.findall(r"[A-Za-z’']+", o)}
     out = []
     for w in words(s):
-        if re.match(r"[A-Za-z’']+$", w) and w.lower() not in STOP and w.lower() not in pool:
+        if re.match(r"[A-Za-z’']+$", w) and w.lower() not in STOP and w.lower()[:5] not in pool:
             out.append(f'<mark class="df">{E(w)}</mark>')
         else:
             out.append(E(w))
@@ -304,7 +316,7 @@ F("J01-04", "Understand, large, What we can see expanded", reader("1CO", 14, 33,
 c1 = G["1co.14.34"]["claims"][0]
 why = (f'<p class="claim big">{lang(c1["claim"])}</p>'
        + sec("How we know", '<p class="claim">From the Greek text and its parsing (MorphGNT).</p>')
-       + f'<section class="sec">{row(lang("σιγάω · present active imperative, 3rd plural · MorphGNT"), chev=False, cls="plain ev")}{row("See the word", cls="plain")}</section>')
+       + f'<section class="sec">{row(lang("See the word σιγάτωσαν"), cls="plain")}</section>')
 BACK_U = lambda k, **kw: understand(k, "back", **kw)
 F("J01-05", "Why we say this", reader("1CO", 14, 33, 36, sel=(34,)) + scrim() + BACK_U("1co.14.34") + scrim("s2") +
   sheet("med", "Why we say this", "1 Corinthians 14:34", why), "j01")
@@ -312,7 +324,7 @@ F("J01-06", "Understand, Original Greek expanded", reader("1CO", 14, 33, 36, sel
 
 kw1 = G["1co.14.34"]["key_words"][0]
 F("J01-07", "Word: σιγάτωσαν", reader("1CO", 14, 33, 36, sel=(34,)) + scrim() + BACK_U("1co.14.34", start="orig", orig=True, mark=5) + scrim("s2") +
-  sheet("med", "σιγάτωσαν", "1 Corinthians 14:34", word_card("σιγάτωσαν", "el", "sigatōsan", "let them be silent", "Present active imperative, 3rd person plural",
+  sheet("med", "Word", "1 Corinthians 14:34", word_card("σιγάτωσαν", "el", "sigatōsan", "let them be silent", "Present active imperative, 3rd person plural",
         "σιγάω", "sigaō", "G4601", "were silent", kw1["note"], "3 times in 1 Corinthians", "9 in the Bible", "Gloss: TAGNT · Parsing: MorphGNT")), "j01")
 
 v28 = text("BSB", "1CO", 14, 28)[0][1]; v30 = text("BSB", "1CO", 14, 30)[0][1]; v34 = text("BSB", "1CO", 14, 34)[0][1]
@@ -323,11 +335,13 @@ F("J01-08", "Occurrences: σιγάω in 1 Corinthians", reader("1CO", 14, 33, 36
   sheet("lg2", "σιγάω in 1 Corinthians", "1 Corinthians 14:34", occ, back=True), "j01")
 
 c7 = G["1co.14.34"]["claims"][6]
-def readings(c):
+def readings(c, here):
     out = []
     for p in c["positions"]:
         links = []
         for ev in p["evidence"]:
+            if ev["type"] == "verse" and ev["ref"] == here:
+                continue
             if ev["type"] == "verse":
                 links.append(f'<button class="elink">{E(fref(ev["ref"]))}{ic("right", 16)}</button>')
             else:
@@ -335,7 +349,7 @@ def readings(c):
         out.append(f'<section class="sec rd"><h3 class="rlabel">{lang(p["label"])}</h3><p class="claim">{lang(p["case"])}</p><div class="elinks">{"".join(links)}</div></section>')
     return "".join(out)
 F("J01-09", "Compare the readings", reader("1CO", 14, 33, 36, sel=(34,)) + scrim() + BACK_U("1co.14.34") + scrim("s2") +
-  sheet("med", "Who the instruction addresses", "1 Corinthians 14:34", readings(c7)), "j01")
+  sheet("med", "Who the instruction addresses", "1 Corinthians 14:34", readings(c7, "1CO.14.34")), "j01")
 
 t12 = text("BSB", "1TI", 2, 11, 12)
 peek = (f'<p class="lbl">Same theme</p><p class="note muted pk">{E(G["1co.14.34"]["related_passages"][2]["note"])}</p>'
@@ -372,7 +386,7 @@ F("JN-03", "Understand 1:1, medium, first-time hint", reader("JHN", 1, 1, 6, sel
 F("JN-04", "Original Greek expanded", reader("JHN", 1, 1, 6, sel=(1,), scrolled=False) + scrim() + understand("jhn.1.1", "lg", start="orig", orig=True), "jn")
 kwj = G["jhn.1.1"]["key_words"][0]
 F("JN-05", "Word: λόγος", reader("JHN", 1, 1, 6, sel=(1,), scrolled=False) + scrim() + BACK_U("jhn.1.1", start="orig", orig=True, mark=4) + scrim("s2") +
-  sheet("med", "λόγος", "John 1:1", word_card("λόγος", "el", "logos", "word", "Noun, nominative masculine singular",
+  sheet("med", "Word", "John 1:1", word_card("λόγος", "el", "logos", "word", "Noun, nominative masculine singular",
         "λόγος", "logos", "G3056", "word", kwj["note"], "40 times in John", "330 in the Bible", "Gloss: TAGNT · Parsing: MorphGNT")), "jn")
 F("JN-06", "Translations: all three agree", reader("JHN", 1, 1, 6, sel=(1,), scrolled=False) + scrim() + BACK_U("jhn.1.1") + scrim("s2") +
   sheet("med", "Translations", "John 1:1", translations("JHN", 1, 1, 1)), "jn")
@@ -388,7 +402,7 @@ F("GN-02", "Understand 1:1, Hebrew inside English claims", reader("GEN", 1, 1, 4
 F("GN-03", "Original Hebrew expanded, right to left", reader("GEN", 1, 1, 4, sel=(1,), scrolled=False) + scrim() + understand("gen.1.1", "lg", start="orig", orig=True), "gn")
 kwg = G["gen.1.1"]["key_words"][0]
 F("GN-04", "Word: בְּרֵאשִׁית with parts", reader("GEN", 1, 1, 4, sel=(1,), scrolled=False) + scrim() + BACK_U("gen.1.1", start="orig", orig=True, mark=0) + scrim("s2") +
-  sheet("lg2", "בְּרֵאשִׁ֖ית", "Genesis 1:1", word_card("בְּרֵאשִׁ֖ית", "he", "bərēʾšîṯ", "in beginning", "Preposition with noun, feminine singular absolute",
+  sheet("lg2", "Word", "Genesis 1:1", word_card("בְּרֵאשִׁ֖ית", "he", "bərēʾšîṯ", "in beginning", "Preposition with noun, feminine singular absolute",
         "רֵאשִׁית", "rēʾšîṯ", "H7225", "beginning of", kwg["note"], "3 times in Genesis", "51 in the Bible", "Gloss: TAHOT · Parsing: OSHB",
         morphemes=G["gen.1.1"]["gloss"][0]["morphemes"])), "gn")
 g1 = text("BSB", "GEN", 1, 1)[0][1]; g10 = text("BSB", "GEN", 10, 10)[0][1]; g49 = text("BSB", "GEN", 49, 3)[0][1]
