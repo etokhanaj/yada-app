@@ -85,28 +85,28 @@ export interface ComparedText<T extends string = string> {
 }
 
 /**
- * Compare every text against the one being read. The base marks a word when
- * any other version lacks it; each other version marks the words the base
- * lacks. One reference point keeps the highlighting answerable: "this is what
- * differs from what you were reading".
+ * Compare every text against the one being read. Each other version marks the
+ * words the base lacks; the base marks only the words no other version shares.
+ * Marking a base word whenever any one version lacked it shaded most of BSB at
+ * 1 Corinthians 14:34 (simulator, App v1) — so much that nothing stood out.
  */
 export function compareTranslations<T extends string>(
   base: { translation: T; text: string },
   others: ReadonlyArray<{ translation: T; text: string }>,
 ): Array<ComparedText<T>> {
   const baseWords = splitWords(base.text);
-  const baseDivergent = baseWords.map(() => false);
+  const sharedSomewhere = baseWords.map(() => others.length === 0);
   const compared: Array<ComparedText<T>> = [];
   for (const other of others) {
     const words = splitWords(other.text);
     const { a, b } = lcsMatches(baseWords, words);
     a.forEach((matched, index) => {
-      if (!matched) baseDivergent[index] = true;
+      if (matched) sharedSomewhere[index] = true;
     });
     compared.push({ translation: other.translation, words: words.map((w, index) => ({ ...w, divergent: !b[index] })) });
   }
   return [
-    { translation: base.translation, words: baseWords.map((w, index) => ({ ...w, divergent: baseDivergent[index] ?? false })) },
+    { translation: base.translation, words: baseWords.map((w, index) => ({ ...w, divergent: !(sharedSomewhere[index] ?? true) })) },
     ...compared,
   ];
 }

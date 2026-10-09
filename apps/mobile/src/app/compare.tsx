@@ -53,7 +53,7 @@ export default function CompareScreen() {
       <Label accessibilityRole="header">Compare translations · {label}</Label>
       <Prose step="note" tone="muted" style={{ marginTop: SPACE.xs }} testID="compare-caption">
         {anyDivergence
-          ? `Words that differ from ${reading}, the translation you are reading, are shaded.`
+          ? `Shaded: words a version does not share with ${reading}, and in ${reading}, words neither of the others uses.`
           : "All three translations use the same words here."}
       </Prose>
 

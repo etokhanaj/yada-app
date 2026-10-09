@@ -1,0 +1,37 @@
+# John 1:1 Greek, Genesis 1:1 Hebrew (RTL), Psalm 23 title, John 8 with no Greek.
+appId: studio.yada.reader
+---
+- launchApp
+- openLink: studio.yada.reader:///read/JHN/1?verse=1&select=1
+- tapOn:
+    id: pill-original
+- assertVisible: "ORIGINAL GREEK · JOHN 1:1"
+- assertVisible:
+    id: word-λόγος
+- tapOn:
+    id: back-to-reading
+
+- openLink: studio.yada.reader:///read/GEN/1?verse=1&select=1
+- tapOn:
+    id: pill-original
+- assertVisible: "ORIGINAL HEBREW · GENESIS 1:1"
+- tapOn:
+    id: word-בְּרֵאשִׁ֖ית
+- assertVisible: "preposition + common noun, feminine singular absolute"
+- assertVisible: "H7225"
+- tapOn:
+    id: back-to-reading
+
+- openLink: studio.yada.reader:///read/PSA/23?verse=1&select=1
+- tapOn:
+    id: pill-original
+- assertVisible: "TITLE"
+- tapOn:
+    id: back-to-reading
+
+- openLink: studio.yada.reader:///read/JHN/8?verse=3&select=1
+- tapOn:
+    id: pill-original
+- assertVisible:
+    id: omission-note
+- assertVisible: ".*earliest manuscripts omit it.*"

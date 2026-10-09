@@ -40,12 +40,14 @@ describe("word diff", () => {
     expect(marked(web?.words ?? [])).toEqual(["lack", "nothing."]);
   });
 
-  it("marks a base word when any compared version lacks it", () => {
-    const [base] = compareTranslations({ translation: "A", text: "a b c" }, [
+  it("marks a base word only when no compared version shares it", () => {
+    const [base, b, c] = compareTranslations({ translation: "A", text: "a b c d" }, [
       { translation: "B", text: "a b c" },
       { translation: "C", text: "a c" },
     ]);
-    expect(marked(base?.words ?? [])).toEqual(["b"]);
+    expect(marked(base?.words ?? [])).toEqual(["d"]);
+    expect(marked(b?.words ?? [])).toEqual([]);
+    expect(marked(c?.words ?? [])).toEqual([]);
   });
 
   it("does not call punctuation a divergence", () => {
