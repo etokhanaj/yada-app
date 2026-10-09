@@ -166,3 +166,16 @@ book; that is the moment to design a download row (`John · Download explanation
 
 **For John before release:** the `encumbered` notes are real open questions (SBLGNT EULA, KJV UK letters
 patent, STEPBible redistribution). Hiding them in the UI does not resolve them; PRD 0E still applies.
+
+### Slop pass 5 (all 58 frames, 9 Oct)
+
+| # | Finding | Fix |
+|---|---|---|
+| S19 | Sources: an accent `Source ›` on every one of 12 rows. | The row is the target (chevron); VoiceOver label "…, opens the source". |
+| S20 | `English:` prefixed three rows in a row. | Name first (`Berean Standard Bible`), `English · BSB · Public domain` beneath. |
+| S21 | SO-02 redrew the page top (title, offline line) as if a second screen. | Drawn as the same page scrolled: inline `Sources` in the bar. |
+
+Looked at and kept: occurrence headers repeat the book (`σιγάω in 1 Corinthians` / `1 Corinthians 14:34`)
+because the subtitle is always the parent verse; D-04 overlaps JN-01 on purpose (it isolates the numeral).
+
+Build plan: `build-plan.md`.

@@ -314,3 +314,6 @@ h3,p{margin:0}
 .ic .sheet{box-shadow:0 0 0 1px var(--div)}
 .nowrap{white-space:nowrap}
 .bmk .i{width:15px;height:15px}
+.inl{font-size:var(--title);font-weight:600;justify-self:center}
+.pg.pgs{padding-top:calc(54px + 60px)}
+.ax5 .pg.pgs{padding-top:140px}

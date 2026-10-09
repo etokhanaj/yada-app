@@ -642,9 +642,9 @@ if STYLE != "v1":
       sec(f"Explained so far · {len(exv)} verses", exrows, first=True), sub=OFFLINE), "so")
     LIC = {"CC-BY-SA-3.0": "CC BY-SA 3.0", "CC-BY-4.0": "CC BY 4.0", "PUBLIC_DOMAIN": "Public domain", "CUSTOM_EULA": "Own licence", "OFL-1.1": "SIL OFL 1.1"}
     # Plain-English role first; the dataset's own name second, where licences require it.
-    ROLE = {"Berean Standard Bible (text)": ("Bible text", "English: Berean Standard Bible", "BSB"),
-            "World English Bible, Protestant canon (engwebp)": ("Bible text", "English: World English Bible", "WEB"),
-            "King James Version, 1769 standardised text (eng-kjv2006)": ("Bible text", "English: King James Version", "KJV"),
+    ROLE = {"Berean Standard Bible (text)": ("Bible text", "Berean Standard Bible", "English · BSB"),
+            "World English Bible, Protestant canon (engwebp)": ("Bible text", "World English Bible", "English · WEB"),
+            "King James Version, 1769 standardised text (eng-kjv2006)": ("Bible text", "King James Version", "English · KJV"),
             "SBLGNT (Greek text)": ("Bible text", "Greek New Testament", "SBLGNT"),
             "morphhb — Westminster Leningrad Codex text": ("Bible text", "Hebrew Bible", "Westminster Leningrad Codex"),
             "morphgnt/sblgnt (morphological annotations)": ("Word data", "Greek parsing", "MorphGNT"),
@@ -661,9 +661,10 @@ if STYLE != "v1":
         g, role, name = ROLE[ds]
         # `encumbered` holds the team's open legal questions (PRD 0E), not licence wording for readers.
         sub_ = f'{E(name)} · {LIC.get(li, li)}'
-        groups[g] += lrow(E(role), sub=sub_, right=f'<span class="srcl">Source{ic("right", 16)}</span>', chev=False, cls="src")
-    F("SO-02", "Sources: texts and data", page(("Home", "Home"), "Sources",
-      sec("Bible text", groups["Bible text"], first=True) + sec("Word data", groups["Word data"]), sub=OFFLINE), "so")
+        groups[g] += lrow(E(role), sub=sub_, cls="src").replace('<button class="lrow src">', f'<button class="lrow src" aria-label="{E(role)}, {E(name)}, opens the source">', 1)
+    scrolled_hdr = pg_header(("Home", "Home")).replace('<span></span><div class="hright">', '<span class="inl">Sources</span><div class="hright">', 1)
+    F("SO-02", "Sources, scrolled: texts and data", scrolled_hdr + '<div class="pg pgs">' +
+      sec("Bible text", groups["Bible text"], first=True) + sec("Word data", groups["Word data"]) + "</div>", "so")
 
 # ================= Edge cases (v2) =================
 if STYLE != "v1":
