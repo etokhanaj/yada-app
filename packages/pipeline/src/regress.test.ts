@@ -16,7 +16,7 @@ import {
   runCiTier,
   runLiveRegress,
 } from "./regress.js";
-import { loadGolden } from "./test-staging.js";
+import { composed1Co14, loadGolden } from "./test-staging.js";
 
 const temps: string[] = [];
 function temp(prefix: string): string {
@@ -146,6 +146,19 @@ describe("regress: structural equivalence", () => {
     expect(judgeLiveResponse(golden(), JSON.stringify([golden()]), "max_tokens").ok).toBe(false);
     expect(judgeLiveResponse(golden(), JSON.stringify({ verses: [loadGolden("jhn.1.1")] }), "end_turn").problems.join(" ")).toMatch(/no entry for 1CO\.14\.34/);
     expect(judgeLiveResponse(golden(), JSON.stringify({ pericope: {}, verses: [golden()] }), "end_turn").ok).toBe(true);
+  });
+
+  it("assembles composed model output before judging it", () => {
+    // Since prompt 1.1 the model writes the composed shape. Judged raw it has
+    // no schema_version or gloss, so every paid live run failed the schema.
+    const text = JSON.stringify(composed1Co14());
+    expect(judgeLiveResponse(golden(), text, "end_turn").problems.join(" ")).toMatch(/^schema/);
+
+    const derive = () => [
+      { surface: "σιγάτωσαν", translit: "sigatōsan", gloss: "let them be silent", strongs: "G4601", morph: "V-PAM-3P", variant_marked: false },
+    ];
+    const judged = judgeLiveResponse(golden(), text, "end_turn", { pericopeId: "1CO.14.26-14.40", derive });
+    expect(judged.problems.filter((p) => p.startsWith("schema") || p.startsWith("contract"))).toEqual([]);
   });
 });
 

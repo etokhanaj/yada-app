@@ -31,12 +31,12 @@ import {
   type VerseEntry,
 } from "@yada/schema";
 
-import { requireApiKey } from "./budget.js";
+import { assemble, isComposed, type DeriveWords } from "./assemble.js";
 import { ORACLE_FIXTURES, checkAgainstFixture, type OracleResult } from "./derive.js";
 import { loadPericopes } from "./generate.js";
 import { checkProvenance, collectEntries, extractJson } from "./inspect.js";
 import { CONTENT, GOLDEN, RAW, STAGING_DB } from "./paths.js";
-import { generatePericope } from "./submit.js";
+import { generatePericope, generationClient } from "./submit.js";
 
 export interface RegressCheck {
   name: string;
@@ -289,7 +289,7 @@ export async function runLiveRegress(options: LiveOptions): Promise<LiveResult> 
   if (!options.confirm) {
     throw new Error("refusing to run the live regression: --confirm not given. It regenerates a pericope and spends money.");
   }
-  const client = options.client ?? new Anthropic({ apiKey: requireApiKey() });
+  const client = options.client ?? generationClient();
 
   const target = parseVerseRef(LIVE_VERSE);
   const pericope = loadPericopes("1CO").find((p) => {
@@ -316,18 +316,33 @@ export async function runLiveRegress(options: LiveOptions): Promise<LiveResult> 
     pericopeId: pericope.id,
     costUsd: result.costUsd,
     stopReason: result.stopReason,
-    comparison: judgeLiveResponse(golden, result.text, result.stopReason),
+    comparison: judgeLiveResponse(golden, result.text, result.stopReason, { pericopeId: pericope.id }),
   };
 }
 
-/** Separated from the request so the judgment is testable without one. */
-export function judgeLiveResponse(golden: VerseEntry, text: string, stopReason: string | null): StructuralComparison {
+/**
+ * Separated from the request so the judgment is testable without one.
+ *
+ * Since prompt 1.1 the model writes the composed shape, which has no ids,
+ * versions or gloss until `assemble` stamps them. Judged raw, every live run
+ * failed the schema and the money bought no measurement.
+ */
+export function judgeLiveResponse(
+  golden: VerseEntry,
+  text: string,
+  stopReason: string | null,
+  composed?: { pericopeId: string; derive?: DeriveWords },
+): StructuralComparison {
   if (stopReason === "max_tokens") {
     return { ok: false, problems: ["stop_reason max_tokens: the regenerated pericope is truncated"], notes: [] };
   }
   const extracted = extractJson(text);
   if (extracted === null) return { ok: false, problems: ["no JSON could be recovered from the response"], notes: [] };
-  const entry = collectEntries(extracted.value).find(
+  const value =
+    composed !== undefined && isComposed(extracted.value)
+      ? assemble(extracted.value, composed.pericopeId, LIVE_MODEL, composed.derive)
+      : extracted.value;
+  const entry = collectEntries(value).find(
     (e) => typeof e === "object" && e !== null && (e as Record<string, unknown>)["verse_id"] === golden.verse_id,
   );
   if (entry === undefined) {

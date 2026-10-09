@@ -159,7 +159,9 @@ async function main(): Promise<number> {
         return 1;
       }
       console.log("  schema alignment: ok");
-      return 0;
+      // An unresolved ref is a verse whose words were not stored: a lost word
+      // must fail the stage, not scroll past in a log that exits 0.
+      return report.unresolved.length > 0 ? 1 : 0;
     }
 
     case "derive": {
@@ -281,7 +283,8 @@ async function main(): Promise<number> {
           console.log(`    ${entry.id} [${entry.model}]: ${entry.parseError}`);
         }
       }
-      return report.parseFailures > 0 || provenance.length > 0 ? 1 : 0;
+      // An unreadable response is a response nothing was measured from.
+      return report.parseFailures > 0 || provenance.length > 0 || report.unreadable.length > 0 ? 1 : 0;
     }
 
     case "generate": {

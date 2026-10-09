@@ -174,6 +174,26 @@ describe("the adversary gate", () => {
     }
   });
 
+  it("logs the worst case when the stream dies, so the ceiling still counts it", async () => {
+    const { tempStaging, seed1Co1434, buildAdversaryRequest, attackEntry, maxAdversaryTokens, priceUsage, spentSoFar } =
+      await load();
+    const staging = tempStaging();
+    try {
+      const request = buildAdversaryRequest(staging.db, seed1Co1434(staging.db));
+      const client: any = {
+        messages: {
+          countTokens: async () => ({ input_tokens: 5000 }),
+          stream: () => ({ finalMessage: () => Promise.reject(new Error("socket hang up")) }),
+        },
+      };
+      await expect(attackEntry(request, "claude-sonnet-5", { confirm: true, client })).rejects.toThrow(/socket hang up/);
+      const worst = priceUsage("claude-sonnet-5", 5000, maxAdversaryTokens(request.claimIds.length));
+      expect(spentSoFar()).toBeCloseTo(worst, 6);
+    } finally {
+      staging.cleanup();
+    }
+  });
+
   it("stops the run at the ceiling rather than skipping ahead", async () => {
     const { tempStaging, seed1Co1434, storeVerseEntry, runAdversary, recordUsage } = await load();
     const staging = tempStaging();

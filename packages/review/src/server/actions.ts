@@ -21,7 +21,7 @@ import {
   type ReviewState,
 } from "../shared/api.js";
 import type { Db } from "./db.js";
-import { canonicalOrder, loadEntry, parsePayload, type StoredEntry } from "./queues.js";
+import { canonicalOrder, loadEntry, parsePayload, payloadDigest, type StoredEntry } from "./queues.js";
 
 export const DECISIONS_FILE = "decisions.jsonl";
 export const REVIEW_STATE_FILE = "review_state.jsonl";
@@ -94,6 +94,24 @@ function parseQueue(value: unknown): ReviewQueue | null {
   return value;
 }
 
+/**
+ * The text a decision is about must be the text the reviewer read. Without
+ * this, an entry regenerated while it sat open on screen was approved on the
+ * strength of the previous version — a review of words nobody had read.
+ */
+function requireSameText(stored: StoredEntry, seen: unknown, required: boolean): void {
+  if (seen === undefined || seen === null) {
+    if (!required) return;
+    throw new RefusedError("Approval refused: the request does not say which version of the entry was read.", 400);
+  }
+  if (seen !== payloadDigest(stored.payload)) {
+    throw new RefusedError(
+      `${stored.verse_id} changed after it was opened. Reload it and review the current text.`,
+      409,
+    );
+  }
+}
+
 function requireEntry(db: Db, verseId: string): StoredEntry {
   const stored = loadEntry(db, verseId);
   if (stored === null) throw new RefusedError(`No entry for ${verseId} in staging.db.`, 404);
@@ -101,12 +119,13 @@ function requireEntry(db: Db, verseId: string): StoredEntry {
 }
 
 /**
- * Approve: status becomes `human_reviewed`. Refused below the PRD 0C bar, when
- * the payload no longer parses, when the quality contract reports errors, and
+ * Approve: status becomes `human_reviewed`. Refused unless the request names
+ * the payload on screen, below the PRD 0C bar, when the payload no longer parses, when the quality contract reports errors, and
  * for an entry an expert has already reviewed (approving would downgrade it).
  */
 export function approve(ctx: DecisionContext, verseId: string, input: DecisionInput): ReviewState {
   const stored = requireEntry(ctx.db, verseId);
+  requireSameText(stored, input["payload_sha256"], true);
   const rating = parseRating(input["rating"], true) as number;
   const reason = parseReason(input["reason"]);
   const queue = parseQueue(input["queue"]);
@@ -149,6 +168,7 @@ export function approve(ctx: DecisionContext, verseId: string, input: DecisionIn
  */
 export function reject(ctx: DecisionContext, verseId: string, input: DecisionInput): ReviewState {
   const stored = requireEntry(ctx.db, verseId);
+  requireSameText(stored, input["payload_sha256"], false);
   const reason = parseReason(input["reason"]);
   if (reason === null) {
     throw new RefusedError(

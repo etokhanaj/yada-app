@@ -155,6 +155,7 @@ export function App() {
           rating,
           reason: reason.trim() === "" ? null : reason,
           queue,
+          payload_sha256: entry.payload_sha256,
         });
         const state = result.state;
         setNotice({

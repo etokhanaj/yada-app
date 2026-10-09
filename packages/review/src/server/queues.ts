@@ -117,6 +117,10 @@ export interface ParsedPayload {
   issues: string[];
 }
 
+export function payloadDigest(payload: string): string {
+  return createHash("sha256").update(payload).digest("hex");
+}
+
 export function parsePayload(payload: string): ParsedPayload {
   let raw: unknown;
   try {
@@ -459,6 +463,7 @@ export function buildEntry(db: Db, verseId: string): EntryResponse | null {
     schema_version: stored.schema_version,
     prompt_version: stored.prompt_version,
     state: stored.state,
+    payload_sha256: payloadDigest(stored.payload),
     entry: parsed.entry,
     parse_issues: parsed.issues,
     payload: parsed.payload,

@@ -7,8 +7,8 @@
  * same model checking its own output mostly agrees with itself.
  *
  * This spends money, so it goes through budget.ts in the same order as
- * submit.ts — count tokens, check the ceiling, check --confirm, send, write the
- * response, record usage — and the order is the point. The ceiling is checked
+ * submit.ts — count tokens, check the ceiling, check --confirm, send, record
+ * usage, write the response — and the order is the point. The ceiling is checked
  * before confirm so an oversized run stops either way, and usage is recorded
  * before the next request so a crash cannot lose the record of spend.
  *
@@ -313,7 +313,26 @@ export async function attackEntry(request: AdversaryRequest, model: string, opti
     // Adaptive, never budget_tokens: the latter is a 400 on these models.
     thinking: { type: "adaptive" },
   });
-  const message = await stream.finalMessage();
+  let message: Awaited<ReturnType<typeof stream.finalMessage>>;
+  try {
+    message = await stream.finalMessage();
+  } catch (error) {
+    // Same rule as submit.ts: a dead stream may already be billed, so the
+    // worst case is logged and the ceiling keeps counting it.
+    recordUsage({
+      at: new Date().toISOString(),
+      model,
+      pericope_id: request.pericope_id,
+      verses: 1,
+      input_tokens: inputTokens,
+      output_tokens: maxTokens,
+      thinking_tokens: 0,
+      cost_usd: priceUsage(model, inputTokens, maxTokens),
+      stage: "adversary",
+      estimated: true,
+    });
+    throw error;
+  }
   const outputTokens = message.usage.output_tokens;
   const costUsd = priceUsage(model, inputTokens, outputTokens);
   const text = message.content
@@ -321,14 +340,7 @@ export async function attackEntry(request: AdversaryRequest, model: string, opti
     .map((block) => block.text)
     .join("");
 
-  // Written before parsing, so an unusable verdict is still evidence.
-  const dir = options.responsesDir ?? ADVERSARY_RESPONSES;
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(
-    path.join(dir, `${request.verse_id}.${model}.json`),
-    `${JSON.stringify({ verse_id: request.verse_id, model, stop_reason: message.stop_reason, usage: message.usage, text }, null, 2)}\n`,
-  );
-
+  // Recorded before the response file, so a failed write cannot lose the spend.
   const record: UsageRecord = {
     at: new Date().toISOString(),
     model,
@@ -341,6 +353,14 @@ export async function attackEntry(request: AdversaryRequest, model: string, opti
     stage: "adversary",
   };
   recordUsage(record);
+
+  // Written before parsing, so an unusable verdict is still evidence.
+  const dir = options.responsesDir ?? ADVERSARY_RESPONSES;
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    path.join(dir, `${request.verse_id}.${model}.json`),
+    `${JSON.stringify({ verse_id: request.verse_id, model, stop_reason: message.stop_reason, usage: message.usage, text }, null, 2)}\n`,
+  );
 
   return { verse_id: request.verse_id, model, inputTokens, outputTokens, costUsd, stopReason: message.stop_reason, text };
 }

@@ -24,7 +24,8 @@ import { GOLDEN } from "./paths.js";
 
 type Db = ReturnType<typeof openStaging>;
 
-export function storeVerseEntry(db: Db, entry: VerseEntry, status: ReviewStatus, reason?: string): void {
+/** True when the stored content is new or changed; false when it was already there verbatim. */
+export function storeVerseEntry(db: Db, entry: VerseEntry, status: ReviewStatus, reason?: string): boolean {
   const payload = JSON.stringify(entry);
   const previous = db.prepare("SELECT payload FROM entries WHERE verse_id = ?").get(entry.verse_id) as
     | { payload?: string }
@@ -44,7 +45,7 @@ export function storeVerseEntry(db: Db, entry: VerseEntry, status: ReviewStatus,
   const existing = db.prepare("SELECT status FROM review_state WHERE verse_id = ?").get(entry.verse_id) as
     | { status?: string }
     | undefined;
-  if (existing?.status !== undefined && previous?.payload === payload) return;
+  if (existing?.status !== undefined && previous?.payload === payload) return false;
 
   const contentChanged = existing?.status !== undefined && previous?.payload !== payload;
   const now = new Date().toISOString();
@@ -64,6 +65,7 @@ export function storeVerseEntry(db: Db, entry: VerseEntry, status: ReviewStatus,
   if (contentChanged && columns.has("decision")) {
     db.prepare("UPDATE review_state SET decision = NULL WHERE verse_id = ?").run(entry.verse_id);
   }
+  return previous?.payload !== payload;
 }
 
 export interface ImportReport {
@@ -83,31 +85,38 @@ export interface ImportReport {
 export function importGolden(dir: string = GOLDEN): ImportReport {
   const report: ImportReport = { imported: [], rejected: [] };
   const db = openStaging();
+  // A throw mid-import rolls back, so staging never holds half a fixture set.
   db.exec("BEGIN");
-  for (const file of readdirSync(dir).filter((f) => f.endsWith(".json")).sort()) {
-    const raw = JSON.parse(readFileSync(path.join(dir, file), "utf8")) as unknown;
-    const parsed = VerseEntrySchema.safeParse(raw);
-    if (!parsed.success) {
-      report.rejected.push({ file, problem: parsed.error.issues[0]?.message ?? "schema" });
-      continue;
+  try {
+    for (const file of readdirSync(dir).filter((f) => f.endsWith(".json")).sort()) {
+      const raw = JSON.parse(readFileSync(path.join(dir, file), "utf8")) as unknown;
+      const parsed = VerseEntrySchema.safeParse(raw);
+      if (!parsed.success) {
+        report.rejected.push({ file, problem: parsed.error.issues[0]?.message ?? "schema" });
+        continue;
+      }
+      const findings = validateVerseEntry(parsed.data);
+      if (hasErrors(findings)) {
+        report.rejected.push({ file, problem: findings.map((f) => f.rule).join(", ") });
+        continue;
+      }
+      const status = parsed.data.review.status;
+      if (status === "human_reviewed" || status === "expert_reviewed") {
+        report.rejected.push({
+          file,
+          problem: `claims ${status}; fixtures are hand-authored and unreviewed, so refusing rather than trusting the label`,
+        });
+        continue;
+      }
+      storeVerseEntry(db, parsed.data, status, "imported from golden/");
+      report.imported.push(parsed.data.verse_id);
     }
-    const findings = validateVerseEntry(parsed.data);
-    if (hasErrors(findings)) {
-      report.rejected.push({ file, problem: findings.map((f) => f.rule).join(", ") });
-      continue;
-    }
-    const status = parsed.data.review.status;
-    if (status === "human_reviewed" || status === "expert_reviewed") {
-      report.rejected.push({
-        file,
-        problem: `claims ${status}; fixtures are hand-authored and unreviewed, so refusing rather than trusting the label`,
-      });
-      continue;
-    }
-    storeVerseEntry(db, parsed.data, status, "imported from golden/");
-    report.imported.push(parsed.data.verse_id);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  } finally {
+    db.close();
   }
-  db.exec("COMMIT");
-  db.close();
   return report;
 }

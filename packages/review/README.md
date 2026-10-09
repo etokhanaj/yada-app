@@ -49,8 +49,9 @@ current schema is still routed. A `critical` flag counts whatever its verdict: `
 
 - **Approve** sets status to `human_reviewed` and decision to `approved`. It needs a rating from 1
   to 5, and is refused below 4 (the PRD 0C bar), with the reason shown. It is also refused when the
-  payload fails to parse, when `validateVerseEntry` reports errors, and for an `expert_reviewed`
-  entry, because approving would downgrade it.
+  payload fails to parse, when `validateVerseEntry` reports errors, for an `expert_reviewed`
+  entry, because approving would downgrade it, and when the stored payload is no longer the one
+  the client loaded (`payload_sha256`), because the reviewer has not read the new text.
 - **Reject** keeps status `flagged` and sets decision to `rejected`. It needs a non-empty reason,
   since reasons feed prompt revision. A rating is optional.
 - Keys: `j`/`k` next/previous, `1`–`5` rate, `a` approve, `r` reject (focuses the reason box when

@@ -47,6 +47,7 @@ describe("review server", () => {
     expect(entry.entry?.claims).toHaveLength(9);
 
     expect((await fetch(`${running.url}/api/queues/nope`)).status).toBe(404);
+    expect((await fetch(`${running.url}/api/entries/%E0%A4%A`)).status).toBe(400);
     expect((await fetch(`${running.url}/api/entries/JHN.3.16`)).status).toBe(404);
   });
 
@@ -54,7 +55,12 @@ describe("review server", () => {
     const { running } = await serve();
     const base = `${running.url}/api/entries/JHN.1.1`;
 
-    const low = await post(`${base}/approve`, { rating: 3 });
+    const { payload_sha256 } = (await (await fetch(base)).json()) as EntryResponse;
+
+    const unread = await post(`${base}/approve`, { rating: 5 });
+    expect(unread.status).toBe(400);
+
+    const low = await post(`${base}/approve`, { rating: 3, payload_sha256 });
     expect(low.status).toBe(422);
     expect(((await low.json()) as { error: string }).error).toContain("rated 3");
 
@@ -68,7 +74,7 @@ describe("review server", () => {
     });
     expect(form.status).toBe(415);
 
-    const ok = await post(`${base}/approve`, { rating: 4, queue: "flagged" });
+    const ok = await post(`${base}/approve`, { rating: 4, queue: "flagged", payload_sha256 });
     expect(ok.status).toBe(200);
     expect(((await ok.json()) as { state: { status: string } }).state.status).toBe("human_reviewed");
   });

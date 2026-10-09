@@ -145,6 +145,8 @@ export interface EntryResponse {
   schema_version: string;
   prompt_version: string;
   state: ReviewState;
+  /** sha256 of the stored payload; an approval names it to say which text was read. */
+  payload_sha256: string;
   /** Null when the stored payload does not parse under the current schema. */
   entry: VerseEntry | null;
   parse_issues: string[];
@@ -161,6 +163,8 @@ export interface DecisionRequest {
   rating?: number | null;
   reason?: string | null;
   queue?: ReviewQueue | null;
+  /** The `payload_sha256` of the entry on screen. Required to approve. */
+  payload_sha256?: string | null;
 }
 
 export interface DecisionResponse {

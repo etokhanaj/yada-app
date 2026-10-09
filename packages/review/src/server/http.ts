@@ -4,8 +4,8 @@
  *   GET  /api/meta
  *   GET  /api/queues/:queue
  *   GET  /api/entries/:verseId
- *   POST /api/entries/:verseId/approve   { rating, reason?, queue? }
- *   POST /api/entries/:verseId/reject    { reason, rating?, queue? }
+ *   POST /api/entries/:verseId/approve   { rating, payload_sha256, reason?, queue? }
+ *   POST /api/entries/:verseId/reject    { reason, rating?, queue?, payload_sha256? }
  *
  * Loopback binding keeps other machines out. The Host check keeps out a web
  * page that rebinds its own hostname to 127.0.0.1, and requiring a JSON content
@@ -89,7 +89,12 @@ async function handle(ctx: ServerContext, req: IncomingMessage, res: ServerRespo
   }
 
   const url = new URL(req.url ?? "/", "http://localhost");
-  const parts = url.pathname.split("/").filter((part) => part !== "").map(decodeURIComponent);
+  let parts: string[];
+  try {
+    parts = url.pathname.split("/").filter((part) => part !== "").map(decodeURIComponent);
+  } catch {
+    throw new RefusedError("Malformed URL encoding.", 400);
+  }
   const options = { sampleSeed: ctx.sampleSeed, sampleRate: ctx.sampleRate };
 
   if (parts[0] === "api") {
