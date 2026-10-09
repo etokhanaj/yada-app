@@ -122,10 +122,15 @@ def verses_html(rows, sel=(), before=None, ch=None, bm=(), sup=None, book=None):
     return "".join(out)
 
 
-def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True, bm=(), sup=None):
+def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True, bm=(), sup=None, collapsed=False):
     title = f"{BOOK[book]} {ch} · BSB"
     rows = text("BSB", book, ch, a, b)
     h = header(back, title, scrolled)
+    if collapsed and STYLE != "v1":
+        # While reading, the controls step back to one quiet line under the island (YouVersion's scroll state);
+        # tapping it, or scrolling up, brings them back.
+        name, tr = title.rsplit(" · ", 1)
+        h = f'<div class="hdr mini"><button class="minit" aria-label="{E(name)}, {tr}. Shows controls">{E(name)} · {tr}</button></div>'
     hint_html = '<p class="hint">Tap a verse to see what it meant.</p>' if hint else ""
     foot_html = ""
     if foot:
@@ -486,6 +491,7 @@ if STYLE != "v1":
     F("D-03", "Same first words: John 1:1 and Genesis 1:1", reader("JHN", 1, 1, 6, sel=(1,), scrolled=False) + scrim() + BACK_U("jhn.1.1") + scrim("s2") +
       sheet("med", "Genesis 1:1", "From John 1:1", echo), "dl")
     F("D-04", "Chapter opening", reader("JHN", 1, 1, 9, scrolled=False, foot=None), "dl")
+    F("D-05", "Reading: the header steps back", reader("1CO", 14, 33, 40, offset=-40, collapsed=True), "dl")
 
 # ================= The rest of the app (v2) =================
 if STYLE != "v1":

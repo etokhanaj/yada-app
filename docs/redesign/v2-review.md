@@ -116,6 +116,6 @@ Not taken: floating play and chapter arrows over the text (the brief bans floati
 cover verse 7), a tab bar, six reading themes, the font picker, settings rows with "When available"
 subtexts.
 
-**Open for John:** YouVersion's split title capsule (`Ephesians 6 | NIV`) gives translation its own
+**Decided (9 Oct, from John's recording):** no split capsule; the header collapses to one line while reading (D-05), which is what makes YouVersion's reader feel open. Original note: YouVersion's split title capsule (`Ephesians 6 | NIV`) gives translation its own
 one-tap target. It conflicts with the brief's single title target and doesn't fit beside a long return
 chip (`‹ 2 Thess 3:10`); not drawn.

@@ -384,3 +384,7 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
     semibold; a list at AX sizes.
 12. **Scripture typography**: LORD in small capitals (the BSB's convention); a psalm's title (bundle
     verse 0) sits on its own italic line above verse 1.
+13. **Reader title** (decided 9 Oct, after John's YouVersion recording): one centred title target, no
+    split `Book | Translation` capsule. Switching translation stays at the top of Contents; seeing other
+    translations is Compare's job. While reading, the header steps back to one 13 pt line under the
+    island (`1 Corinthians 14 · BSB`); scrolling up or tapping it restores the controls (canvas D-05).
