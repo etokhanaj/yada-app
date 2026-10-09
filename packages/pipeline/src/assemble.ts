@@ -7,21 +7,23 @@
  * The content was sound; the contract was missing.
  *
  * The fix divides the work by who can be trusted with it. The model writes only
- * the composed fields, constrained by GENERATION_SCHEMA through structured
- * the JSON Schema below, given in the prompt and enforced on the way back in. Everything mechanical — ids, versions, review status, the derived
- * word-for-word gloss — is filled in here, because a model asked to copy a
+ * the composed fields, constrained by GENERATION_SCHEMA: the JSON Schema below,
+ * given in the prompt and enforced on the way back in. Everything mechanical —
+ * ids, versions, review status, the derived word-for-word gloss — is filled in
+ * here, because a model asked to copy a
  * gloss or stamp a review status can get it wrong, and the derived gloss is
  * explicitly not the model's to write (PRD §11.3).
  */
 
 import {
   SCHEMA_VERSION,
+  bookOfRef,
   parseVerseRef,
   type PericopeEntry,
   type VerseEntry,
 } from "@yada/schema";
 
-import { deriveVerse } from "./derive.js";
+import { deriveVerse, type DerivedWord } from "./derive.js";
 
 export const PROMPT_VERSION = "pericope@1.1.0";
 
@@ -124,7 +126,7 @@ const EVIDENCE_FIELDS: Readonly<Record<string, readonly string[]>> = {
   apparatus: ["type", "ref", "witnesses", "dataset", "note"],
 };
 
-function shapeEvidence(items: unknown): unknown {
+export function shapeEvidence(items: unknown): unknown {
   if (!Array.isArray(items)) return items;
   return items.map((item) => {
     const record = item as Record<string, unknown>;
@@ -166,14 +168,22 @@ export function isComposed(value: unknown): value is { pericope: Composed; verse
   return (
     Array.isArray(verses) &&
     typeof record["pericope"] === "object" &&
+    record["pericope"] !== null &&
     verses.every((v) => typeof v === "object" && v !== null && !("schema_version" in v))
   );
 }
 
 
+/**
+ * Derives a verse's words. Ingest passes one bound to the database it is
+ * storing into; without that, a temp or alternate staging.db got its glosses
+ * from the shared content/staging.db instead.
+ */
+export type DeriveWords = (verseId: string) => DerivedWord[];
+
 /** The derived word-for-word gloss. A word the sources leave unglossed shows a dash, never a guess. */
-export function derivedGloss(verseId: string): VerseEntry["gloss"] {
-  return deriveVerse(verseId).map((word) => ({
+export function derivedGloss(verseId: string, derive: DeriveWords = deriveVerse): VerseEntry["gloss"] {
+  return derive(verseId).map((word) => ({
     surface: word.surface,
     translit: word.translit.length > 0 ? word.translit : word.surface,
     gloss: word.gloss ?? "—",
@@ -189,6 +199,7 @@ export function assemble(
   composed: { pericope: Composed; verses: Composed[] },
   pericopeId: string,
   model: string,
+  derive: DeriveWords = deriveVerse,
 ): Array<VerseEntry | PericopeEntry> {
   composed = clean(composed);
   const range = parseVerseRef(pericopeId);
@@ -208,11 +219,13 @@ export function assemble(
     claims: shapeClaims(composed.pericope.claims),
     // The prompt's own example showed "14.26-14.33" without a book, and the
     // models followed it; a movement step is a verse range and needs one.
+    // Checked by book code, not by shape: "119.1-119.8" also starts with three
+    // characters and a dot, and went unprefixed.
     ...(Array.isArray(composed.pericope["movement"])
       ? {
           movement: (composed.pericope["movement"] as Array<{ range: string; label: string }>).map((step) => ({
             ...step,
-            range: /^[A-Z0-9]{3}\./.test(step.range) ? step.range : `${range.book}.${step.range}`,
+            range: bookOfRef(step.range) === null ? `${range.book}.${step.range}` : step.range,
           })),
         }
       : {}),
@@ -226,7 +239,7 @@ export function assemble(
       ...stamp,
       verse_id: verseId,
       pericope_id: pericopeId,
-      gloss: derivedGloss(verseId),
+      gloss: derivedGloss(verseId, derive),
       claims: shapeClaims(verse.claims),
       versification: "english",
       review,

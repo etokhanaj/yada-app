@@ -98,19 +98,25 @@ export interface NormalizeReport {
   originalOnly: string[];
 }
 
+/** Keys that occur more than once, each reported once per repeat. */
+export function duplicateKeys<T>(items: readonly T[], keyOf: (item: T) => string): string[] {
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+  for (const item of items) {
+    const key = keyOf(item);
+    if (seen.has(key)) duplicates.push(key);
+    seen.add(key);
+  }
+  return duplicates;
+}
+
 export function normalize(): NormalizeReport {
   const db = openStaging();
   const { tokens, versification, lexicon } = loadTokens();
 
   // Refuse duplicate keys rather than let INSERT OR REPLACE resolve them: a
   // replaced row is a lost word, and nothing downstream could notice.
-  const keys = new Set<string>();
-  const duplicates: string[] = [];
-  for (const token of tokens) {
-    const key = `${token.verse_id}#${token.position}`;
-    if (keys.has(key)) duplicates.push(key);
-    keys.add(key);
-  }
+  const duplicates = duplicateKeys(tokens, (token) => `${token.verse_id}#${token.position}`);
   if (duplicates.length > 0) {
     throw new Error(
       `${duplicates.length} duplicate token keys would overwrite words, e.g. ${duplicates.slice(0, 5).join(", ")}`,
@@ -118,6 +124,14 @@ export function normalize(): NormalizeReport {
   }
   const glosses = attachGlosses(tokens);
   const { texts, report: textReport } = loadTexts();
+  // The same rule for texts: a second line for one verse would replace the
+  // first, and half a verse would ship as if it were the whole.
+  const duplicateTexts = duplicateKeys(texts, (text) => `${text.translation} ${text.verse_id}`);
+  if (duplicateTexts.length > 0) {
+    throw new Error(
+      `${duplicateTexts.length} duplicate verse texts would overwrite each other, e.g. ${duplicateTexts.slice(0, 5).join(", ")}`,
+    );
+  }
   const titles = parseTvtmsTitles();
   const unresolved: string[] = [];
 
