@@ -35,7 +35,9 @@ export function maxTokensFor(verses: number): number {
   // The first Milestone 0 run used 2,500/verse + 8,000 and three of six
   // responses hit the cap: adaptive thinking alone spent 9-21k tokens, and one
   // Sonnet run spent the entire budget thinking and wrote nothing.
-  return verses * 4000 + 24000;
+  // Prompt 1.1 then measured 4.7-6.7k output tokens per verse, so a 15-verse
+  // pericope outgrew 4,000/verse. Capped at the models' 128k output limit.
+  return Math.min(verses * 7000 + 24000, 128_000);
 }
 
 export interface GenerationResult {
@@ -86,7 +88,10 @@ export async function generatePericope(
   if (request === null) throw new Error(`${pericope.id} does not parse`);
   if (request.verses.length === 0) throw new Error(`${pericope.id} has no tokens in staging.db`);
 
-  const client = options.client ?? new Anthropic({ apiKey: requireApiKey() });
+  const client = options.client ??
+    // The SDK's default 10-minute timeout cut Opus off twice on 1 Cor 14:26-40
+    // (15 verses at ~6k output tokens each). A long pericope needs longer.
+    new Anthropic({ apiKey: requireApiKey(), timeout: 30 * 60 * 1000 });
   const messages = [{ role: "user" as const, content: request.body }];
   const maxTokens = maxTokensFor(request.verses.length);
 
@@ -115,7 +120,26 @@ export async function generatePericope(
     // of the bill that decides whether the corpus fits its ceiling.
     thinking: { type: "adaptive" },
   });
-  const message = await stream.finalMessage();
+  let message: Awaited<ReturnType<typeof stream.finalMessage>>;
+  try {
+    message = await stream.finalMessage();
+  } catch (error) {
+    // A stream that dies mid-response may already have been billed, and no usage
+    // comes back to record. Log the worst case so the ceiling still holds; an
+    // overestimate stops a run early, an omission lets it overspend.
+    recordUsage({
+      at: new Date().toISOString(),
+      model,
+      pericope_id: pericope.id,
+      verses: request.verses.length,
+      input_tokens: inputTokens,
+      output_tokens: maxTokens,
+      thinking_tokens: 0,
+      cost_usd: priceUsage(model, inputTokens, maxTokens),
+      estimated: true,
+    });
+    throw error;
+  }
   const elapsedMs = (options.now ?? Date.now)() - startedAt;
 
   const outputTokens = message.usage.output_tokens;

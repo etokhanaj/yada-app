@@ -141,7 +141,10 @@ function shapeClaims(claims: unknown[] | undefined): unknown[] {
       : undefined;
     return {
       ...c,
-      evidence: shapeEvidence(c["evidence"]),
+      // An omitted list and an empty one mean the same thing; Opus omitted it on
+      // claims citing nothing. The rules still flag a source_data claim with no
+      // evidence, so this changes the shape, not what gets caught.
+      evidence: shapeEvidence(c["evidence"] ?? []),
       ...(positions === undefined ? {} : { positions }),
       // Every claim carries `sources: []` in v1 (PRD §11.4); the model never writes them.
       sources: [],

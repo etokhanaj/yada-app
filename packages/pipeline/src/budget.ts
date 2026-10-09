@@ -44,6 +44,8 @@ export interface UsageRecord {
    * the same ceiling, so spentSoFar sums all of them regardless.
    */
   stage?: "generate" | "adversary" | "regress-live";
+  /** True when the request failed and the cost is the worst case, not a measurement. */
+  estimated?: boolean;
 }
 
 export function priceUsage(model: string, inputTokens: number, outputTokens: number): number {

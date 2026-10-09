@@ -27,7 +27,8 @@ function refusingClient(inputTokens = 5000): any {
 describe("max_tokens", () => {
   it("scales with verse count and keeps a fixed head-room", () => {
     expect(maxTokensFor(0)).toBe(24000);
-    expect(maxTokensFor(15)).toBe(84000);
+    expect(maxTokensFor(30)).toBe(128000);
+    expect(maxTokensFor(15)).toBe(128000);
     expect(maxTokensFor(15)).toBeGreaterThan(maxTokensFor(5));
   });
 });
