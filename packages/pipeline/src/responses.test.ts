@@ -6,7 +6,7 @@ import path from "node:path";
 import type { VerseEntry } from "@yada/schema";
 
 import { ingestResponses } from "./responses.js";
-import { loadGolden, tempStaging, type TempStaging } from "./test-staging.js";
+import { composed1Co14, loadGolden, seedVerse, tempStaging, type TempStaging } from "./test-staging.js";
 
 /**
  * ingest-responses is the door into the corpus. The tests that matter are the
@@ -149,6 +149,40 @@ describe("ingest-responses", () => {
     ingestResponses(staging.db, dir);
     expect(rows("SELECT status FROM review_state")).toEqual([{ status: "flagged" }]);
     expect(rows("SELECT * FROM adversary_flags")).toEqual([]);
+  });
+
+  it("keeps paid adversary verdicts when the same text is ingested again", () => {
+    const entry = leviticus();
+    writeResponse([entry], { pericope: entry.pericope_id });
+    ingestResponses(staging.db, dir);
+    staging.db.prepare(
+      "INSERT INTO adversary_flags VALUES (?, ?, 'unsupported', 'minor', 'still about this text', 'claude-sonnet-5', 'then')",
+    ).run(entry.verse_id, entry.claims[0]!.id);
+
+    ingestResponses(staging.db, dir);
+    expect(rows("SELECT note FROM adversary_flags")).toEqual([{ note: "still about this text" }]);
+  });
+
+  it("assembles composed output with the gloss derived from the database it stores into", () => {
+    // ingest used to derive from the shared content/staging.db whatever
+    // database it was handed, so a temp staging.db got someone else's words.
+    seedVerse(staging.db, "1CO.14.34", [{ surface: "σιγάτωσαν", lemma: "σιγάω", strongs: "G4601" }]);
+    writeResponse(composed1Co14(), { pericope: "1CO.14.26-14.40" });
+    const report = ingestResponses(staging.db, dir);
+    expect(report.rejected).toEqual([]);
+    expect(report.stored.map((s) => `${s.kind} ${s.id}`)).toEqual(["pericope 1CO.14.26-14.40", "verse 1CO.14.34"]);
+    const stored = JSON.parse(String(rows("SELECT payload FROM entries")[0]?.["payload"])) as VerseEntry;
+    expect(stored.gloss.map((word) => word.surface)).toEqual(["σιγάτωσαν"]);
+    expect(stored.review.status).toBe("flagged");
+  });
+
+  it("rejects a composed response whose pericope id does not parse, and ingests the rest", () => {
+    writeResponse(composed1Co14(), { pericope: "1CO.99.1-99.2" });
+    const entry = leviticus();
+    writeResponse([entry], { pericope: entry.pericope_id });
+    const report = ingestResponses(staging.db, dir);
+    expect(report.rejected).toEqual([expect.objectContaining({ id: "*", reason: expect.stringMatching(/not a pericope id/) })]);
+    expect(report.stored.map((s) => s.id)).toEqual([entry.verse_id]);
   });
 
   it("records an unreadable response instead of throwing", () => {

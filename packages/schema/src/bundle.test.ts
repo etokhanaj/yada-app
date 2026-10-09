@@ -63,4 +63,17 @@ describe("bundle manifest entries", () => {
     expect(BundleInfoSchema.safeParse(base).success).toBe(false);
     expect(BundleInfoSchema.safeParse({ ...base, review_gate: "unreviewed-dev" }).success).toBe(true);
   });
+
+  it("refuse a file that is not the bundle's own name and version, so publish cannot be pointed elsewhere", () => {
+    const base = {
+      name: "jhn", kind: "understand", book: "JHN", version: 3, file: "jhn.v3.db", review_gate: "reviewed",
+      sha256: "a".repeat(64), bytes: 1, format: 2, schema_version: "1.3.0", entries: 1,
+    };
+    expect(BundleInfoSchema.safeParse(base).success).toBe(true);
+    expect(BundleInfoSchema.safeParse({ ...base, name: "JHN" }).success).toBe(true);
+    for (const file of ["../jhn.v3.db", "jhn.v2.db", "core.v3.db", "/etc/passwd", "jhn.v3.db/../x"]) {
+      expect(BundleInfoSchema.safeParse({ ...base, file }).success).toBe(false);
+    }
+    expect(BundleInfoSchema.safeParse({ ...base, name: "../jhn", file: "../jhn.v3.db" }).success).toBe(false);
+  });
 });

@@ -101,3 +101,78 @@ export function seed1Co1434(db: DatabaseSync): VerseEntry {
   seedVerse(db, "1TI.2.12", [{ surface: "γυναικὶ", lemma: "γυνή", strongs: "G1135" }]);
   return entry;
 }
+
+/** One flat evidence object as GENERATION_SCHEMA makes the model write it: every key, "" when absent. */
+function flatEvidence(fields: Record<string, unknown>): Record<string, unknown> {
+  return { type: "verse", ref: "", lemma: "", strongs: "", dataset: "", analysis_tradition: "", witnesses: [], note: "", ...fields };
+}
+
+/**
+ * Model output for 1 Cor 14:26-40 in the composed shape GENERATION_SCHEMA asks
+ * for: no ids beyond verse_id, no versions, no gloss, no review.
+ */
+export function composed1Co14() {
+  return {
+    pericope: {
+      summary_one_sentence: "Paul orders the assembly's worship so that it builds the church up.",
+      key_ideas: ["Order in worship"],
+      discussion_questions: [],
+      movement: [
+        { range: "14.26-14.33", label: "Order in worship" },
+        { range: "1CO.14.34-14.35", label: "Speaking in the assembly" },
+      ],
+      claims: [],
+      related_passages: [{ ref: "1CO.11.5", relationship: "", note: "" }],
+      no_significant_dispute: false,
+    },
+    verses: [
+      {
+        verse_id: "1CO.14.34",
+        close_rendering: "Let the women be silent in the churches.",
+        whats_happening: "Paul turns from prophecy to who speaks in the assembly.",
+        key_words: [{ surface: "σιγάτωσαν", lemma: "σιγάω", gloss: "let them be silent", note: "", strongs: "G4601" }],
+        translation_note: "",
+        claims: [
+          {
+            id: "1CO.14.34.c1",
+            claim: "The verb σιγάτωσαν is a present imperative.",
+            category: "text",
+            evidence_strength: "strong",
+            confidence: "high",
+            grounding: "source_data",
+            evidence: [flatEvidence({ type: "lexical", ref: "1CO.14.34", lemma: "σιγάω", strongs: "G4601", dataset: "MorphGNT" })],
+            positions: [],
+            display_rank: 1,
+          },
+          {
+            id: "1CO.14.34.c2",
+            claim: "Whether verses 34-35 are original to the letter is disputed.",
+            category: "debated",
+            evidence_strength: "disputed",
+            confidence: "medium",
+            grounding: "source_data",
+            evidence: [flatEvidence({ type: "apparatus", ref: "1CO.14.34-35", witnesses: ["D", "F", "G"], dataset: "SBLGNT" })],
+            positions: [
+              { label: "Original", case: "Every manuscript contains the verses.", evidence: [flatEvidence({ ref: "1CO.14.33" })] },
+              { label: "Interpolation", case: "Western witnesses move them after verse 40.", evidence: [flatEvidence({ ref: "1CO.14.40" })] },
+            ],
+            display_rank: 1,
+          },
+          {
+            // No `evidence` key at all: Opus omitted it on claims citing nothing.
+            id: "1CO.14.34.c3",
+            claim: "Corinthian worship gatherings met in households.",
+            category: "context",
+            evidence_strength: "supported",
+            confidence: "medium",
+            grounding: "model_knowledge",
+            positions: [],
+            display_rank: 2,
+          },
+        ],
+        related_passages: [],
+        no_significant_dispute: false,
+      },
+    ],
+  };
+}
