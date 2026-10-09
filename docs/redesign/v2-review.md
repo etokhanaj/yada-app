@@ -102,9 +102,8 @@ screen by design.
 Fixed during review: N-01 scrolled the selected verse under the sheet; Sources' licence wrapped mid-name
 (now its own line, link below the name at AX sizes); a lighter scrim let reader text show below sheets.
 
-**Data note for the pipeline:** two of the five `love` words carry TAHOT glosses that read oddly out of
-context (`דּוֹד` "lover my", and in Contents-free lists `יָדִיד` "to beloved my"). Known TAHOT
-limitation (handoff §8); flag, don't fix in UI.
+**Data note for the pipeline:** one of the five `love` words shows a TAHOT gloss that reads oddly out of
+context (`דּוֹד` "lover my"). Known TAHOT limitation (handoff §8); flag, don't fix in UI.
 
 ### Taken from YouVersion (John's screenshots)
 
