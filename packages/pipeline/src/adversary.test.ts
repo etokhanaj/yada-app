@@ -5,6 +5,7 @@ import path from "node:path";
 
 import type { VerseEntry } from "@yada/schema";
 
+
 /**
  * The adversary spends money, so it is held to the same standard as the
  * generation gate: every test here passes on a machine that has never had an
@@ -163,7 +164,7 @@ describe("the adversary gate", () => {
     try {
       recordUsage({
         at: "2026-09-13T00:00:00Z", model: "claude-opus-5", pericope_id: "prior", verses: 1,
-        input_tokens: 1, output_tokens: 1, thinking_tokens: 0, cost_usd: 24.95, stage: "generate",
+        input_tokens: 1, output_tokens: 1, thinking_tokens: 0, cost_usd: (await import("./budget.js")).CEILING_USD - 0.05, stage: "generate",
       });
       const request = buildAdversaryRequest(staging.db, seed1Co1434(staging.db));
       const { client, calls } = fakeClient();
@@ -201,7 +202,7 @@ describe("the adversary gate", () => {
       storeVerseEntry(staging.db, seed1Co1434(staging.db), "flagged");
       recordUsage({
         at: "2026-09-13T00:00:00Z", model: "claude-opus-5", pericope_id: "prior", verses: 1,
-        input_tokens: 1, output_tokens: 1, thinking_tokens: 0, cost_usd: 24.99,
+        input_tokens: 1, output_tokens: 1, thinking_tokens: 0, cost_usd: (await import("./budget.js")).CEILING_USD - 0.01,
       });
       const { client, calls } = fakeClient();
       const run = await runAdversary(staging.db, "1CO", "claude-sonnet-5", { confirm: true, client });

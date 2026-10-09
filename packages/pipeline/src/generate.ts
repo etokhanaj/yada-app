@@ -107,7 +107,7 @@ export function buildRequest(book: string, pericope: Pericope): BuiltRequest | n
       if (words.length === 0) continue;
 
       const line = words
-        .map((w) => `${w.surface}|${w.morph}|${w.strongs ?? "-"}`)
+        .map((w) => `${w.surface}|${w.morph}|${w.strongs ?? "-"}|${w.gloss ?? "-"}`)
         .join(" ");
       contextLines.push(`${verse.verse_id}\t${line}`);
       if (position >= start && position <= end) inScope.push(verse.verse_id);
@@ -131,7 +131,7 @@ export function buildRequest(book: string, pericope: Pericope): BuiltRequest | n
     `Script: ${script}`,
     `Verses to emit entries for: ${inScope.join(", ")}`,
     "",
-    `## Aligned original with morphology (surface|morph|strongs)`,
+    `## Aligned original with morphology (surface|morph|strongs|gloss)`,
     ...contextLines,
     "",
   ].join("\n");

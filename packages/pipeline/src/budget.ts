@@ -25,8 +25,13 @@ import { MODEL_RATES } from "./generate.js";
 
 export const USAGE_LOG = path.join(CONTENT, "usage.jsonl");
 
-/** Hard ceiling for one Milestone 0 session, in USD. Expected spend is $3–6. */
-export const CEILING_USD = 25;
+/**
+ * Lifetime ceiling in USD across every recorded request, not per run:
+ * spentSoFar sums all of usage.jsonl. John's whole AI budget is about $150;
+ * he approved $100 of it for generation (Milestone 0 + John's Gospel) on
+ * 9 Oct 2026. Raise it only with his explicit approval for a named step.
+ */
+export const CEILING_USD = 100;
 
 export interface UsageRecord {
   at: string;

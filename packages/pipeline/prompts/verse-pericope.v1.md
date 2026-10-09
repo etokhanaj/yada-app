@@ -1,6 +1,6 @@
 # Yada generation prompt — pericope + verse entries
 
-`prompt_version: pericope@1.1.0`
+`prompt_version: pericope@1.2.0`
 
 You are producing corpus entries for Yada, a Bible reader whose content is
 AI-built, human-reviewed, and shipped as static data. Users never see a model at
@@ -30,6 +30,13 @@ status and the word-for-word gloss are filled in by the pipeline.
   marked textual variants.
 - A `source_data` claim always cites its evidence — at least the verse itself as
   `{type: "verse", ref}` when the claim rests on the wording alone.
+- A `debated` claim cites the evidence that makes the question live at claim level,
+  not only inside its positions.
+- At most 8 claims per verse. Prefer fewer, sharper claims; the reader sees three.
+- Never restate a claim's category in its text ("…is disputed", "it is clear that").
+- `key_words` notes say what the word is; they do not repeat a claim.
+- Each word in the supplied data carries its gloss. Use it; do not re-gloss from memory.
+- Leave `dataset` as ""; the pipeline records it.
 - `confidence`: `high`, `medium` or `low`. Internal only, never shown.
 - `display_rank`: 1, 2, 3… separately within "What we can see" (text + context)
   and within "Where interpretation differs" (interpretation + debated).

@@ -46,12 +46,12 @@ describeIfIngested("submission", () => {
   });
 
   it("checks the ceiling before it checks confirm, so an oversized run stops either way", async () => {
-    // 6M input tokens on Opus is $30 before a single output token. The confirm
+    // 21M input tokens on Opus is $105 before a single output token. The confirm
     // flag must not be the only thing standing between a mistake and the bill.
     await expect(
       generatePericope("GEN", pericope, "claude-opus-5", {
         confirm: true,
-        client: refusingClient(6_000_000),
+        client: refusingClient(21_000_000),
       }),
     ).rejects.toThrow(/refusing to submit/);
   });

@@ -45,19 +45,20 @@ function pct(part: number, whole: number): string {
  * The spending path. Kept separate from the switch so that the thing which
  * costs money is one named function that can be read end to end.
  */
-async function confirmedRun(book: string): Promise<number> {
+async function confirmedRun(book: string, only?: string): Promise<number> {
+  const models = only === undefined ? [...MILESTONE_0_MODELS] : [only];
   ensureDirs();
   const pericopes = loadPericopes(book);
   const spentBefore = spentSoFar();
 
   console.log(`generate --confirm ${book}: THIS WILL SPEND MONEY`);
   console.log(`  pericopes:     ${pericopes.length}`);
-  console.log(`  models:        ${MILESTONE_0_MODELS.join(", ")}`);
+  console.log(`  models:        ${models.join(", ")}`);
   console.log(`  ceiling:       $${CEILING_USD} (already spent: $${spentBefore.toFixed(2)})`);
   console.log(`  usage log:     content/usage.jsonl\n`);
 
   const results: GenerationResult[] = [];
-  for (const model of MILESTONE_0_MODELS) {
+  for (const model of models) {
     for (const pericope of pericopes) {
       try {
         const result = await generatePericope(book, pericope, model, { confirm: true });
@@ -288,9 +289,9 @@ async function main(): Promise<number> {
     }
 
     case "generate": {
-      const book = rest.find((arg) => !arg.startsWith("--"));
+      const book = rest.find((arg, i) => !arg.startsWith("--") && rest[i - 1] !== "--model");
       if (book === undefined) {
-        console.error("usage: yada generate [--dry-run | --confirm] <BOOK>");
+        console.error("usage: yada generate [--dry-run | --confirm] [--model M] <BOOK>");
         return 2;
       }
       // Default to dry-run. Spending must be asked for explicitly and can never
@@ -303,7 +304,8 @@ async function main(): Promise<number> {
         dryRun(book);
         return 0;
       }
-      return await confirmedRun(book);
+      const modelFlag = rest.indexOf("--model");
+      return await confirmedRun(book, modelFlag === -1 ? undefined : rest[modelFlag + 1]);
     }
 
     case "ingest-responses": {
