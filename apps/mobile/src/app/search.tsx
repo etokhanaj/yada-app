@@ -11,7 +11,7 @@
 
 import { BOOK_CODES, formatDisplayRef, ordToParts, verseOrd } from "@yada/schema";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 
 import { readerHref } from "../components/navigation";
@@ -28,7 +28,8 @@ import {
   searchWordsByGloss,
 } from "../data/queries";
 import { SPACE, usePalette, useType } from "../design/tokens";
-import { planSearch, splitSnippet } from "../lib/searchQuery";
+import { createSearchLogger } from "../lib/searchLog";
+import { planSearch, type SearchPlan, splitSnippet } from "../lib/searchQuery";
 import { useSettings } from "../state/settings";
 
 const WORDS_SHOWN = 5;
@@ -77,9 +78,16 @@ export default function SearchScreen() {
     return { plan, reference, passages, total, words };
   }, [query, translation]);
 
+  const searchLog = useMemo(() => createSearchLogger((detail) => log("search", undefined, detail)), [log]);
+  useEffect(() => () => searchLog.dispose(), [searchLog]);
   useEffect(() => {
-    if (data?.plan !== undefined) log("search", undefined, data.plan.reference !== null ? "reference" : data.plan.script);
-  }, [log, data?.plan]);
+    searchLog.typed(query, searchDetail(planSearch(query)));
+  }, [searchLog, query]);
+
+  const open = (href: Parameters<typeof router.push>[0]) => {
+    searchLog.settle();
+    router.push(href);
+  };
 
   const empty =
     query.length >= 2 &&
@@ -97,6 +105,12 @@ export default function SearchScreen() {
           autoCapitalize="none"
           clearButtonMode="while-editing"
           returnKeyType="search"
+          onSubmitEditing={() => {
+            const submitted = input.trim();
+            setQuery(submitted);
+            searchLog.typed(submitted, searchDetail(planSearch(submitted)));
+            searchLog.settle();
+          }}
           placeholder="Jn 3:16, love, λόγος"
           placeholderTextColor={palette.mutedInk}
           style={[
@@ -114,7 +128,7 @@ export default function SearchScreen() {
             <ResultRow
               testID="result-reference"
               onPress={() =>
-                router.push(
+                open(
                   readerHref({
                     book: data.reference!.ref.book,
                     chapter: data.reference!.ref.chapter,
@@ -145,7 +159,7 @@ export default function SearchScreen() {
               <ResultRow
                 key={lexeme.occurrenceKey}
                 testID={`result-word-${lexeme.occurrenceKey}`}
-                onPress={() => router.push({ pathname: "/occurrences", params: { key: lexeme.occurrenceKey, via: "search" } })}
+                onPress={() => open({ pathname: "/occurrences", params: { key: lexeme.occurrenceKey, via: "search" } })}
               >
                 <View style={styles.wordLine}>
                   <Original script={lexeme.script} step="explanation">
@@ -186,7 +200,7 @@ export default function SearchScreen() {
                   key={hit.ord}
                   testID={`result-passage-${hit.ord}`}
                   onPress={() =>
-                    router.push(readerHref({ book: parts.book, chapter: parts.chapter, verse: parts.verse, select: true }))
+                    open(readerHref({ book: parts.book, chapter: parts.chapter, verse: parts.verse, select: true }))
                   }
                 >
                   <Label tone="ink" accessibilityRole="text">
@@ -213,6 +227,10 @@ export default function SearchScreen() {
       </ScrollView>
     </View>
   );
+}
+
+function searchDetail(plan: SearchPlan): string {
+  return plan.reference !== null ? "reference" : plan.script;
 }
 
 function ResultRow({ children, onPress, testID }: { children: React.ReactNode; onPress: () => void; testID?: string }) {
