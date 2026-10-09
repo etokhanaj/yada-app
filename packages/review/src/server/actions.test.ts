@@ -13,7 +13,7 @@ import {
   type DecisionContext,
   type DecisionRecord,
 } from "./actions.js";
-import { loadEntry } from "./queues.js";
+import { loadEntry, payloadDigest } from "./queues.js";
 import { asVerse, createTempStaging, golden, type TempStaging } from "./test-staging.js";
 
 const open: TempStaging[] = [];
@@ -32,6 +32,13 @@ function setup(): { t: TempStaging; ctx: DecisionContext } {
     now: () => new Date("2026-09-13T10:00:00.000Z"),
   };
   return { t, ctx };
+}
+
+/** The digest the client sends for the entry it has on screen. */
+function seen(ctx: DecisionContext, verseId: string): string {
+  const stored = loadEntry(ctx.db, verseId);
+  if (stored === null) throw new Error(`no entry ${verseId}`);
+  return payloadDigest(stored.payload);
 }
 
 function refusal(fn: () => unknown): RefusedError {
@@ -56,7 +63,7 @@ function logLines(dir: string): DecisionRecord[] {
 describe("approve", () => {
   it.each([1, 2, 3])("refuses approval rated %i, says why, and writes nothing", (rating) => {
     const { t, ctx } = setup();
-    const error = refusal(() => approve(ctx, "JHN.1.1", { rating }));
+    const error = refusal(() => approve(ctx, "JHN.1.1", { payload_sha256: seen(ctx, "JHN.1.1"), rating }));
     expect(error.message).toContain(`rated ${rating}`);
     expect(error.message).toContain("4 or better");
     expect(error.httpStatus).toBe(422);
@@ -70,14 +77,14 @@ describe("approve", () => {
 
   it.each([undefined, null, 0, 6, 4.5, "four"])("refuses a missing or malformed rating (%s)", (rating) => {
     const { t, ctx } = setup();
-    refusal(() => approve(ctx, "JHN.1.1", { rating }));
+    refusal(() => approve(ctx, "JHN.1.1", { payload_sha256: seen(ctx, "JHN.1.1"), rating }));
     expect(loadEntry(t.db, "JHN.1.1")?.state.status).toBe("flagged");
     expect(logLines(t.reviewDir)).toEqual([]);
   });
 
   it.each([4, 5])("approves at %i: human_reviewed, decision approved", (rating) => {
     const { t, ctx } = setup();
-    const state = approve(ctx, "JHN.1.1", { rating, reason: "  clean  " });
+    const state = approve(ctx, "JHN.1.1", { payload_sha256: seen(ctx, "JHN.1.1"), rating, reason: "  clean  " });
     expect(state).toEqual({
       verse_id: "JHN.1.1",
       status: "human_reviewed",
@@ -98,7 +105,7 @@ describe("approve", () => {
     first["claim"] = "One assertion; and a second one.";
     t.insert(payload);
 
-    const error = refusal(() => approve(ctx, "JHN.1.2", { rating: 5 }));
+    const error = refusal(() => approve(ctx, "JHN.1.2", { payload_sha256: seen(ctx, "JHN.1.2"), rating: 5 }));
     expect(error.message).toContain("quality contract");
     expect(error.message).toContain("claim-atomicity");
     expect(logLines(t.reviewDir)).toEqual([]);
@@ -107,13 +114,35 @@ describe("approve", () => {
   it("refuses to downgrade an expert_reviewed entry", () => {
     const { t, ctx } = setup();
     t.insert(asVerse(golden("JHN.1.1"), "JHN.1.3"), "expert_reviewed");
-    expect(refusal(() => approve(ctx, "JHN.1.3", { rating: 5 })).httpStatus).toBe(409);
+    expect(refusal(() => approve(ctx, "JHN.1.3", { payload_sha256: seen(ctx, "JHN.1.3"), rating: 5 })).httpStatus).toBe(409);
     expect(loadEntry(t.db, "JHN.1.3")?.state.status).toBe("expert_reviewed");
   });
 
   it("refuses an unknown verse", () => {
     const { ctx } = setup();
     expect(refusal(() => approve(ctx, "JHN.3.16", { rating: 5 })).httpStatus).toBe(404);
+  });
+
+  it("refuses an approval that does not say which text was read", () => {
+    const { t, ctx } = setup();
+    expect(refusal(() => approve(ctx, "JHN.1.1", { rating: 5 })).httpStatus).toBe(400);
+    expect(loadEntry(t.db, "JHN.1.1")?.state.status).toBe("flagged");
+    expect(logLines(t.reviewDir)).toEqual([]);
+  });
+
+  it("refuses to approve text that changed after the reviewer opened it", () => {
+    // The entry is regenerated while it sits open on screen: approving with the
+    // old digest would record a review of words the reviewer never read.
+    const { t, ctx } = setup();
+    const opened = seen(ctx, "JHN.1.1");
+    const regenerated = { ...golden("JHN.1.1"), whats_happening: "Regenerated prose." };
+    t.db.prepare("UPDATE entries SET payload = ? WHERE verse_id = 'JHN.1.1'").run(JSON.stringify(regenerated));
+
+    const error = refusal(() => approve(ctx, "JHN.1.1", { rating: 5, payload_sha256: opened }));
+    expect(error.httpStatus).toBe(409);
+    expect(error.message).toContain("changed after it was opened");
+    expect(loadEntry(t.db, "JHN.1.1")?.state.status).toBe("flagged");
+    expect(logLines(t.reviewDir)).toEqual([]);
   });
 });
 
@@ -137,9 +166,16 @@ describe("reject", () => {
     expect(state.rating).toBe(2);
   });
 
+  it("refuses a rejection naming text that has since changed", () => {
+    const { t, ctx } = setup();
+    const error = refusal(() => reject(ctx, "1CO.14.34", { reason: "c6 overstates", payload_sha256: "0".repeat(64) }));
+    expect(error.httpStatus).toBe(409);
+    expect(logLines(t.reviewDir)).toEqual([]);
+  });
+
   it("can reject an approved entry back to flagged", () => {
     const { ctx } = setup();
-    approve(ctx, "JHN.1.1", { rating: 5 });
+    approve(ctx, "JHN.1.1", { payload_sha256: seen(ctx, "JHN.1.1"), rating: 5 });
     expect(reject(ctx, "JHN.1.1", { reason: "second look: c9 is not hedged" }).status).toBe("flagged");
   });
 });
@@ -147,7 +183,7 @@ describe("reject", () => {
 describe("decisions.jsonl", () => {
   it("appends every decision, never rewriting earlier lines", () => {
     const { t, ctx } = setup();
-    approve(ctx, "JHN.1.1", { rating: 5, queue: "targeted_expert" });
+    approve(ctx, "JHN.1.1", { payload_sha256: seen(ctx, "JHN.1.1"), rating: 5, queue: "targeted_expert" });
     reject(ctx, "1CO.14.34", { reason: "c9 needs an apparatus source", queue: "random_sample" });
     const afterTwo = readFileSync(decisionsPath(t.reviewDir), "utf8");
     reject(ctx, "JHN.1.1", { reason: "changed my mind" });
@@ -187,7 +223,7 @@ describe("decisions.jsonl", () => {
     const { t, ctx } = setup();
     // A directory where the log file should be makes the append fail.
     mkdirSync(decisionsPath(t.reviewDir), { recursive: true });
-    expect(() => approve(ctx, "JHN.1.1", { rating: 5 })).toThrow();
+    expect(() => approve(ctx, "JHN.1.1", { payload_sha256: seen(ctx, "JHN.1.1"), rating: 5 })).toThrow();
     const state = loadEntry(t.db, "JHN.1.1")?.state;
     expect(state?.status).toBe("flagged");
     expect(state?.decision).toBeNull();
@@ -197,7 +233,7 @@ describe("decisions.jsonl", () => {
 describe("export", () => {
   it("regenerates review_state.jsonl from the database, in verse order, byte-stable", () => {
     const { t, ctx } = setup();
-    approve(ctx, "JHN.1.1", { rating: 4 });
+    approve(ctx, "JHN.1.1", { payload_sha256: seen(ctx, "JHN.1.1"), rating: 4 });
 
     const first = exportReviewState(t.db, t.reviewDir);
     const bytes = readFileSync(first.file, "utf8");
