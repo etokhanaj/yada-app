@@ -49,6 +49,11 @@ interlinear row, sentence-case labels, sheets opening large.
 python3 .claude/skills/design/scripts/build_canvas.py <scratchpad>/canvas
 ```
 
+A second argument picks the stylesheet: `v1` (default, `style.css`, the brief's tokens as written) or
+`v2` (`style-v2.css`, the modern restyle: round fill controls, inset sheets, sentence-case labels).
+A non-v1 run names files `<ID>-v2.dc.html`, tags boards and notes with `page: "v2"`, and writes
+`canvas.v2.json` as a fragment: merge it into the live index (read it first) and add the page.
+
 It writes `<dir>/project/canvas.json` and one `.dc.html` per frame. Publish them with the Artifact
 tool (`root` = `<dir>`, index plus `Main.dc.html` first, then the rest). To add a frame, add an
 `F(...)` call. To change a token, edit `style.css`. Regenerate, then republish only the files that

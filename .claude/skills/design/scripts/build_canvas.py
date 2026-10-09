@@ -1,6 +1,7 @@
 import json, re, sqlite3, html, os, sys, datetime
 
 Y = os.environ.get("YADA_ROOT", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../..")))
+STYLE = sys.argv[2] if len(sys.argv) > 2 else "v1"  # v1 = brief tokens as written; v2 = the modern restyle
 OUT = os.path.join(sys.argv[1] if len(sys.argv) > 1 else "canvas", "project")
 os.makedirs(OUT, exist_ok=True)
 db = sqlite3.connect(f"{Y}/content/bundles/core.v2.db")
@@ -112,10 +113,10 @@ def scrim(cls=""):
     return f'<div class="scrim {cls}"></div>'
 
 
-def sec(label, inner, first=False, hint=None):
+def sec(label, inner, first=False, hint=None, cls=""):
     h = f'<p class="note muted hint2">{E(hint)}</p>' if hint else ""
     lb = f'<h3 class="lbl">{E(label)}</h3>' if label else ""
-    return f'<section class="sec{" first" if first else ""}">{lb}{h}{inner}</section>'
+    return f'<section class="sec{" first" if first else ""}{" " + cls if cls else ""}">{lb}{h}{inner}</section>'
 
 
 def row(main, label=None, extra=None, chev=True, cls=""):
@@ -198,7 +199,7 @@ def understand(k, pos="med", **kw):
 
 
 # ---------- frame composition ----------
-CSS = open(os.path.join(os.path.dirname(__file__), "style.css")).read()
+CSS = open(os.path.join(os.path.dirname(__file__), "style.css" if STYLE == "v1" else f"style-{STYLE}.css")).read()
 FONTS = "https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&amp;family=Gentium+Plus&amp;family=Noto+Serif+Hebrew:wght@400;600&amp;display=swap"
 
 
@@ -252,9 +253,9 @@ def word_card(headword, lng, translit, gloss, form, lemma, lemma_tr, strongs, us
         morph = sec("Parts", "".join(
             f'<div class="mrow"><span class="mg">{E(m["gloss"])}<span class="note muted"> · {E(m["role"])}</span></span><span class="mo" lang="he" dir="rtl">{m["surface"]}</span></div>' for m in morphemes))
     body = (hw + f'<p class="tr">{E(translit)} · {E(gloss)}</p>'
-            + sec("Form", f'<p class="claim">{E(form)}</p>')
+            + sec("Form", f'<p class="claim">{E(form)}</p>', cls="kv")
             + morph
-            + sec("Dictionary form", f'<p class="claim">{lang(lemma)} · {E(lemma_tr)} · {strongs}</p><p class="note muted">Usually “{E(usually)}”.</p>')
+            + sec("Dictionary form", f'<p class="claim">{lang(lemma)} · {E(lemma_tr)} · {strongs}</p><p class="note muted">Usually “{E(usually)}”.</p>', cls="kv")
             + sec("In this verse", f'<p class="claim">{lang(note)}</p>')
             + f'<section class="sec">{row(E(in_book), cls="plain")}<p class="note muted cnt">{E(in_bible)}</p><p class="note muted">{E(sources)}</p></section>')
     return body
@@ -404,15 +405,23 @@ y = 0
 notes = {}
 for gi, (grp, label) in enumerate((("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1"))):
     fr = [f for f in FRAMES if f[3] == grp]
-    notes[f"t_{grp}"] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX}
+    notes[f"t_{grp}" + ("" if STYLE == "v1" else f"_{STYLE}")] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX}
     y += 260
     for i, (fid, title, inner, _) in enumerate(fr):
-        name = "Main.dc.html" if fid == "J01-01" else f"{fid}.dc.html"
+        name = ("Main.dc.html" if fid == "J01-01" else f"{fid}.dc.html") if STYLE == "v1" else f"{fid}-{STYLE}.dc.html"
         open(f"{OUT}/{name}", "w").write(doc(fid, title, inner))
         boards[name] = {"x": (i % 4) * (W + GX), "y": y + (i // 4) * (H + GY), "w": W, "h": H, "title": f"{fid} · {title}"}
         names.append(name)
     y += ((len(fr) + 3) // 4) * (H + GY) + 200
 
+if STYLE != "v1":
+    # A restyle lands on its own canvas page; merge this fragment into the live index before publishing.
+    for b in boards.values():
+        b["page"] = STYLE
+    for n in notes.values():
+        n["page"] = STYLE
+    json.dump({"boards": boards, "order": names, "notes": notes}, open(f"{OUT}/canvas.{STYLE}.json", "w"), ensure_ascii=False, indent=1)
+    print(len(names), "boards"); sys.exit()
 idx = {"v": 3, "createdOnFiles": {"v": 1, "at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
        "title": "Yada Redesign", "launch": {"view": "canvas"}, "pages": [], "boards": boards, "order": names, "notes": notes, "designSystems": []}
 json.dump(idx, open(f"{OUT}/canvas.json", "w"), ensure_ascii=False, indent=1)
