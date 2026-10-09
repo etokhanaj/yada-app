@@ -1,15 +1,19 @@
 {
   "expo": {
-    "name": "Yada Spike",
-    "slug": "yada-spike",
-    "version": "0.0.0",
+    "//": "Placeholder identity: 'Yada' is not yet trademark-cleared (PRD 0E). studio.yada.reader and the display name are John's working choices; revisit both before any App Store submission.",
+    "name": "Yada",
+    "slug": "yada",
+    "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "yada",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "bundleIdentifier": "studio.yada.spike",
-      "supportsTablet": false
+      "bundleIdentifier": "studio.yada.reader",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "plugins": [
       "expo-router",

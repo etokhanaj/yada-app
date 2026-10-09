@@ -1,0 +1,56 @@
+# Written for App v1 but never run: Maestro is not installed on the build
+# machine. Flows use testIDs (accessibility identifiers) and deep links
+# (studio.yada.reader:///read/<BOOK>/<chapter>?verse=N). Run all with:
+#   maestro test apps/mobile/.maestro/
+#
+# Journey 01: 1 Cor 14 → select 34 → Understand → a claim → Why → Original →
+# word card → occurrences → back to the exact reading position.
+appId: studio.yada.reader
+---
+- launchApp
+- openLink: studio.yada.reader:///read/1CO/14?verse=34
+- assertVisible:
+    id: verse-34
+- tapOn:
+    id: verse-34
+- assertVisible:
+    id: selection-pill
+- tapOn:
+    id: pill-understand
+- assertVisible: "1 CORINTHIANS 14:34"
+- assertVisible:
+    id: draft-label
+- assertVisible: "WHAT WE CAN SEE"
+- tapOn:
+    id: claim-1CO.14.34.c1
+- assertVisible: "WHY DO WE SAY THAT?"
+- assertVisible: "GROUNDING"
+- tapOn:
+    id: back-to-reading
+- assertVisible:
+    id: verse-34
+- tapOn:
+    id: pill-understand
+- scrollUntilVisible:
+    element:
+      id: toggle-original
+- tapOn:
+    id: toggle-original
+- tapOn:
+    id: word-σιγάτωσαν
+- assertVisible: "verb, present active imperative, 3rd person plural"
+- assertVisible:
+    id: word-strongs
+- tapOn:
+    id: see-occurrences
+- assertVisible: "OCCURRENCES IN 1 CORINTHIANS"
+- assertVisible:
+    id: occurrence-1CO.14.28
+- tapOn:
+    id: back-to-reading
+# Back on the reader, same chapter, verse 34 still selected.
+- assertVisible: "1 Corinthians 14"
+- assertVisible:
+    id: verse-34
+- assertVisible:
+    id: selection-pill

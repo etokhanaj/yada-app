@@ -1,0 +1,44 @@
+# Type settings (text size, dark), compare, bookmark, recently explored, library.
+appId: studio.yada.reader
+---
+- launchApp
+- openLink: studio.yada.reader:///read/1CO/14?verse=34&select=1
+- tapOn:
+    id: reader-type
+- tapOn:
+    id: text-larger
+- tapOn:
+    id: appearance-dark
+- swipe:
+    direction: DOWN
+- tapOn:
+    id: pill-compare
+- assertVisible:
+    id: compare-WEB
+- tapOn:
+    id: back-to-reading
+- tapOn:
+    id: pill-more
+- tapOn: "Bookmark"
+- tapOn:
+    id: reader-back
+- tapOn:
+    id: home-bookmarks
+- assertVisible:
+    id: verse-row-1CO.14.34
+- tapOn:
+    id: page-back
+- tapOn:
+    id: home-more
+- tapOn: "Sources & licences"
+- assertVisible: ".*SBLGNT EULA.*"
+# Leave the simulator as it was found.
+- tapOn:
+    id: page-back
+- openLink: studio.yada.reader:///read/1CO/14
+- tapOn:
+    id: reader-type
+- tapOn:
+    id: text-smaller
+- tapOn:
+    id: appearance-system

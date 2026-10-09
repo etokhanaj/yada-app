@@ -1,11 +1,12 @@
 import { defineConfig } from "vitest/config";
 
 /**
- * The app has no unit tests yet — it is verified by building and running it on
- * a simulator, not by vitest. This config exists so `pnpm -r test` does not
- * fail here: without it, vitest walks up to the root config, inherits its
- * `projects: ["packages/*"]`, resolves nothing from inside apps/mobile, and
- * errors out before `--passWithNoTests` can apply.
+ * Pure logic (src/lib) and the app's SQL (src/data/queries.test.ts, run against
+ * the real bundles under node:sqlite when content/bundles exists). Screens are
+ * verified on the simulator and by the Maestro flows in .maestro/.
+ *
+ * The config must exist here: without it vitest walks up to the root config,
+ * inherits its `projects: ["packages/*"]`, and resolves nothing in apps/mobile.
  */
 export default defineConfig({
   test: {

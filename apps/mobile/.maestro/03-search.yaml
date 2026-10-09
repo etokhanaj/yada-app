@@ -1,0 +1,28 @@
+# One field: a forgiving reference, an English word, a Greek word.
+appId: studio.yada.reader
+---
+- launchApp
+- tapOn:
+    id: home-search
+- inputText: "jn 3 16"
+- assertVisible: "REFERENCE"
+- assertVisible:
+    id: result-reference
+- tapOn:
+    id: search-field
+- eraseText: 20
+- inputText: "love"
+- assertVisible: "WORDS"
+- assertVisible: "ἀγαπάω"
+- assertVisible: "PASSAGES.*"
+- tapOn:
+    id: search-field
+- eraseText: 20
+- inputText: "λόγος"
+- tapOn:
+    id: result-word-λογοσ
+- assertVisible: "OCCURRENCES IN THE BIBLE"
+- tapOn:
+    id: back-to-reading
+- assertVisible:
+    id: search-field

@@ -73,7 +73,7 @@ confident, well-formed, wrong data that no amount of reading the output would ha
 
 | Path | Status |
 |---|---|
-| `apps/mobile` | The 0A spike (reader, Understand, Original, word card over three test passages) plus App v1 groundwork: bundled databases, user data, reading settings. No App v1 screens yet. |
+| `apps/mobile` | App v1 (Expo, iOS): Home, a reader for all 66 books, Understand / Why / Original / word cards / occurrences, translation compare, passage Understand, Start here, search, bookmarks, recently explored, library. Bundle id `studio.yada.reader` and the name "Yada" are placeholders until name clearance (PRD 0E). Screenshots in `docs/app-v1/`. |
 | `packages/review` | Built: a local web app over `staging.db` — flagged, sampled, adversary and targeted-expert queues; approve (rating ≥4) and reject (reason required); every decision also written to `review/decisions.jsonl`. See its README. |
 | `content/` | Gitignored working data: raw sources, `staging.db`, request bodies, bundles. |
 
