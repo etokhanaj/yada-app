@@ -5,9 +5,11 @@ STYLE = sys.argv[2] if len(sys.argv) > 2 else "v1"  # v1 = brief tokens as writt
 OUT = os.path.join(sys.argv[1] if len(sys.argv) > 1 else "canvas", "project")
 os.makedirs(OUT, exist_ok=True)
 db = sqlite3.connect(f"{Y}/content/bundles/core.v2.db")
-G = {k: json.load(open(f"{Y}/golden/{k}.json")) for k in ["1co.14.34", "jhn.1.1", "gen.1.1"]}
+G = {k: json.load(open(f"{Y}/golden/{k}.json")) for k in ["1co.14.34", "jhn.1.1", "gen.1.1", "psa.23.1"]}
 
 BOOK = {"1CO": "1 Corinthians", "1TI": "1 Timothy", "JHN": "John", "GEN": "Genesis", "PSA": "Psalm", "ISA": "Isaiah"}
+for _code, _name in db.execute("select code, name from books"):
+    BOOK.setdefault(_code, _name)  # "Psalm" stays singular (audit 17)
 SHORT = {"1CO": "1 Cor", "1TI": "1 Tim", "JHN": "John", "GEN": "Gen"}
 REL = {"contrast": "Contrast", "development": "Develops", "thematic": "Same theme", "allusion": "Echoes"}
 
@@ -57,6 +59,12 @@ def ic(name, size=20):
         "x": '<path d="M6 6l12 12M18 6 6 18"></path>',
         "more": '<circle cx="5" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle>',
         "check": '<path d="m5 12.5 4.5 4.5L19 7"></path>',
+        "note": '<rect x="4" y="4.5" width="16" height="15" rx="4"></rect><path d="M8.5 10h7M8.5 14h4.5"></path>',
+        "search": '<circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path>',
+        "bookmark": '<path d="M7 4h10v16l-5-3.6L7 20z"></path>',
+        "bookmarkf": '<path d="M7 4h10v16l-5-3.6L7 20z" fill="currentColor"></path>',
+        "copy": '<rect x="8" y="8" width="11" height="12" rx="2.5"></rect><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H14"></path>',
+        "share": '<path d="M12 15V4M8 7.5 12 4l4 3.5M6 11v7.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V11"></path>',
         "alpha": '<text x="12" y="17.5" text-anchor="middle" font-size="19" font-family="Gentium Plus, serif" fill="currentColor" stroke="none">α</text>',
         "cols": '<rect x="3.5" y="5" width="17" height="14" rx="3"></rect><path d="M12 5v14"></path>',
     }[name]
@@ -76,7 +84,18 @@ def header(back, title, scrolled=False, hint=None):
     return f'<div class="{cls}"><div class="hrow d">{b}{t}{aa}</div><div class="a"><div class="hrow">{b}<span class="sp"></span>{aa}</div><div class="hrow2">{t}</div></div></div>'
 
 
-def verses_html(rows, sel=(), before=None, ch=None):
+ENTRIES = set()
+for _b in ("gen", "lev", "psa", "isa", "jhn", "1co", "rev"):
+    ENTRIES |= {r[0] for r in sqlite3.connect(f"{Y}/content/bundles/{_b}.v1.db").execute("select verse_id from entries")}
+
+
+def scripture(t):
+    # LORD in small capitals: the BSB's own convention for the divine name.
+    s_ = E(t)
+    return s_.replace("LORD", '<span class="sc">Lord</span>') if STYLE != "v1" else s_
+
+
+def verses_html(rows, sel=(), before=None, ch=None, bm=(), sup=None, book=None):
     out, group = [], []
     def flush():
         if group:
@@ -84,10 +103,17 @@ def verses_html(rows, sel=(), before=None, ch=None):
             group.clear()
     for n, t in rows:
         pre = " pre" if before is not None and n < before else ""
+        mark_ = f'<span class="bmk" aria-label="bookmarked">{ic("bookmarkf", 13)}</span>' if n in bm else ""
+        exm = (f' <span class="exm" role="img" aria-label="Has an explanation">{ic("note", 14)}</span>'
+               if STYLE != "v1" and book and f"{book}.{ch}.{n}" in ENTRIES else "")
+        if n == 1 and sup and t.startswith(sup):
+            # The psalm's title is the bundle's verse 0; BSB prints it inside verse 1.
+            out.append(f'<p class="sup">{E(sup.strip())}</p>')
+            t = t[len(sup):].lstrip()
         if n == 1 and ch and STYLE != "v1":
-            p = f'<p class="v v1{pre}"><span class="cn" aria-label="Chapter {ch}, verse 1">{ch}</span>{E(t)}</p>'
+            p = f'<p class="v v1{pre}"><span class="cn" aria-label="Chapter {ch}, verse 1">{ch}</span>{scripture(t)}{exm}</p>'
         else:
-            p = f'<p class="v{pre}"><span class="vn">{n}</span> {E(t)}</p>'
+            p = f'<p class="v{pre}"><span class="vn">{n}</span>{mark_} {scripture(t)}{exm}</p>'
         if n in sel:
             group.append(p)
         else:
@@ -96,7 +122,7 @@ def verses_html(rows, sel=(), before=None, ch=None):
     return "".join(out)
 
 
-def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True):
+def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True, bm=(), sup=None):
     title = f"{BOOK[book]} {ch} · BSB"
     rows = text("BSB", book, ch, a, b)
     h = header(back, title, scrolled)
@@ -120,7 +146,7 @@ def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, 
     # With an action bar up, AX frames scroll so the selected verse starts the page (brief §4: it stays above the bar).
     first = min(sel) if (abar and sel) else None
     axsel = ' class="axsel"' if first else ""
-    return f'{h}<div class="rbody"><div{axsel} style="margin-top: {offset}px">{hint_html}{verses_html(rows, sel, before=first, ch=ch)}{foot_html}</div></div>{bar}'
+    return f'{h}<div class="rbody"><div{axsel} style="margin-top: {offset}px">{hint_html}{verses_html(rows, sel, before=first, ch=ch, bm=bm, sup=sup, book=book)}{foot_html}</div></div>{bar}'
 
 
 # ---------- sheets ----------
@@ -158,13 +184,13 @@ def claim_label(c):
     return None
 
 
-PASSAGE = {"1co.14.34": ("Order in the assembly", "14:26–40"), "jhn.1.1": ("The Word became flesh", "1:1–18"), "gen.1.1": ("The first day", "1:1–5")}
-LANGNAME = {"1co.14.34": "Greek", "jhn.1.1": "Greek", "gen.1.1": "Hebrew"}
+PASSAGE = {"1co.14.34": ("Order in the assembly", "14:26–40"), "jhn.1.1": ("The Word became flesh", "1:1–18"), "gen.1.1": ("The first day", "1:1–5"), "psa.23.1": ("The LORD is my shepherd", "23:1–6")}
+LANGNAME = {"1co.14.34": "Greek", "jhn.1.1": "Greek", "gen.1.1": "Hebrew", "psa.23.1": "Hebrew"}
 
 
 def interlinear(k, mark=None, reveal=None):
     g = G[k]["gloss"]
-    rtl = k.startswith("gen")
+    rtl = k.startswith(("gen", "psa"))
     lng = "he" if rtl else "el"
     units, rows_ = [], []
     for i, w in enumerate(g):
@@ -461,12 +487,162 @@ if STYLE != "v1":
       sheet("med", "Genesis 1:1", "From John 1:1", echo), "dl")
     F("D-04", "Chapter opening", reader("JHN", 1, 1, 9, scrolled=False, foot=None), "dl")
 
+# ================= The rest of the app (v2) =================
+if STYLE != "v1":
+    def glass_btn(icon, label):
+        return f'<button class="gbtn" aria-label="{label}">{ic(icon, 20)}</button>'
+
+    def pg_header(back=None, right=""):
+        b = (f'<button class="hb-back" aria-label="{E(back[1])}">{ic("back", 22)}<span>{E(back[0])}</span></button>' if back else '<span></span>')
+        return (f'<div class="hdr pgh"><div class="hrow d">{b}<span></span><div class="hright">{right}</div></div>'
+                f'<div class="a"><div class="hrow">{b}<span class="sp"></span><div class="hright">{right}</div></div></div></div>')
+
+    def page(back, title, body, right="", sub=None):
+        s_ = f'<p class="note muted pgsub">{E(sub)}</p>' if sub else ""
+        return f'{pg_header(back, right)}<div class="pg"><h1 class="ltitle">{lang(title)}</h1>{s_}{body}</div>'
+
+    def lrow(main, sub=None, right=None, cls="", chev=True):
+        sb = f'<span class="note muted lsub">{sub}</span>' if sub else ""
+        rt = f'<span class="lright">{right}</span>' if right else ""
+        cv = f'<span class="chev">{ic("right", 18)}</span>' if chev else ""
+        return f'<button class="lrow {cls}"><span class="rm"><span class="lmain">{main}</span>{sb}</span>{rt}{cv}</button>'
+
+    BOOKS = db.execute("select code, name, testament from books order by ord").fetchall()
+    HOME_ICONS = glass_btn("search", "Search") + glass_btn("bookmark", "Bookmarks") + glass_btn("more", "More: Recent, Sources")
+
+    # ---- Home ----
+    ot = "".join(lrow(E(n), chev=False, cls="book") for c, n, t in BOOKS if t == "OT")
+    start = (f'<button class="lead"><span class="rm"><span class="leadt">Start with John</span>'
+             f'<span class="note muted">Passage by passage, 46 passages</span></span><span class="chev">{ic("right", 18)}</span></button>')
+    F("H-01", "Home, first launch", page(None, "Yada", start + sec("Old Testament", ot), right=HOME_ICONS), "hs")
+    j82 = text("BSB", "JHN", 8, 2)[0][1]
+    cont = (f'<button class="lead"><span class="rm"><span class="lbl">Continue</span><span class="leadt">John 8:2</span>'
+            f'<span class="excerpt">{E(j82)}</span></span><span class="chev">{ic("right", 18)}</span></button>')
+    nt = "".join(lrow(E(n), chev=False, cls="book") for c, n, t in BOOKS if t == "NT")
+    F("H-02", "Home, returning", page(None, "Yada", cont + sec("New Testament", nt), right=HOME_ICONS), "hs")
+
+    # ---- Search (a sheet over Home, field focused) ----
+    home_under = page(None, "Yada", start + sec("Old Testament", ot), right=HOME_ICONS) + scrim()
+
+    def search_sheet(query, body):
+        field = (f'<div class="srch"><label class="sfield">{ic("search", 18)}<input type="search" aria-label="Search the Bible" value="{E(query)}"></label>'
+                 f'<button class="scancel">Cancel</button></div>')
+        return f'<div class="sheet lg srsheet"><div class="grab"></div>{field}<div class="sbody">{body}</div></div>'
+
+    j316 = text("BSB", "JHN", 3, 16)[0][1]
+    F("S-01", "Search: a reference", home_under + search_sheet("jn 3 16",
+      sec("Go to", lrow("John 3:16", sub=f'<span class="excerpt">{E(j316)}</span>'), first=True)), "hs")
+
+    LEX = db.execute("select script, lemma, translit, gloss, total from lexemes where gloss like '%love%' or gloss like '%loving%' order by total desc limit 5").fetchall()
+    def wrow(script, lemma, tr, gloss, total):
+        lg = "he" if script == "hebrew" else "el"
+        d = ' dir="rtl"' if lg == "he" else ""
+        return lrow(f'<span class="wo" lang="{lg}"{d}>{lemma}</span> <span class="wt">{E(tr)}</span> <span class="wg">“{E(gloss)}”</span>',
+                    sub=f'{script.title()} · {total} times')
+    love = db.execute("select v.verse_id, t.text from texts_fts f join texts t on t.rowid=f.rowid join verses v on v.ord=t.ord where texts_fts match 'love' and t.translation='BSB' order by t.ord limit 3").fetchall()
+    prow = "".join(lrow(f'<span class="excerpt2">{bold(t, "love")}</span>', sub=None, cls="passage") .replace('<span class="lmain">', f'<span class="lmain"><span class="pref">{E(fref(r))}</span>', 1) for r, t in love)
+    F("S-02", "Search: love", home_under + search_sheet("love",
+      sec("Words", "".join(wrow(*l) for l in LEX) + '<button class="more">Show all 25 words</button>', first=True)
+      + sec("Passages · 331", prow)), "hs")
+
+    LG = db.execute("select script, lemma, translit, gloss, total from lexemes where lemma='λόγος'").fetchone()
+    LGS = db.execute("select script, lemma, translit, gloss, total from lexemes where lemma in ('λέγω','λογίζομαι') order by total desc").fetchall()
+    F("S-03", "Search: λόγος", home_under + search_sheet("λόγος",
+      sec("Words", wrow(*LG) + "".join(wrow(*l) for l in LGS), first=True)), "hs")
+
+    BYB = db.execute("select b.name, o.count from occurrences o join books b on b.code=o.book where o.occurrence_key='λογοσ' order by b.ord").fetchall()
+    occb = "".join(lrow(E(n), right=f'<span class="cnt2">{c}</span>') for n, c in BYB)
+    F("S-04", "λόγος in the Bible", home_under +
+      f'<div class="sheet lg srsheet"><div class="grab"></div>'
+      f'<div class="shdr"><button class="sh-back" aria-label="Back to search">{ic("back", 22)}</button><div class="stitle"><span class="sttl"><span lang="el" class="gk">λόγος</span> in the Bible</span><span class="ssub">330 times in 318 verses</span></div><button class="sh-x" aria-label="Close">{ic("x", 20)}</button></div>'
+      f'<div class="sbody">{occb}</div></div>', "hs")
+
+    # ---- Contents ----
+    def seg(on):
+        return '<div class="seg" role="radiogroup" aria-label="Translation">' + "".join(
+            f'<button role="radio" aria-checked="{"true" if t == on else "false"}" class="{"on" if t == on else ""}">{t}</button>' for t in ("BSB", "WEB", "KJV")) + "</div>"
+    ntl = "".join(lrow(E(n), cls="book here" if c == "1CO" else "book", right='<span class="note muted">Reading</span>' if c == "1CO" else None) for c, n, t in BOOKS if t == "NT" and BOOKS.index((c, n, t)) >= 39)
+    under14 = reader("1CO", 14, 33, 40, offset=-8) + scrim()
+    F("C-01", "Contents: books", under14 + sheet("lg", "Contents", None, seg("BSB") + sec("New Testament", ntl), foot=False), "hs")
+    chg = '<div class="chg">' + "".join(f'<button class="{"on" if n == 14 else ""}" aria-label="Chapter {n}{", reading" if n == 14 else ""}">{n}</button>' for n in range(1, 17)) + "</div>"
+    F("C-02", "Contents: chapters of 1 Corinthians", under14 + sheet("lg", "1 Corinthians", "16 chapters", seg("BSB") + chg, back=True, foot=False), "hs")
+
+    # ---- Settings and saved ----
+    steps = ('<div class="d stepper"><button class="stp" aria-label="Smaller text">A−</button><span class="stv" aria-live="polite">3 of 6</span><button class="stp" aria-label="Larger text">A+</button></div>'
+             '<div class="a"><p class="claim">Using iPhone text size</p><div class="stepper off"><button class="stp" aria-disabled="true">A−</button><span class="stv">3 of 6</span><button class="stp" aria-disabled="true">A+</button></div></div>')
+    appear_list = "".join(lrow(n, right=(f'<span class="ck">{ic("check", 20)}</span>' if n == "System" else None), chev=False, cls="opt on" if n == "System" else "opt") for n in ("System", "Light", "Dark"))
+    tiles = "".join(
+        f'<button class="tile{" on" if n == "System" else ""}" role="radio" aria-checked="{"true" if n == "System" else "false"}">'
+        f'<span class="thumb th-{n.lower()}"><span></span><span></span><span></span></span>'
+        f'<span class="tlab">{(ic("check", 14) if n == "System" else "")}{n}</span></button>' for n in ("System", "Light", "Dark"))
+    appear = f'<div class="d tiles" role="radiogroup" aria-label="Appearance">{tiles}</div><div class="a">{appear_list}</div>'
+    F("T-01", "Text size and appearance", reader("JHN", 1, 1, 9, scrolled=False) + scrim() +
+      sheet("med", "Text and appearance", None, sec("Text size", steps, first=True) + sec("Appearance", appear), foot=False), "ss")
+
+    menu = ('<div class="menu" role="menu">' + "".join(f'<button role="menuitem"><span>{n}</span>{ic(i, 20)}</button>' for n, i in (("Copy", "copy"), ("Share", "share"), ("Bookmark", "bookmark"))) + "</div>")
+    F("M-01", "More actions menu", reader("1CO", 14, 31, 40, sel=(34,), offset=-20, abar="14:34") + '<div class="menuscrim"></div>' + menu, "ss")
+
+    BMS = [("1CO", 14, 34), ("JHN", 1, 1), ("GEN", 1, 1), ("PSA", 23, 4)]
+    bmrows = "".join(lrow(f'<span class="excerpt2">{scripture(text("BSB", b, c, v)[0][1])}</span>', cls="passage", chev=False).replace('<span class="lmain">', f'<span class="lmain"><span class="pref">{E(BOOK.get(b, b))} {c}:{v}</span>', 1) for b, c, v in BMS)
+    EDIT = '<button class="tbtn">Edit</button>'
+    F("B-01", "Bookmarks", page(("Home", "Home"), "Bookmarks", bmrows, right=EDIT), "ss")
+    F("B-02", "Bookmarks, empty", page(("Home", "Home"), "Bookmarks", '<p class="empty">No bookmarks yet.</p><p class="note muted">Tap a verse, then ⋯ › Bookmark.</p>'), "ss")
+    F("B-03", "Reader with a bookmarked verse", reader("JHN", 1, 1, 9, scrolled=False, bm=(4,)), "ss")
+    REC = [("1 Corinthians 14:34", '<span lang="el" class="gk">σιγάτωσαν</span>', "1CO", 14, 34), ("John 1:1", "Understand", "JHN", 1, 1), ("Genesis 1:1", '<bdi lang="he" dir="rtl" class="hb">בְּרֵאשִׁ֖ית</bdi>', "GEN", 1, 1)]
+    recrows = "".join(lrow(f'<span class="excerpt2">{scripture(text("BSB", b, c, v)[0][1])}</span>', cls="passage", chev=False)
+                      .replace('<span class="lmain">', f'<span class="lmain"><span class="pref">{E(r)} · <span class="tag">{tag}</span></span>', 1) for r, tag, b, c, v in REC)
+    F("R-01", "Recent", page(("Home", "Home"), "Recent", recrows), "ss")
+
+    # ---- Edge states ----
+    F("P-01", "Psalm 23: superscription, LORD in small capitals", reader("PSA", 23, 1, 6, scrolled=False, sup="A Psalm of David. "), "es")
+    F("P-02", "Psalm 23:1, Original Hebrew", reader("PSA", 23, 1, 3, sel=(1,), scrolled=False, sup="A Psalm of David. ") + scrim() + understand("psa.23.1", "lg", start="orig", orig=True), "es")
+    nogreek = (f'<section class="sec first"><button class="disc" aria-expanded="true"><span>Original Greek</span>{ic("up", 18)}</button>'
+               f'<p class="claim nog">John 7:53–8:11 is not in the earliest manuscripts, so Yada’s Greek text has none of it.</p></section>'
+               f'<section class="sec">{row("Compare translations", cls="plain")}</section>')
+    F("N-01", "John 8:3, no Greek", reader("JHN", 8, 1, 6, sel=(3,), offset=-140) + scrim() + sheet("med", "John 8:3", body=nogreek), "es")
+    PER = db.execute("select 1").fetchall()
+    jdb = sqlite3.connect(f"{Y}/content/bundles/jhn.v1.db")
+    pers = jdb.execute("select pericope_id, label from pericopes order by start_ord limit 9").fetchall()
+    def prange(pid):
+        a_, b_ = pid.split("-")
+        _, c1, v1 = a_.split("."); c2, v2 = b_.split(".")
+        return f"{c1}:{v1}–{v2}" if c1 == c2 else f"{c1}:{v1}–{c2}:{v2}"
+    strows = ""
+    for i, (pid, lab) in enumerate(pers):
+        if i < 2:
+            strows += lrow(E(lab), sub=prange(pid), right=f'<span class="ck" aria-label="read">{ic("check", 20)}</span>', chev=False, cls="done")
+        elif i == 2:
+            strows += lrow(E(lab), sub=prange(pid), right='<span class="nextw">Next</span>', cls="nextrow")
+        else:
+            strows += lrow(E(lab), sub=prange(pid), chev=False)
+    F("ST-01", "Start here: John, passage by passage", page(("Home", "Home"), "The Gospel of John", strows, sub="46 passages"), "es")
+
+    # ---- Sources ----
+    sizes = [("Genesis", "gen"), ("Leviticus", "lev"), ("Psalm", "psa"), ("Isaiah", "isa"), ("John", "jhn"), ("1 Corinthians", "1co"), ("Revelation", "rev")]
+    exp = "".join(lrow(E(n), right=f'<span class="note muted">1 verse · {round(os.path.getsize(f"{Y}/content/bundles/{k}.v1.db") / 1024)} KB</span>', chev=False) for n, k in sizes)
+    F("SO-01", "Sources: explanations", page(("Home", "Home"), "Sources",
+      sec("Explanations", '<p class="note muted">All unreviewed drafts.</p>' + exp, first=True)), "so")
+    LIC = {"CC-BY-SA-3.0": "CC BY-SA 3.0", "CC-BY-4.0": "CC BY 4.0", "PUBLIC_DOMAIN": "Public domain", "CUSTOM_EULA": "SBLGNT EULA", "OFL-1.1": "SIL OFL 1.1"}
+    SHORT_NAME = {"morphgnt/sblgnt (morphological annotations)": "MorphGNT", "SBLGNT (Greek text)": "SBLGNT",
+                  "morphhb — lemma and morphology data": "OSHB morphology", "morphhb — Westminster Leningrad Codex text": "Westminster Leningrad Codex",
+                  "Berean Standard Bible (text)": "Berean Standard Bible", "World English Bible, Protestant canon (engwebp)": "World English Bible",
+                  "King James Version, 1769 standardised text (eng-kjv2006)": "King James Version"}
+    src = db.execute("select dataset, license, coalesce(encumbered, '') from sources").fetchall()
+    srows = ""
+    for ds, li, enc in src[:9]:
+        nm = SHORT_NAME.get(ds, ds.split(" — ")[0])
+        sub_ = LIC.get(li, li) + (f'<span class="enc">{E(enc)}</span>' if enc else "")
+        srows += lrow(E(nm), sub=sub_, right=f'<span class="srcl">Source{ic("right", 16)}</span>', chev=False)
+    size_core = round(os.path.getsize(f"{Y}/content/bundles/core.v2.db") / 1048576, 1)
+    F("SO-02", "Sources: texts and data", page(("Home", "Home"), "Sources",
+      sec("Texts and data", f'<p class="note muted">Bible text, Greek and Hebrew: {size_core} MB, built in.</p>' + srows, first=True)), "so")
+
 # ---------- write files + index ----------
 W, H, GX, GY = 1430, 1026, 80, 120
 names, boards = [], {}
 y = 0
 notes = {}
-GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"),) if STYLE != "v1" else ())
+GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"), ("hs", "Home, Search, Contents"), ("ss", "Settings and saved"), ("es", "Edge states"), ("so", "Sources")) if STYLE != "v1" else ())
 for gi, (grp, label) in enumerate(GROUPS):
     fr = [f for f in FRAMES if f[3] == grp]
     notes[f"t_{grp}" + ("" if STYLE == "v1" else f"_{STYLE}")] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX}

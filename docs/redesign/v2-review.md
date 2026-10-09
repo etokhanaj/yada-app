@@ -89,3 +89,34 @@ header no longer shows through the translation label.
 | S9 | D-03 said "the same opening words" above a pair that shows them. | Sentence cut; label `Same first words`. |
 | S10 | The chosen word in the interlinear was a tinted box with an accent underline, like a text field; nothing else in the app looks like that. | Marked as everything chosen is: the selection tint, gloss in ink and semibold. No border. |
 | U8 | AX5: `submissiveness` ran off the screen edge. | Hyphenation on scripture, explanations and claims at AX sizes. |
+
+## The rest of the app (9 Oct)
+
+20 new v2 frames in four rows: Home, Search, Contents (H-01–02, S-01–04, C-01–02); Settings and saved
+(T-01, M-01, B-01–03, R-01); Edge states (P-01–02, N-01, ST-01); Sources (SO-01–02). All content from
+the bundles: search words ranked by occurrence count as the app does (`אָהֵב` 211, `ἀγαπάω` 143, `ἀγάπη` 116),
+331 BSB passages for `love`, λόγος per book (Matthew 33 … Revelation 18), bundle sizes, licence
+restrictions verbatim. UI audit: no small targets, overflow or contrast failures; M-01's menu covers the
+screen by design.
+
+Fixed during review: N-01 scrolled the selected verse under the sheet; Sources' licence wrapped mid-name
+(now its own line, link below the name at AX sizes); a lighter scrim let reader text show below sheets.
+
+**Data note for the pipeline:** two of the five `love` words carry TAHOT glosses that read oddly out of
+context (`דּוֹד` "lover my", and in Contents-free lists `יָדִיד` "to beloved my"). Known TAHOT
+limitation (handoff §8); flag, don't fix in UI.
+
+### Taken from YouVersion (John's screenshots)
+
+1. A quiet marker after verses that have an explanation (their note glyph), so Understand is
+   discoverable without hint text and the no-explanation case is visible before tapping.
+2. Appearance as page thumbnails (their theme swatches), limited to System, Light, Dark.
+3. Confirms the glass `⋯` menu (M-01).
+
+Not taken: floating play and chapter arrows over the text (the brief bans floating buttons, and theirs
+cover verse 7), a tab bar, six reading themes, the font picker, settings rows with "When available"
+subtexts.
+
+**Open for John:** YouVersion's split title capsule (`Ephesians 6 | NIV`) gives translation its own
+one-tap target. It conflicts with the brief's single title target and doesn't fit beside a long return
+chip (`‹ 2 Thess 3:10`); not drawn.

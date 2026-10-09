@@ -378,3 +378,9 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
 9. **Delight** (D-01 to D-04 on the canvas): word lift into the word card, glosses arriving in reading
    order, echo pairs in Go deeper peeks, the chapter numeral. All collapse to cross-fades under Reduce
    Motion.
+10. **Explanation marker**: verses with an entry end in a small muted note glyph (VoiceOver: "has an
+    explanation"). No marker means no Understand for that verse.
+11. **Type settings**: Appearance as three page thumbnails (System, Light, Dark), chosen = ring + check +
+    semibold; a list at AX sizes.
+12. **Scripture typography**: LORD in small capitals (the BSB's convention); a psalm's title (bundle
+    verse 0) sits on its own italic line above verse 1.
