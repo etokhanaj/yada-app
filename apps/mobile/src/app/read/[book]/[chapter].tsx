@@ -42,6 +42,18 @@ import { chapterFromParams, nextChapter, prevChapter, type ChapterRef } from "..
 import { EMPTY_SELECTION, formatSpan, isSelected, selectionSpan, spanRef, tapVerse } from "../../../lib/selection";
 import { TRANSLATIONS, useSettings, type Translation } from "../../../state/settings";
 
+/**
+ * The back control names where it returns to, in a narrow header: "1 Cor 14:34".
+ * Long book names shorten to their first three letters, as printed Bibles do.
+ */
+function shortRef(ref: { book: ChapterRef["book"]; chapter: number; verse: number }): string {
+  const name = BOOK_CODES[ref.book].name;
+  const parts = name.split(" ");
+  const last = parts[parts.length - 1] ?? name;
+  const short = name.length <= 6 ? name : [...parts.slice(0, -1), last.slice(0, 3)].join(" ");
+  return `${short} ${ref.chapter}:${ref.verse}`;
+}
+
 function chapterTitle(ref: ChapterRef): string {
   // "Psalms 23" reads wrong; a single psalm is a Psalm.
   const name = ref.book === "PSA" ? "Psalm" : BOOK_CODES[ref.book].name;
@@ -209,7 +221,8 @@ export default function ReaderScreen() {
       <ReaderHeader
         title={chapterTitle(ref)}
         translation={translation}
-        backLabel={fromRef === null ? null : formatDisplayRef(fromRef)}
+        backLabel={fromRef === null ? null : shortRef(fromRef)}
+        backAccessibility={fromRef === null ? null : formatDisplayRef(fromRef)}
         onLayoutBottom={setHeaderBottom}
         onContents={() => setContentsOpen(true)}
         onTranslation={chooseTranslation}
@@ -329,6 +342,7 @@ function ReaderHeader({
   title,
   translation,
   backLabel,
+  backAccessibility,
   onLayoutBottom,
   onContents,
   onTranslation,
@@ -336,6 +350,7 @@ function ReaderHeader({
   title: string;
   translation: Translation;
   backLabel: string | null;
+  backAccessibility: string | null;
   onLayoutBottom: (y: number) => void;
   onContents: () => void;
   onTranslation: () => void;
@@ -351,7 +366,7 @@ function ReaderHeader({
         onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
         hitSlop={12}
         accessibilityRole="button"
-        accessibilityLabel={backLabel === null ? "Home" : `Back to ${backLabel}`}
+        accessibilityLabel={backAccessibility === null ? "Home" : `Back to ${backAccessibility}`}
         testID="reader-back"
         style={styles.headerSide}
       >

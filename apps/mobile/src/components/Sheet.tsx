@@ -19,8 +19,11 @@ export function SheetScreen({
   verseId,
   scrollRef,
   contentStyle,
+  backText,
 }: {
   children: ReactNode;
+  /** Replaces "Back to reading" when the sheet was opened from somewhere else, e.g. Search. */
+  backText?: string;
   /** "1 Corinthians 14:34": where Back to reading returns. */
   backLabel: string | null;
   verseId?: string;
@@ -33,19 +36,19 @@ export function SheetScreen({
   const log = useLog();
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.paper }}>
+    // A sheet is its own screen to VoiceOver (design brief, accessibility),
+    // back bar included.
+    <View style={{ flex: 1, backgroundColor: palette.paper }} accessibilityViewIsModal>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={[styles.body, contentStyle]}
         showsVerticalScrollIndicator={false}
-        // A sheet is its own screen to VoiceOver (design brief, accessibility).
-        accessibilityViewIsModal
       >
         {children}
       </ScrollView>
       <Pressable
         onPress={() => {
-          log("return_to_reading", verseId);
+          if (backText === undefined) log("return_to_reading", verseId);
           backToReading();
         }}
         style={({ pressed }) => [
@@ -57,11 +60,11 @@ export function SheetScreen({
           },
         ]}
         accessibilityRole="button"
-        accessibilityLabel={backLabel === null ? "Back to reading" : `Back to reading, ${backLabel}`}
+        accessibilityLabel={backText ?? (backLabel === null ? "Back to reading" : `Back to reading, ${backLabel}`)}
         testID="back-to-reading"
       >
         <Chrome size={16} numberOfLines={2} style={{ textAlign: "center" }}>
-          ‹ Back to reading{backLabel === null ? "" : ` — ${backLabel}`}
+          {backText !== undefined ? `‹ ${backText}` : `‹ Back to reading${backLabel === null ? "" : ` — ${backLabel}`}`}
         </Chrome>
       </Pressable>
     </View>

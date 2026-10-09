@@ -41,10 +41,22 @@ export default function OriginalScreen() {
       <Label accessibilityRole="header">
         {script === "hebrew" ? "Original Hebrew" : "Original Greek"} · {label}
       </Label>
-      {data.map(({ ord, texts, tokens }) => {
+      {data.map(({ ord, texts, tokens }, index) => {
         const parts = ordToParts(ord);
         const id = `${parts.book}.${parts.chapter}.${parts.verse}`;
-        const omission = missingOriginalNote(id, script, tokens.words.length > 0);
+        const full = missingOriginalNote(id, script, tokens.words.length > 0);
+        // John 7:53–8:11 is twelve verses; the full sentence once, then a short one.
+        const previous = data[index - 1];
+        const previousNote =
+          previous === undefined
+            ? null
+            : missingOriginalNote(
+                (({ book, chapter, verse }) => `${book}.${chapter}.${verse}`)(ordToParts(previous.ord)),
+                script,
+                previous.tokens.words.length > 0,
+              );
+        const omission =
+          full !== null && full === previousNote ? `No ${script === "hebrew" ? "Hebrew" : "Greek"} for this verse either.` : full;
         return (
           <View key={ord} style={{ marginTop: SPACE.lg }}>
             {data.length > 1 ? <Label tone="ink">{formatDisplayRef(parts)}</Label> : null}

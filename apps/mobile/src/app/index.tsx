@@ -70,6 +70,7 @@ export default function Home() {
   const resume = continueAt === null ? null : parseVerseId(continueAt.verseId);
 
   return (
+    <View style={{ flex: 1, backgroundColor: palette.paper }}>
     <ScrollView
       style={{ backgroundColor: palette.paper }}
       contentContainerStyle={{ paddingTop: insets.top + SPACE.sm, paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxl }}
@@ -138,6 +139,9 @@ export default function Home() {
         {Object.keys(BOOK_CODES).length} books · Hebrew, Greek and three English translations, offline
       </Prose>
     </ScrollView>
+    {/* Paper under the status bar, so the list never scrolls beneath the clock. */}
+    <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: insets.top, backgroundColor: palette.paper }} />
+    </View>
   );
 }
 

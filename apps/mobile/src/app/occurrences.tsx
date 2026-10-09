@@ -24,7 +24,8 @@ import { useSettings } from "../state/settings";
 const LIMIT = 600;
 
 export default function OccurrencesScreen() {
-  const params = useLocalSearchParams<{ key?: string; book?: string; from?: string }>();
+  const params = useLocalSearchParams<{ key?: string; book?: string; from?: string; via?: string }>();
+  const backText = params.via === "search" ? "Back to search" : undefined;
   const key = params.key ?? "";
   const book: BookCode | null = params.book !== undefined && isBookCode(params.book) ? params.book : null;
   const from = params.from ?? "";
@@ -47,7 +48,7 @@ export default function OccurrencesScreen() {
   const scope = book === null ? "the Bible" : BOOK_CODES[book].name;
 
   return (
-    <SheetScreen backLabel={backLabel} verseId={from}>
+    <SheetScreen backLabel={backLabel} verseId={from} backText={backText}>
       <Label accessibilityRole="header">Occurrences in {scope}</Label>
       <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: SPACE.sm, marginTop: SPACE.xs }}>
         <Original script={script} step="headword">

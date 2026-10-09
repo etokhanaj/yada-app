@@ -31,6 +31,8 @@ import { SPACE, usePalette, useType } from "../design/tokens";
 import { planSearch, splitSnippet } from "../lib/searchQuery";
 import { useSettings } from "../state/settings";
 
+const WORDS_SHOWN = 5;
+
 export default function SearchScreen() {
   const palette = usePalette();
   const core = useCore();
@@ -39,10 +41,14 @@ export default function SearchScreen() {
   const field = useType("explanation");
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
+  const [allWords, setAllWords] = useState(false);
 
   // Debounced: a query per keystroke would make typing feel heavy.
   useEffect(() => {
-    const timer = setTimeout(() => setQuery(input.trim()), 180);
+    const timer = setTimeout(() => {
+      setQuery(input.trim());
+      setAllWords(false);
+    }, 180);
     return () => clearTimeout(timer);
   }, [input]);
 
@@ -76,6 +82,7 @@ export default function SearchScreen() {
   }, [log, data?.plan]);
 
   const empty =
+    query.length >= 2 &&
     data !== undefined && data !== null && data.reference === null && data.passages.length === 0 && data.words.length === 0;
 
   return (
@@ -90,7 +97,7 @@ export default function SearchScreen() {
           autoCapitalize="none"
           clearButtonMode="while-editing"
           returnKeyType="search"
-          placeholder="A reference, a word, or a Greek or Hebrew word"
+          placeholder="Jn 3:16, love, λόγος"
           placeholderTextColor={palette.mutedInk}
           style={[
             styles.field,
@@ -131,12 +138,14 @@ export default function SearchScreen() {
 
         {data !== undefined && data !== null && data.words.length > 0 ? (
           <View>
+            {/* Words sit above passages, few and capped, as Telegram puts chats above
+                messages: a long passage list would otherwise bury them. */}
             <Label style={styles.section}>Words</Label>
-            {data.words.map((lexeme) => (
+            {(allWords ? data.words : data.words.slice(0, WORDS_SHOWN)).map((lexeme) => (
               <ResultRow
                 key={lexeme.occurrenceKey}
                 testID={`result-word-${lexeme.occurrenceKey}`}
-                onPress={() => router.push({ pathname: "/occurrences", params: { key: lexeme.occurrenceKey } })}
+                onPress={() => router.push({ pathname: "/occurrences", params: { key: lexeme.occurrenceKey, via: "search" } })}
               >
                 <View style={styles.wordLine}>
                   <Original script={lexeme.script} step="explanation">
@@ -154,6 +163,13 @@ export default function SearchScreen() {
                 </Prose>
               </ResultRow>
             ))}
+            {!allWords && data.words.length > WORDS_SHOWN ? (
+              <Pressable onPress={() => setAllWords(true)} style={{ paddingVertical: SPACE.sm }} accessibilityRole="button">
+                <Prose step="claim" tone="accent">
+                  Show all {data.words.length} words
+                </Prose>
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
 
