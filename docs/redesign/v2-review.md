@@ -179,3 +179,10 @@ Looked at and kept: occurrence headers repeat the book (`σιγάω in 1 Corinth
 because the subtitle is always the parent verse; D-04 overlaps JN-01 on purpose (it isolates the numeral).
 
 Build plan: `build-plan.md`.
+
+### Slop pass 6, after the brand palette (9 Oct)
+
+All 64 frames re-rendered in forest/chalk; UI audit unchanged (no small targets, overflow or contrast
+failures). One finding: H-01, H-02 and ST-01 (pre-Depth Home and Start here) contradicted DP-01–03 on the
+same canvas. Removed from v2; the generator keeps them behind `if False` should they be wanted.
+Splash row added (SP-01–03).

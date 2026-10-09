@@ -348,3 +348,10 @@ h3,p{margin:0}
 .wordmark{display:block;height:44px;width:auto;color:var(--accent);margin:0 0 4px -4px}
 .ax5 .wordmark{height:72px}
 .dark .wordmark{color:var(--ink)}
+.splash{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.splash.on-paper{background:var(--paper);color:var(--accent)}
+.dark .splash.on-paper{color:#DBEC9A}
+.splash.on-forest{background:#183F35;color:#F7F8F0}
+.splsym{width:76px;height:76px}
+.spllock{width:200px;height:auto}
+.splash.fading .splsym{opacity:.35;transform:scale(.96)}
