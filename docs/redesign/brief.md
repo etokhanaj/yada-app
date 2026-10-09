@@ -388,7 +388,7 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
     split `Book | Translation` capsule. Switching translation stays at the top of Contents; seeing other
     translations is Compare's job. While reading, the header steps back to one 13 pt line under the
     island (`1 Corinthians 14 · BSB`); scrolling up or tapping it restores the controls (canvas D-05).
-14. **Depth** (canvas DP-01–06, pending John's approval): the passage's key word (first `key_words`
+14. **Depth** (canvas DP-01–06, approved by John 9 Oct): the passage's key word (first `key_words`
     entry) set large in its own script, with transliteration and gloss and the passage title beneath, on
     Home's Start / Continue row and the Start here header; when the passage has no entry, the passage
     title carries it in Literata. Chapter openings show the passage title in small caps above verse 1.
