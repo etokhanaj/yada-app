@@ -66,3 +66,15 @@ brand colour; they use ink. They colour selection with a cool tint of the accent
 
 New tokens beyond brief §3 (each measured ≥ 4.5:1 for mutedInk text on it): `sel` #E4EBF4 / #232A34,
 `hl` #F4E7CB / #3A3021, `glass`, `fill`, `sheet`.
+
+## Decisions taken (9 Oct, on John's instruction)
+
+1. Medium detent: clamp What's happening to four lines with `More` (keeps the verse visible, puts claims
+   above the fold; a taller detent would hide the verse).
+2. Translations: mark only BSB; WEB and KJV unmarked.
+3. No explanation: action bar `Original · Compare · ⋯` (frame J01-15).
+4. Departures kept: two-item AX action list, serif explanations, the new colour tokens.
+
+All four are written into `brief.md` §8. Also fixed after the passes: the reader title is now centred on
+the screen (measured 0 pt offset with `Home` and with `‹ 1 Cor 14:34`), and text scrolling under the
+header no longer shows through the translation label.

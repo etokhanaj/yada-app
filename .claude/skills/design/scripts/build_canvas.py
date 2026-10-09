@@ -73,14 +73,18 @@ def header(back, title, scrolled=False, hint=None):
     return f'<div class="{cls}"><div class="hrow d">{b}{t}{aa}</div><div class="a"><div class="hrow">{b}<span class="sp"></span>{aa}</div><div class="hrow2">{t}</div></div></div>'
 
 
-def verses_html(rows, sel=()):
+def verses_html(rows, sel=(), before=None, ch=None):
     out, group = [], []
     def flush():
         if group:
             out.append('<div class="selg">' + "".join(group) + "</div>")
             group.clear()
     for n, t in rows:
-        p = f'<p class="v"><span class="vn">{n}</span> {E(t)}</p>'
+        pre = " pre" if before is not None and n < before else ""
+        if n == 1 and ch and STYLE != "v1":
+            p = f'<p class="v v1{pre}"><span class="cn" aria-label="Chapter {ch}, verse 1">{ch}</span>{E(t)}</p>'
+        else:
+            p = f'<p class="v{pre}"><span class="vn">{n}</span> {E(t)}</p>'
         if n in sel:
             group.append(p)
         else:
@@ -89,7 +93,7 @@ def verses_html(rows, sel=()):
     return "".join(out)
 
 
-def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None):
+def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True):
     title = f"{BOOK[book]} {ch} · BSB"
     rows = text("BSB", book, ch, a, b)
     h = header(back, title, scrolled)
@@ -98,7 +102,11 @@ def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, 
     if foot:
         foot_html = f'<div class="cfoot"><div class="clinks"><button class="clink">{ic("back", 18)}{E(foot[0])}</button><button class="clink">{E(foot[1])}{ic("right", 18)}</button></div><p class="note muted">Berean Standard Bible</p></div>'
     bar = ""
-    if abar and STYLE != "v1":
+    if abar and STYLE != "v1" and not entry:
+        bar = (f'<div class="abar"><div class="d abar-row"><button class="ab-i">{ic("alpha", 18)}<span>Original</span></button>'
+               f'<button class="ab-i">{ic("cols", 18)}<span>Compare</span></button><button class="ab-m" aria-label="More actions">{ic("more", 22)}</button></div>'
+               f'<div class="a abar-list"><button class="ab-i">Original</button><button class="ab-i">More{ic("more", 30)}</button></div></div>')
+    elif abar and STYLE != "v1":
         bar = (f'<div class="abar"><div class="d abar-row"><button class="ab-u">Understand {E(abar)}</button><button class="ab-i">{ic("alpha", 18)}<span>Original</span></button>'
                f'<button class="ab-i">{ic("cols", 18)}<span>Compare</span></button><button class="ab-m" aria-label="More actions">{ic("more", 22)}</button></div>'
                f'<div class="a abar-list"><button class="ab-u">Understand {E(abar)}</button><button class="ab-i">More{ic("more", 30)}</button></div></div>')
@@ -106,7 +114,10 @@ def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, 
         bar = (f'<div class="abar"><div class="d abar-row"><button class="ab-u">Understand {E(abar)}</button><button class="ab-i">Original</button>'
                f'<button class="ab-i">Compare</button><button class="ab-m" aria-label="More actions">{ic("more", 22)}</button></div>'
                f'<div class="a abar-list"><button class="ab-u">Understand {E(abar)}</button><button class="ab-i">Original</button><button class="ab-i">Compare</button><button class="ab-i">More actions</button></div></div>')
-    return f'{h}<div class="rbody"><div style="margin-top: {offset}px">{hint_html}{verses_html(rows, sel)}{foot_html}</div></div>{bar}'
+    # With an action bar up, AX frames scroll so the selected verse starts the page (brief §4: it stays above the bar).
+    first = min(sel) if (abar and sel) else None
+    axsel = ' class="axsel"' if first else ""
+    return f'{h}<div class="rbody"><div{axsel} style="margin-top: {offset}px">{hint_html}{verses_html(rows, sel, before=first, ch=ch)}{foot_html}</div></div>{bar}'
 
 
 # ---------- sheets ----------
@@ -148,13 +159,15 @@ PASSAGE = {"1co.14.34": ("Order in the assembly", "14:26–40"), "jhn.1.1": ("Th
 LANGNAME = {"1co.14.34": "Greek", "jhn.1.1": "Greek", "gen.1.1": "Hebrew"}
 
 
-def interlinear(k, mark=None):
+def interlinear(k, mark=None, reveal=None):
     g = G[k]["gloss"]
     rtl = k.startswith("gen")
     lng = "he" if rtl else "el"
     units, rows_ = [], []
     for i, w in enumerate(g):
         m = " mark" if mark == i else ""
+        if reveal is not None:
+            m += " rv-on" if i < reveal else (" rv-next" if i == reveal else " rv-off")
         gl = E(w["gloss"])
         units.append(f'<span class="w{m}"><span class="o" lang="{lng}">{w["surface"]}</span><span class="gl">{gl}</span></span>')
         rows_.append(f'<span class="wr{m}"><span class="gl">{gl}</span><span class="o" lang="{lng}">{w["surface"]}</span></span>' if rtl else
@@ -164,18 +177,18 @@ def interlinear(k, mark=None):
     return f'<div class="il d"{d}>{"".join(units)}</div><div class="ilr a{rcls}">{"".join(rows_)}</div>'
 
 
-def original_section(k, expanded, mark=None):
+def original_section(k, expanded, mark=None, reveal=None):
     name = LANGNAME[k]
     hdr = f'<button class="disc" aria-expanded="{"true" if expanded else "false"}"><span>Original {name}</span>{ic("up" if expanded else "down", 18)}</button>'
     if not expanded:
         return f'<section class="sec">{hdr}</section>'
     src = "STEPBible (TAHOT)" if name == "Hebrew" else "STEPBible (TAGNT, TBESG)"
-    inner = (f'{hdr}<div class="orig">{interlinear(k, mark)}<p class="note muted src">Glosses: {src}</p>'
+    inner = (f'{hdr}<div class="orig">{interlinear(k, mark, reveal)}<p class="note muted src">Glosses: {src}</p>'
              f'<h3 class="lbl">Closer to the {name}</h3><p class="close">{E(G[k]["close_rendering"])}</p><p class="note muted">Composed, not a word-for-word gloss.</p></div>')
     return f'<section class="sec">{inner}</section>'
 
 
-def understand_body(k, start="top", show_all=False, hint=False, orig=False, large=False, mark=None):
+def understand_body(k, start="top", show_all=False, hint=False, orig=False, large=False, mark=None, clamp=False, reveal=None):
     e = G[k]
     plain = sorted([c for c in e["claims"] if c["category"] != "debated"], key=lambda c: c["display_rank"])
     deb = sorted([c for c in e["claims"] if c["category"] == "debated"], key=lambda c: c["display_rank"])
@@ -185,7 +198,10 @@ def understand_body(k, start="top", show_all=False, hint=False, orig=False, larg
         vt = text("BSB", b, int(c), int(v))[0][1]
         parts.append(f'<button class="vline d"><span>{E(vt)}</span>{ic("down", 16)}</button><button class="vshow a">Show verse</button>')
     if start == "top":
-        parts.append(sec("What’s happening", f'<p class="expl">{lang(e["whats_happening"])}</p>', first=not large))
+        if clamp and STYLE != "v1":
+            parts.append(sec("What’s happening", f'<p class="expl clamp">{lang(e["whats_happening"])}</p><button class="more d">More</button>', first=not large))
+        else:
+            parts.append(sec("What’s happening", f'<p class="expl">{lang(e["whats_happening"])}</p>', first=not large))
     shown = plain if show_all else plain[:3]
     rows_ = "".join(row(lang(c["claim"]), claim_label(c)) for c in shown)
     more = "" if show_all else f'<button class="more">Show all {len(plain)}</button>'
@@ -195,7 +211,7 @@ def understand_body(k, start="top", show_all=False, hint=False, orig=False, larg
         drows = "".join(row(lang(c["claim"]), extra=f'<span class="link">Compare the {len(c["positions"])} readings</span>') for c in deb)
         parts.append(sec("Where interpretation differs", drows))
     if start in ("top", "see", "orig"):
-        parts.append(original_section(k, orig, mark))
+        parts.append(original_section(k, orig, mark, reveal))
         parts.append(f'<section class="sec">{row("Compare translations", cls="plain")}</section>')
         t, r = PASSAGE[k]
         parts.append(sec("Passage", row(f"{E(t)} · {r}", cls="plain")))
@@ -205,6 +221,7 @@ def understand_body(k, start="top", show_all=False, hint=False, orig=False, larg
 
 
 def understand(k, pos="med", **kw):
+    kw.setdefault("clamp", pos == "med")
     b, c, v = G[k]["verse_id"].split(".")
     return sheet(pos, f"{BOOK[b]} {c}:{v}", body=understand_body(k, **kw), unrev=True, scrolled=kw.get("start", "top") != "top")
 
@@ -216,9 +233,10 @@ FONTS = "https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..7
 
 def doc(fid, title, inner):
     chrome_open, chrome_close = ("", "") if STYLE == "v1" else ('<div class="island" aria-hidden="true"></div>', '<div class="homeind" aria-hidden="true"></div>')
+    steps = inner if isinstance(inner, list) else [(lab, cls, inner) for lab, cls in (("Light", "light"), ("Dark", "dark"), ("AX5", "ax5"))]
     cols = "".join(
-        f'<div class="col"><div class="cap">{fid} · {lab}</div><div class="ph {cls}">{chrome_open}{inner}{chrome_close}</div></div>'
-        for lab, cls in (("Light", "light"), ("Dark", "dark"), ("AX5", "ax5")))
+        f'<div class="col"><div class="cap">{fid} · {lab}</div><div class="ph {cls}">{chrome_open}{html_}{chrome_close}</div></div>'
+        for lab, cls, html_ in steps)
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -371,12 +389,14 @@ def translations(book, ch, a, b):
     out = []
     for tr in ("BSB", "WEB", "KJV"):
         others = [T[o] for o in T if o != tr] if tr == "BSB" else [T["BSB"]]
-        out.append(f'<section class="sec tr-sec"><h3 class="lbl">{tr}</h3><p class="scrq">{mark_diff(T[tr], others)}</p></section>')
+        body_ = mark_diff(T[tr], others) if (tr == "BSB" or STYLE == "v1") else E(T[tr])
+        out.append(f'<section class="sec tr-sec"><h3 class="lbl">{tr}</h3><p class="scrq">{body_}</p></section>')
     return "".join(out)
 F("J01-13", "Translations 14:34–35", reader("1CO", 14, 33, 36, sel=(34, 35)) + scrim() +
   sheet("back", "1 Corinthians 14:34–35", body=pas, unrev=True) + scrim("s2") +
   sheet("lg2", "Translations", "1 Corinthians 14:34–35", translations("1CO", 14, 34, 35)), "j01")
 F("J01-14", "Back to reading at 14:34", reader("1CO", 14, 31, 40, sel=(34,), offset=-20, abar="14:34"), "j01")
+F("J01-15", "1 Timothy 2:11 selected, no explanation", reader("1TI", 2, 9, 15, back=("1 Cor 14:34", "Back to 1 Corinthians 14:34"), sel=(11,), offset=-150, abar="2:11", entry=False), "j01")
 
 # ================= John 1:1 =================
 FOOTJ = ("John 21", "John 2")
@@ -412,12 +432,40 @@ occg = occ_rows([("Genesis 1:1", bold(g1, "beginning"), "בְּרֵאשִׁ֖י�
 F("GN-05", "Occurrences: רֵאשִׁית in Genesis", reader("GEN", 1, 1, 4, sel=(1,), scrolled=False) + scrim() + BACK_U("gen.1.1") + scrim("s2") +
   sheet("lg2", "רֵאשִׁית in Genesis", "Genesis 1:1", occg, back=True), "gn")
 
+# ================= Delight (v2) =================
+if STYLE != "v1":
+    U_ORIG = lambda **kw: understand("1co.14.34", "lg", start="orig", orig=True, mark=5, **kw)
+    base = reader("1CO", 14, 33, 36, sel=(34,)) + scrim()
+    fly = '<span class="flyword" lang="el" aria-hidden="true">σιγάτωσαν</span>'
+    word_sheet = lambda pos: sheet(pos, "Word", "1 Corinthians 14:34", word_card("σιγάτωσαν", "el", "sigatōsan", "let them be silent", "Present active imperative, 3rd person plural",
+        "σιγάω", "sigaō", "G4601", "were silent", kw1["note"], "3 times in 1 Corinthians", "9 in the Bible", "Gloss: TAGNT · Parsing: MorphGNT"))
+    F("D-01", "Word lifts into its card", [
+        ("1 · Tap the word", "light", base + U_ORIG()),
+        ("2 · It lifts, the card rises", "light", base + BACK_U("1co.14.34", start="orig", orig=True, mark=5) + scrim("s2") + word_sheet("rise") + fly),
+        ("3 · It lands as the headword", "light", base + BACK_U("1co.14.34", start="orig", orig=True, mark=5) + scrim("s2") + word_sheet("med")),
+    ], "dl")
+    gbase = reader("GEN", 1, 1, 4, sel=(1,), scrolled=False) + scrim()
+    F("D-02", "Hebrew arrives right to left", [
+        ("1 · 0 ms", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True, reveal=1)),
+        ("2 · 120 ms", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True, reveal=4)),
+        ("3 · Settled, 280 ms", "light", gbase + understand("gen.1.1", "lg", start="orig", orig=True)),
+    ], "dl")
+    jg = G["jhn.1.1"]["gloss"]; gg = G["gen.1.1"]["gloss"]
+    pair = (f'<div class="pair"><div class="pr"><span class="o" lang="el">{jg[0]["surface"]} {jg[1]["surface"]}</span><span class="gl">{E(jg[0]["gloss"])} {E(jg[1]["gloss"])} · John 1:1</span></div>'
+            f'<div class="pr"><span class="o" lang="he" dir="rtl">{gg[0]["surface"]}</span><span class="gl">{E(gg[0]["gloss"])} · Genesis 1:1</span></div></div>')
+    echo = (f'<p class="lbl">Echoes</p><p class="note muted pk">{lang(G["jhn.1.1"]["related_passages"][0]["note"])}</p>{pair}'
+            + verses_html(text("BSB", "GEN", 1, 1)) + f'<button class="readbtn">Read Genesis 1{ic("right", 18)}</button>')
+    F("D-03", "Same first words: John 1:1 and Genesis 1:1", reader("JHN", 1, 1, 6, sel=(1,), scrolled=False) + scrim() + BACK_U("jhn.1.1") + scrim("s2") +
+      sheet("med", "Genesis 1:1", "From John 1:1", echo), "dl")
+    F("D-04", "Chapter opening", reader("JHN", 1, 1, 9, scrolled=False, foot=None), "dl")
+
 # ---------- write files + index ----------
 W, H, GX, GY = 1430, 1026, 80, 120
 names, boards = [], {}
 y = 0
 notes = {}
-for gi, (grp, label) in enumerate((("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1"))):
+GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"),) if STYLE != "v1" else ())
+for gi, (grp, label) in enumerate(GROUPS):
     fr = [f for f in FRAMES if f[3] == grp]
     notes[f"t_{grp}" + ("" if STYLE == "v1" else f"_{STYLE}")] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX}
     y += 260

@@ -353,3 +353,28 @@ Contents, Type settings, in light and AX5.
 
 **Content notes for the pipeline, not the app:** debated claims restate their label ("…is disputed");
 `key_words` notes repeat claim text on the word card. Both belong in the prompt, not the UI.
+
+---
+
+## 8. Amendments, 9 Oct (v2 canvas)
+
+These supersede the sections they name. Reasons and evidence: `v2-review.md`.
+
+1. **Understand at the medium detent** (§4): `What's happening` is clamped to four lines with `More`, so
+   the first claims sit above the fold while the verse stays visible above the sheet. Large detent and
+   AX sizes show it in full.
+2. **Translations** (§4): only BSB, the reader's translation, carries difference marks (wash +
+   underline). WEB and KJV are shown unmarked beneath it.
+3. **A verse with no explanation**: the action bar is `Original · Compare · ⋯`, with no Understand and no
+   placeholder text. Original opens the same sheet with only Original and Compare in it.
+4. **AX action bar** (§4, §5): `Understand 14:34` and `More` only, so the list never covers the verse.
+5. **Explanation type** (§3): `explanation` and passage prose set in Literata; claims stay SF Pro Text.
+6. **Colour** (§3): primary actions in ink; selection `#E4EBF4` / `#232A34`; translation differences
+   `#F4E7CB` / `#3A3021`; surfaces `fill`, `glass`, `sheet` as in `style-v2.css`. Navy stays for the
+   selection bar and links.
+7. **Reader header**: title is book and chapter, translation small beneath; title centred on the screen.
+8. **Chapter numeral**: verse 1 shows the chapter number large in place of its verse number
+   (VoiceOver: "Chapter 1, verse 1"). No chapter head returns.
+9. **Delight** (D-01 to D-04 on the canvas): word lift into the word card, glosses arriving in reading
+   order, echo pairs in Go deeper peeks, the chapter numeral. All collapse to cross-fades under Reduce
+   Motion.
