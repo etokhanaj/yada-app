@@ -89,6 +89,13 @@ for _b in ("gen", "lev", "psa", "isa", "jhn", "1co", "rev"):
     ENTRIES |= {r[0] for r in sqlite3.connect(f"{Y}/content/bundles/{_b}.v1.db").execute("select verse_id from entries")}
 
 
+def with_marker(html_, exm):
+    if not exm:
+        return html_
+    head, _, last = html_.rpartition(" ")
+    return f'{head} <span class="nowrap">{last}{exm}</span>' if head else f'<span class="nowrap">{last}{exm}</span>'
+
+
 def scripture(t):
     # LORD in small capitals: the BSB's own convention for the divine name.
     s_ = E(t)
@@ -111,9 +118,9 @@ def verses_html(rows, sel=(), before=None, ch=None, bm=(), sup=None, book=None):
             out.append(f'<p class="sup">{E(sup.strip())}</p>')
             t = t[len(sup):].lstrip()
         if n == 1 and ch and STYLE != "v1":
-            p = f'<p class="v v1{pre}"><span class="cn" aria-label="Chapter {ch}, verse 1">{ch}</span>{scripture(t)}{exm}</p>'
+            p = f'<p class="v v1{pre}"><span class="cn" aria-label="Chapter {ch}, verse 1">{ch}</span>{with_marker(scripture(t), exm)}</p>'
         else:
-            p = f'<p class="v{pre}"><span class="vn">{n}</span>{mark_} {scripture(t)}{exm}</p>'
+            p = f'<p class="v{pre}"><span class="vn">{n}</span>{mark_} {with_marker(scripture(t), exm)}</p>'
         if n in sel:
             group.append(p)
         else:
@@ -134,7 +141,9 @@ def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, 
     hint_html = '<p class="hint">Tap a verse to see what it meant.</p>' if hint else ""
     foot_html = ""
     if foot:
-        foot_html = f'<div class="cfoot"><div class="clinks"><button class="clink">{ic("back", 18)}{E(foot[0])}</button><button class="clink">{E(foot[1])}{ic("right", 18)}</button></div><p class="note muted">Berean Standard Bible</p></div>'
+        prev_ = f'<button class="clink">{ic("back", 18)}{E(foot[0])}</button>' if foot[0] else "<span></span>"
+        next_ = f'<button class="clink">{E(foot[1])}{ic("right", 18)}</button>' if foot[1] else ""
+        foot_html = f'<div class="cfoot"><div class="clinks">{prev_}{next_}</div><p class="note muted">Berean Standard Bible</p></div>'
     bar = ""
     if abar and STYLE != "v1" and not entry:
         bar = (f'<div class="abar"><div class="d abar-row"><button class="ab-i">{ic("alpha", 18)}<span>Original</span></button>'
@@ -519,7 +528,7 @@ if STYLE != "v1":
     # ---- Home ----
     ot = "".join(lrow(E(n), chev=False, cls="book") for c, n, t in BOOKS if t == "OT")
     start = (f'<button class="lead"><span class="rm"><span class="leadt">Start with John</span>'
-             f'<span class="note muted">Passage by passage, 46 passages</span></span><span class="chev">{ic("right", 18)}</span></button>')
+             f'<span class="note muted">46 passages, in order</span></span><span class="chev">{ic("right", 18)}</span></button>')
     F("H-01", "Home, first launch", page(None, "Yada", start + sec("Old Testament", ot), right=HOME_ICONS), "hs")
     j82 = text("BSB", "JHN", 8, 2)[0][1]
     cont = (f'<button class="lead"><span class="rm"><span class="lbl">Continue</span><span class="leadt">John 8:2</span>'
@@ -628,7 +637,7 @@ if STYLE != "v1":
     exp = "".join(lrow(E(n), right=f'<span class="note muted">1 verse · {round(os.path.getsize(f"{Y}/content/bundles/{k}.v1.db") / 1024)} KB</span>', chev=False) for n, k in sizes)
     F("SO-01", "Sources: explanations", page(("Home", "Home"), "Sources",
       sec("Explanations", '<p class="note muted">All unreviewed drafts.</p>' + exp, first=True)), "so")
-    LIC = {"CC-BY-SA-3.0": "CC BY-SA 3.0", "CC-BY-4.0": "CC BY 4.0", "PUBLIC_DOMAIN": "Public domain", "CUSTOM_EULA": "SBLGNT EULA", "OFL-1.1": "SIL OFL 1.1"}
+    LIC = {"CC-BY-SA-3.0": "CC BY-SA 3.0", "CC-BY-4.0": "CC BY 4.0", "PUBLIC_DOMAIN": "Public domain", "CUSTOM_EULA": "Own licence", "OFL-1.1": "SIL OFL 1.1"}
     SHORT_NAME = {"morphgnt/sblgnt (morphological annotations)": "MorphGNT", "SBLGNT (Greek text)": "SBLGNT",
                   "morphhb — lemma and morphology data": "OSHB morphology", "morphhb — Westminster Leningrad Codex text": "Westminster Leningrad Codex",
                   "Berean Standard Bible (text)": "Berean Standard Bible", "World English Bible, Protestant canon (engwebp)": "World English Bible",
@@ -638,10 +647,21 @@ if STYLE != "v1":
     for ds, li, enc in src[:9]:
         nm = SHORT_NAME.get(ds, ds.split(" — ")[0])
         sub_ = LIC.get(li, li) + (f'<span class="enc">{E(enc)}</span>' if enc else "")
-        srows += lrow(E(nm), sub=sub_, right=f'<span class="srcl">Source{ic("right", 16)}</span>', chev=False)
+        srows += lrow(E(nm), sub=sub_, right=f'<span class="srcl">Source{ic("right", 16)}</span>', chev=False, cls="src")
     size_core = round(os.path.getsize(f"{Y}/content/bundles/core.v2.db") / 1048576, 1)
     F("SO-02", "Sources: texts and data", page(("Home", "Home"), "Sources",
       sec("Texts and data", f'<p class="note muted">Bible text, Greek and Hebrew: {size_core} MB, built in.</p>' + srows, first=True)), "so")
+
+# ================= Edge cases (v2) =================
+if STYLE != "v1":
+    F("E-01", "Long book name with a long return chip", reader("1TH", 5, 1, 8, back=("2 Thess 3:10", "Back to 2 Thessalonians 3:10"), scrolled=False), "es")
+    F("E-02", "Longest verse selected: Esther 8:9", reader("EST", 8, 8, 10, sel=(9,), abar="8:9", offset=-60, entry=False), "es")
+    F("E-03", "The last chapter of the Bible", reader("REV", 22, 17, 21, offset=0, foot=("Revelation 21", None)), "es")
+    F("E-04", "Search: no results", home_under + search_sheet("Melchizedekk",
+      '<p class="empty">No results for “Melchizedekk”.</p><p class="note muted">Search takes references, English words, and Greek or Hebrew.</p>'), "es")
+    F("E-05", "Recent, empty", page(("Home", "Home"), "Recent", '<p class="empty">Nothing yet.</p><p class="note muted">Verses you explore appear here.</p>'), "es")
+    ic_frame = reader("1CO", 14, 33, 36, sel=(34,), offset=-70) + scrim() + understand("1co.14.34", "med")
+    F("E-06", "Increase Contrast", [("Light · Increase Contrast", "light ic", ic_frame), ("Dark · Increase Contrast", "dark ic", ic_frame), ("AX5 · Increase Contrast", "ax5 ic", ic_frame)], "es")
 
 # ---------- write files + index ----------
 W, H, GX, GY = 1430, 1026, 80, 120

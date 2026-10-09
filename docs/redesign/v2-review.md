@@ -119,3 +119,31 @@ subtexts.
 **Decided (9 Oct, from John's recording):** no split capsule; the header collapses to one line while reading (D-05), which is what makes YouVersion's reader feel open. Original note: YouVersion's split title capsule (`Ephesians 6 | NIV`) gives translation its own
 one-tap target. It conflicts with the brief's single title target and doesn't fit beside a long return
 chip (`‹ 2 Thess 3:10`); not drawn.
+
+## Clean-up and edge-case coverage (9 Oct)
+
+Every §8 decision checked on the canvas; retired copy grepped across all 58 v2 frames (DRAFT, STRONG,
+Library, YOU ARE HERE, Step 3 of 6, Long press, Back to reading —, GROUNDING, CLOSE RENDERING, Gloss
+from, PARSING:, ‹ Back, Recently explored, BSB · READING, DISPUTED…): none found. `Unreviewed` appears on
+every Understand-based sheet and nowhere else.
+
+New edge frames (E-01–06): long book name with a long return chip; the longest verse (Esther 8:9)
+selected with no explanation; the last chapter of the Bible (no next link); search with no results;
+Recent empty; Increase Contrast in all three variants.
+
+Covered elsewhere: first launch (JN-01), passage ranges with partial entries (J01-12, JN-07), all three
+translations agree (JN-06), no Greek (N-01), psalm title (P-01), Hebrew RTL at AX5 (GN-03), bookmarked
+verse (B-03), empty bookmarks (B-02), return chip (J01-11), Reduce Motion (motion note).
+
+Not drawn (no data to draw them truthfully): a reviewed entry (only John approves; none is), a
+download or network failure (everything is bundled), a disputed reading with three positions (John 1:1
+c11 has them; same layout as J01-09).
+
+### Visual slop pass 3 (all 58 frames)
+
+| # | Finding | Fix |
+|---|---|---|
+| S11 | Sources: `SBLGNT` / `SBLGNT EULA` / `SBLGNT EULA has not been reviewed…` — the name three times. | Licence label `Own licence`; the restriction note stays verbatim. |
+| S12 | Home: `Start with John` / `Passage by passage, 46 passages` — "passage" three times. | `46 passages, in order`. **Departs from brief §4** copy. |
+| U9 | AX5: the explanation marker fell onto a line of its own (Psalm 23:1). | Marker binds to the verse's last word. |
+| U10 | AX5: chevrons and checks dropped below their rows (λόγος by book, Start here, Appearance). | Only Sources rows wrap at AX sizes. |

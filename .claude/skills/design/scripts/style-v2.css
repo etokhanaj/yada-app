@@ -301,10 +301,16 @@ h3,p{margin:0}
 .enc{display:block;margin-top:2px}
 .srcl{display:flex;align-items:center;gap:1px}
 .exm .i{width:16px;height:16px}
-.ax5 .lrow{flex-wrap:wrap;row-gap:4px}
-.ax5 .lright{width:100%}
+.ax5 .lrow.src{flex-wrap:wrap;row-gap:4px}
+.ax5 .lrow.src .lright{width:100%}
 .hdr.mini{padding:52px 0 18px;background:linear-gradient(var(--paper) calc(100% - 18px),var(--paper0))}
 .minit{display:block;margin:0 auto;min-height:44px;padding:0 16px;font-size:13px;font-weight:600;color:var(--muted)}
 .ax5 .minit{font-size:28px}
 .hdr.mini ~ .rbody{padding-top:110px}
 .ax5 .hdr.mini ~ .rbody{padding-top:130px}
+/* Increase Contrast (brief §3): mutedInk and divider swap; surfaces get firmer edges */
+.light.ic,.ax5.ic{--muted:#4F4740;--div:#8A7E6C;--edge:rgba(26,23,20,.35);--fill:rgba(26,23,20,.1)}
+.dark.ic{--muted:#B8AEA3;--div:#706659;--edge:rgba(255,255,255,.3);--fill:rgba(237,231,221,.14)}
+.ic .sheet{box-shadow:0 0 0 1px var(--div)}
+.nowrap{white-space:nowrap}
+.bmk .i{width:15px;height:15px}
