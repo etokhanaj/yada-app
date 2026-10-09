@@ -44,13 +44,17 @@ export default function CompareScreen() {
   const order: Translation[] = [reading, ...TRANSLATIONS.map((t) => t.code).filter((c) => c !== reading)];
   const firstParts = ordToParts(span.startOrd);
   const firstId = `${firstParts.book}.${firstParts.chapter}.${firstParts.verse}`;
-  let anyDivergence = false;
+  const anyDivergence = data.verses.some(({ texts }) =>
+    hasRealDivergence(order.filter((t) => texts[t] !== undefined).map((t) => texts[t] ?? "")),
+  );
 
   return (
     <SheetScreen backLabel={label} verseId={firstId}>
       <Label accessibilityRole="header">Compare translations · {label}</Label>
-      <Prose step="note" tone="muted" style={{ marginTop: SPACE.xs }}>
-        Words that differ from {reading}, the translation you are reading, are shaded.
+      <Prose step="note" tone="muted" style={{ marginTop: SPACE.xs }} testID="compare-caption">
+        {anyDivergence
+          ? `Words that differ from ${reading}, the translation you are reading, are shaded.`
+          : "All three translations use the same words here."}
       </Prose>
 
       {data.verses.map(({ ord, texts }) => {
@@ -61,7 +65,6 @@ export default function CompareScreen() {
           { translation: base, text: texts[base] ?? "" },
           available.slice(1).map((t) => ({ translation: t, text: texts[t] ?? "" })),
         );
-        if (hasRealDivergence(available.map((t) => texts[t] ?? ""))) anyDivergence = true;
         return (
           <View key={ord} style={{ marginTop: SPACE.lg }}>
             {data.verses.length > 1 ? <Label tone="ink">{formatDisplayRef(ordToParts(ord))}</Label> : null}

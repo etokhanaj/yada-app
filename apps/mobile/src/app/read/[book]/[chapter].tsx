@@ -240,6 +240,9 @@ export default function ReaderScreen() {
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
           onScroll={() => (span === null ? undefined : measureSelection())}
+          // Text size and Dynamic Type changes move the selected rows without a
+          // scroll; follow them so the pill never lands on the wrong verse.
+          onContentSizeChange={() => (span === null ? undefined : requestAnimationFrame(measureSelection))}
           scrollEventThrottle={32}
           onScrollToIndexFailed={({ index, averageItemLength }) => {
             // Rows are variable height, so a far-off verse is not yet measured.

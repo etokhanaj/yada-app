@@ -7,7 +7,7 @@
  * stays visible above the sheet and changes as the controls move.
  */
 
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Chrome, Label, Prose } from "../components/Type";
@@ -28,6 +28,9 @@ export default function TypeSettings() {
   const appearance = useSettings((s) => s.appearance);
   const setAppearance = useSettings((s) => s.setAppearance);
   const step = Math.max(0, TEXT_SCALES.findIndex((s) => s === textScale));
+  // At accessibility sizes three labels no longer fit side by side ("Syste/m"
+  // at AX3); the choices stack, as iOS's own segmented settings do.
+  const stacked = useWindowDimensions().fontScale >= 1.6;
 
   const sizeButton = (label: string, delta: number, testID: string, accessibilityLabel: string) => {
     const nextStep = step + delta;
@@ -68,16 +71,19 @@ export default function TypeSettings() {
       <Label accessibilityRole="header" style={{ marginTop: SPACE.lg }}>
         Appearance
       </Label>
-      <View style={[styles.segment, { borderColor: palette.divider }]}>
+      <View style={[styles.segment, { borderColor: palette.divider }, stacked ? { flexDirection: "column" } : null]}>
         {APPEARANCES.map((option, index) => {
           const selected = option.value === appearance;
           return (
-            <View key={option.value} style={{ flex: 1, flexDirection: "row" }}>
-              {index > 0 ? <View style={[styles.divider, { backgroundColor: palette.divider }]} /> : null}
+            <View key={option.value} style={stacked ? null : { flex: 1, flexDirection: "row" }}>
+              {index > 0 ? (
+                <View style={[stacked ? styles.rowDivider : styles.divider, { backgroundColor: palette.divider }]} />
+              ) : null}
               <Pressable
                 onPress={() => setAppearance(option.value)}
                 style={({ pressed }) => [
                   styles.third,
+                  stacked ? null : { flex: 1 },
                   selected || pressed ? { backgroundColor: palette.selection } : null,
                 ]}
                 accessibilityRole="radio"
@@ -111,7 +117,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   third: {
-    flex: 1,
     minHeight: 44,
     paddingVertical: SPACE.sm,
     alignItems: "center",
@@ -119,5 +124,8 @@ const styles = StyleSheet.create({
   },
   divider: {
     width: StyleSheet.hairlineWidth,
+  },
+  rowDivider: {
+    height: StyleSheet.hairlineWidth,
   },
 });

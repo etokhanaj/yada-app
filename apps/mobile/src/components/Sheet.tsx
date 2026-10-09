@@ -63,7 +63,9 @@ export function SheetScreen({
         accessibilityLabel={backText ?? (backLabel === null ? "Back to reading" : `Back to reading, ${backLabel}`)}
         testID="back-to-reading"
       >
-        <Chrome size={16} numberOfLines={2} style={{ textAlign: "center" }}>
+        {/* Chrome may cap its growth (scripture never does): at AX5 an uncapped
+            back bar would take a third of the sheet. */}
+        <Chrome size={16} numberOfLines={2} maxFontSizeMultiplier={1.8} style={{ textAlign: "center" }}>
           {backText !== undefined ? `‹ ${backText}` : `‹ Back to reading${backLabel === null ? "" : ` — ${backLabel}`}`}
         </Chrome>
       </Pressable>
