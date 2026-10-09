@@ -398,7 +398,7 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
     + forest, chartreuse as the dark-mode accent and the difference highlighter. Home title is the
     outlined wordmark. App icon, dark and tinted icons, splash symbol and web favicons from the kit.
     Kit fonts (Inter, Fraunces) and mobile UI concepts not adopted.
-16. **Splash** (canvas SP-01, SP-03): the brand symbol, 76 pt, centred on the first screen's ground
-    (chalk #F7F8F0 with forest symbol; dark #0E1814 with chartreuse symbol), so launch dissolves into the
-    reader without a colour flash. Symbol fades out in 150 ms (instant under Reduce Motion). No wordmark,
-    tagline or spinner. SP-02 (lockup on forest) drawn for comparison only.
+16. **Splash** (canvas SP-01 · Dark, chosen by John 9 Oct): the chartreuse symbol (#DBEC9A), 76 pt,
+    centred on the dark ground (#0E1814), in both light and dark appearance. In light mode the reader
+    (chalk) follows it: fade the splash out over 150 ms so the change from dark to chalk is a dissolve,
+    not a flash; instant under Reduce Motion. No wordmark, tagline or spinner.
