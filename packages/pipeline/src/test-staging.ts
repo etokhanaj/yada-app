@@ -135,7 +135,7 @@ export function composed1Co14() {
         claims: [
           {
             id: "1CO.14.34.c1",
-            claim: "The verb σιγάτωσαν is a present imperative.",
+            claim: "The verse commands silence with the verb σιγάω.",
             category: "text",
             evidence_strength: "strong",
             confidence: "high",

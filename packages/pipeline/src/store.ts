@@ -89,13 +89,7 @@ export function importGolden(dir: string = GOLDEN): ImportReport {
   db.exec("BEGIN");
   try {
     for (const file of readdirSync(dir).filter((f) => f.endsWith(".json")).sort()) {
-      let raw: unknown;
-      try {
-        raw = JSON.parse(readFileSync(path.join(dir, file), "utf8"));
-      } catch (error) {
-        report.rejected.push({ file, problem: `not JSON: ${(error as Error).message}` });
-        continue;
-      }
+      const raw = JSON.parse(readFileSync(path.join(dir, file), "utf8")) as unknown;
       const parsed = VerseEntrySchema.safeParse(raw);
       if (!parsed.success) {
         report.rejected.push({ file, problem: parsed.error.issues[0]?.message ?? "schema" });

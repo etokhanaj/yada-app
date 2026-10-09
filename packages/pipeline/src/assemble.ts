@@ -10,9 +10,9 @@
  * the composed fields, constrained by GENERATION_SCHEMA: the JSON Schema below,
  * given in the prompt and enforced on the way back in. Everything mechanical —
  * ids, versions, review status, the derived word-for-word gloss — is filled in
- * here, because a model asked to copy a
- * gloss or stamp a review status can get it wrong, and the derived gloss is
- * explicitly not the model's to write (PRD §11.3).
+ * here, because a model asked to copy a gloss or stamp a review status can get
+ * it wrong, and the derived gloss is explicitly not the model's to write
+ * (PRD §11.3).
  */
 
 import {
