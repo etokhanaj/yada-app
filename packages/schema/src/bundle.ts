@@ -228,24 +228,31 @@ export function decodeMorphemes(encoded: string | null | undefined): BundleMorph
 export const ReviewGateSchema = z.enum(["reviewed", "unreviewed-dev"]);
 export type ReviewGate = z.infer<typeof ReviewGateSchema>;
 
-export const BundleInfoSchema = z.object({
-  name: z.string().min(1),
-  kind: z.enum(["core", "understand"]),
-  book: BookCodeSchema.optional(),
-  version: z.number().int().positive(),
-  file: z.string().min(1),
-  sha256: z.string().regex(/^[0-9a-f]{64}$/),
-  bytes: z.number().int().positive(),
-  format: z.number().int().positive(),
-  schema_version: z.string().min(1),
-  /**
-   * `unreviewed-dev` bundles contain entries no human has approved. They exist
-   * so the app can be built and tested before review has happened, must say so
-   * on screen, and must never be published — `publish` refuses them.
-   */
-  review_gate: ReviewGateSchema,
-  entries: z.number().int().nonnegative(),
-});
+export const BundleInfoSchema = z
+  .object({
+    name: z.string().regex(/^[A-Za-z0-9]+$/),
+    kind: z.enum(["core", "understand"]),
+    book: BookCodeSchema.optional(),
+    version: z.number().int().positive(),
+    file: z.string().min(1),
+    sha256: z.string().regex(/^[0-9a-f]{64}$/),
+    bytes: z.number().int().positive(),
+    format: z.number().int().positive(),
+    schema_version: z.string().min(1),
+    /**
+     * `unreviewed-dev` bundles contain entries no human has approved. They exist
+     * so the app can be built and tested before review has happened, must say so
+     * on screen, and must never be published — `publish` refuses them.
+     */
+    review_gate: ReviewGateSchema,
+    entries: z.number().int().nonnegative(),
+  })
+  // `publish` reads `file` from disk and uploads it under that key. Free text
+  // there let a manifest point publish at any local path ("../x").
+  .refine((info) => info.file === bundleFileName(info.name, info.version), {
+    message: "file must be the bundle's own name and version, e.g. jhn.v3.db",
+    path: ["file"],
+  });
 export type BundleInfo = z.infer<typeof BundleInfoSchema>;
 
 export const BundleManifestSchema = z.object({
