@@ -317,3 +317,31 @@ h3,p{margin:0}
 .inl{font-size:var(--title);font-weight:600;justify-self:center}
 .pg.pgs{padding-top:calc(54px + 60px)}
 .ax5 .pg.pgs{padding-top:140px}
+/* Depth: the passage's own word as the image (Tolan, Fable, Apple Books chapter openers) */
+.cover{position:relative;overflow:hidden}
+.ghost{position:absolute;right:-12px;top:-36px;font-size:190px;line-height:1;opacity:.07;white-space:nowrap;pointer-events:none;font-family:"Gentium Plus",serif}
+.ghost[lang="he"]{font-family:"Noto Serif Hebrew",serif;left:-12px;right:auto}
+.ghost.lit{font-family:Literata,serif;font-weight:600;top:-50px;font-size:220px}
+.ax5 .ghost{display:none}
+.coverlead{padding:14px 0 22px;align-items:flex-end}
+.cover .lbl{position:relative}
+.cw{position:relative;display:block;font-family:"Gentium Plus",serif;font-size:58px;line-height:1.1;letter-spacing:-0.5px;margin:6px 0 4px}
+.cw.lit{font-family:Literata,serif;font-size:30px;font-weight:600;letter-spacing:-0.4px;line-height:1.2}
+.ax5 .cw{font-size:var(--head)}
+.ax5 .cw.lit{font-size:var(--display)}
+.ct{position:relative;display:block;font-size:var(--claim);color:var(--muted)}
+.cf{position:relative;display:block;font-family:Literata,serif;font-size:var(--lrow);margin-top:10px}
+.stcover{padding-bottom:18px;margin-bottom:6px;box-shadow:0 1px 0 var(--div)}
+.stcover .ghost{top:-60px;font-size:200px}
+.numrow .lmain{display:flex;gap:12px;align-items:baseline}
+.num{font-family:Literata,serif;color:var(--muted);min-width:22px;font-variant-numeric:oldstyle-nums;font-size:var(--lrow)}
+.nt{font-family:Literata,serif;font-size:var(--lrow)}
+.numrow + .lmain{}
+.opener{font-family:Literata,serif;font-variant:small-caps;text-transform:lowercase;letter-spacing:.09em;font-size:17px;color:var(--muted);margin:2px 0 14px}
+.ax5 .opener{font-size:var(--note)}
+.wcover .ghost{top:-20px;font-size:240px;opacity:.05}
+.numrow .lsub{padding-left:34px}
+.ax5 .numrow .lsub{padding-left:0}
+.hw{font-size:calc(var(--head) * 1.5)}
+.ax5 .hw{font-size:var(--head)}
+.stcover .cw{margin-top:14px}

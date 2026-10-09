@@ -129,7 +129,7 @@ def verses_html(rows, sel=(), before=None, ch=None, bm=(), sup=None, book=None):
     return "".join(out)
 
 
-def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True, bm=(), sup=None, collapsed=False):
+def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True, bm=(), sup=None, collapsed=False, opener=None):
     title = f"{BOOK[book]} {ch} · BSB"
     rows = text("BSB", book, ch, a, b)
     h = header(back, title, scrolled)
@@ -139,6 +139,8 @@ def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, 
         name, tr = title.rsplit(" · ", 1)
         h = f'<div class="hdr mini"><button class="minit" aria-label="{E(name)}, {tr}. Shows controls">{E(name)} · {tr}</button></div>'
     hint_html = '<p class="hint">Tap a verse to see what it meant.</p>' if hint else ""
+    if opener:
+        hint_html += f'<p class="opener" role="heading">{E(opener)}</p>'
     foot_html = ""
     if foot:
         prev_ = f'<button class="clink">{ic("back", 18)}{E(foot[0])}</button>' if foot[0] else "<span></span>"
@@ -677,12 +679,46 @@ if STYLE != "v1":
     ic_frame = reader("1CO", 14, 33, 36, sel=(34,), offset=-70) + scrim() + understand("1co.14.34", "med")
     F("E-06", "Increase Contrast", [("Light · Increase Contrast", "light ic", ic_frame), ("Dark · Increase Contrast", "dark ic", ic_frame), ("AX5 · Increase Contrast", "ax5 ic", ic_frame)], "es")
 
+# ================= Depth (v2): the text as the image =================
+if STYLE != "v1":
+    def cover(word, lng, translit, gloss, foot):
+        d = ' dir="rtl"' if lng == "he" else ""
+        return (f'<span class="cw" lang="{lng}"{d}>{word}</span>'
+                f'<span class="ct">{E(translit)} · “{E(gloss)}”</span><span class="cf">{foot}</span>')
+
+    kwj = G["jhn.1.1"]["key_words"][0]
+    start_cover = (f'<button class="lead coverlead" aria-label="Start with John. {kwj["surface"]}, logos, word. 46 passages, in order">'
+                   f'<span class="rm cover"><span class="lbl">Start with John</span>{cover(kwj["surface"], "el", "logos", kwj["gloss"], "The Word became flesh · 1:1–18")}</span>'
+                   f'<span class="chev">{ic("right", 18)}</span></button>')
+    F("DP-01", "Home, first launch: typographic cover", page(None, "Yada", start_cover + sec("Old Testament", ot), right=HOME_ICONS), "dp")
+    # John 8:2 sits in a passage with no entry: the passage title carries the cover instead of a word
+    cont_cover = (f'<button class="lead coverlead"><span class="rm cover"><span class="lbl">Continue · John 8:2</span>'
+                  f'<span class="cw lit">The woman caught in adultery</span>'
+                  f'<span class="excerpt">{E(j82)}</span></span><span class="chev">{ic("right", 18)}</span></button>')
+    F("DP-02", "Home, returning: passage with no entry", page(None, "Yada", cont_cover + sec("New Testament", nt), right=HOME_ICONS), "dp")
+    numrows = ""
+    for i, (pid, lab) in enumerate(pers):
+        state = ' done' if i < 2 else (' nextrow' if i == 2 else '')
+        right = (f'<span class="ck" aria-label="read">{ic("check", 20)}</span>' if i < 2 else ('<span class="nextw">Next</span>' if i == 2 else None))
+        numrows += lrow(f'<span class="num">{i + 1}</span><span class="nt">{E(lab)}</span>', sub=prange(pid), right=right, chev=(i == 2), cls="numrow" + state)
+    st_cover = (f'<div class="cover stcover"><h1 class="ltitle">The Gospel of John</h1>'
+                f'<span class="cw" lang="el">{kwj["surface"]}</span><span class="ct">logos · “{E(kwj["gloss"])}” · 46 passages, in order</span></div>')
+    F("DP-03", "Start here: cover and numbered passages", pg_header(("Home", "Home")) + f'<div class="pg">{st_cover}{numrows}</div>', "dp")
+    F("DP-04", "Chapter opening: John 1", reader("JHN", 1, 1, 7, scrolled=False, opener="The Word became flesh"), "dp")
+    F("DP-05", "Chapter opening: Genesis 1", reader("GEN", 1, 1, 6, scrolled=False, opener="The first day"), "dp")
+    kwg = G["gen.1.1"]["key_words"][0]
+    wc = word_card(kwg["surface"], "he", "bərēʾšîṯ", "in beginning", "Preposition with noun, feminine singular absolute",
+                   "רֵאשִׁית", "rēʾšîṯ", "H7225", "beginning of", kwg["note"], "3 times in Genesis", "51 in the Bible", "Gloss: TAHOT · Parsing: OSHB",
+                   morphemes=G["gen.1.1"]["gloss"][0]["morphemes"])
+    F("DP-06", "Word card: Hebrew headword at cover scale", reader("GEN", 1, 1, 4, sel=(1,), scrolled=False) + scrim() + BACK_U("gen.1.1", start="orig", orig=True, mark=0) + scrim("s2") +
+      sheet("lg2", "Word", "Genesis 1:1", wc), "dp")
+
 # ---------- write files + index ----------
 W, H, GX, GY = 1430, 1026, 80, 120
 names, boards = [], {}
 y = 0
 notes = {}
-GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"), ("hs", "Home, Search, Contents"), ("ss", "Settings and saved"), ("es", "Edge states"), ("so", "Sources")) if STYLE != "v1" else ())
+GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"), ("hs", "Home, Search, Contents"), ("ss", "Settings and saved"), ("es", "Edge states"), ("so", "Sources"), ("dp", "Depth")) if STYLE != "v1" else ())
 for gi, (grp, label) in enumerate(GROUPS):
     fr = [f for f in FRAMES if f[3] == grp]
     notes[f"t_{grp}" + ("" if STYLE == "v1" else f"_{STYLE}")] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX}
