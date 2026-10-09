@@ -43,6 +43,14 @@ CREATE TABLE IF NOT EXISTS events (
   at       TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS events_by_time ON events (at);
+
+-- Which bundle files have been copied out of the app into the SQLite directory,
+-- and from which build of them. A copy is redone when the digest changes and
+-- deleted when the manifest stops listing it (see data/bundles.ts).
+CREATE TABLE IF NOT EXISTS installed_bundles (
+  file   TEXT PRIMARY KEY,
+  sha256 TEXT NOT NULL
+);
 `;
 
 /**

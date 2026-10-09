@@ -8,6 +8,8 @@
 
 import { useColorScheme } from "react-native";
 
+import { useSettings } from "../state/settings";
+
 export const FONTS = {
   scripture: "Literata",
   greek: "GentiumPlus",
@@ -42,12 +44,20 @@ const DARK: Palette = {
   selection: "#252118",
 };
 
-export function usePalette(): Palette {
-  return useColorScheme() === "dark" ? DARK : LIGHT;
+/**
+ * The reader's appearance choice wins over the system's. The root layout also
+ * pushes the choice into Appearance.setColorScheme so native sheets, the
+ * keyboard and the status bar agree; reading the setting here as well means a
+ * screen never renders one frame in the wrong palette while that propagates.
+ */
+export function useIsDark(): boolean {
+  const system = useColorScheme();
+  const appearance = useSettings((s) => s.appearance);
+  return appearance === "system" ? system === "dark" : appearance === "dark";
 }
 
-export function useIsDark(): boolean {
-  return useColorScheme() === "dark";
+export function usePalette(): Palette {
+  return useIsDark() ? DARK : LIGHT;
 }
 
 /**
@@ -77,7 +87,36 @@ export const TYPE = {
   explanation: { size: 17, ratio: 1.5, tracking: -0.05 },
   claim: { size: 16, ratio: 1.45, tracking: 0 },
   meta: { size: 12, ratio: 1.3, tracking: 1.1 },
+  /** Small prose — glosses, notes, captions. Untracked: the tracking above is for capitals. */
+  note: { size: 13, ratio: 1.4, tracking: 0 },
 } as const;
+
+export type TypeStep = keyof typeof TYPE;
+
+export interface ScaledType {
+  readonly size: number;
+  readonly lineHeight: number;
+  readonly tracking: number;
+}
+
+/**
+ * The reader's own text-size step multiplies the design sizes; Dynamic Type
+ * then scales the result natively (PRD §8.8 wants both). Scripture, original
+ * language and explanation follow the step; metadata labels and chrome stay
+ * put so the page keeps its proportions.
+ */
+const FOLLOWS_TEXT_SIZE: ReadonlySet<TypeStep> = new Set(["scripture", "original", "explanation", "claim", "headword"]);
+
+export function scaledType(step: TypeStep, textScale: number): ScaledType {
+  const spec = TYPE[step];
+  const size = FOLLOWS_TEXT_SIZE.has(step) ? Math.round(spec.size * textScale) : spec.size;
+  return { size, lineHeight: leading(size, spec.ratio), tracking: spec.tracking };
+}
+
+export function useType(step: TypeStep): ScaledType {
+  const textScale = useSettings((s) => s.textScale);
+  return scaledType(step, textScale);
+}
 
 export const SPACE = {
   xs: 4,

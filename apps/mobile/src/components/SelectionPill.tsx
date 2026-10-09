@@ -1,49 +1,65 @@
 /**
- * The contextual action pill.
+ * The contextual actions for selected verses: Understand · Original · Compare · ⋯
  *
- * Anchored to the selection rather than pinned to the bottom of the screen:
- * that is the reading-app convention (Apple Books, Fable, Pocket, Matter) and
- * it keeps the relationship between the tapped verse and its actions obvious.
- * A bar pinned to the screen edge is the YouVersion pattern, and it severs that
- * relationship.
+ * Anchored to the selection, the reading-app convention (Apple Books, Fable,
+ * Pocket, Matter — e.g. https://mobbin.com/screens/37c599ad-b4f0-469e-825e-6e2e972b6953),
+ * not pinned to the screen edge. Secondary actions sit behind ⋯ the way
+ * Medium's selection menu does (https://mobbin.com/screens/b14f7259-5a06-4b23-aee7-d6a3d789b27a),
+ * because the brief replaces Share-first with Understand-first.
  *
- * Understand is dominant. The other actions are present but quiet — the brief
- * cuts the action count and replaces Share-first with Understand-first.
+ * Fixes the 0A AX3 failure: shape and placement come from lib/pill.ts —
+ * a vertical list once the labels no longer fit on a line, and always beside
+ * the selection rather than on top of it.
  */
 
-import { useEffect, useRef } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 
-import { SPACE, SPRING, TYPE, useIsDark, usePalette } from "../design/tokens";
+import { SPACE, SPRING, useIsDark, usePalette } from "../design/tokens";
+import { pillShape, placePill } from "../lib/pill";
+import { Chrome } from "./Type";
 
-const PILL_HEIGHT = 46;
+export interface SelectionRect {
+  readonly top: number;
+  readonly bottom: number;
+}
 
 export function SelectionPill({
-  label,
-  anchorY,
+  rect,
+  minTop,
+  maxBottom,
   onUnderstand,
+  onOriginal,
+  onCompare,
+  onMore,
 }: {
-  label: string;
-  /** Screen y of the tap that made the selection. */
-  anchorY: number;
+  rect: SelectionRect;
+  minTop: number;
+  maxBottom: number;
   onUnderstand: () => void;
+  onOriginal: () => void;
+  onCompare: () => void;
+  onMore: () => void;
 }) {
   const palette = usePalette();
   const isDark = useIsDark();
+  const { width, fontScale } = useWindowDimensions();
+  const shape = pillShape(fontScale, width - SPACE.md * 2);
+  const [height, setHeight] = useState<number | null>(null);
   const enter = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // The pill did not arrive from a throw, so it is critically damped:
-    // overshoot on something that merely appeared reads as decoration.
-    Animated.spring(enter, {
-      toValue: 1,
-      ...SPRING.standard,
-      useNativeDriver: true,
-    }).start();
+    // Critically damped: overshoot on something that merely appeared reads as decoration.
+    Animated.spring(enter, { toValue: 1, ...SPRING.standard, useNativeDriver: true }).start();
   }, [enter]);
 
-  // Sit above the tap, clamped into the safe reading area.
-  const top = Math.max(70, Math.min(anchorY - PILL_HEIGHT - 22, 700));
+  const top = height === null ? -1000 : placePill(rect.top, rect.bottom, height, minTop, maxBottom).top;
+  const separator =
+    shape === "row" ? (
+      <View style={[styles.rowSeparator, { backgroundColor: palette.divider }]} />
+    ) : (
+      <View style={[styles.columnSeparator, { backgroundColor: palette.divider }]} />
+    );
 
   return (
     <Animated.View
@@ -52,30 +68,27 @@ export function SelectionPill({
         styles.wrapper,
         {
           top,
-          opacity: enter,
-          transform: [
-            {
-              scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }),
-            },
-          ],
+          opacity: height === null ? 0 : enter,
+          transform: [{ scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }],
         },
       ]}
     >
       <View
+        onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
         style={[
-          styles.pill,
-          {
-            backgroundColor: palette.paper,
-            borderColor: palette.divider,
-            shadowOpacity: isDark ? 0.5 : 0.16,
-          },
+          shape === "row" ? styles.row : styles.column,
+          { backgroundColor: palette.paper, borderColor: palette.divider, shadowOpacity: isDark ? 0.5 : 0.14 },
         ]}
+        accessibilityRole="menu"
+        testID="selection-pill"
       >
-        <Action label={`Understand ${label}`} dominant onPress={onUnderstand} />
-        <View style={[styles.separator, { backgroundColor: palette.divider }]} />
-        <Action label="Original" />
-        <View style={[styles.separator, { backgroundColor: palette.divider }]} />
-        <Action label="Compare" />
+        <Action label="Understand" dominant onPress={onUnderstand} shape={shape} />
+        {separator}
+        <Action label="Original" onPress={onOriginal} shape={shape} />
+        {separator}
+        <Action label="Compare" onPress={onCompare} shape={shape} />
+        {separator}
+        <Action label="⋯" accessibilityLabel="More: copy, share, bookmark" onPress={onMore} shape={shape} />
       </View>
     </Animated.View>
   );
@@ -85,31 +98,31 @@ function Action({
   label,
   dominant = false,
   onPress,
+  shape,
+  accessibilityLabel,
 }: {
   label: string;
   dominant?: boolean;
-  onPress?: () => void;
+  onPress: () => void;
+  shape: "row" | "column";
+  accessibilityLabel?: string;
 }) {
   const palette = usePalette();
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
-        styles.action,
-        // Feedback on press-in, not on release. Waiting for touch-up feels dead.
+        shape === "row" ? styles.rowAction : styles.columnAction,
+        // Feedback on press-in, not on release.
         pressed ? { backgroundColor: palette.selection } : null,
       ]}
-      accessibilityRole="button"
+      accessibilityRole="menuitem"
+      accessibilityLabel={accessibilityLabel ?? label}
+      testID={`pill-${label === "⋯" ? "more" : label.toLowerCase()}`}
     >
-      <Text
-        style={{
-          fontSize: TYPE.claim.size,
-          color: dominant ? palette.accent : palette.mutedInk,
-          fontWeight: dominant ? "600" : "400",
-        }}
-      >
+      <Chrome size={16} tone={dominant ? "accent" : "muted"} style={dominant ? { fontWeight: "600" } : null}>
         {label}
-      </Text>
+      </Chrome>
     </Pressable>
   );
 }
@@ -121,24 +134,39 @@ const styles = StyleSheet.create({
     right: SPACE.md,
     alignItems: "center",
   },
-  pill: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: PILL_HEIGHT / 2,
+    borderRadius: 23,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: SPACE.xs,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 16,
-    elevation: 6,
   },
-  action: {
-    paddingHorizontal: SPACE.md,
+  column: {
+    alignSelf: "stretch",
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: "visible",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 16,
+  },
+  rowAction: {
+    paddingHorizontal: 14,
     paddingVertical: SPACE.sm + 2,
-    borderRadius: PILL_HEIGHT / 2,
+    borderRadius: 23,
   },
-  separator: {
+  columnAction: {
+    paddingHorizontal: SPACE.lg,
+    paddingVertical: SPACE.md,
+  },
+  rowSeparator: {
     width: StyleSheet.hairlineWidth,
     height: 20,
+  },
+  columnSeparator: {
+    height: StyleSheet.hairlineWidth,
   },
 });

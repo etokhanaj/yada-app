@@ -1,209 +1,88 @@
 /**
- * Claim rows and the "Why do we say that?" chain of custody.
+ * Claim rows: scholarly marginalia, never cards.
  *
- * Claims render as scholarly marginalia: quiet rows with tiny tracked-uppercase
- * labels, never contained cards. Containers make Yada read as an AI knowledge
- * product; the typography carries the hierarchy instead. Debate is presented
- * without visually staging a debate — different rhythm, not different colour,
- * and no winner anywhere.
+ * Quiet rows separated by hairlines, a tiny tracked-uppercase label, the claim
+ * in prose. The label is the evidence strength the reader is meant to see —
+ * never the internal confidence, and never the four-category taxonomy, which
+ * the reader meets only as the two neutral groups (claims.ts, displayGroup).
+ * Debate has no winner: positions are counted, not ranked.
  */
 
-import { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-
 import type { Claim } from "@yada/schema";
-import { leading, LTR_PROSE, METADATA_LABEL, SPACE, TYPE, usePalette } from "../design/tokens";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
-function strengthLabel(claim: Claim): string {
-  return `${claim.category} · ${claim.evidence_strength}`;
-}
+import { SPACE, usePalette } from "../design/tokens";
+import { Chrome, Label, Prose } from "./Type";
 
-export function ClaimList({ claims }: { claims: Claim[] }) {
-  const [open, setOpen] = useState<Claim | null>(null);
+export function ClaimGroup({
+  title,
+  claims,
+  cap,
+  verseId,
+}: {
+  title: string;
+  claims: readonly Claim[];
+  cap: number;
+  verseId: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
   const palette = usePalette();
+  if (claims.length === 0) return null;
+  const visible = expanded ? claims : claims.slice(0, cap);
 
   return (
-    <View>
-      {claims.map((claim) => (
+    <View style={{ marginTop: SPACE.xl }}>
+      <Label style={{ marginBottom: SPACE.sm }}>{title}</Label>
+      {visible.map((claim) => (
         <Pressable
           key={claim.id}
-          onPress={() => setOpen(claim)}
+          onPress={() => router.push({ pathname: "/why", params: { verse: verseId, claim: claim.id } })}
           style={({ pressed }) => [
             styles.row,
             { borderTopColor: palette.divider },
-            // Feedback on press-in: waiting for release feels dead.
+            // Feedback on press-in; waiting for release feels dead.
             pressed ? { backgroundColor: palette.selection } : null,
           ]}
           accessibilityRole="button"
           accessibilityHint="Opens why we say that"
+          testID={`claim-${claim.id}`}
         >
-          <Text style={[METADATA_LABEL, { color: palette.mutedInk }]}>{strengthLabel(claim)}</Text>
-          <Text
-            style={[
-              LTR_PROSE,
-              {
-                fontSize: TYPE.claim.size,
-                lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
-                color: palette.ink,
-                marginTop: SPACE.xs,
-              },
-            ]}
-          >
+          <Label accessibilityRole="text">{claim.evidence_strength}</Label>
+          <Prose step="claim" style={{ marginTop: SPACE.xs }}>
             {claim.claim}
-          </Text>
+          </Prose>
           {claim.positions !== undefined ? (
-            <Text
-              style={{
-                fontSize: TYPE.meta.size,
-                color: palette.accent,
-                marginTop: SPACE.xs,
-              }}
-            >
+            <Chrome size={13} style={{ marginTop: SPACE.xs }}>
               Compare {claim.positions.length} positions
-            </Text>
+            </Chrome>
           ) : null}
         </Pressable>
       ))}
-
-      <WhySheet claim={open} onDismiss={() => setOpen(null)} />
-    </View>
-  );
-}
-
-/**
- * One pattern, three renderings: morphological claims show parsing and source,
- * historical claims show the statement and its grounding, interpretive claims
- * show the positions. It answers "how do you know?" identically everywhere.
- */
-function WhySheet({ claim, onDismiss }: { claim: Claim | null; onDismiss: () => void }) {
-  const palette = usePalette();
-  if (claim === null) return null;
-
-  return (
-    <Modal animationType="slide" presentationStyle="pageSheet" onRequestClose={onDismiss}>
-      <View style={{ flex: 1, backgroundColor: palette.paper }}>
-        <ScrollView contentContainerStyle={styles.sheetBody}>
-          <Text style={[METADATA_LABEL, { color: palette.mutedInk }]}>Why do we say that?</Text>
-          <Text
-            style={[
-              LTR_PROSE,
-              {
-                fontSize: TYPE.explanation.size,
-                lineHeight: leading(TYPE.explanation.size, TYPE.explanation.ratio),
-                color: palette.ink,
-                marginTop: SPACE.sm,
-              },
-            ]}
-          >
-            {claim.claim}
-          </Text>
-
-          <Section title="Grounding" palette={palette}>
-            <Text style={{ fontSize: TYPE.claim.size, color: palette.ink }}>
-              {claim.grounding === "source_data"
-                ? "Recoverable from the supplied source data."
-                : "Model knowledge, not grounded in a supplied dataset. Capped at supported and hedged."}
-            </Text>
-          </Section>
-
-          {claim.evidence.length > 0 ? (
-            <Section title="Evidence" palette={palette}>
-              {claim.evidence.map((evidence, index) => (
-                <Text
-                  key={index}
-                  style={[
-                    LTR_PROSE,
-                    {
-                      fontSize: TYPE.claim.size,
-                      lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
-                      color: palette.ink,
-                      marginBottom: SPACE.xs,
-                    },
-                  ]}
-                >
-                  {evidence.type === "verse"
-                    ? `${evidence.ref}${evidence.note === undefined ? "" : ` — ${evidence.note}`}`
-                    : evidence.type === "lexical"
-                      ? `${evidence.lemma}${evidence.strongs === undefined ? "" : ` (${evidence.strongs})`}${
-                          evidence.note === undefined ? "" : ` — ${evidence.note}`
-                        }${evidence.dataset === undefined ? "" : `  ·  ${evidence.dataset}`}`
-                      : `${evidence.ref}${evidence.dataset === undefined ? "" : `  ·  ${evidence.dataset}`}`}
-                </Text>
-              ))}
-            </Section>
-          ) : null}
-
-          {claim.positions !== undefined ? (
-            <Section title="Where interpretation differs" palette={palette}>
-              {claim.positions.map((position) => (
-                <View key={position.label} style={{ marginBottom: SPACE.md }}>
-                  <Text
-                    style={{
-                      fontSize: TYPE.claim.size,
-                      fontWeight: "600",
-                      color: palette.ink,
-                    }}
-                  >
-                    {position.label}
-                  </Text>
-                  <Text
-                    style={[
-                      LTR_PROSE,
-                      {
-                        fontSize: TYPE.claim.size,
-                        lineHeight: leading(TYPE.claim.size, TYPE.claim.ratio),
-                        color: palette.ink,
-                        marginTop: SPACE.xs,
-                      },
-                    ]}
-                  >
-                    {position.case}
-                  </Text>
-                </View>
-              ))}
-            </Section>
-          ) : null}
-        </ScrollView>
-
-        <Pressable onPress={onDismiss} style={[styles.backBar, { borderTopColor: palette.divider }]}>
-          <Text style={{ color: palette.accent, fontSize: TYPE.claim.size }}>‹ Back</Text>
+      {claims.length > cap ? (
+        <Pressable onPress={() => setExpanded((v) => !v)} style={{ paddingTop: SPACE.md }} accessibilityRole="button">
+          <Chrome size={16}>{expanded ? "Show fewer" : `Show all ${claims.length}`}</Chrome>
         </Pressable>
-      </View>
-    </Modal>
+      ) : null}
+    </View>
   );
 }
 
-function Section({
-  title,
-  palette,
-  children,
-}: {
-  title: string;
-  palette: ReturnType<typeof usePalette>;
-  children: React.ReactNode;
-}) {
-  return (
-    <View style={{ marginTop: SPACE.lg }}>
-      <Text style={[METADATA_LABEL, { color: palette.mutedInk, marginBottom: SPACE.sm }]}>
-        {title}
-      </Text>
-      {children}
-    </View>
-  );
+/** Two neutral groups, each in display_rank order (PRD §8.2). */
+export function groupClaims(claims: readonly Claim[]): { seen: Claim[]; differs: Claim[] } {
+  const byRank = (a: Claim, b: Claim): number => a.display_rank - b.display_rank;
+  return {
+    seen: claims.filter((c) => c.category === "text" || c.category === "context").sort(byRank),
+    differs: claims.filter((c) => c.category === "interpretation" || c.category === "debated").sort(byRank),
+  };
 }
 
 const styles = StyleSheet.create({
   row: {
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingVertical: SPACE.md,
-  },
-  sheetBody: {
-    padding: SPACE.lg,
-    paddingBottom: SPACE.xl,
-  },
-  backBar: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    padding: SPACE.md,
-    alignItems: "center",
+    marginHorizontal: -SPACE.sm,
+    paddingHorizontal: SPACE.sm,
   },
 });
