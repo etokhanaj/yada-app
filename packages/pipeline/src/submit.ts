@@ -40,6 +40,15 @@ export function maxTokensFor(verses: number): number {
   return Math.min(verses * 7000 + 24000, 128_000);
 }
 
+/**
+ * The SDK's default 10-minute timeout cut Opus off twice on 1 Cor 14:26-40
+ * (15 verses at ~6k output tokens each). A long pericope needs longer, and
+ * every caller that generates — the live regression included — needs the same.
+ */
+export function generationClient(): Anthropic {
+  return new Anthropic({ apiKey: requireApiKey(), timeout: 30 * 60 * 1000 });
+}
+
 export interface GenerationResult {
   pericopeId: string;
   model: string;
@@ -88,10 +97,7 @@ export async function generatePericope(
   if (request === null) throw new Error(`${pericope.id} does not parse`);
   if (request.verses.length === 0) throw new Error(`${pericope.id} has no tokens in staging.db`);
 
-  const client = options.client ??
-    // The SDK's default 10-minute timeout cut Opus off twice on 1 Cor 14:26-40
-    // (15 verses at ~6k output tokens each). A long pericope needs longer.
-    new Anthropic({ apiKey: requireApiKey(), timeout: 30 * 60 * 1000 });
+  const client = options.client ?? generationClient();
   const messages = [{ role: "user" as const, content: request.body }];
   const maxTokens = maxTokensFor(request.verses.length);
 
@@ -137,6 +143,7 @@ export async function generatePericope(
       thinking_tokens: 0,
       cost_usd: priceUsage(model, inputTokens, maxTokens),
       estimated: true,
+      stage: options.stage ?? "generate",
     });
     throw error;
   }
@@ -151,17 +158,8 @@ export async function generatePericope(
     .map((block) => block.text)
     .join("");
 
-  // Written before parsing, so a malformed response is still evidence rather
-  // than something that vanishes when a parse throws.
-  writeFileSync(
-    path.join(options.responsesDir ?? RESPONSES, `${pericope.id}.${model}.json`),
-    `${JSON.stringify(
-      { pericope_id: pericope.id, model, stop_reason: message.stop_reason, usage: message.usage, text },
-      null,
-      2,
-    )}\n`,
-  );
-
+  // Recorded before the response file is written: the money is already spent,
+  // and a failed write (a responsesDir that does not exist) must not lose it.
   const record: UsageRecord = {
     at: new Date().toISOString(),
     model,
@@ -174,6 +172,17 @@ export async function generatePericope(
     stage: options.stage ?? "generate",
   };
   recordUsage(record);
+
+  // Written before parsing, so a malformed response is still evidence rather
+  // than something that vanishes when a parse throws.
+  writeFileSync(
+    path.join(options.responsesDir ?? RESPONSES, `${pericope.id}.${model}.json`),
+    `${JSON.stringify(
+      { pericope_id: pericope.id, model, stop_reason: message.stop_reason, usage: message.usage, text },
+      null,
+      2,
+    )}\n`,
+  );
 
   return {
     pericopeId: pericope.id,
