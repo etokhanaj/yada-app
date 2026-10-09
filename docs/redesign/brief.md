@@ -394,3 +394,7 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
     title carries it in Literata. Chapter openings show the passage title in small caps above verse 1.
     Start here passages are numbered in Literata. No illustration, mood photography or background
     watermark; manuscript photography only after image rights clear PRD 0E.
+15. **Brand** (kit v1.0, 9 Oct; details `brand/README.md`): palette moves from warm paper + navy to chalk
+    + forest, chartreuse as the dark-mode accent and the difference highlighter. Home title is the
+    outlined wordmark. App icon, dark and tinted icons, splash symbol and web favicons from the kit.
+    Kit fonts (Inter, Fraunces) and mobile UI concepts not adopted.

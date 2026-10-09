@@ -3,8 +3,8 @@ body{margin:0}
 .col{display:flex;flex-direction:column;gap:16px;width:402px;flex:none}
 .cap{height:40px;display:flex;align-items:flex-end;font-size:15px;font-weight:600;color:#3A3631}
 /* Brief §3 colours, plus two derived surfaces: --fill (capsule and circle buttons) and --sheet (raised sheet ground). */
-.light,.ax5{--paper:#FBF9F5;--paper0:rgba(251,249,245,0);--ink:#1A1714;--muted:#6B635A;--div:#E9E4DB;--accent:#1F3A5F;--sel:#E4EBF4;--hl:#F4E7CB;--glass:rgba(255,255,255,.74);--edge:rgba(26,23,20,.1);--fill:rgba(26,23,20,.06);--sheet:#FFFFFF;--scrim:rgba(26,23,20,.2);--lift:0 10px 40px rgba(26,23,20,.14),0 0 0 .5px rgba(26,23,20,.06)}
-.dark{--paper:#14120F;--paper0:rgba(20,18,15,0);--ink:#EDE7DD;--muted:#9A9086;--div:#2C2823;--accent:#9BB8DE;--sel:#232A34;--hl:#3A3021;--glass:rgba(46,42,37,.74);--edge:rgba(255,255,255,.09);--fill:rgba(237,231,221,.09);--sheet:#1E1B17;--scrim:rgba(0,0,0,.55);--lift:0 0 0 1px #34302A}
+.light,.ax5{--paper:#F7F8F0;--paper0:rgba(247,248,240,0);--ink:#16231E;--muted:#526D63;--div:#DFE5D7;--accent:#183F35;--sel:#E7EED8;--hl:#DBEC9A;--glass:rgba(255,255,255,.74);--edge:rgba(22,35,30,.1);--fill:rgba(22,35,30,.06);--sheet:#FFFFFF;--scrim:rgba(22,35,30,.2);--lift:0 10px 40px rgba(22,35,30,.14),0 0 0 .5px rgba(22,35,30,.06)}
+.dark{--paper:#0E1814;--paper0:rgba(14,24,20,0);--ink:#ECF0E4;--muted:#9AAFA4;--div:#22332C;--accent:#DBEC9A;--sel:#1A2D25;--hl:#3B4A22;--glass:rgba(30,45,38,.74);--edge:rgba(255,255,255,.09);--fill:rgba(236,240,228,.09);--sheet:#16231E;--scrim:rgba(0,0,0,.55);--lift:0 0 0 1px #2A3D35}
 .light,.dark{--scr:21px;--vn:12px;--orig:24px;--head:40px;--expl:17px;--claim:16px;--title:17px;--chrome:17px;--note:13px;--label:13px;--gut:24px;--secgap:28px;--pill:48px;--hdrh:106px}
 .ax5{--scr:52px;--vn:33px;--orig:60px;--head:58px;--expl:53px;--claim:50px;--title:34px;--chrome:34px;--note:40px;--label:37px;--gut:16px;--secgap:24px;--pill:64px;--hdrh:196px}
 .light .a,.dark .a{display:none !important}
@@ -283,8 +283,8 @@ h3,p{margin:0}
 .srcl{color:var(--accent);font-weight:600;font-size:15px}
 .ax5 .srcl{font-size:var(--claim)}
 .nog{margin-top:12px}
-.light{--scrim:rgba(26,23,20,.26)}
-.ax5{--scrim:rgba(26,23,20,.26)}
+.light{--scrim:rgba(22,35,30,.26)}
+.ax5{--scrim:rgba(22,35,30,.26)}
 .exm{display:inline-flex;vertical-align:-1px;color:var(--muted);opacity:.85}
 .ax5 .exm .i{width:30px;height:30px}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:6px}
@@ -292,9 +292,9 @@ h3,p{margin:0}
 .thumb{width:100%;height:84px;border-radius:12px;box-shadow:0 0 0 1px var(--edge);display:flex;flex-direction:column;justify-content:center;gap:7px;padding:0 14px;box-sizing:border-box}
 .thumb span{height:3px;border-radius:2px;background:currentColor;opacity:.75}
 .thumb span:nth-child(3){width:60%}
-.th-light{background:#FBF9F5;color:#1A1714}
-.th-dark{background:#14120F;color:#EDE7DD}
-.th-system{background:linear-gradient(135deg,#FBF9F5 50%,#14120F 50%);color:#8A8178}
+.th-light{background:#F7F8F0;color:#16231E}
+.th-dark{background:#0E1814;color:#ECF0E4}
+.th-system{background:linear-gradient(135deg,#F7F8F0 50%,#0E1814 50%);color:#8A8178}
 .tile.on .thumb{box-shadow:0 0 0 2px var(--ink)}
 .tlab{display:flex;align-items:center;gap:4px;font-size:15px}
 .tile.on .tlab{font-weight:600}
@@ -309,8 +309,8 @@ h3,p{margin:0}
 .hdr.mini ~ .rbody{padding-top:110px}
 .ax5 .hdr.mini ~ .rbody{padding-top:130px}
 /* Increase Contrast (brief §3): mutedInk and divider swap; surfaces get firmer edges */
-.light.ic,.ax5.ic{--muted:#4F4740;--div:#8A7E6C;--edge:rgba(26,23,20,.35);--fill:rgba(26,23,20,.1)}
-.dark.ic{--muted:#B8AEA3;--div:#706659;--edge:rgba(255,255,255,.3);--fill:rgba(237,231,221,.14)}
+.light.ic,.ax5.ic{--muted:#3F584F;--div:#7E9187;--edge:rgba(22,35,30,.35);--fill:rgba(22,35,30,.1)}
+.dark.ic{--muted:#B5C6BC;--div:#5E7369;--edge:rgba(255,255,255,.3);--fill:rgba(237,231,221,.14)}
 .ic .sheet{box-shadow:0 0 0 1px var(--div)}
 .nowrap{white-space:nowrap}
 .bmk .i{width:15px;height:15px}
@@ -345,3 +345,6 @@ h3,p{margin:0}
 .hw{font-size:calc(var(--head) * 1.5)}
 .ax5 .hw{font-size:var(--head)}
 .stcover .cw{margin-top:14px}
+.wordmark{display:block;height:44px;width:auto;color:var(--accent);margin:0 0 4px -4px}
+.ax5 .wordmark{height:72px}
+.dark .wordmark{color:var(--ink)}
