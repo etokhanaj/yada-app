@@ -10,9 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "studio.yada.reader",
+      "buildNumber": "1",
       "supportsTablet": false,
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "plugins": [
