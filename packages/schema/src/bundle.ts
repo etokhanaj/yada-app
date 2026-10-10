@@ -19,7 +19,8 @@
 
 import { z } from "zod";
 
-import { BOOK_ORDER, type BookCode, BookCodeSchema } from "./refs.js";
+import { LicenseSchema } from "./manifest.js";
+import { BOOK_ORDER, type BookCode, BookCodeSchema, VerseIdSchema } from "./refs.js";
 
 /** Bumped when a table or column changes in a way an older app cannot read. */
 export const BUNDLE_FORMAT = 2;
@@ -164,6 +165,31 @@ CREATE TABLE pericopes (
 CREATE INDEX pericopes_by_range ON pericopes (start_ord, end_ord);
 `;
 
+/**
+ * A downloadable translation (docs/more-translations-plan.md): one small file per version, ATTACHed
+ * beside core on device. `texts` is keyed by verse ord alone because the file holds one translation;
+ * which one is in `meta.code`. The search index reads its text from `texts`, as core's does.
+ */
+export const TRANSLATION_DDL = `
+CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+
+CREATE TABLE texts (
+  ord  INTEGER PRIMARY KEY,
+  text TEXT NOT NULL
+);
+
+CREATE VIRTUAL TABLE texts_fts USING fts5(
+  text,
+  content = 'texts',
+  content_rowid = 'ord',
+  tokenize = 'unicode61 remove_diacritics 2'
+);
+`;
+
+export function translationFileName(code: string, version: number): string {
+  return `translation-${code.toLowerCase()}.v${version}.db`;
+}
+
 // ---------------------------------------------------------------------------
 // Morphemes, stored as tuples
 // ---------------------------------------------------------------------------
@@ -255,6 +281,40 @@ export const BundleInfoSchema = z
   });
 export type BundleInfo = z.infer<typeof BundleInfoSchema>;
 
+/** Fixed per version so readers learn them; identity, never state (more-translations-plan.md). */
+export const CoverToneSchema = z.enum(["forest", "paper", "ink", "lime", "sage"]);
+export type CoverTone = z.infer<typeof CoverToneSchema>;
+
+export const TranslationInfoSchema = z
+  .object({
+    code: z.string().regex(/^[A-Z0-9]{2,8}$/),
+    name: z.string().min(1),
+    year: z.number().int(),
+    version: z.number().int().positive(),
+    file: z.string().min(1),
+    sha256: z.string().regex(/^[0-9a-f]{64}$/),
+    bytes: z.number().int().positive(),
+    /**
+     * The gzip-compressed size, what the phone actually fetches: publish uploads translations with
+     * Content-Encoding gzip, and `sha256` and `bytes` stay those of the decompressed file, which is
+     * what the app verifies. Optional, so a manifest written before compression still parses.
+     */
+    download_bytes: z.number().int().positive().optional(),
+    format: z.number().int().positive(),
+    license: LicenseSchema,
+    attribution: z.string().min(1),
+    cover: CoverToneSchema,
+    verses: z.number().int().positive(),
+    /** Verses of the English versification this translation does not print. */
+    missing: z.array(VerseIdSchema),
+  })
+  // The same guard as bundles: publish uploads `file` from disk by this name.
+  .refine((info) => info.file === translationFileName(info.code, info.version), {
+    message: "file must be the translation's own code and version, e.g. translation-ylt.v1.db",
+    path: ["file"],
+  });
+export type TranslationInfo = z.infer<typeof TranslationInfoSchema>;
+
 export const BundleManifestSchema = z.object({
   format: z.number().int().positive(),
   generated_at: z.string().min(1),
@@ -262,5 +322,10 @@ export const BundleManifestSchema = z.object({
   /** The entry schema versions an app must support to read these bundles. */
   schema_versions: z.array(z.string().min(1)).min(1),
   bundles: z.array(BundleInfoSchema),
+  /**
+   * Separate from `bundles`, and optional, so an installed app whose `kind` enum knows only core
+   * and understand still reads a manifest that offers downloads.
+   */
+  translations: z.array(TranslationInfoSchema).optional(),
 });
 export type BundleManifest = z.infer<typeof BundleManifestSchema>;

@@ -31,6 +31,7 @@ import {
   searchWordsByGloss,
 } from "../data/queries";
 import { useLayout, usePalette } from "../design/tokens";
+import { fieldDirection } from "../lib/fieldDirection";
 import { excerptOf } from "../lib/reader";
 import { createSearchLogger } from "../lib/searchLog";
 import { planSearch, type SearchPlan, splitSnippet } from "../lib/searchQuery";
@@ -99,6 +100,9 @@ export default function SearchScreen() {
     jumpTo(target);
   };
 
+  // From the raw input, not the debounced query, so the first Hebrew letter turns the field at once.
+  const direction = fieldDirection(input);
+
   const empty =
     query.length >= 2 &&
     data !== undefined && data !== null && data.reference === null && data.passages.length === 0 && data.words.length === 0;
@@ -125,7 +129,15 @@ export default function SearchScreen() {
           placeholderTextColor={palette.mutedInk}
           maxFontSizeMultiplier={2}
           // Direction follows the first strong character, so Hebrew types right to left (brief §5).
-          style={{ flex: 1, color: palette.ink, fontSize: 17, textAlign: "auto" }}
+          // Alignment is set with it rather than left to "auto", so the field does not depend on
+          // how UITextField resolves natural alignment against an LTR app.
+          style={{
+            flex: 1,
+            color: palette.ink,
+            fontSize: 17,
+            writingDirection: direction,
+            textAlign: direction === "rtl" ? "right" : "left",
+          }}
           accessibilityLabel="Search the Bible"
           testID="search-field"
         />

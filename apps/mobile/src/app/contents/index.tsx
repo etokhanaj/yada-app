@@ -4,12 +4,13 @@ import { useRef } from "react";
 import type { ScrollView } from "react-native";
 import { View } from "react-native";
 
-import { TranslationSwitch } from "../../components/Contents";
+import { TranslationValueRow } from "../../components/Contents";
+import { Icon } from "../../components/Icon";
 import { ListRow } from "../../components/Page";
 import { SheetScreen } from "../../components/Sheet";
-import { Chrome, Label } from "../../components/Type";
+import { Label } from "../../components/Type";
 
-/** Books, the one being read marked `Reading` with the wash and bar (C-01). */
+/** Books, the one being read marked with a tick and semibold (C-01, MT-01): the wash is for verses and Next. */
 export default function ContentsBooks() {
   const params = useLocalSearchParams<{ book?: string; chapter?: string }>();
   const current: BookCode | null = params.book !== undefined && isBookCode(params.book) ? params.book : null;
@@ -25,7 +26,7 @@ export default function ContentsBooks() {
 
   return (
     <SheetScreen title="Contents" backLabel={null} footer={false} scrollRef={scroll} testID="contents">
-      <TranslationSwitch />
+      <TranslationValueRow />
       {groups.map((group, gi) => (
         <View key={group.title} style={{ marginTop: gi === 0 ? 0 : 28 }}>
           <Label style={{ marginBottom: 6 }}>{group.title}</Label>
@@ -49,15 +50,9 @@ export default function ContentsBooks() {
                 <ListRow
                   first={i === 0}
                   book
-                  here={reading}
+                  chosen={reading}
                   title={BOOK_CODES[book].name}
-                  right={
-                    reading ? (
-                      <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
-                        Reading
-                      </Chrome>
-                    ) : undefined
-                  }
+                  right={reading ? <Icon name="check" size={22} tone="accent" /> : undefined}
                   label={`${BOOK_CODES[book].name}${reading ? ", reading" : ""}`}
                   onPress={() =>
                     router.push({

@@ -80,6 +80,26 @@ CREATE TABLE IF NOT EXISTS batches (
   state      TEXT NOT NULL
 );
 
+-- One row per request in a submitted Message Batch. Batch custom_ids cannot
+-- contain the dots in a pericope id, so this is where a result is mapped back
+-- to the pericope, model and verses it was built for. collected_at makes
+-- batch collect safe to re-run.
+CREATE TABLE IF NOT EXISTS batch_requests (
+  batch_id     TEXT NOT NULL,
+  custom_id    TEXT NOT NULL,
+  pericope_id  TEXT NOT NULL,
+  model        TEXT NOT NULL,
+  verses       INTEGER NOT NULL,
+  input_tokens INTEGER NOT NULL,
+  max_tokens   INTEGER NOT NULL,
+  part         INTEGER NOT NULL DEFAULT 1,
+  parts        INTEGER NOT NULL DEFAULT 1,
+  verse_ids    TEXT,
+  result       TEXT,
+  collected_at TEXT,
+  PRIMARY KEY (batch_id, custom_id)
+);
+
 CREATE TABLE IF NOT EXISTS texts (
   translation TEXT NOT NULL,
   verse_id    TEXT NOT NULL,
@@ -143,6 +163,21 @@ function migrate(db: DatabaseSync): void {
   );
   if (!columns.has("gloss")) db.exec("ALTER TABLE tokens ADD COLUMN gloss TEXT");
   if (!columns.has("gloss_source")) db.exec("ALTER TABLE tokens ADD COLUMN gloss_source TEXT");
+
+  // The batches table predates the batch path, so its spend columns arrive here.
+  const batchColumns = new Set(
+    db.prepare("PRAGMA table_info(batches)").all().map((row) => String(row["name"])),
+  );
+  if (!batchColumns.has("models")) db.exec("ALTER TABLE batches ADD COLUMN models TEXT");
+  if (!batchColumns.has("requests")) db.exec("ALTER TABLE batches ADD COLUMN requests INTEGER");
+  if (!batchColumns.has("projected_usd")) db.exec("ALTER TABLE batches ADD COLUMN projected_usd REAL");
+
+  const requestColumns = new Set(
+    db.prepare("PRAGMA table_info(batch_requests)").all().map((row) => String(row["name"])),
+  );
+  if (!requestColumns.has("part")) db.exec("ALTER TABLE batch_requests ADD COLUMN part INTEGER NOT NULL DEFAULT 1");
+  if (!requestColumns.has("parts")) db.exec("ALTER TABLE batch_requests ADD COLUMN parts INTEGER NOT NULL DEFAULT 1");
+  if (!requestColumns.has("verse_ids")) db.exec("ALTER TABLE batch_requests ADD COLUMN verse_ids TEXT");
 }
 
 /**

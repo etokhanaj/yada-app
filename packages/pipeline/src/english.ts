@@ -16,8 +16,8 @@ import { BOOK_CODES, BOOK_ORDER, type BookCode } from "@yada/schema";
 
 import { RAW } from "./paths.js";
 
-export type TranslationCode = "BSB" | "WEB" | "KJV";
-export const TRANSLATIONS: readonly TranslationCode[] = ["BSB", "WEB", "KJV"];
+export type TranslationCode = "BSB" | "WEB" | "KJV" | "LSV";
+export const TRANSLATIONS: readonly TranslationCode[] = ["BSB", "WEB", "KJV", "LSV"];
 
 export interface VerseText {
   translation: TranslationCode;
@@ -70,13 +70,23 @@ export function parseBsb(file = "bsb.txt"): VerseText[] {
   return out;
 }
 
-export function parseVpl(file: string, translation: "WEB" | "KJV"): VerseText[] {
-  const out: VerseText[] = [];
+/**
+ * Any eBible VPL file. `file` is relative to content/raw, or absolute (test fixtures). Only the
+ * KJV's text is cleaned; every other translation is used unaltered apart from whitespace.
+ */
+export function parseVpl<T extends string>(
+  file: string,
+  translation: T,
+): Array<{ translation: T; verse_id: string; text: string }> {
+  const out: Array<{ translation: T; verse_id: string; text: string }> = [];
   const line = /^([1-3]?[A-Z]{2,3}) (\d+):(\d+) (.*)$/;
-  for (const raw of readFileSync(path.join(RAW, file), "utf8").split("\n")) {
+  for (const raw of readFileSync(path.resolve(RAW, file), "utf8").split("\n")) {
     const match = line.exec(raw.replace(/\r$/, ""));
     if (match === null) continue;
     const text = translation === "KJV" ? cleanKjv(match[4] ?? "") : tidy(match[4] ?? "");
+    // eBible marks a verse whose words the translation prints elsewhere with a bare "-"
+    // (LSV 3 John 1:15, Revelation 12:18). It is a placeholder, not text.
+    if (text === "-") continue;
     out.push({
       translation,
       verse_id: `${vplCode(match[1] ?? "")}.${Number(match[2])}.${Number(match[3])}`,
@@ -108,8 +118,9 @@ export function loadTexts(): { texts: VerseText[]; report: TextReport } {
     ...parseBsb(),
     ...parseVpl("engwebp_vpl.txt", "WEB"),
     ...parseVpl("eng-kjv2006_vpl.txt", "KJV"),
+    ...parseVpl("englsv_vpl.txt", "LSV"),
   ];
-  const byTranslation = { BSB: 0, WEB: 0, KJV: 0 };
+  const byTranslation = { BSB: 0, WEB: 0, KJV: 0, LSV: 0 };
   for (const t of texts) byTranslation[t.translation] += 1;
   return { texts, report: { byTranslation } };
 }

@@ -1,6 +1,7 @@
 # Yada brand: what we took from the kit, and why
 
-Source: `Yada-Brand-Kit.zip` v1.0 (9 Oct 2026). Only what the app and its web presence need is kept here;
+Source: `Yada-Brand-Kit.zip` v1.0 (9 Oct 2026). **Owner: John Etokhana owns the brand kit** (confirmed
+10 Oct 2026); the wordmark's Fraunces outlines are covered by its OFL (`brand/fonts/Fraunces-OFL.txt`). Only what the app and its web presence need is kept here;
 the kit's UI concepts were reviewed and not adopted (see the end).
 
 ## Taken
@@ -13,7 +14,8 @@ the kit's UI concepts were reviewed and not adopted (see the end).
 | Dark-mode icon (chartreuse symbol, transparent) | `apps/mobile/assets/brand/icon-dark.png` | iOS 18 dark icon |
 | Tinted icon (grayscale symbol) | `apps/mobile/assets/brand/icon-tinted.png` | iOS 18 tinted icon |
 | Splash symbol, forest / chartreuse | `apps/mobile/assets/brand/splash-symbol{,-dark}.png` | Launch screen on chalk / dark paper |
-| Wordmark rasters @1x/2x/3x, forest / chalk | `apps/mobile/assets/brand/wordmark-*.png` | Home title (the app has no SVG renderer) |
+| Wordmark rasters @1x/2x/3x, forest / chalk | `apps/mobile/assets/brand/wordmark-*.png` | Home title, rendered from the high-resolution export (`Yada-Wordmark-High-Resolution.zip`, 3840 px) at 72 pt × 1–3, the largest the app draws it (AX5) |
+| Splash layers, stem and leaf (same frame as the dark symbol) | `apps/mobile/assets/brand/splash-{stem,leaf}.png` | "The page lifts" launch motion (brief §8.17) |
 | Favicons, touch icon, maskable, manifest | `brand/web/` | Future site or web build |
 | Fraunces variable + OFL | `brand/fonts/` | Marketing only; the app uses the outlined wordmark |
 | Palette | `tokens.ts` (via the build plan) | See below |

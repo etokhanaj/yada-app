@@ -146,9 +146,25 @@ function inspectEntry(raw: unknown, source: string, model: string): EntryReport 
   return { source, model, kind, id, findings, provenance: checkProvenance(record, model) };
 }
 
-/** `GEN.1.1-1.5.claude-opus-5.json` -> `GEN.1.1-1.5` */
+/** `GEN.1.1-1.5.claude-opus-5.json` and `JHN.4.1-4.42.part2of2.claude-opus-5.json` -> the pericope id */
 function pericopeFromFile(file: string): string | undefined {
-  return /^(.+?)\.claude-[a-z0-9-]+\.json$/.exec(file)?.[1];
+  return /^(.+?)(?:\.part\d+of\d+)?\.claude-[a-z0-9-]+\.json$/.exec(file)?.[1];
+}
+
+/**
+ * Parts after the first of a split pericope are asked to leave the pericope
+ * object empty (generate.ts buildRequest), so the one they return is not an
+ * entry. Counting it would score a deliberate blank as a schema failure.
+ */
+function isLaterPart(body: { part?: unknown }): boolean {
+  return typeof body.part === "number" && body.part > 1;
+}
+
+/** The entries a response contributes: its pericope entry is dropped from later parts. */
+export function responseEntries(value: unknown, body: { part?: unknown }): unknown[] {
+  const entries = collectEntries(value);
+  if (!isLaterPart(body)) return entries;
+  return entries.filter((e) => typeof e === "object" && e !== null && (e as Record<string, unknown>)["verse_id"] !== undefined);
 }
 
 /** `GEN.1.1-1.5.claude-opus-5.json` -> `claude-opus-5` */
@@ -166,7 +182,7 @@ export function inspectAll(dir: string = RESPONSES): InspectReport {
 
   for (const file of readdirSync(dir).filter((f) => f.endsWith(".json")).sort()) {
     report.responses += 1;
-    const body = JSON.parse(readFileSync(path.join(dir, file), "utf8")) as { text?: string };
+    const body = JSON.parse(readFileSync(path.join(dir, file), "utf8")) as { text?: string; pericope_id?: unknown; part?: unknown };
     const text = body.text ?? "";
     const extracted = extractJson(text);
     if (extracted === null) {
@@ -176,10 +192,10 @@ export function inspectAll(dir: string = RESPONSES): InspectReport {
 
     const model = modelFromFilename(file);
     // Composed model output is assembled into full entries exactly as ingest does.
-    const pericopeId = pericopeFromFile(file);
+    const pericopeId = typeof body.pericope_id === "string" ? body.pericope_id : pericopeFromFile(file);
     const value =
       isComposed(extracted.value) && pericopeId !== undefined ? assemble(extracted.value, pericopeId, model) : extracted.value;
-    for (const raw of collectEntries(value)) {
+    for (const raw of responseEntries(value, body)) {
       const entry = inspectEntry(raw, file, model);
       report.entries.push(entry);
       if (entry.parseError === undefined) report.parsed += 1;

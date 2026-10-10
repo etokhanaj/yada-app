@@ -29,6 +29,13 @@ export interface Palette {
   readonly fill: string;
   /** Glass controls over scrolling text; drawn over a blur. */
   readonly glass: string;
+  /**
+   * Glass drawn solid under Reduce Transparency (Glass.tsx, the reader's
+   * collapsed header line): no blur or translucency, the same hairline edge.
+   * Chalk in light; in dark the sheet ground, a step above paper, so the
+   * control still reads as raised.
+   */
+  readonly glassSolid: string;
   /** Hairline edge of glass and raised surfaces. */
   readonly edge: string;
   /** Raised sheet ground. */
@@ -46,6 +53,7 @@ const LIGHT: Palette = {
   highlight: "#DBEC9A",
   fill: "rgba(22,35,30,0.06)",
   glass: "rgba(255,255,255,0.74)",
+  glassSolid: "#F7F8F0",
   edge: "rgba(22,35,30,0.1)",
   sheet: "#FFFFFF",
   scrim: "rgba(22,35,30,0.26)",
@@ -61,6 +69,7 @@ const DARK: Palette = {
   highlight: "#3B4A22",
   fill: "rgba(236,240,228,0.09)",
   glass: "rgba(30,45,38,0.74)",
+  glassSolid: "#16231E",
   edge: "rgba(255,255,255,0.09)",
   sheet: "#16231E",
   scrim: "rgba(0,0,0,0.55)",

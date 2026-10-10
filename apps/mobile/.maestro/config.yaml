@@ -1,0 +1,7 @@
+# Each sheet marks itself accessibilityViewIsModal (VoiceOver treats it as its own screen).
+# With Understand and the evidence sheet stacked, XCTest's snapshot honoured the lower
+# sheet's flag and hid the upper sheet, so every flow that opens evidence over Understand
+# failed (Maestro 2.11, 10 Oct 2026). Snapshots ignore modal flags; VoiceOver is unaffected.
+platform:
+  ios:
+    snapshotKeyHonorModalViews: false

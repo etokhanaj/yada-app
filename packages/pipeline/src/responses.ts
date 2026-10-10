@@ -36,12 +36,13 @@ import {
   validatePericopeEntry,
   validateVerseEntry,
   type PericopeEntry,
+  type Finding,
   type VerseEntry,
 } from "@yada/schema";
 
 import { assemble, isComposed } from "./assemble.js";
 import { deriveVerseFrom } from "./derive.js";
-import { checkProvenance, collectEntries, extractJson } from "./inspect.js";
+import { checkProvenance, extractJson, responseEntries } from "./inspect.js";
 import { RESPONSES } from "./paths.js";
 import { storeVerseEntry } from "./store.js";
 
@@ -70,9 +71,22 @@ export interface IngestReport {
 
 interface ResponseFile {
   pericope_id?: unknown;
+  /** Set on one part of a pericope split across requests (generate.ts chunkVerses). */
+  part?: unknown;
+  parts?: unknown;
+  verses?: unknown;
   model?: unknown;
   stop_reason?: unknown;
   text?: unknown;
+}
+
+/** Rule names and what each said, so a rejection reads without re-running validate. */
+function contractReason(findings: readonly Finding[]): string {
+  const errors = findings.filter((f) => f.level === "error");
+  const rules = [...new Set(errors.map((f) => f.rule))].join(", ");
+  const shown = errors.slice(0, 3).map((f) => `${f.claimId === undefined ? "" : `[${f.claimId}] `}${f.message}`);
+  const more = errors.length > shown.length ? `; and ${errors.length - shown.length} more` : "";
+  return `contract: ${rules} (${shown.join("; ")}${more})`;
 }
 
 type Candidate =
@@ -138,10 +152,20 @@ export function ingestResponses(
       }
     }
 
-    for (const raw of collectEntries(value)) {
+    // A part of a split pericope was asked for its own verses only. One it was
+    // not asked for would collide with the part that was, and the duplicate
+    // rule below would then refuse both copies, losing the good one.
+    const partVerses = Array.isArray(body.verses) ? new Set(body.verses.map(String)) : undefined;
+
+    for (const raw of responseEntries(value, body)) {
       const record = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
       const isVerse = record["verse_id"] !== undefined;
       const id = String(record["verse_id"] ?? record["pericope_id"] ?? "?");
+
+      if (isVerse && partVerses !== undefined && !partVerses.has(id)) {
+        reject(file, id, `part ${String(body.part)} of ${String(body.parts)} was asked for ${[...partVerses].join(", ")}, not ${id}`);
+        continue;
+      }
 
       const provenance = checkProvenance(record, model);
       if (provenance.length > 0) {
@@ -165,7 +189,7 @@ export function ingestResponses(
         }
         const findings = validateVerseEntry(parsed.data);
         if (hasErrors(findings)) {
-          reject(file, id, `contract: ${[...new Set(findings.filter((f) => f.level === "error").map((f) => f.rule))].join(", ")}`);
+          reject(file, id, contractReason(findings));
           continue;
         }
         candidates.push({ kind: "verse", id, entry: parsed.data, model, source: file, warnings: findings.length });
@@ -181,7 +205,7 @@ export function ingestResponses(
         }
         const findings = validatePericopeEntry(parsed.data);
         if (hasErrors(findings)) {
-          reject(file, id, `contract: ${[...new Set(findings.filter((f) => f.level === "error").map((f) => f.rule))].join(", ")}`);
+          reject(file, id, contractReason(findings));
           continue;
         }
         candidates.push({ kind: "pericope", id, entry: parsed.data, model, source: file, warnings: findings.length });

@@ -32,7 +32,11 @@ import { useSheetNav } from "./navigation";
 import { Chrome, Label, Prose } from "./Type";
 
 /** Whether the sheet stands at its large detent: Understand shows more there (amendment 1). */
-const SheetSize = createContext<{ large: boolean; headerHeight: number }>({ large: false, headerHeight: 0 });
+export interface SheetSizeValue {
+  readonly large: boolean;
+  readonly headerHeight: number;
+}
+const SheetSize = createContext<SheetSizeValue>({ large: false, headerHeight: 0 });
 export const useSheetSize = () => useContext(SheetSize);
 
 const UNREVIEWED = "A reviewer hasn't checked this explanation yet.";
@@ -47,11 +51,15 @@ export function SheetScreen({
   backText,
   scrollRef,
   testID,
+  onSize,
   closeLabel = "Close",
   footer = true,
   header,
+  leading,
   keyboard = false,
 }: {
+  /** A text control where `‹` would be, on a sheet's first screen: Translations' `Choose`. */
+  leading?: ReactNode;
   children: ReactNode;
   /** Back to reading. Contents and Search have none: picking is the way out. */
   footer?: boolean;
@@ -74,6 +82,11 @@ export function SheetScreen({
   backText?: string;
   scrollRef?: React.Ref<ScrollView>;
   testID?: string;
+  /**
+   * The detent and header height, for the screen that renders this sheet: useSheetSize only
+   * reaches children, and Understand reads both to land a section under the header.
+   */
+  onSize?: (size: SheetSizeValue) => void;
 }) {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
@@ -85,6 +98,7 @@ export function SheetScreen({
   const [popover, setPopover] = useState(false);
   const [large, setLarge] = useState(false);
   const [chrome, setChrome] = useState({ header: 90, footer: 74 });
+  useEffect(() => onSize?.({ large, headerHeight: chrome.header }), [onSize, large, chrome.header]);
   // A rigid tick when the sheet settles at a new detent (motion note); not on first layout.
   const settled = useRef<boolean | null>(null);
   useEffect(() => {
@@ -145,9 +159,12 @@ export function SheetScreen({
   );
 
   const side = <View style={{ width: control }} />;
-  const backButton = back === null ? side : round("back", "Back", back, "sheet-back");
+  // A text control is wider than `‹`; both ends take its width so the title stays centred.
+  const slot = (child: ReactNode, end: "flex-start" | "flex-end") =>
+    leading === undefined ? child : <View style={{ minWidth: 76, alignItems: end }}>{child}</View>;
+  const backButton = slot(leading ?? (back === null ? side : round("back", "Back", back, "sheet-back")), "flex-start");
   // × names its destination to VoiceOver: one layer up, never further (v2-review X7).
-  const closeButton = round("close", closeLabel, closeSheet, "sheet-close");
+  const closeButton = slot(round("close", closeLabel, closeSheet, "sheet-close"), "flex-end");
 
   return (
     <SheetSize.Provider value={{ large, headerHeight: chrome.header }}>

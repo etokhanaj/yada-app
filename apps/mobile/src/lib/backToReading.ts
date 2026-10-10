@@ -14,6 +14,8 @@ export const SHEET_ROUTES: ReadonlySet<string> = new Set([
   "evidence",
   "type-settings",
   "contents",
+  // Opened over Contents (MT-01), so Back to reading pops both.
+  "translations",
 ]);
 
 /** How many sheets sit on top of the stack; popping them reveals the screen beneath, untouched. */

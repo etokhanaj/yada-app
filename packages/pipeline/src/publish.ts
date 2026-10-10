@@ -18,6 +18,13 @@
  *     verifies hashes on download, so a mismatch published is a bundle every
  *     device rejects.
  *   - an existing object under the same immutable name with different content.
+ *   - a translation whose gzipped size disagrees with the manifest's `download_bytes`, the size
+ *     every Download row shows.
+ *
+ * Translation files upload gzip-compressed with Content-Encoding gzip (about 7.2 MB to 3.3 MB).
+ * NSURLSession, which expo-file-system downloads through, decodes it before writing the file, so
+ * `sha256` and `bytes` describe the decompressed file and the app verifies that. Core and book
+ * bundles upload as they are.
  *
  * Credentials come from the environment only and are never logged, echoed in
  * an error, or written anywhere — the same rule budget.ts applies to the API key.
@@ -29,9 +36,10 @@ import path from "node:path";
 
 import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-import { BundleManifestSchema, type BundleInfo, type BundleManifest } from "@yada/schema";
+import { BundleManifestSchema, type BundleInfo, type BundleManifest, type TranslationInfo } from "@yada/schema";
 
 import { BUNDLES } from "./package.js";
+import { gzipTranslation } from "./translations.js";
 
 export const R2_ENV = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"] as const;
 export const MANIFEST_KEY = "manifest.json";
@@ -41,8 +49,10 @@ export class PublishRefused extends Error {}
 export type ObjectStore = Pick<S3Client, "send">;
 
 export interface PlannedBundle {
-  info: BundleInfo;
+  info: BundleInfo | TranslationInfo;
   file: string;
+  /** Translations only: uploaded as gzipped bytes with Content-Encoding gzip. */
+  gzip: boolean;
 }
 
 export interface PublishPlan {
@@ -55,6 +65,16 @@ export interface PublishPlan {
 
 function sha256(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
+}
+
+function isTranslation(info: BundleInfo | TranslationInfo): info is TranslationInfo {
+  return "code" in info;
+}
+
+/** The size the manifest promises for the download, when it promises one. */
+function downloadSizeProblem(info: BundleInfo | TranslationInfo, gzipped: Uint8Array): string | null {
+  if (!isTranslation(info) || info.download_bytes === undefined || gzipped.length === info.download_bytes) return null;
+  return `${info.file} gzips to ${gzipped.length} bytes, manifest says ${info.download_bytes}`;
 }
 
 /** Everything that can be checked without a network, checked in full. */
@@ -84,7 +104,9 @@ export function planPublish(dir: string = BUNDLES): PublishPlan {
 
   const problems: string[] = [];
   const bundles: PlannedBundle[] = [];
-  for (const info of manifest.bundles) {
+  // Translations upload with the bundles, before the manifest: a manifest offering a download
+  // that is not yet in the bucket is a broken row on every phone.
+  for (const info of [...manifest.bundles, ...(manifest.translations ?? [])]) {
     const file = path.join(dir, info.file);
     if (!existsSync(file)) {
       problems.push(`${info.file} is listed in the manifest but not on disk`);
@@ -94,11 +116,14 @@ export function planPublish(dir: string = BUNDLES): PublishPlan {
     const actual = sha256(bytes);
     if (actual !== info.sha256) problems.push(`${info.file} sha256 ${actual} does not match the manifest's ${info.sha256}`);
     if (bytes.length !== info.bytes) problems.push(`${info.file} is ${bytes.length} bytes, manifest says ${info.bytes}`);
-    bundles.push({ info, file });
+    const gzip = isTranslation(info);
+    const sizeProblem = gzip ? downloadSizeProblem(info, gzipTranslation(bytes)) : null;
+    if (sizeProblem !== null) problems.push(sizeProblem);
+    bundles.push({ info, file, gzip });
   }
   if (problems.length > 0) throw new PublishRefused(`refusing the entire publish:\n  ${problems.join("\n  ")}`);
 
-  const listed = new Set(manifest.bundles.map((b) => b.file));
+  const listed = new Set(bundles.map((b) => b.info.file));
   const ignored = readdirSync(dir).filter((f) => f.endsWith(".db") && !listed.has(f)).sort();
   return { manifest, manifestFile, bundles, ignored };
 }
@@ -169,7 +194,16 @@ export async function publish(options: PublishOptions): Promise<PublishReport> {
     try {
       const head = (await client.send(new HeadObjectCommand({ Bucket: config.bucket, Key: bundle.info.file }))) as {
         Metadata?: Record<string, string>;
+        ContentEncoding?: string;
       };
+      // A translation uploaded before compression has the right hash but is served whole, so the
+      // manifest's `download_bytes` would understate every download of it.
+      if (bundle.gzip && head.Metadata?.["sha256"] === bundle.info.sha256 && head.ContentEncoding !== "gzip") {
+        throw new PublishRefused(
+          `refusing the entire publish: ${bundle.info.file} is in the bucket uncompressed. ` +
+            `Bundle names are immutable; package a new version so it uploads gzipped.`,
+        );
+      }
       if (head.Metadata?.["sha256"] === bundle.info.sha256) {
         unchanged.push(bundle.info.file);
         continue;
@@ -196,13 +230,20 @@ export async function publish(options: PublishOptions): Promise<PublishReport> {
           `Nothing past this point was uploaded and the manifest was not published.`,
       );
     }
+    const body = bundle.gzip ? gzipTranslation(bytes) : bytes;
+    const sizeProblem = downloadSizeProblem(bundle.info, body);
+    if (sizeProblem !== null) {
+      throw new PublishRefused(`refusing to continue: ${sizeProblem}. Nothing past this point was uploaded and the manifest was not published.`);
+    }
     await client.send(
       new PutObjectCommand({
         Bucket: config.bucket,
         Key: bundle.info.file,
-        Body: bytes,
+        Body: body,
         ContentType: "application/vnd.sqlite3",
+        ...(bundle.gzip ? { ContentEncoding: "gzip" } : {}),
         CacheControl: "public, max-age=31536000, immutable",
+        // The decompressed file's digest: what the app checks, and what the HEAD above compares.
         Metadata: { sha256: bundle.info.sha256 },
       }),
     );

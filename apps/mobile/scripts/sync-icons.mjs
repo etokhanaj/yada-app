@@ -10,7 +10,8 @@
  * MIT): use in personal and commercial projects is allowed; distributing the
  * icons, in original or modified form, is not. So the generated file is
  * gitignored and rebuilt from node_modules; the shapes ship only inside the
- * app binary. Open for John: confirm against untitledui.com/license.
+ * app binary. Shipping them inside the app was confirmed against
+ * untitledui.com/license by John, 10 Oct 2026.
  */
 
 import { writeFileSync } from "node:fs";
@@ -37,6 +38,7 @@ const ICONS = {
   copy: "Copy01",
   share: "Share01",
   search: "SearchSm",
+  download: "Download01",
 };
 
 function walk(node, shapes) {

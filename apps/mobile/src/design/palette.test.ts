@@ -33,6 +33,9 @@ const PAIRS: Pair[] = [
   ["ink / fill over paper", (p) => p.ink, (p) => opaque(p, p.fill), TEXT],
   ["mutedInk / fill over paper", (p) => p.mutedInk, (p) => opaque(p, p.fill), TEXT],
   ["ink / glass over paper", (p) => p.ink, (p) => opaque(p, p.glass), TEXT],
+  // Reduce Transparency: the same controls drawn solid.
+  ["ink / solid glass", (p) => p.ink, (p) => p.glassSolid, TEXT],
+  ["mutedInk / solid glass", (p) => p.mutedInk, (p) => p.glassSolid, TEXT],
   ["selection bar: accent / selection", (p) => p.accent, (p) => p.selection, MARK],
   ["difference underline: mutedInk / highlight", (p) => p.mutedInk, (p) => p.highlight, MARK],
 ];

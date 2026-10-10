@@ -7,7 +7,7 @@
     "license": "CC-BY-SA-3.0",
     "attribution_text": "Morphological annotations from MorphGNT, licensed CC BY-SA 3.0.",
     "url": "https://github.com/morphgnt/sblgnt",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Parsed for lemma and morphology; apparatus markers stripped from display surfaces. Share-alike obligations for a closed-source app not yet assessed."
   },
   {
@@ -15,11 +15,11 @@
     "dataset": "SBLGNT (Greek text)",
     "version": "aaed91e",
     "commit_hash": "aaed91e57c8e4a8dc9a2383e129ca5e75fe6393d",
-    "license": "CUSTOM_EULA",
-    "attribution_text": "Scripture quotations marked SBLGNT are from the SBL Greek New Testament. Copyright © 2010 Society of Biblical Literature and Logos Bible Software.",
+    "license": "CC-BY-4.0",
+    "attribution_text": "Scripture quotations marked SBLGNT are from the SBL Greek New Testament. Copyright © 2010 Society of Biblical Literature and Logos Bible Software. Licensed under CC BY 4.0.",
     "url": "https://sblgnt.com/license/",
-    "retrieved_at": "2026-09-13T04:58:28Z",
-    "modifications": "Carried inside the MorphGNT files. NOT CLEARED FOR COMMERCIAL USE — its own EULA, not a Creative Commons licence, and the terms have not been reviewed. ENCUMBERED: SBLGNT EULA has not been reviewed; blocks commercial distribution of the Greek text."
+    "retrieved_at": "2026-10-10T08:27:04Z",
+    "modifications": "Carried inside the MorphGNT files. Text unaltered."
   },
   {
     "source": "Open Scriptures",
@@ -29,7 +29,7 @@
     "license": "CC-BY-4.0",
     "attribution_text": "Lemma and morphology data from the Open Scriptures Hebrew Bible, licensed CC BY 4.0.",
     "url": "https://github.com/openscriptures/morphhb",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Morpheme separators parsed into structure; homograph letters folded onto Strong's numbers (7462 b -> H7462b)."
   },
   {
@@ -40,7 +40,7 @@
     "license": "PUBLIC_DOMAIN",
     "attribution_text": "Hebrew text from the Westminster Leningrad Codex, public domain.",
     "url": "https://github.com/openscriptures/morphhb",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Carried inside the morphhb files. Morpheme separators stripped from display surfaces; cantillation retained."
   },
   {
@@ -51,7 +51,7 @@
     "license": "CC-BY-4.0",
     "attribution_text": "Versification data created by www.STEPBible.org based on work at Tyndale House Cambridge, CC BY 4.0.",
     "url": "https://github.com/STEPBible/STEPBible-Data",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Parsed for English/Hebrew mappings and superscription flags."
   },
   {
@@ -62,8 +62,8 @@
     "license": "CC-BY-4.0",
     "attribution_text": "Lexicon data created by www.STEPBible.org based on work at Tyndale House Cambridge, CC BY 4.0.",
     "url": "https://github.com/STEPBible/STEPBible-Data",
-    "retrieved_at": "2026-09-13T04:58:28Z",
-    "modifications": "Parsed for lexical glosses keyed by extended Strong's number. ENCUMBERED: Definitions derive from the Abridged BDB by Online Bible; the file states permission should be gained before applying them in any project. Derive runs without it."
+    "retrieved_at": "2026-10-10T08:27:04Z",
+    "modifications": "Read for Hebrew headwords (column 3) only, to label word cards. Glosses and definitions are not read; interlinear glosses come from TAHOT. ENCUMBERED: Definitions derive from the Abridged BDB by Online Bible; the file states permission should be gained before applying them in any project. Yada does not read or ship the definitions."
   },
   {
     "source": "STEPBible / Tyndale House Cambridge",
@@ -73,7 +73,7 @@
     "license": "CC-BY-4.0",
     "attribution_text": "Lexicon data created by www.STEPBible.org based on work at Tyndale House Cambridge, CC BY 4.0.",
     "url": "https://github.com/STEPBible/STEPBible-Data",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Parsed for the lemma-to-extended-Strong's mapping; definitions not read. Lemma forms normalised to NFC to reconcile polytonic oxia with monotonic tonos."
   },
   {
@@ -84,7 +84,7 @@
     "license": "PUBLIC_DOMAIN",
     "attribution_text": "The Holy Bible, Berean Standard Bible, BSB. Dedicated to the public domain.",
     "url": "https://bereanbible.com",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Verse-per-line text parsed into verse ids. Read from the file header: 'This text of God's Word has been dedicated to the public domain.'"
   },
   {
@@ -95,8 +95,19 @@
     "license": "PUBLIC_DOMAIN",
     "attribution_text": "World English Bible (WEB). Public domain. 'World English Bible' is a trademark of eBible.org.",
     "url": "https://ebible.org/web/",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Verse text used unaltered apart from whitespace. The WEB name is a trademark: if the text is ever changed, it must not be called the World English Bible."
+  },
+  {
+    "source": "eBible.org / Covenant Press",
+    "dataset": "Literal Standard Version (englsv)",
+    "version": "31a455b6fd86",
+    "commit_hash": "sha256:31a455b6fd86f0f4e5ff053c954e1d4b8dce34b926a7a63b817245cd642cd1f3",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Literal Standard Version (LSV). Copyright © 2020 Covenant Press and the Covenant Christian Coalition. Licensed under CC BY-SA 4.0.",
+    "url": "https://ebible.org/englsv/",
+    "retrieved_at": "2026-10-10T08:27:04Z",
+    "modifications": "Verse text used unaltered apart from whitespace."
   },
   {
     "source": "eBible.org / CrossWire",
@@ -106,8 +117,41 @@
     "license": "PUBLIC_DOMAIN",
     "attribution_text": "King James Version. Public domain outside the United Kingdom.",
     "url": "https://ebible.org/kjv/",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Pilcrows removed. Square brackets marking translator-supplied words (the printed italics) are removed from display text, so that distinction is not currently shown. ENCUMBERED: Crown letters patent: printing or importing the KJV in the UK requires permission (Cambridge University Press, Oxford University Press, Collins). Public domain elsewhere. Confirm the UK position with CUP before commercial distribution — PRD 0E."
+  },
+  {
+    "source": "eBible.org",
+    "dataset": "American Standard Version (eng-asv)",
+    "version": "1bfaba51df10",
+    "commit_hash": "sha256:1bfaba51df107f7da9bec57edd5f33f8229b22cfb3ffa4295d39b2cacad7251f",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "American Standard Version (1901). Public domain.",
+    "url": "https://ebible.org/asv/",
+    "retrieved_at": "2026-10-10T08:27:04Z",
+    "modifications": "Verse text used unaltered apart from whitespace, including its square brackets."
+  },
+  {
+    "source": "eBible.org",
+    "dataset": "Young's Literal Translation (engylt)",
+    "version": "a6d2597d05e9",
+    "commit_hash": "sha256:a6d2597d05e9c45f443967510242b047eb3b815b5469df48f356be8a320ff1b8",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Young's Literal Translation, by Robert Young. Public domain.",
+    "url": "https://ebible.org/engylt/",
+    "retrieved_at": "2026-10-10T08:27:04Z",
+    "modifications": "Verse text used unaltered apart from whitespace, including its square brackets."
+  },
+  {
+    "source": "eBible.org / Berean Bible Translation Committee",
+    "dataset": "Majority Standard Bible (engmsb)",
+    "version": "f4de2d7317c9",
+    "commit_hash": "sha256:f4de2d7317c9a2f339634759ced7574719cacd375c743c71630f57cd75591b39",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "The Holy Bible, Majority Standard Bible, MSB. Dedicated to the public domain.",
+    "url": "https://ebible.org/engmsb/",
+    "retrieved_at": "2026-10-10T08:27:04Z",
+    "modifications": "Verse text used unaltered apart from whitespace."
   },
   {
     "source": "STEPBible / Tyndale House Cambridge",
@@ -117,7 +161,7 @@
     "license": "CC-BY-4.0",
     "attribution_text": "Hebrew glosses created by www.STEPBible.org based on work at Tyndale House Cambridge, CC BY 4.0.",
     "url": "https://github.com/STEPBible/STEPBible-Data",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Only the English gloss column is used, aligned to OSHB tokens by consonantal surface within each verse. Words the alignment cannot place are left without a gloss and counted, never guessed. ENCUMBERED: STEPBible asks that the data not be redistributed directly; bundling it needs their confirmation — PRD 0E."
   },
   {
@@ -128,7 +172,7 @@
     "license": "CC-BY-4.0",
     "attribution_text": "Greek glosses created by www.STEPBible.org based on work at Tyndale House Cambridge, CC BY 4.0.",
     "url": "https://github.com/STEPBible/STEPBible-Data",
-    "retrieved_at": "2026-09-13T04:58:28Z",
+    "retrieved_at": "2026-10-10T08:27:04Z",
     "modifications": "Only words carried by the SBL edition are used, aligned to MorphGNT tokens by accent-stripped surface within each verse. Only the English gloss column is used. ENCUMBERED: STEPBible asks that the data not be redistributed directly; bundling it needs their confirmation — PRD 0E."
   },
   {

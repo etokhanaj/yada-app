@@ -9,7 +9,7 @@ import type { Claim } from "@yada/schema";
 import { useState } from "react";
 import { View } from "react-native";
 
-import { claimLabel } from "../lib/evidence";
+import { claimKind, claimLabel } from "../lib/evidence";
 import { Row, TextLink } from "./Sheet";
 import { Chrome, Prose } from "./Type";
 
@@ -65,11 +65,17 @@ export function ClaimRows({
   );
 }
 
-/** Two neutral groups, each in display_rank order (PRD §8.2). */
-export function groupClaims(claims: readonly Claim[]): { seen: Claim[]; differs: Claim[] } {
+/**
+ * Two neutral groups, each in display_rank order (PRD §8.2), with the grammar
+ * claims taken out of What we can see: they sit under Original as "In the
+ * Greek / Hebrew" (brief §8.19), so a reader meets plain claims first.
+ */
+export function groupClaims(claims: readonly Claim[]): { seen: Claim[]; grammar: Claim[]; differs: Claim[] } {
   const byRank = (a: Claim, b: Claim): number => a.display_rank - b.display_rank;
+  const plain = claims.filter((c) => c.category === "text" || c.category === "context").sort(byRank);
   return {
-    seen: claims.filter((c) => c.category === "text" || c.category === "context").sort(byRank),
+    seen: plain.filter((c) => claimKind(c) === "reading"),
+    grammar: plain.filter((c) => claimKind(c) === "grammar"),
     differs: claims.filter((c) => c.category === "interpretation" || c.category === "debated").sort(byRank),
   };
 }

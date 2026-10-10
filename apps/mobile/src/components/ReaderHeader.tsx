@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { transparent } from "../design/contrast";
 import { useAXLevel, usePalette } from "../design/tokens";
 import { useReduceMotion } from "../lib/motion";
+import { useAccessibility } from "../state/accessibility";
 import { GlassButton } from "./Glass";
 import { Icon } from "./Icon";
 import { Chrome } from "./Type";
@@ -55,6 +56,7 @@ export function ReaderHeader({
   const insets = useSafeAreaInsets();
   const ax = useAXLevel();
   const reduceMotion = useReduceMotion();
+  const reduceTransparency = useAccessibility((s) => s.reduceTransparency);
   const twoRows = ax >= 3;
   const [sides, setSides] = useState({ left: 0, right: 0 });
   const [titleWidth, setTitleWidth] = useState(0);
@@ -179,7 +181,15 @@ export function ReaderHeader({
         accessibilityElementsHidden={!collapsed}
         importantForAccessibility={collapsed ? "auto" : "no-hide-descendants"}
       >
-        <View style={{ paddingTop: insets.top, backgroundColor: palette.paper }}>
+        {/* Reduce Transparency: the line sits on solid glass with a hairline edge instead of
+            fading into the text, so nothing shows through it (as Glass.tsx draws the controls). */}
+        <View
+          style={
+            reduceTransparency
+              ? { paddingTop: insets.top, backgroundColor: palette.glassSolid, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: palette.edge }
+              : { paddingTop: insets.top, backgroundColor: palette.paper }
+          }
+        >
           <Pressable
             onPress={onExpand}
             accessibilityRole="button"
@@ -193,7 +203,7 @@ export function ReaderHeader({
             </Chrome>
           </Pressable>
         </View>
-        <View style={fade} />
+        {reduceTransparency ? null : <View style={fade} />}
       </Animated.View>
     </View>
   );

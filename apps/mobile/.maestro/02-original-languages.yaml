@@ -1,48 +1,135 @@
 # Original from the action bar opens Understand at its Original section
 # (brief §1 rule 1). John 1:1 Greek, Genesis 1:1 Hebrew (RTL), Psalm 23 title,
-# John 8 with no Greek (N-01). Not yet run: Maestro is not installed.
+# John 8 with no Greek (N-01).
 appId: studio.yada.reader
 ---
 - launchApp
 - openLink: studio.yada.reader:///read/JHN/1?verse=1&select=1
+- waitForAnimationToEnd
 - tapOn:
     id: bar-original
+- waitForAnimationToEnd
+# A deep link into the open reader re-renders it, and a tap that lands in that
+# moment is dropped (Maestro 2.11, 10 Oct 2026); tap once more if no sheet came up.
+- runFlow:
+    when:
+      notVisible:
+        id: back-to-reading
+    commands:
+      - tapOn:
+          id: bar-original
+      - waitForAnimationToEnd
 - assertVisible:
     id: understand
 - assertVisible: "Original Greek"
 - assertVisible:
     id: word-λόγος
-- assertVisible: "Glosses: STEPBible.*"
-- assertVisible: "Closer to the Greek"
+- scrollUntilVisible:
+    element: "Glosses: STEPBible.*"
+    direction: DOWN
+# The grammar claims ("In the Greek") sit above the literal line now (brief §8.19).
+- scrollUntilVisible:
+    element: "Closer to the Greek"
+    centerElement: true
+    direction: DOWN
 - tapOn:
     id: back-to-reading
+- waitForAnimationToEnd
+# A tap while the sheet is still leaving is dropped; wait until it has gone.
+- extendedWaitUntil:
+    notVisible:
+      id: back-to-reading
+    timeout: 5000
 
 - openLink: studio.yada.reader:///read/GEN/1?verse=1&select=1
+- waitForAnimationToEnd
 - tapOn:
     id: bar-original
+- waitForAnimationToEnd
+# A deep link into the open reader re-renders it, and a tap that lands in that
+# moment is dropped (Maestro 2.11, 10 Oct 2026); tap once more if no sheet came up.
+- runFlow:
+    when:
+      notVisible:
+        id: back-to-reading
+    commands:
+      - tapOn:
+          id: bar-original
+      - waitForAnimationToEnd
 - assertVisible: "Original Hebrew"
-- assertVisible: "\\[object\\]"
-- tapOn:
-    id: word-בְּרֵאשִׁ֖ית
+- assertVisible: ".*\\[object\\].*"
+# Hebrew with cantillation does not survive Maestro's id regex; match the word's VoiceOver label.
+- scrollUntilVisible:
+    element: "bərēʾšiyt.*"
+    centerElement: true
+- tapOn: "bərēʾšiyt.*"
+- waitForAnimationToEnd
 - assertVisible:
     id: word
 - assertVisible: "Parts"
+- scrollUntilVisible:
+    element: ".*H7225.*"
+    centerElement: true
 - assertVisible: ".*H7225.*"
+# Screen point, not id: on the large word card Maestro shifts the button by the sheet's origin
+# and the tap lands below it (10 Oct 2026). Back to reading spans the sheet's foot.
 - tapOn:
-    id: back-to-reading
+    point: "50%,95%"
+- waitForAnimationToEnd
+# A tap while the sheet is still leaving is dropped; wait until it has gone.
+- extendedWaitUntil:
+    notVisible:
+      id: back-to-reading
+    timeout: 5000
 
 - openLink: studio.yada.reader:///read/PSA/23?verse=1&select=1
+- waitForAnimationToEnd
 - tapOn:
     id: bar-original
+- waitForAnimationToEnd
+# A deep link into the open reader re-renders it, and a tap that lands in that
+# moment is dropped (Maestro 2.11, 10 Oct 2026); tap once more if no sheet came up.
+- runFlow:
+    when:
+      notVisible:
+        id: back-to-reading
+    commands:
+      - tapOn:
+          id: bar-original
+      - waitForAnimationToEnd
 - assertVisible: "Title"
 - tapOn:
     id: back-to-reading
+- waitForAnimationToEnd
+# A tap while the sheet is still leaving is dropped; wait until it has gone.
+- extendedWaitUntil:
+    notVisible:
+      id: back-to-reading
+    timeout: 5000
 
 - openLink: studio.yada.reader:///read/JHN/8?verse=3&select=1
+- waitForAnimationToEnd
 - tapOn:
     id: bar-original
+- waitForAnimationToEnd
+# A deep link into the open reader re-renders it, and a tap that lands in that
+# moment is dropped (Maestro 2.11, 10 Oct 2026); tap once more if no sheet came up.
+- runFlow:
+    when:
+      notVisible:
+        id: back-to-reading
+    commands:
+      - tapOn:
+          id: bar-original
+      - waitForAnimationToEnd
 - assertVisible:
     id: omission-note
 - assertVisible: "John 7:53–8:11 is not in the earliest manuscripts, so Yada’s Greek text has none of it."
 - tapOn:
     id: back-to-reading
+- waitForAnimationToEnd
+# A tap while the sheet is still leaving is dropped; wait until it has gone.
+- extendedWaitUntil:
+    notVisible:
+      id: back-to-reading
+    timeout: 5000

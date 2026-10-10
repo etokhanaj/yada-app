@@ -28,6 +28,16 @@ export interface SourceFile {
   url: string;
   /** The URL is a zip; extract this member into `file`. */
   zipMember?: string;
+  /**
+   * Full sha256 of the downloaded bytes (the zip, for an archive). When set, a download or a cached
+   * copy that differs is refused outright rather than compared with the last manifest.
+   */
+  sha256?: string;
+  /**
+   * The archive member that states the licence, and the words it must contain. Re-read on every
+   * ingest so the licence comes from the package itself, never a badge (CLAUDE.md rule 3).
+   */
+  licenseIn?: { zipMember: string; mustContain: string };
 }
 
 export interface SourceDef {
@@ -48,6 +58,11 @@ export interface SourceDef {
    * a source update must be a deliberate migration (PRD §11.2), never drift.
    */
   pinnedByDigest?: boolean;
+  /**
+   * Shipped as its own download (`package translation`), so core's attribution table leaves it
+   * out and core's bytes do not change when one is added.
+   */
+  downloadable?: boolean;
 }
 
 const MORPHGNT_COMMIT = "aaed91e57c8e4a8dc9a2383e129ca5e75fe6393d";
@@ -65,6 +80,15 @@ const morphgnt = (name: string): SourceFile => ({
 const oshb = (name: string): SourceFile => ({
   file: name,
   url: `https://raw.githubusercontent.com/openscriptures/morphhb/${OSHB_COMMIT}/wlc/${name}`,
+});
+
+/** An eBible VPL archive, pinned by the digest of the zip as downloaded on 10 Oct 2026. */
+const ebible = (id: string, sha256: string): SourceFile => ({
+  file: `${id}_vpl.txt`,
+  url: `https://ebible.org/Scriptures/${id}_vpl.zip`,
+  zipMember: `${id}_vpl.txt`,
+  sha256,
+  licenseIn: { zipMember: `${id}_about.htm`, mustContain: "Public Domain" },
 });
 
 export const SOURCES: SourceDef[] = [
@@ -85,15 +109,16 @@ export const SOURCES: SourceDef[] = [
     key: "sblgnt-text",
     source: "Society of Biblical Literature / Logos Bible Software",
     dataset: "SBLGNT (Greek text)",
-    license: "CUSTOM_EULA",
+    // Read from https://www.sblgnt.com/license/ on 10 Oct 2026: the page body is now the full
+    // "Creative Commons Attribution 4.0 International Public License" (the page title still reads
+    // "End User License Agreement", and MorphGNT's README still points to the old EULA).
+    license: "CC-BY-4.0",
     attribution_text:
-      "Scripture quotations marked SBLGNT are from the SBL Greek New Testament. Copyright © 2010 Society of Biblical Literature and Logos Bible Software.",
+      "Scripture quotations marked SBLGNT are from the SBL Greek New Testament. Copyright © 2010 Society of Biblical Literature and Logos Bible Software. Licensed under CC BY 4.0.",
     homepage: "https://sblgnt.com/license/",
     commit: MORPHGNT_COMMIT,
     files: [],
-    modifications:
-      "Carried inside the MorphGNT files. NOT CLEARED FOR COMMERCIAL USE — its own EULA, not a Creative Commons licence, and the terms have not been reviewed.",
-    encumbered: "SBLGNT EULA has not been reviewed; blocks commercial distribution of the Greek text.",
+    modifications: "Carried inside the MorphGNT files. Text unaltered.",
   },
   // OSHB carries two licences in one repository, exactly as SBLGNT does: the
   // WLC text is public domain, the lemma and morphology data is CC BY 4.0.
@@ -221,6 +246,29 @@ export const SOURCES: SourceDef[] = [
       "Verse text used unaltered apart from whitespace. The WEB name is a trademark: if the text is ever changed, it must not be called the World English Bible.",
   },
   {
+    key: "lsv",
+    source: "eBible.org / Covenant Press",
+    dataset: "Literal Standard Version (englsv)",
+    // Read from https://ebible.org/englsv/copyright.htm (10 Oct 2026): "This translation is made
+    // available to you under the terms of the Creative Commons Attribution Share-Alike license 4.0."
+    license: "CC-BY-SA-4.0",
+    attribution_text:
+      "Literal Standard Version (LSV). Copyright © 2020 Covenant Press and the Covenant Christian Coalition. Licensed under CC BY-SA 4.0.",
+    homepage: "https://ebible.org/englsv/",
+    commit: "unversioned",
+    pinnedByDigest: true,
+    files: [
+      {
+        file: "englsv_vpl.txt",
+        url: "https://ebible.org/Scriptures/englsv_vpl.zip",
+        zipMember: "englsv_vpl.txt",
+      },
+    ],
+    // ShareAlike binds adaptations: any change beyond whitespace must be recorded here and the
+    // changed text released under CC BY-SA 4.0 with the same attribution.
+    modifications: "Verse text used unaltered apart from whitespace.",
+  },
+  {
     key: "kjv",
     source: "eBible.org / CrossWire",
     dataset: "King James Version, 1769 standardised text (eng-kjv2006)",
@@ -240,6 +288,57 @@ export const SOURCES: SourceDef[] = [
       "Pilcrows removed. Square brackets marking translator-supplied words (the printed italics) are removed from display text, so that distinction is not currently shown.",
     encumbered:
       "Crown letters patent: printing or importing the KJV in the UK requires permission (Cambridge University Press, Oxford University Press, Collins). Public domain elsewhere. Confirm the UK position with CUP before commercial distribution — PRD 0E.",
+  },
+  // ---------------------------------------------------------------------------
+  // Downloadable translations (docs/more-translations-plan.md). Packaged one file each by
+  // `package translation <CODE>`; never loaded into staging.db, so they never reach a prompt,
+  // the adversary or regression (CLAUDE.md rule 9: explanations come only from the core texts).
+  // Each licence was read from the package's own _about.htm on 10 Oct 2026, and is re-read on
+  // every ingest via `licenseIn`.
+  // ---------------------------------------------------------------------------
+  {
+    key: "asv",
+    source: "eBible.org",
+    dataset: "American Standard Version (eng-asv)",
+    // eng-asv_about.htm: "American Standard Version (1901) … Public Domain … This public domain
+    // Bible translation is brought to you courtesy of eBible.org."
+    license: "PUBLIC_DOMAIN",
+    attribution_text: "American Standard Version (1901). Public domain.",
+    homepage: "https://ebible.org/asv/",
+    commit: "unversioned",
+    pinnedByDigest: true,
+    downloadable: true,
+    files: [ebible("eng-asv", "97c8372272375a1fe1773cff2f125f7313a072aa02284d92f8d0f7946ceb60f8")],
+    modifications: "Verse text used unaltered apart from whitespace, including its square brackets.",
+  },
+  {
+    key: "ylt",
+    source: "eBible.org",
+    dataset: "Young's Literal Translation (engylt)",
+    // engylt_about.htm: "Young's Literal Translation … Public Domain … Translation by: Robert Young".
+    license: "PUBLIC_DOMAIN",
+    attribution_text: "Young's Literal Translation, by Robert Young. Public domain.",
+    homepage: "https://ebible.org/engylt/",
+    commit: "unversioned",
+    pinnedByDigest: true,
+    downloadable: true,
+    files: [ebible("engylt", "24a8161d3fbb511e78fa7e663a2f4b76fce37ae5862f64b9009c550fb6918811")],
+    modifications: "Verse text used unaltered apart from whitespace, including its square brackets.",
+  },
+  {
+    key: "msb",
+    source: "eBible.org / Berean Bible Translation Committee",
+    dataset: "Majority Standard Bible (engmsb)",
+    // engmsb_about.htm: "Public Domain … This text of God's Word has been dedicated to the public
+    // domain."
+    license: "PUBLIC_DOMAIN",
+    attribution_text: "The Holy Bible, Majority Standard Bible, MSB. Dedicated to the public domain.",
+    homepage: "https://ebible.org/engmsb/",
+    commit: "unversioned",
+    pinnedByDigest: true,
+    downloadable: true,
+    files: [ebible("engmsb", "342c6dc825677acd5329f05db47703054b8f9729e03c39a38b359de87010cb62")],
+    modifications: "Verse text used unaltered apart from whitespace.",
   },
   // ---------------------------------------------------------------------------
   // Contextual English glosses for the interlinear. STEPBible's own per-word
@@ -294,12 +393,15 @@ export const SOURCES: SourceDef[] = [
 const RETIRED_DATASETS = new Set(["morphhb — WLC text with lemma and morphology"]);
 
 async function fetchTo(file: SourceFile, dest: string): Promise<{ bytes: number; cached: boolean }> {
+  const pinned = file.zipMember === undefined ? dest : `${dest}.zip`;
   if (existsSync(dest) && statSync(dest).size > 0) {
+    if (file.sha256 !== undefined) checkPin(file, readFileSync(pinned));
     return { bytes: statSync(dest).size, cached: true };
   }
   const response = await fetch(file.url);
   if (!response.ok) throw new Error(`${response.status} ${response.statusText} for ${file.url}`);
   const body = Buffer.from(await response.arrayBuffer());
+  if (file.sha256 !== undefined) checkPin(file, body);
 
   if (file.zipMember === undefined) {
     writeFileSync(dest, body);
@@ -315,6 +417,33 @@ async function fetchTo(file: SourceFile, dest: string): Promise<{ bytes: number;
   });
   writeFileSync(dest, member);
   return { bytes: member.length, cached: false };
+}
+
+export function checkPin(file: SourceFile, bytes: Uint8Array): void {
+  const actual = createHash("sha256").update(bytes).digest("hex");
+  if (actual !== file.sha256) {
+    throw new Error(
+      `${file.url} is sha256 ${actual}, pinned ${file.sha256}. Source updates are migrations: ` +
+        "re-read the licence in the new package, then change the pin.",
+    );
+  }
+}
+
+/** Throws unless the package's own licence statement still says what the entry claims. */
+export function checkLicense(file: SourceFile, statement: string): void {
+  if (file.licenseIn === undefined) return;
+  if (!statement.includes(file.licenseIn.mustContain)) {
+    throw new Error(
+      `${file.licenseIn.zipMember} no longer contains "${file.licenseIn.mustContain}". ` +
+        "Read the new terms before ingesting this source.",
+    );
+  }
+}
+
+function readLicense(file: SourceFile, dest: string): void {
+  if (file.licenseIn === undefined) return;
+  const statement = execFileSync("unzip", ["-p", `${dest}.zip`, file.licenseIn.zipMember], { encoding: "utf8" });
+  checkLicense(file, statement);
 }
 
 export function sha256(file: string): string {
@@ -338,6 +467,7 @@ export async function ingest(): Promise<void> {
     for (const file of def.files) {
       const dest = path.join(RAW, file.file);
       const { bytes, cached } = await fetchTo(file, dest);
+      readLicense(file, dest);
       digests.push(`${file.file}:${sha256(dest)}`);
       console.log(`  ${cached ? "cached" : "fetched"}  ${file.file}  ${(bytes / 1024) | 0} KB`);
     }

@@ -25,7 +25,7 @@ import { useAppData, useCore, useQuery } from "../data/AppData";
 import { getTexts } from "../data/queries";
 import { loadPassageCover, loadPericopes, type PassageCover } from "../data/understand";
 import { loadPosition, loadThreadStep } from "../data/user";
-import { useIsDark, useLayout } from "../design/tokens";
+import { useIsDark, useLayout, usePalette } from "../design/tokens";
 import { excerptOf } from "../lib/reader";
 import { verseLabel } from "../lib/saved";
 import { useSettings } from "../state/settings";
@@ -39,11 +39,12 @@ interface ContinueState {
 
 export default function Home() {
   const core = useCore();
+  const palette = usePalette();
   const { user } = useAppData();
   const { ax } = useLayout();
   const translation = useSettings((s) => s.translation);
   const launched = useSettings((s) => s.launched);
-  // Read once at mount: the effect below marks the first launch before Home's data loads.
+  // Read once at mount: the effect below marks the first launch before its position loads.
   const returning = useRef(launched).current;
   const [continueAt, setContinueAt] = useState<ContinueState | null>(null);
   const [threadStep, setThreadStep] = useState(0);
@@ -51,44 +52,51 @@ export default function Home() {
   // Depth (§8.14): John's first passage is Start with John's cover.
   const { data: johnCover } = useQuery(() => loadPassageCover(core, "JHN", verseOrd("JHN", 1, 1)), []);
 
-  // Decision 1 (JN-01): the first launch opens the reader at John 1, not Home.
-  // Home stays beneath it, so the reader's `‹ Home` is the way here. Someone
-  // who read before this build already has a position and keeps Home.
+  // A cold launch opens the reader, never Home (Home stays beneath it, so the
+  // reader's `‹ Home` is the way here). With a saved position it opens at that
+  // verse (brief §8.18, decided by John 10 Oct); with none, John 1 (decision 1,
+  // JN-01). Once per process: Home can remount (Page's back falls back to
+  // `replace("/")`), and that must not throw the reader forward again. A warm
+  // resume never remounts anything, so it keeps whatever was on screen.
   useEffect(() => {
-    if (launched) return;
-    useSettings.getState().markLaunched();
-    void loadPosition(user).then((position) => {
-      if (position === null) router.push(readerHref({ book: "JHN", chapter: 1 }));
-      else useSettings.getState().markHintSeen();
+    if (useLaunch.getState().routed) return;
+    useLaunch.getState().markRouted();
+    if (!returning) useSettings.getState().markLaunched();
+    void loadPosition(user).then((id) => {
+      const position = id === null ? null : parseVerseId(id);
+      if (position !== null) {
+        // Someone who read before this build skips the first-visit hint.
+        if (!returning) useSettings.getState().markHintSeen();
+        router.push(readerHref({ book: position.book, chapter: position.chapter, verse: position.verse, resume: true }));
+      } else if (!returning) {
+        router.push(readerHref({ book: "JHN", chapter: 1 }));
+      } else {
+        // Launched before but nothing read: Home is the first screen, so it lifts the launch overlay (§8.17).
+        useLaunch.getState().markReady();
+      }
     });
-  }, [launched, user]);
+  }, [returning, user]);
 
   useFocusEffect(
     useCallback(() => {
       let live = true;
       void (async () => {
-        try {
-          const id = await loadPosition(user);
-          const ref = id === null ? null : parseVerseId(id);
-          if (ref === null || id === null) {
-            if (live) setContinueAt(null);
-          } else {
-            const ord = verseOrd(ref.book, ref.chapter, ref.verse);
-            const [texts, cover] = await Promise.all([getTexts(core, ord), loadPassageCover(core, ref.book, ord)]);
-            if (live) setContinueAt({ verseId: id, label: verseLabel(ref), excerpt: excerptOf(texts[translation] ?? ""), cover });
-          }
-          const step = await loadThreadStep(user, "start-here-john");
-          if (live) setThreadStep(step);
-        } finally {
-          // A returning reader lands on Home: once its rows can draw (or fail to), the launch
-          // overlay lifts (§8.17). On first launch the reader at John 1 does that instead.
-          if (returning) useLaunch.getState().markReady();
+        const id = await loadPosition(user);
+        const ref = id === null ? null : parseVerseId(id);
+        if (ref === null || id === null) {
+          if (live) setContinueAt(null);
+        } else {
+          const ord = verseOrd(ref.book, ref.chapter, ref.verse);
+          const [texts, cover] = await Promise.all([getTexts(core, ord), loadPassageCover(core, ref.book, ord)]);
+          if (live) setContinueAt({ verseId: id, label: verseLabel(ref), excerpt: excerptOf(texts[translation] ?? ""), cover });
         }
+        const step = await loadThreadStep(user, "start-here-john");
+        if (live) setThreadStep(step);
       })();
       return () => {
         live = false;
       };
-    }, [user, core, translation, returning]),
+    }, [user, core, translation]),
   );
 
   const resume = continueAt === null ? null : parseVerseId(continueAt.verseId);
@@ -101,7 +109,8 @@ export default function Home() {
       <ListRow
         first
         onPress={() => router.push("/thread")}
-        label={`Start with John. ${coverLabel(johnCover)}. ${passages} passages, in order`}
+        // Title, then the word, as DP-01 reads; the passage count is not on this row.
+        label={`Start with John. ${coverLabel(johnCover)}`}
         testID="home-start-here"
       >
         <Cover cover={johnCover} label={<Label accessibilityRole="text">Start with John</Label>} />
@@ -128,8 +137,10 @@ export default function Home() {
       <MenuView
         shouldOpenOnLongPress={false}
         actions={[
-          { id: "recent", title: "Recent", image: "clock" },
-          { id: "sources", title: "Sources", image: "books.vertical" },
+          // An action without imageColor reaches native as colour 0, transparent: @react-native-menu
+          // 2.0's Fabric view always sends the field, so the icons were drawn invisible (10 Oct 2026).
+          { id: "recent", title: "Recent", image: "clock", imageColor: palette.ink },
+          { id: "sources", title: "Sources", image: "books.vertical", imageColor: palette.ink },
         ]}
         onPressAction={({ nativeEvent }) => router.push(nativeEvent.event === "recent" ? "/recent" : "/sources")}
         testID="home-more"
@@ -150,18 +161,15 @@ export default function Home() {
         {continueAt !== null && resume !== null ? (
           <ListRow
             first
-            onPress={() => router.push(readerHref({ book: resume.book, chapter: resume.chapter, verse: resume.verse }))}
+            // Lands as a cold launch does (brief §8.18): the verse just below the header, where it was being read.
+            onPress={() => router.push(readerHref({ book: resume.book, chapter: resume.chapter, verse: resume.verse, resume: true }))}
             // One element to VoiceOver: "Continue reading, John 8:2. Early in the morning…" (brief §5).
             label={`Continue reading, ${continueAt.label}. ${continueAt.cover === null ? "" : `${coverLabel(continueAt.cover)}. `}${continueAt.excerpt}`}
             testID="home-continue"
           >
             {continueAt.cover !== null ? (
               <>
-                <Cover
-                  cover={continueAt.cover}
-                  label={<Label accessibilityRole="text">Continue · {continueAt.label}</Label>}
-                  footer={continueAt.cover.word !== null}
-                />
+                <Cover cover={continueAt.cover} label={<Label accessibilityRole="text">Continue · {continueAt.label}</Label>} />
                 {continueAt.cover.word === null && continueAt.excerpt !== "" ? (
                   <Scripture step="claim" tone="muted" numberOfLines={ax ? 3 : 1} style={{ fontFamily: "Literata" }}>
                     {continueAt.excerpt}
@@ -171,7 +179,16 @@ export default function Home() {
             ) : (
               <>
                 <Label accessibilityRole="text">Continue</Label>
-                <Chrome tone="ink" style={styles.leadTitle} maxFontSizeMultiplier={2.2}>
+                <Chrome
+                  tone="ink"
+                  style={styles.leadTitle}
+                  maxFontSizeMultiplier={2.2}
+                  // At AX5 "1 Corinthians 14:1" broke mid-word ("Corinthian / s"); shrink a little
+                  // into two lines instead, as Contents' book rows do (Page.tsx ListRow).
+                  numberOfLines={ax ? 2 : undefined}
+                  adjustsFontSizeToFit={ax}
+                  minimumFontScale={0.7}
+                >
                   {continueAt.label}
                 </Chrome>
                 {continueAt.excerpt !== "" ? (
@@ -219,7 +236,7 @@ export default function Home() {
 /**
  * The outlined wordmark as Home's title (brief §8.15): forest on chalk, chalk
  * in dark. 44 pt tall, growing with Dynamic Type to 72 at AX5 (canvas
- * .wordmark). Rasters, kept from the kit at 1x–3x.
+ * .wordmark). Rasters from the high-resolution export, sized for 72 pt at 3x.
  */
 function Wordmark() {
   const isDark = useIsDark();
@@ -231,7 +248,7 @@ function Wordmark() {
       accessible
       accessibilityRole="header"
       accessibilityLabel="Yada"
-      style={{ width: (height * 88) / 35, height, marginLeft: -4, marginBottom: 4 }}
+      style={{ width: (height * 320) / 130, height, marginLeft: -4, marginBottom: 4 }}
       testID="home-wordmark"
     />
   );

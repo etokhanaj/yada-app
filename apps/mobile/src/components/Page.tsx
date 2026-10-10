@@ -84,7 +84,8 @@ export function PageScreen({
   back?: string | null;
   right?: ReactNode;
   children: ReactNode;
-  subtitle?: string;
+  /** A string is set as a muted note; a node (Start here's word line, DP-03) is drawn as given. */
+  subtitle?: ReactNode;
   testID?: string;
 }) {
   const palette = usePalette();
@@ -104,16 +105,18 @@ export function PageScreen({
       <ScrollView
         onScroll={onScroll}
         scrollEventThrottle={32}
-        contentContainerStyle={{ paddingTop: barHeight + 4, paddingHorizontal: gutter, paddingBottom: insets.bottom + 48 }}
+        contentContainerStyle={{ paddingTop: barHeight + 14, paddingHorizontal: gutter, paddingBottom: insets.bottom + 48 }}
         keyboardDismissMode="on-drag"
       >
         <View onLayout={(e) => setTitleBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}>
           {titleNode ?? <LargeTitle>{title}</LargeTitle>}
-          {subtitle !== undefined ? (
+          {typeof subtitle === "string" ? (
             <Chrome step="note" tone="muted" style={{ marginTop: 4 }}>
               {subtitle}
             </Chrome>
-          ) : null}
+          ) : (
+            subtitle
+          )}
         </View>
         <View style={{ marginTop: 18 }}>{children}</View>
       </ScrollView>
@@ -163,6 +166,7 @@ export function ListRow({
   first = false,
   book = false,
   here = false,
+  chosen = false,
   done = false,
   label,
   testID,
@@ -177,8 +181,16 @@ export function ListRow({
   onPress?: () => void;
   first?: boolean;
   book?: boolean;
-  /** Marked as everything chosen is: the selection wash and bar, title semibold. */
+  /**
+   * Start here's Next: title semibold, and nothing else here. The wash and bar mean one thing
+   * only, a selected verse (John, 10 Oct 2026); a plan's next item is marked in type, as
+   * Babbel and Uxcel mark theirs with a label rather than a fill
+   * (https://mobbin.com/screens/2f1af114-b64e-40b9-9434-97d7114bd4fc,
+   * https://mobbin.com/screens/dba87d9e-9955-49be-be73-686477e601ee).
+   */
   here?: boolean;
+  /** The chosen one of a set, Contents' current book: tick + semibold, no wash (MT-01, C-01). */
+  chosen?: boolean;
   done?: boolean;
   label?: string;
   testID?: string;
@@ -186,6 +198,7 @@ export function ListRow({
   children?: ReactNode;
 }) {
   const palette = usePalette();
+  const { ax } = useLayout();
   return (
     <Pressable
       onPress={onPress}
@@ -193,16 +206,14 @@ export function ListRow({
       unstable_pressDelay={60}
       accessibilityRole={onPress === undefined ? undefined : "button"}
       accessibilityLabel={label}
-      accessibilityState={here ? { selected: true } : undefined}
+      accessibilityState={chosen ? { selected: true } : undefined}
       testID={testID}
       style={({ pressed }) => [
         styles.listRow,
-        first || here ? null : { boxShadow: `0 -1px 0 ${palette.divider}` },
-        here ? [styles.here, { backgroundColor: palette.selection }] : null,
-        pressed && !here ? { backgroundColor: palette.fill } : null,
+        first ? null : { boxShadow: `0 -1px 0 ${palette.divider}` },
+        pressed ? { backgroundColor: palette.fill } : null,
       ]}
     >
-      {here ? <View style={[styles.hereBar, { backgroundColor: palette.accent }]} /> : null}
       <View style={{ flex: 1, minWidth: 0, rowGap: 3 }}>
         {overline !== undefined ? (
           <Chrome step="note" tone="muted" style={{ fontWeight: "500" }}>
@@ -214,13 +225,18 @@ export function ListRow({
             <Chrome
               tone={done ? "muted" : "ink"}
               // 20 pt, reaching 44 at AX5 (canvas --lrow).
-              style={{ fontFamily: "Literata", fontSize: 20, lineHeight: 26, letterSpacing: -0.2, fontWeight: here ? "600" : "400" }}
+              style={{ fontFamily: "Literata", fontSize: 20, lineHeight: 26, letterSpacing: -0.2, fontWeight: here || chosen ? "600" : "400" }}
               maxFontSizeMultiplier={2.2}
+              // At AX5 "1 Corinthians" beside the tick broke as "Corinthian / s" (sweep, 10 Oct 2026).
+              // Two lines and a slight shrink keep every book name's words whole.
+              numberOfLines={ax ? 2 : undefined}
+              adjustsFontSizeToFit={ax}
+              minimumFontScale={0.7}
             >
               {title}
             </Chrome>
           ) : (
-            <Chrome tone={done ? "muted" : "ink"} style={{ fontWeight: here ? "600" : "400" }}>
+            <Chrome tone={done ? "muted" : "ink"} style={{ fontWeight: here || chosen ? "600" : "400" }}>
               {title}
             </Chrome>
           )
@@ -272,19 +288,5 @@ const styles = StyleSheet.create({
     columnGap: 12,
     minHeight: 52,
     paddingVertical: 12,
-  },
-  here: {
-    borderRadius: RADIUS.wash,
-    marginHorizontal: -12,
-    paddingLeft: 22,
-    paddingRight: 12,
-  },
-  hereBar: {
-    position: "absolute",
-    left: 8,
-    top: 14,
-    bottom: 14,
-    width: 3,
-    borderRadius: 2,
   },
 });

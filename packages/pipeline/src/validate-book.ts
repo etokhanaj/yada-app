@@ -33,6 +33,7 @@ import {
 } from "@yada/schema";
 
 import { compareGloss, deriveVerseFrom } from "./derive.js";
+import { checkNoteParse } from "./parse-check.js";
 
 export const PIPELINE_RULES = {
   SCHEMA_PARSE: "schema-parse",
@@ -40,6 +41,8 @@ export const PIPELINE_RULES = {
   VERSE_REF_IN_STAGING: "verse-ref-in-staging",
   RELATED_IN_STAGING: "related-passage-in-staging",
   GLOSS_MATCHES_DERIVED: "gloss-matches-derived",
+  /** A parse, morph code or Strong's number in a lexical note must be the source's (CLAUDE.md rule 4). */
+  PARSE_IN_SOURCE: "lexical-parse-in-source",
 } as const;
 
 export interface EntryFinding extends Finding {
@@ -68,8 +71,11 @@ function ordinal(chapter: number, verse: number): number {
 
 interface ScopeToken {
   verseId: string;
+  surface: string;
   lemma: string;
   strongs: Set<string>;
+  /** The whole-word code: `HC/Vqq2ms`, `V- 3PAD-P--`. */
+  morph: string;
   greek: boolean;
 }
 
@@ -89,7 +95,7 @@ function lemmaForms(lemma: string): Set<string> {
 
 function tokensInRanges(db: DatabaseSync, ranges: readonly VerseRange[]): ScopeToken[] {
   const statement = db.prepare(
-    `SELECT t.verse_id, t.lemma, t.strongs, t.morphemes
+    `SELECT t.verse_id, t.surface, t.lemma, t.strongs, t.morph, t.morphemes
      FROM tokens t JOIN verses v ON v.verse_id = t.verse_id
      WHERE v.book = ? AND (v.chapter * 1000 + v.verse) BETWEEN ? AND ?`,
   );
@@ -112,18 +118,35 @@ function tokensInRanges(db: DatabaseSync, ranges: readonly VerseRange[]): ScopeT
           if (m.strongs !== undefined) strongs.add(m.strongs);
         }
       }
-      const key = `${verseId}#${String(row["lemma"])}#${[...strongs].join(",")}`;
+      // The morph is part of identity: one lemma twice in a verse with two
+      // parses is two things a note can be right or wrong about.
+      const key = `${verseId}#${String(row["lemma"])}#${[...strongs].join(",")}#${String(row["morph"])}`;
       if (seen.has(key)) continue;
       seen.add(key);
       tokens.push({
         verseId,
+        surface: String(row["surface"]),
         lemma: String(row["lemma"]),
         strongs,
+        morph: String(row["morph"]),
         greek: BOOK_CODES[range.book].testament === "NT",
       });
     }
   }
   return tokens;
+}
+
+/** The tokens a lexical ref names, by the matching rules described on checkLexicalRef. */
+function citedTokens<T extends Pick<ScopeToken, "lemma" | "strongs" | "greek">>(
+  ref: LexicalEvidenceRef,
+  scope: readonly T[],
+): T[] {
+  const cited = lemmaForms(ref.lemma);
+  return scope.filter((token) => {
+    if (ref.strongs !== undefined && !token.strongs.has(ref.strongs)) return false;
+    if (!token.greek) return ref.strongs !== undefined;
+    return [...lemmaForms(token.lemma)].some((form) => cited.has(form));
+  });
 }
 
 /**
@@ -136,14 +159,11 @@ function tokensInRanges(db: DatabaseSync, ranges: readonly VerseRange[]): ScopeT
  * checkable only through its Strong's number — and one without a number cannot
  * be shown to exist, which the 0C bar treats as not existing.
  */
-export function checkLexicalRef(ref: LexicalEvidenceRef, scope: readonly ScopeToken[]): string | null {
-  const cited = lemmaForms(ref.lemma);
-  const matches = scope.some((token) => {
-    if (ref.strongs !== undefined && !token.strongs.has(ref.strongs)) return false;
-    if (!token.greek) return ref.strongs !== undefined;
-    return [...lemmaForms(token.lemma)].some((form) => cited.has(form));
-  });
-  if (matches) return null;
+export function checkLexicalRef(
+  ref: LexicalEvidenceRef,
+  scope: ReadonlyArray<Pick<ScopeToken, "lemma" | "strongs" | "greek">>,
+): string | null {
+  if (citedTokens(ref, scope).length > 0) return null;
 
   if (ref.strongs === undefined && scope.length > 0 && scope.every((t) => !t.greek)) {
     return `lexical ref "${ref.lemma}" has no Strong's number, and Hebrew source tokens carry lemma references rather than headwords, so it cannot be shown to exist`;
@@ -214,6 +234,10 @@ function checkClaims(
       const problem = checkLexicalRef(ref, scope);
       if (problem !== null) {
         push({ level: "error", rule: PIPELINE_RULES.LEXICAL_IN_SOURCE, claimId: claim.id, message: problem });
+        continue;
+      }
+      for (const { level, message } of checkNoteParse(ref.lemma, ref.note, citedTokens(ref, scope), scope)) {
+        push({ level, rule: PIPELINE_RULES.PARSE_IN_SOURCE, claimId: claim.id, message });
       }
     }
   }

@@ -10,6 +10,8 @@
 
 import type { SQLiteDatabase } from "expo-sqlite";
 
+import { LICENSED_DDL } from "./licensed";
+
 export const USER_DB = "user.db";
 
 export const USER_DDL = `
@@ -51,7 +53,24 @@ CREATE TABLE IF NOT EXISTS installed_bundles (
   file   TEXT PRIMARY KEY,
   sha256 TEXT NOT NULL
 );
-`;
+
+-- Downloaded translations (more-translations plan): verified files in the
+-- documents directory, attached to core at launch in the order saved.
+-- removed = 1 marks one the reader removed: it is detached and its file
+-- deleted at the next launch, never while attached (data/bundles.ts rule 1).
+CREATE TABLE IF NOT EXISTS installed_translations (
+  code       TEXT PRIMARY KEY,
+  name       TEXT NOT NULL,
+  year       INTEGER,
+  version    INTEGER NOT NULL,
+  file       TEXT NOT NULL,
+  sha256     TEXT NOT NULL,
+  bytes      INTEGER NOT NULL,
+  cover      TEXT NOT NULL,
+  removed    INTEGER NOT NULL DEFAULT 0,
+  saved_at   TEXT NOT NULL
+);
+${LICENSED_DDL}`;
 
 /**
  * The PRD §14 metrics, and nothing else. Counts only; no limits are hardcoded

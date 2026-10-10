@@ -4,7 +4,7 @@ import path from "node:path";
 import type { Claim, VerseEntry } from "@yada/schema";
 import { describe, expect, it } from "vitest";
 
-import { claimLabel, claimWord, datasetName, howWeKnow, lexicalNotes, readingsTitle, verseLinks } from "./evidence";
+import { claimKind, claimLabel, claimWord, datasetName, howWeKnow, lexicalNotes, readingsTitle, verseLinks } from "./evidence";
 
 const golden = (file: string): VerseEntry =>
   JSON.parse(readFileSync(path.resolve(__dirname, "../../../../golden", file), "utf8")) as VerseEntry;
@@ -29,6 +29,32 @@ describe("claimLabel (decision 4: exceptions only)", () => {
 
   it("labels nothing on a disputed claim: its readings say it", () => {
     expect(claimLabel(claim(cor, "1CO.14.34.c7"))).toBeNull();
+  });
+});
+
+describe("claimKind (brief §8.19: grammar moves under Original)", () => {
+  const kinds = (entry: VerseEntry, kind: "reading" | "grammar") =>
+    entry.claims.filter((c) => claimKind(c) === kind).map((c) => c.id.split(".").pop());
+
+  it("splits 1 Corinthians 14:34 as the canvas does (U-01–03)", () => {
+    // c7 and c9 are debated: reading, shown under Where readers differ.
+    expect(kinds(cor, "reading")).toEqual(["c3", "c4", "c5", "c6", "c7", "c9"]);
+    expect(kinds(cor, "grammar")).toEqual(["c1", "c2", "c8"]);
+  });
+
+  it("keeps debated claims as reading even when their evidence has a lexical note", () => {
+    expect(claimKind(claim(cor, "1CO.14.34.c7"))).toBe("reading");
+    expect(claimKind(claim(cor, "1CO.14.34.c9"))).toBe("reading");
+  });
+
+  it("splits John 1:1 the same way (U-04)", () => {
+    expect(kinds(jhn, "grammar")).toEqual(["c1", "c2", "c3", "c5", "c6", "c7"]);
+    expect(kinds(jhn, "reading")).toEqual(["c4", "c8", "c9", "c10", "c11", "c12"]);
+  });
+
+  it("reads a pipeline-written kind over the rule", () => {
+    expect(claimKind({ ...claim(cor, "1CO.14.34.c1"), kind: "reading" })).toBe("reading");
+    expect(claimKind({ ...claim(cor, "1CO.14.34.c3"), kind: "grammar" })).toBe("grammar");
   });
 });
 

@@ -10,6 +10,9 @@
 
 export const FONTS = {
   scripture: "Literata",
+  // Amendment 12: a psalm's title is italic. Only the upright Literata was bundled, so the
+  // italic was a synthetic slant; the real Literata Italic is bundled under this name.
+  scriptureItalic: "LiterataItalic",
   greek: "GentiumPlus",
   hebrew: "NotoSerifHebrew",
 } as const;

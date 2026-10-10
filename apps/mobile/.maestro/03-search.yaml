@@ -1,11 +1,21 @@
 # Search is a sheet with the field focused (S-01…S-04, E-04): a forgiving
 # reference, an English word, a Greek word across the Bible, no results, and
-# Contents from the reader title (C-01, C-02). Not yet run: Maestro is not installed.
+# Contents from the reader title (C-01, C-02).
 appId: studio.yada.reader
 ---
 - launchApp
+# A cold launch resumes in the reader (brief §8.18); Home is one step back.
+- runFlow:
+    when:
+      visible:
+        id: reader-back
+    commands:
+      - tapOn:
+          id: reader-back
+      - waitForAnimationToEnd
 - tapOn:
     id: home-search
+- waitForAnimationToEnd
 - assertVisible:
     id: search
 - inputText: "jn 3 16"
@@ -14,22 +24,26 @@ appId: studio.yada.reader
     id: result-reference
 - tapOn:
     id: search-field
+- waitForAnimationToEnd
 - eraseText: 20
 - inputText: "love"
 - assertVisible: "Words"
-- assertVisible: "ἀγαπάω"
+- assertVisible: "agapaō.*"
 - assertVisible: "Show all 25 words"
 - assertVisible: "Passages · 331"
 - tapOn:
     id: search-field
+- waitForAnimationToEnd
 - eraseText: 20
 - inputText: "λόγος"
 - tapOn:
     id: result-word-λογοσ
+- waitForAnimationToEnd
 - assertVisible: "λόγος in the Bible"
 - assertVisible: "330 times in 318 verses"
 - tapOn:
     id: back-to-reading
+- waitForAnimationToEnd
 - assertVisible:
     id: search-field
 - eraseText: 20
@@ -38,17 +52,22 @@ appId: studio.yada.reader
     id: search-empty
 - tapOn:
     id: search-cancel
+- waitForAnimationToEnd
 - assertVisible:
     id: home
 
 - openLink: studio.yada.reader:///read/1CO/14
+- waitForAnimationToEnd
 - tapOn:
     id: reader-contents
+- waitForAnimationToEnd
 - assertVisible:
     id: contents
-- assertVisible: "Reading"
+- assertVisible: "1 Corinthians, reading"
 - tapOn:
     id: contents-1CO
+- waitForAnimationToEnd
 - tapOn:
     id: chapter-1CO-15
-- assertVisible: "1 Corinthians 15"
+- waitForAnimationToEnd
+- assertVisible: "1 Corinthians 15, BSB"

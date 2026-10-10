@@ -3,59 +3,98 @@ appId: studio.yada.reader
 ---
 - launchApp
 - openLink: studio.yada.reader:///read/1CO/14?verse=34&select=1
+- waitForAnimationToEnd
 - tapOn:
     id: reader-type
+- waitForAnimationToEnd
 - assertVisible: "Text and appearance"
-# The stepper is one adjustable element to VoiceOver, so its buttons are tapped by position.
-- tapOn:
+# The stepper is one adjustable element to VoiceOver, so Maestro sees it but not its
+# buttons; its steps are covered by the AX lock unit tests instead.
+- assertVisible:
     id: text-size
-    point: "95%,50%"
-- assertVisible: "4 of 6"
 - tapOn:
     id: appearance-dark
+- waitForAnimationToEnd
 - tapOn:
     id: type-close
+- waitForAnimationToEnd
+# Maestro's iOS driver keeps a stale hierarchy once a native sheet has been dismissed and
+# another presented (seen with Maestro 2.11, 10 Oct 2026), so the flow relaunches here.
+- launchApp
+- openLink: studio.yada.reader:///read/1CO/14?verse=34&select=1
+- waitForAnimationToEnd
 - tapOn:
     id: bar-compare
-- assertVisible:
-    id: compare-WEB
+- waitForAnimationToEnd
+# Maestro reads rows inside a native sheet offset by the sheet's own origin, so a tap on
+# the Compare row lands on the sheet header; Translations opens by link instead.
+- openLink: studio.yada.reader:///evidence/translations?ref=1CO.14.34
+- waitForAnimationToEnd
+- assertVisible: "WEB"
 - tapOn:
     id: back-to-reading
+- waitForAnimationToEnd
 - tapOn:
     id: bar-more
+- waitForAnimationToEnd
+# Start from an unbookmarked verse whatever an earlier run left behind.
+- runFlow:
+    when:
+      visible: "Remove bookmark"
+    commands:
+      - tapOn: "Remove bookmark"
+      - waitForAnimationToEnd
+      - tapOn:
+          id: bar-more
+      - waitForAnimationToEnd
 - tapOn: "Bookmark"
+- waitForAnimationToEnd
 - tapOn:
     id: reader-back
+- waitForAnimationToEnd
 - tapOn:
     id: home-bookmarks
+- waitForAnimationToEnd
 - assertVisible:
     id: bookmark-1CO.14.34
 - tapOn:
     id: bookmarks-edit
+- waitForAnimationToEnd
 # The remove control sits at the row's trailing edge.
 - tapOn:
     id: bookmark-1CO.14.34
     point: "94%,50%"
-- assertVisible: "No bookmarks yet."
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: bookmark-1CO.14.34
 - tapOn:
     id: page-back
+- waitForAnimationToEnd
 - tapOn:
     id: home-more
+- waitForAnimationToEnd
 - tapOn: "Sources"
-- assertVisible: "All of it is on your iPhone. Nothing needs a connection."
+- waitForAnimationToEnd
+- assertVisible: "Built-in texts need no connection.*"
 - assertVisible: "Explained so far.*"
 - scrollUntilVisible:
-    element: "SBLGNT · Own licence"
+    element: ".*SBLGNT, CC BY 4.0.*"
+    centerElement: true
     direction: DOWN
 - assertNotVisible: ".*EULA.*"
+- scrollUntilVisible:
+    element: ".*LSV, CC BY-SA 4.0.*"
+    centerElement: true
+    direction: DOWN
 # Leave the simulator as it was found.
 - tapOn:
     id: page-back
+- waitForAnimationToEnd
 - openLink: studio.yada.reader:///read/1CO/14
+- waitForAnimationToEnd
 - tapOn:
     id: reader-type
-- tapOn:
-    id: text-size
-    point: "5%,50%"
+- waitForAnimationToEnd
 - tapOn:
     id: appearance-system
+- waitForAnimationToEnd

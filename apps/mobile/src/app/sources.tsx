@@ -2,14 +2,17 @@
  * Sources (canvas SO-01, SO-02), formerly Library: what is explained so far,
  * then where every word of text and data comes from.
  *
- * Every bundle ships inside the app (John's decision 4), so there are no file
- * sizes and nothing to manage: one line says it all works offline (S13, S14).
- * Rows are Apple Settings' plain disclosure rows, the whole row the target
+ * The built-in texts ship inside the app (John's decision 4); downloaded
+ * translations are saved on the phone, so one line says both work offline
+ * (S13, S14; wording from the more-translations plan). Rows are Apple
+ * Settings' plain disclosure rows, the whole row the target
  * (https://mobbin.com/screens/9343e7b1-2483-4855-9655-0785d42c88a6; S19).
  *
- * Licences come from the core bundle's `sources` table (rule 3). Its
- * `encumbered` notes are the team's open legal questions, not terms for
- * readers, and stay out of the UI (S15); PRD 0E still has to close them.
+ * Licences come from the core bundle's `sources` table, and each download's
+ * from the `meta` table inside its own file (rule 3). The LSV's CC BY-SA
+ * notice is shown in full under its row. The `encumbered` notes are the
+ * team's open legal questions, not terms for readers, and stay out of the UI
+ * (S15); PRD 0E still has to close them.
  */
 
 import { parseVerseId } from "@yada/schema";
@@ -19,10 +22,11 @@ import { Linking, View } from "react-native";
 import { readerHref } from "../components/navigation";
 import { DivineText } from "../components/Verse";
 import { ListRow, PageScreen } from "../components/Page";
-import { Label, Scripture } from "../components/Type";
+import { Chrome, Label, Scripture } from "../components/Type";
 import { useCore, useQuery } from "../data/AppData";
 import { UNDERSTAND_BUNDLES } from "../data/bundles";
-import { bookBounds, getSources, getTextsForOrds } from "../data/queries";
+import { bookBounds, getSources, getTextsForOrds, getTranslationSources } from "../data/queries";
+import { useTranslations } from "../data/translations";
 import { loadEntriesInRange } from "../data/understand";
 import { useLayout } from "../design/tokens";
 import { excerptOf } from "../lib/reader";
@@ -36,7 +40,8 @@ export default function SourcesScreen() {
   const core = useCore();
   const { ax, sectionGap } = useLayout();
   const translation = useSettings((s) => s.translation);
-  const { data: sources } = useQuery(() => getSources(core), []);
+  const installed = useTranslations((s) => s.installed);
+  const { data: sources } = useQuery(async () => [...(await getSources(core)), ...(await getTranslationSources(core))], [installed.map((t) => t.code).join(",")]);
   const { data: explained } = useQuery(async () => {
     const books = UNDERSTAND_BUNDLES.flatMap((b) => (b.book === undefined ? [] : [b.book]));
     const rows = (await Promise.all(books.map((book) => loadEntriesInRange(book, ...bookBounds(book))))).flat();
@@ -50,7 +55,7 @@ export default function SourcesScreen() {
   const items = sourceItems(sources ?? []);
 
   return (
-    <PageScreen title="Sources" subtitle="All of it is on your iPhone. Nothing needs a connection." testID="sources">
+    <PageScreen title="Sources" subtitle="Built-in texts need no connection. Downloaded translations work offline once saved." testID="sources">
       {explained !== undefined && explained.length > 0 ? (
         <View>
           <Label style={{ marginBottom: 6 }}>
@@ -73,7 +78,7 @@ export default function SourcesScreen() {
                     numberOfLines={ax ? 3 : 1}
                     style={{ fontFamily: "Literata" }}
                   >
-                    <DivineText text={text} />
+                    <DivineText text={text} translation={translation} />
                   </Scripture>
                 }
               />
@@ -93,7 +98,21 @@ export default function SourcesScreen() {
                 key={item.dataset}
                 first={i === 0}
                 title={item.title}
-                subtitle={item.subtitle}
+                subtitle={
+                  item.attribution === null ? (
+                    item.subtitle
+                  ) : (
+                    <>
+                      <Chrome step="note" tone="muted">
+                        {item.subtitle}
+                      </Chrome>
+                      {/* CC BY-SA: the notice in full, as the source states it. */}
+                      <Chrome step="note" tone="muted" testID={`attribution-${item.title}`}>
+                        {item.attribution}
+                      </Chrome>
+                    </>
+                  )
+                }
                 label={item.label}
                 onPress={() => void Linking.openURL(item.url)}
                 testID={`source-${item.title}`}

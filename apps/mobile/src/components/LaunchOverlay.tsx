@@ -28,13 +28,21 @@ import { create } from "zustand";
 import { PALETTES } from "../design/palette";
 import { SPRING } from "../design/tokens";
 
-/** The first screen says when it can draw: the reader once its chapter loads; Home, for a returning reader, once its rows load. */
-export const useLaunch = create<{ ready: boolean; markReady: () => void }>((set) => ({
+/**
+ * The first screen says when it can draw. A cold launch opens the reader (at a
+ * saved position, brief §8.18, or John 1), which reports once its chapter
+ * loads; Home reports only in the one case it is left as the first screen.
+ * `routed` keeps Home from opening the reader twice in one process: Home can
+ * remount, and a Fast Refresh re-runs its module, but this store outlives both.
+ */
+export const useLaunch = create<{ ready: boolean; routed: boolean; markReady: () => void; markRouted: () => void }>((set) => ({
   ready: false,
+  routed: false,
   markReady: () => set({ ready: true }),
+  markRouted: () => set({ routed: true }),
 }));
 
-/** Same size as app.json's expo-splash-screen imageWidth, so the hand-over is invisible. */
+/** Same size as app.config.ts's expo-splash-screen imageWidth, so the hand-over is invisible. */
 const SYMBOL = 125;
 const GROUND = PALETTES.dark.paper;
 

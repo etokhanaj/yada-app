@@ -47,5 +47,6 @@ describeIfIngested("the three English texts", () => {
     expect(report.byTranslation.BSB).toBe(31102);
     expect(report.byTranslation.KJV).toBe(31102);
     expect(report.byTranslation.WEB).toBeGreaterThanOrEqual(31102);
+    expect(report.byTranslation.LSV).toBeGreaterThanOrEqual(31102);
   });
 });

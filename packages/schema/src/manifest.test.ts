@@ -46,12 +46,13 @@ describe("the repo's own source manifest", () => {
     }
   });
 
-  it("flags the SBLGNT text as not cleared for commercial use", () => {
-    // Its annotations are CC BY-SA 3.0 but the text carries its own EULA, so
-    // the two are separate manifest entries with different verdicts.
-    const blocked = nonCommercialEntries(manifest).map((e) => e.dataset);
-    expect(blocked).toContain("SBLGNT (Greek text)");
-    expect(blocked).not.toContain("morphgnt/sblgnt (morphological annotations)");
+  it("keeps the SBLGNT text and its annotations as separate entries with their own licences", () => {
+    // The text moved from a bespoke EULA to CC BY 4.0 (read from sblgnt.com/license, 10 Oct 2026);
+    // the MorphGNT annotations stay CC BY-SA 3.0. Two entries, so neither verdict hides the other.
+    const byName = new Map(manifest.map((e) => [e.dataset, e.license]));
+    expect(byName.get("SBLGNT (Greek text)")).toBe("CC-BY-4.0");
+    expect(byName.get("morphgnt/sblgnt (morphological annotations)")).toBe("CC-BY-SA-3.0");
+    expect(nonCommercialEntries(manifest)).toEqual([]);
   });
 });
 

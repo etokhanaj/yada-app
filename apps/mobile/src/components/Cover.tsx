@@ -1,65 +1,95 @@
 /**
- * A typographic cover (brief §8.14, canvas DP-01–DP-03): the passage's word
- * large in its own script, its transliteration and gloss, then the passage
- * title — the text as the image (Tolan, Fable, Apple Books chapter openers).
- * No illustration, gradient or watermark copy of the word: a ghosted word
- * behind was tried on the canvas and muddied the text.
+ * A typographic cover, English-led (brief §8.14, canvas DP-01 / DP-03 as
+ * redrawn 10 Oct): the passage title leads in large Literata semibold; beneath
+ * it one line with the passage's key word at reading size in its own script,
+ * then transliteration, gloss and range in mutedInk. John chose English to
+ * lead because a Greek word set at 58 pt read as a wall to anyone who does not
+ * read Greek; the word stays as the hint of what is underneath.
  *
- * With no word, the passage title takes the large slot in Literata.
- * At AX sizes everything stacks and wraps; the word drops to headword size.
+ * No illustration, gradient or watermark copy of the word: a ghosted word
+ * behind was tried on the canvas and muddied the text. With no entry for the
+ * passage, the title stands alone (DP-02).
  */
 
 import type { ReactNode } from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import type { PassageCover } from "../data/understand";
-import { FONTS, useLayout } from "../design/tokens";
-import { Chrome, Original } from "./Type";
+import { FONTS } from "../design/tokens";
+import { Chrome, Original, Prose } from "./Type";
 import { displayGloss } from "../lib/glosses";
 import { DivineText } from "./Verse";
 
-export function Cover({ cover, label, after, footer = true }: { cover: PassageCover; label?: ReactNode; after?: string; footer?: boolean }) {
-  const { ax } = useLayout();
-  const { word } = cover;
+export function Cover({ cover, label }: { cover: PassageCover; label?: ReactNode }) {
   return (
     <View>
       {label}
-      {word !== null ? (
-        <>
-          <Original
-            script={cover.script}
-            // 58 pt at default; at AX sizes the headword token (canvas .ax5 .cw), which Dynamic Type grows.
-            style={ax ? { fontSize: 40, lineHeight: 50 } : { fontSize: 58, lineHeight: cover.script === "hebrew" ? 84 : 66, letterSpacing: -0.5 }}
-            maxFontSizeMultiplier={ax ? 1.45 : 1}
-          >
-            {word.surface}
-          </Original>
-          <Chrome step="note" tone="muted" style={{ fontSize: 16, lineHeight: 22 }} maxFontSizeMultiplier={3.1}>
-            {word.translit}
-            {word.gloss === null ? "" : ` · “${displayGloss(word.gloss)}”`}
-            {after === undefined ? "" : ` · ${after}`}
-          </Chrome>
-          {footer ? (
-            <Chrome tone="ink" style={{ fontFamily: FONTS.scripture, fontSize: 20, lineHeight: 26, marginTop: 10 }} maxFontSizeMultiplier={2.2}>
-              <DivineText text={cover.title} /> · {cover.range}
-            </Chrome>
-          ) : null}
-        </>
-      ) : (
-        <Chrome
-          tone="ink"
-          style={{ fontFamily: FONTS.scripture, fontSize: 30, lineHeight: 36, fontWeight: "600", letterSpacing: -0.4, marginTop: 6 }}
-          maxFontSizeMultiplier={2}
-        >
-          <DivineText text={cover.title} />
-        </Chrome>
-      )}
+      <Chrome tone="ink" style={styles.title} maxFontSizeMultiplier={2}>
+        <DivineText text={cover.title} />
+      </Chrome>
+      <CoverWordLine cover={cover} />
     </View>
   );
 }
 
-/** One VoiceOver phrase for a cover: word, transliteration, gloss and title, each once. */
+/**
+ * The key word, then `logos · “word” · 1:1–18`. `after` replaces the range
+ * (Start here ends it with the passage count instead, DP-03). Nothing when the
+ * passage has no entry: never a word the source data does not hold (rule 4).
+ *
+ * Two Texts in a wrapping row, not one Text with a nested span: RN applies
+ * `accessibilityLanguage` per Text view only (see Type.tsx rule 4), so the word
+ * needs its own view for VoiceOver to read it in Greek or Hebrew. At AX sizes
+ * the muted half drops whole beneath the word and wraps there; nothing is cut.
+ */
+export function CoverWordLine({ cover, after }: { cover: PassageCover; after?: string }) {
+  const { word } = cover;
+  if (word === null) return null;
+  return (
+    <View style={styles.line}>
+      <Original
+        script={cover.script}
+        // Reading size (the interlinear's 24 pt), fixed like the rest of the cover; it grows
+        // with Dynamic Type to the original token's AX5 size (60 pt). Hebrew's points need more leading.
+        style={{ fontSize: 24, lineHeight: cover.script === "hebrew" ? 36 : 30 }}
+        maxFontSizeMultiplier={2.5}
+      >
+        {word.surface}
+      </Original>
+      <Prose step="claim" tone="muted" style={styles.rest}>
+        {word.translit}
+        {word.gloss === null ? "" : ` · “${displayGloss(word.gloss)}”`}
+        {` · ${after ?? cover.range}`}
+      </Prose>
+    </View>
+  );
+}
+
+/** One VoiceOver phrase for a cover: title first, as it reads on screen, then the word, each once. */
 export function coverLabel(cover: PassageCover): string {
   const w = cover.word;
-  return w === null ? cover.title : `${w.surface}, ${w.translit}${w.gloss === null ? "" : `, ${displayGloss(w.gloss)}`}. ${cover.title}, ${cover.range}`;
+  return w === null
+    ? cover.title
+    : `${cover.title}, ${cover.range}. ${w.surface}, ${w.translit}${w.gloss === null ? "" : `, ${displayGloss(w.gloss)}`}`;
 }
+
+const styles = StyleSheet.create({
+  title: {
+    fontFamily: FONTS.scripture,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "600",
+    letterSpacing: -0.4,
+    marginTop: 6,
+  },
+  line: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "baseline",
+    columnGap: 8,
+    marginTop: 4,
+  },
+  rest: {
+    flexShrink: 1,
+  },
+});

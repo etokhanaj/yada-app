@@ -16,6 +16,24 @@ export function claimLabel(claim: Pick<Claim, "grounding" | "evidence_strength">
   return null;
 }
 
+export type ClaimKind = "reading" | "grammar";
+
+/**
+ * Brief §8.19: a grammar claim states a parse or an apparatus fact, so it
+ * moves under Original as "In the Greek / Hebrew" and What we can see keeps
+ * the claims a reader can follow without the language. The pipeline will tag
+ * claims with `kind` before John's Gospel is generated; until then the rule
+ * is the canvas's (U-01–04): a text claim whose evidence carries an apparatus
+ * note or a lexical note (the parse code). Once `kind` is present it wins, so
+ * the app never second-guesses the entry.
+ */
+export function claimKind(claim: Pick<Claim, "category" | "evidence"> & { kind?: ClaimKind }): ClaimKind {
+  if (claim.kind !== undefined) return claim.kind;
+  if (claim.category !== "text") return "reading";
+  const grammar = claim.evidence.some((e) => e.type === "apparatus" || (e.type === "lexical" && e.note !== undefined));
+  return grammar ? "grammar" : "reading";
+}
+
 /** "MorphGNT/SBLGNT @ aaed91e" → "MorphGNT"; "OSHB morphhb @ 3d15126" → "OSHB". The pin is provenance, not a name. */
 export function datasetName(dataset: string): string {
   const name = dataset.split(" @ ")[0]?.trim() ?? dataset;
@@ -96,12 +114,17 @@ export function verseLinks(evidence: readonly EvidenceRef[], currentVerseId: str
 
 /**
  * Lexical notes worth a line: a parse code that only restates the claim
- * ("V-PAM-3P", v2-review S2) is dropped.
+ * ("V-PAM-3P", v2-review S2) is dropped. MorphGNT's own form ("V- 3PAD-P--")
+ * is dropped too: the 1 Cor 14:34 fixture was corrected to it, because the
+ * Robinson-style code is not in the supplied data (docs/milestone-0.md).
  */
+const ROBINSON_ONLY = /^[A-Z0-9]{1,4}(-[A-Z0-9]+)+$/u;
+const MORPHGNT_ONLY = /^(?:[ACDINPVX]-|R[ADIPR]) [-0-9A-Z]{8}$/u;
+
 export function lexicalNotes(evidence: readonly EvidenceRef[]): Array<{ lemma: string; note: string; dataset: string | null }> {
   return evidence
     .filter((e): e is Extract<EvidenceRef, { type: "lexical" }> => e.type === "lexical")
-    .filter((e) => e.note !== undefined && !/^[A-Z0-9]{1,4}(-[A-Z0-9]+)+$/u.test(e.note))
+    .filter((e) => e.note !== undefined && !ROBINSON_ONLY.test(e.note) && !MORPHGNT_ONLY.test(e.note))
     .map((e) => ({ lemma: e.lemma, note: e.note ?? "", dataset: e.dataset === undefined ? null : datasetName(e.dataset) }));
 }
 

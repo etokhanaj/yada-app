@@ -358,3 +358,50 @@ h3,p{margin:0}
 .splash.on-dark{background:#0E1814;color:#DBEC9A}
 .splash .splsym{transition:none}
 .splash{z-index:10}
+.cwsm{position:relative;display:block;font-size:var(--claim);margin-top:8px}
+.cwsm .gk{font-size:24px;color:var(--ink);margin-right:4px}
+.ax5 .cwsm .gk{font-size:var(--orig)}
+.gfdisc{border-bottom:0}
+.gfcount{margin-left:auto;margin-right:8px;font-size:var(--note);color:var(--muted);font-weight:400}
+.ax5 .gfcount{display:none}
+/* More translations: YouVersion "My versions" rows, Yada's quiet list */
+.trrow{display:flex;align-items:center;gap:14px;min-height:60px;padding:8px 0;box-sizing:border-box}
+.trrow + .trrow{box-shadow:0 -1px 0 var(--div)}
+.trrow .rm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.trtile{flex:none;width:44px;height:44px;border-radius:10px;background:var(--fill);display:flex;align-items:center;justify-content:center;font-family:Literata,serif;font-size:13px;font-weight:600;letter-spacing:.02em}
+.trrow.current .trtile{background:var(--accent);color:var(--paper)}
+.trrow.current .lmain{font-weight:600}
+.trright{flex:none;display:flex;align-items:center}
+.trbtn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.ring{display:flex;width:44px;height:44px;align-items:center;justify-content:center}
+.trrow.off{opacity:.45}
+.offl{margin:0 0 6px}
+.trsel{font-weight:500}
+.ax5 .trtile{width:64px;height:64px;font-size:20px}
+.ax5 .trrow{flex-wrap:wrap}
+.lrow.cur .lmain{font-weight:600}
+.valrow .lmain{font-weight:500}
+.valr{font-size:var(--chrome);color:var(--muted)}
+.trrow.current .lmain{font-weight:600}
+.trrow{min-height:56px}
+.ax5 .trrow{flex-wrap:nowrap}
+/* Translation covers (Apple Books / Goodreads list covers, in Yada's tones) */
+.cov{position:relative;flex:none;width:40px;height:56px;border-radius:2px 5px 5px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;box-shadow:0 1px 2px rgba(0,0,0,.12),0 4px 10px rgba(0,0,0,.08),inset 0 0 0 .5px rgba(0,0,0,.12);overflow:hidden}
+.cov::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:rgba(0,0,0,.14)}
+.cov::after{content:"";position:absolute;left:4px;top:0;bottom:0;width:1px;background:rgba(255,255,255,.22)}
+.covab{font-family:Literata,serif;font-weight:600;font-size:11px;letter-spacing:.04em;margin-left:3px}
+.covrule{width:14px;height:1px;background:currentColor;opacity:.5;margin-left:3px}
+.cov-forest{background:#183F35;color:#F7F8F0}
+.cov-lime{background:#DBEC9A;color:#183F35}
+.cov-paper{background:#F7F8F0;color:#183F35}
+.cov-ink{background:#16231E;color:#DBEC9A}
+.cov-sage{background:#526D63;color:#F7F8F0}
+.dark .cov{box-shadow:0 0 0 1px rgba(255,255,255,.08),0 4px 10px rgba(0,0,0,.4)}
+.dark .cov-ink{background:#0B120F}
+.covsm{width:20px;height:28px;margin-left:10px}
+.covsm .covab,.covsm .covrule{display:none}
+.trrow{gap:16px;min-height:72px;padding:8px 0}
+.trrow .lmain{font-family:Literata,serif;font-size:var(--lrow);letter-spacing:-0.2px}
+.ax5 .cov{width:56px;height:78px;align-self:flex-start;margin-top:6px}
+.ax5 .covab{font-size:15px}
+.ax5 .covsm{width:28px;height:40px;margin-top:0;align-self:center}

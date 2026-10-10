@@ -8,8 +8,9 @@
  *
  * The reader stays mounted under every sheet it opens, so Back to reading
  * returns to the exact scroll position and selection without restoring
- * anything. The top visible verse is saved to user.db as it changes, so
- * Continue on Home survives a relaunch.
+ * anything. The top visible verse is saved to user.db as it changes, so a
+ * cold launch reopens the reader there (brief §8.18) and Continue on Home
+ * points at it.
  */
 
 import { BOOK_CODES, formatDisplayRef, formatVerseId, parseVerseId } from "@yada/schema";
@@ -36,17 +37,20 @@ import { ReaderHeader } from "../../../components/ReaderHeader";
 import { Chrome, Prose } from "../../../components/Type";
 import { Verse, type SelectionPlace, type VerseAction } from "../../../components/Verse";
 import { useAppData, useCore, useQuery } from "../../../data/AppData";
+import { isLicensedCode, LICENSED } from "../../../data/licensed";
 import { chapterBounds, getChapter, scriptOf, type VerseText } from "../../../data/queries";
+import { licensedEnabled, useLicensedChapter } from "../../../data/useLicensedChapter";
 import { loadEntryOrds, loadPericopes } from "../../../data/understand";
 import { pericopeForVerse } from "../../../lib/pericopes";
+import { useTranslationName } from "../../../data/translations";
 import { listBookmarks, savePosition, toggleBookmark } from "../../../data/user";
 import { SHEET_MEDIUM, SPACE, useLayout, usePalette } from "../../../design/tokens";
 import { chapterFromParams, nextChapter, prevChapter, type ChapterRef } from "../../../lib/chapters";
 import { useReduceMotion } from "../../../lib/motion";
-import { chapterTitle, HEADER_START, headerOnScroll, scrollToClearBar, shortRef } from "../../../lib/reader";
+import { barTopIn, chapterTitle, HEADER_START, headerOnScroll, scrollToClearBar, sheetTopIn, shortRef } from "../../../lib/reader";
 import { EMPTY_SELECTION, formatSpan, selectionSpan, spanRef, tapVerse } from "../../../lib/selection";
 import { useAccessibility } from "../../../state/accessibility";
-import { TRANSLATIONS, useSettings } from "../../../state/settings";
+import { useSettings } from "../../../state/settings";
 
 function placeIn(span: { start: number; end: number } | null, verse: number): SelectionPlace {
   if (span === null || verse < span.start || verse > span.end) return "none";
@@ -57,7 +61,7 @@ function placeIn(span: { start: number; end: number } | null, verse: number): Se
 }
 
 export default function ReaderScreen() {
-  const params = useLocalSearchParams<{ book?: string; chapter?: string; verse?: string; from?: string; select?: string }>();
+  const params = useLocalSearchParams<{ book?: string; chapter?: string; verse?: string; from?: string; select?: string; resume?: string }>();
   const ref = chapterFromParams(params.book, params.chapter);
   const { book, chapter } = ref;
   const target = params.verse === undefined ? null : Number(params.verse);
@@ -76,7 +80,23 @@ export default function ReaderScreen() {
   // The hint is for the first visit only; once seen it never returns, even before its first tap.
   const [showHint] = useState(!hintSeen);
 
-  const { data: verses, error: versesError } = useQuery(() => getChapter(core, book, chapter, translation), [book, chapter, translation]);
+  // Licensed translations (dev flag only) come from API.Bible, not the core bundle (docs/licensed-translations.md).
+  const licensedCode = licensedEnabled() && isLicensedCode(translation) ? translation : null;
+  const licensed = useLicensedChapter(licensedCode, book, chapter);
+  const { data: bundled, error: versesError } = useQuery(
+    async () => (licensedCode === null ? getChapter(core, book, chapter, translation) : undefined),
+    [book, chapter, translation, licensedCode],
+  );
+  const verses: VerseText[] | undefined =
+    licensedCode === null
+      ? bundled
+      : licensed === undefined
+        ? undefined
+        : licensed.status === "ok"
+          ? // A bridged verse ("[1-2]") is one row numbered 1–2 and keyed by its first verse, so
+            // selecting it selects verse 1 and verse 2 has no row of its own (review, 10 Oct 2026).
+            licensed.verses.map((v) => ({ ord: chapterBounds(book, chapter)[0] - 1 + v.verse, verse: v.verse, through: v.through, text: v.text }))
+          : [];
   // DP-04: the passage holding verse 1 names the chapter opening.
   const { data: opener } = useQuery(
     async () => pericopeForVerse(await loadPericopes(book), chapterBounds(book, chapter)[0])?.label ?? null,
@@ -95,7 +115,9 @@ export default function ReaderScreen() {
   const offset = useRef(0);
   const dragging = useRef(false);
 
-  // The launch overlay lifts once the first chapter can draw (brief §8.17).
+  // The launch overlay lifts once the first chapter can draw (brief §8.17). On a cold launch
+  // this is the first screen whether it opened John 1 or a saved position (§8.18), so the
+  // reader is the only screen that reports; Home reports only when it is left showing.
   useEffect(() => {
     if (verses !== undefined || versesError !== undefined) useLaunch.getState().markReady();
   }, [verses, versesError]);
@@ -106,6 +128,20 @@ export default function ReaderScreen() {
     setHeader(HEADER_START);
   }, [book, chapter, target, params.select]);
 
+  // A resumed position (§8.18) puts its verse just below the header, where the list's own top
+  // padding puts verse 1, so the reader sees the line they left; any other jump sits it a fifth
+  // of the way down. Refs, because the header is measured after the first landing is scheduled
+  // and onScrollToIndexFailed retries with the same placement.
+  const resume = params.resume === "1";
+  const placement = useRef({ resume, headerHeight });
+  placement.current = { resume, headerHeight };
+  const landOn = useCallback((index: number) => {
+    const p = placement.current;
+    listRef.current?.scrollToIndex(
+      p.resume ? { index, viewPosition: 0, viewOffset: p.headerHeight + SPACE.sm, animated: false } : { index, viewPosition: 0.2, animated: false },
+    );
+  }, []);
+
   // Land on the requested verse once its chapter is on screen; once per arrival.
   useEffect(() => {
     if (verses === undefined) return;
@@ -115,10 +151,10 @@ export default function ReaderScreen() {
     const index = target === null ? -1 : verses.findIndex((v) => v.verse === target);
     const timer = setTimeout(() => {
       if (index < 0) listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      else listRef.current?.scrollToIndex({ index, viewPosition: 0.2, animated: false });
+      else landOn(index);
     }, 60);
     return () => clearTimeout(timer);
-  }, [verses, book, chapter, target]);
+  }, [verses, book, chapter, target, landOn]);
 
   useFocusEffect(
     useCallback(() => {
@@ -175,7 +211,8 @@ export default function ReaderScreen() {
 
   /** Brief §4: the selected verse scrolls to stay above the bar. */
   const keepSelectionVisible = useCallback(() => {
-    if (barHeight > 0) scrollSelectionAbove(window.height - barHeight);
+    const barTop = barTopIn(window.height, barHeight);
+    if (barTop !== null) scrollSelectionAbove(barTop);
   }, [scrollSelectionAbove, barHeight, window.height]);
 
   useEffect(() => {
@@ -184,7 +221,7 @@ export default function ReaderScreen() {
   }, [keepSelectionVisible]);
 
   const goTo = useCallback((next: ChapterRef) => {
-    router.setParams({ book: next.book, chapter: String(next.chapter), verse: undefined, from: undefined, select: undefined });
+    router.setParams({ book: next.book, chapter: String(next.chapter), verse: undefined, from: undefined, select: undefined, resume: undefined });
   }, []);
 
   const label = span === null ? "" : formatSpan(BOOK_CODES[book].name, chapter, span);
@@ -207,7 +244,7 @@ export default function ReaderScreen() {
    * top 45% of the screen); at AX sizes the sheet opens large and covers it anyway.
    */
   const clearForSheet = () => {
-    if (!ax) scrollSelectionAbove(window.height * (1 - SHEET_MEDIUM));
+    if (!ax) scrollSelectionAbove(sheetTopIn(window.height, SHEET_MEDIUM));
   };
 
   // Original and Compare open Understand at that section: one depth-1 surface, never three (brief §1 rule 1).
@@ -256,7 +293,9 @@ export default function ReaderScreen() {
 
   const prev = prevChapter(book, chapter);
   const next = nextChapter(book, chapter);
-  const translationName = TRANSLATIONS.find((t) => t.code === translation)?.name ?? translation;
+  // A licensed version is named by its own list; every other code, built in or downloaded, by the store.
+  const storedName = useTranslationName(translation);
+  const translationName = LICENSED.find((t) => t.code === translation)?.name ?? storedName;
   const title = chapterTitle(book, chapter);
 
   return (
@@ -288,7 +327,7 @@ export default function ReaderScreen() {
             // A pixel estimate lands on the wrong verse (0A: verse 7 instead of
             // 34); get close, let rows render, then ask again by index.
             listRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
-            setTimeout(() => listRef.current?.scrollToIndex({ index, viewPosition: 0.2, animated: false }), 120);
+            setTimeout(() => landOn(index), 120);
           }}
           ListHeaderComponent={
             <>
@@ -321,8 +360,10 @@ export default function ReaderScreen() {
             >
               <Verse
                 verse={item.verse}
+                through={item.through}
                 chapter={chapter}
                 text={item.text}
+                translation={translation}
                 place={placeIn(span, item.verse)}
                 bookmarked={bookmarks.has(`${book}.${chapter}.${item.verse}`)}
                 hasEntry={entryOrds?.has(item.ord) ?? false}
@@ -350,6 +391,23 @@ export default function ReaderScreen() {
               <Prose step="note" tone="muted" style={{ marginTop: 14 }}>
                 {translationName}
               </Prose>
+              {licensed?.status === "needs-connection" ? (
+                <Prose step="note" tone="muted" style={{ marginTop: 6 }} testID="licensed-needs-connection">
+                  Needs a connection
+                </Prose>
+              ) : null}
+              {licensed?.status === "error" || licensed?.status === "disabled" ? (
+                // Review, 10 Oct 2026: these drew an empty chapter with no word of why.
+                <Prose step="note" tone="muted" style={{ marginTop: 6 }} testID="licensed-error">
+                  {`Couldn't load ${licensed.translation}. Try again later.`}
+                </Prose>
+              ) : null}
+              {licensed?.status === "ok" ? (
+                // API.Bible §7: the rights holder's notice, verbatim.
+                <Prose step="note" tone="muted" style={{ marginTop: 6 }} testID="licensed-notice">
+                  {licensed.copyright}
+                </Prose>
+              ) : null}
             </View>
           }
         />

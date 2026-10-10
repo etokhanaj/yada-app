@@ -169,6 +169,17 @@ describe("display ranks", () => {
     );
   });
 
+  it("catches the Psalm 23:6 duplicate: an interpretation and a debated claim both ranked first", () => {
+    // Prompt 1.2 on Opus ranked two "Where interpretation differs" claims 1.
+    const entry = entryCopy();
+    const debated = entry.claims.find((c) => c.category === "debated")!;
+    entry.claims.push({ ...claimOf(entry, "1CO.14.34.c1"), id: "1CO.14.34.c99", category: "interpretation", evidence_strength: "supported", display_rank: debated.display_rank });
+    const findings = validateVerseEntry(entry).filter((f) => f.rule === RULES.DISPLAY_RANK_UNIQUE);
+    expect(findings).toEqual([
+      expect.objectContaining({ level: "error", claimId: "1CO.14.34.c99", message: expect.stringMatching(/where_interpretation_differs/) }),
+    ]);
+  });
+
   it("allows the same rank in the other display group", () => {
     // The fixture already reuses rank 1 for the debated claim.
     expect(validateClaims(golden.claims)).toEqual([]);

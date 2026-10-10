@@ -1,5 +1,5 @@
 /**
- * Pieces of the Contents sheet: the translation switch and picking a chapter.
+ * Pieces of the Contents sheet: the Translation row and picking a chapter.
  * ChatGPT's and Fable's contents sheets
  * (https://mobbin.com/screens/459b8d99-a0cb-4824-849a-356eea753cf2,
  * https://mobbin.com/screens/a52dd380-49fa-4ad8-9e61-dad04a724cb5).
@@ -7,47 +7,36 @@
 
 import type { BookCode } from "@yada/schema";
 import { router, useNavigation } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
-import { useLayout, usePalette } from "../design/tokens";
-import { TRANSLATIONS, useSettings } from "../state/settings";
+import { useTranslationName } from "../data/translations";
+import { useSettings } from "../state/settings";
 import { readerHref } from "./navigation";
+import { ListRow } from "./Page";
 import { Chrome } from "./Type";
 
-/** BSB · WEB · KJV at the top of Contents (amendment 13: switching translation lives here). */
-export function TranslationSwitch() {
-  const palette = usePalette();
-  const { ax } = useLayout();
+/**
+ * `Translation        BSB ›` at the top of Contents (MT-01; amendment 13:
+ * switching translation lives here). One value row, Apple Settings' pattern:
+ * four segments was the most that fitted, and downloads would break them.
+ */
+export function TranslationValueRow() {
   const translation = useSettings((s) => s.translation);
-  const setTranslation = useSettings((s) => s.setTranslation);
+  const name = useTranslationName(translation);
   return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel="Translation"
-      style={[styles.seg, ax ? styles.segAx : null, { backgroundColor: palette.fill }]}
-    >
-      {TRANSLATIONS.map((t) => {
-        const on = t.code === translation;
-        return (
-          <Pressable
-            key={t.code}
-            onPress={() => setTranslation(t.code)}
-            accessibilityRole="radio"
-            accessibilityLabel={t.name}
-            accessibilityState={{ selected: on }}
-            testID={`translation-${t.code}`}
-            style={[
-              styles.option,
-              ax ? null : { flex: 1 },
-              on ? { backgroundColor: palette.sheet, boxShadow: `0 1px 4px rgba(0,0,0,0.08), 0 0 0 0.5px ${palette.edge}` } : null,
-            ]}
-          >
-            <Chrome tone={on ? "ink" : "muted"} style={{ fontWeight: on ? "600" : "500" }}>
-              {t.code}
-            </Chrome>
-          </Pressable>
-        );
-      })}
+    <View style={{ marginBottom: 28 }}>
+      <ListRow
+        first
+        title={<Chrome tone="ink" style={{ fontWeight: "500" }}>Translation</Chrome>}
+        right={
+          <Chrome tone="muted" testID="contents-translation-value">
+            {translation}
+          </Chrome>
+        }
+        label={`Translation, ${name}`}
+        onPress={() => router.push("/translations")}
+        testID="contents-translation"
+      />
     </View>
   );
 }
@@ -70,23 +59,3 @@ export function usePickChapter(from: string | undefined) {
     else router.navigate(readerHref({ book, chapter }));
   };
 }
-
-const styles = StyleSheet.create({
-  seg: {
-    flexDirection: "row",
-    padding: 3,
-    columnGap: 2,
-    borderRadius: 999,
-    marginBottom: 28,
-  },
-  segAx: {
-    flexDirection: "column",
-    borderRadius: 32,
-  },
-  option: {
-    minHeight: 44,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

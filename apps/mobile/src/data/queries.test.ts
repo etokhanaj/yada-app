@@ -3,31 +3,54 @@
  * content/bundles has not been built (it is gitignored working data).
  */
 
-import { existsSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { verseOrd } from "@yada/schema";
-import { describe, expect, it } from "vitest";
+import { TRANSLATION_DDL, verseOrd } from "@yada/schema";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { SOURCE_GAPS } from "../lib/omissions";
 import { buildFtsQuery, planSearch, splitSnippet } from "../lib/searchQuery";
 import { resolvePassage } from "../lib/pericopes";
+import { parseCatalogue, verifyDownload, verseTextIn } from "../lib/translations";
 import {
-  countInBook, countsByBook, countVerses, getChapter, getEntriesInRange, getEntryRow, getLexeme, getOccurrences, getPericopes, getSources,
-  getTexts, getTokens, searchPassages, searchWordsByForm, searchWordsByGloss, type Db,
+  checkTranslationFile, countInBook, countPassages, countsByBook, countVerses, getChapter, getEntriesInRange, getEntryRow, getLexeme,
+  getOccurrences, getPericopes, getSources, getTexts, getTextsForOrds, getTextsInRange, getTokens, getTranslationSources,
+  readableTranslations, routeTranslation, searchPassages, searchWordsByForm, searchWordsByGloss, unrouteTranslation, type Db,
 } from "./queries";
 
 const bundles = path.resolve(__dirname, "../../../../content/bundles");
-const corePath = path.join(bundles, "core.v2.db");
+// core.v4 is the first core with the LSV, and SBLGNT under CC BY 4.0.
+const corePath = path.join(bundles, "core.v4.db");
 const haveBundles = existsSync(corePath);
 
-function open(file: string): Db {
-  const db = new DatabaseSync(file, { readOnly: true });
+function wrap(db: DatabaseSync): Db {
   return {
     getAllAsync: async <T,>(sql: string, params: Array<string | number | null>) => db.prepare(sql).all(...params) as T[],
     getFirstAsync: async <T,>(sql: string, params: Array<string | number | null>) =>
       (db.prepare(sql).get(...params) as T | undefined) ?? null,
   };
+}
+
+const open = (file: string): Db => wrap(new DatabaseSync(file, { readOnly: true }));
+
+/**
+ * A downloaded translation in the pipeline's format (TRANSLATION_DDL in
+ * @yada/schema). Its text is the KJV's John 1:1–5, copied verbatim from core
+ * under a test code.
+ */
+function buildTranslationFile(core: DatabaseSync, file: string): void {
+  const db = new DatabaseSync(file);
+  db.exec(`${TRANSLATION_DDL}
+    INSERT INTO meta VALUES ('code', 'TST'), ('name', 'Test Translation'), ('year', '1611'), ('verses', '5'),
+      ('license', 'PUBLIC_DOMAIN'), ('attribution', 'Test text, public domain.'), ('source', 'https://example.org/tst');`);
+  const insert = db.prepare("INSERT INTO texts (ord, text) VALUES (?, ?)");
+  for (const r of core.prepare("SELECT ord, text FROM texts WHERE translation = 'KJV' AND ord BETWEEN 43001001 AND 43001005").all() as Array<{ ord: number; text: string }>) {
+    insert.run(r.ord, r.text);
+  }
+  db.exec("INSERT INTO texts_fts(texts_fts) VALUES ('rebuild')");
+  db.close();
 }
 
 // Full-text search over the 88 MB core bundle takes ~1.7s alone and passed the
@@ -44,9 +67,25 @@ describe.skipIf(!haveBundles)("queries against the core bundle", { timeout: 30_0
     expect(cor.find((v) => v.verse === 34)?.text).toMatch(/^Women are to be silent/);
   });
 
-  it("reads all three translations of a verse", async () => {
+  it("reads all four built-in translations of a verse", async () => {
     const t = await getTexts(core, 43001001);
-    expect(Object.keys(t).sort()).toEqual(["BSB", "KJV", "WEB"]);
+    expect(Object.keys(t).sort()).toEqual(["BSB", "KJV", "LSV", "WEB"]);
+  });
+
+  it("carries the whole LSV, brackets and all, as eBible prints it", async () => {
+    const raw = new DatabaseSync(corePath, { readOnly: true });
+    const row = raw.prepare("SELECT count(*) AS n FROM texts WHERE translation = 'LSV'").get() as { n: number };
+    expect(row.n).toBe(31_102);
+    const john = await getChapter(core, "JHN", 1, "LSV");
+    expect(john[0]?.text).toBe("In the beginning was the Word, and the Word was with God, and the Word was God;");
+    expect((await getChapter(core, "GEN", 1, "LSV"))[0]?.text).toBe("In [the] beginning God created the heavens and the earth,");
+  });
+
+  it("lists the LSV and SBLGNT licences from the sources table", async () => {
+    const sources = await getSources(core);
+    const lsv = sources.find((s) => s.dataset === "Literal Standard Version (englsv)");
+    expect(lsv).toMatchObject({ license: "CC-BY-SA-4.0", url: "https://ebible.org/englsv/" });
+    expect(sources.find((s) => s.dataset === "SBLGNT (Greek text)")?.license).toBe("CC-BY-4.0");
   });
 
   it("returns a psalm's Hebrew title with verse 1", async () => {
@@ -119,7 +158,89 @@ describe.skipIf(!haveBundles)("queries against the core bundle", { timeout: 30_0
 
   it("lists sources with encumbrances", async () => {
     const sources = await getSources(core);
-    expect(sources.some((s) => (s.encumbered ?? "") !== "" && /SBLGNT/.test(s.dataset))).toBe(true);
+    // SBLGNT's EULA question closed with core.v4 (CC BY 4.0, read 10 Oct 2026); the KJV's UK one is open.
+    expect(sources.some((s) => (s.encumbered ?? "") !== "" && /SBLGNT/.test(s.dataset))).toBe(false);
+    expect(sources.some((s) => (s.encumbered ?? "") !== "" && /King James/.test(s.dataset))).toBe(true);
+  });
+});
+
+describe.skipIf(!haveBundles)("a downloaded translation attached to core", { timeout: 30_000 }, () => {
+  const raw = haveBundles ? new DatabaseSync(corePath, { readOnly: true }) : (null as unknown as DatabaseSync);
+  const core = haveBundles ? wrap(raw) : (null as unknown as Db);
+  const file = path.join(mkdtempSync(path.join(tmpdir(), "yada-tr-")), "translation-tst.v1.db");
+  if (haveBundles) {
+    buildTranslationFile(raw, file);
+    raw.exec(`ATTACH DATABASE '${file.replace(/'/g, "''")}' AS tr_tst_v1`);
+  }
+  afterAll(() => unrouteTranslation("TST"));
+
+  it("is checked before it is routed", async () => {
+    expect(await checkTranslationFile(core, "tr_tst_v1", "TST")).toMatchObject({ ok: true, verses: 5, meta: { name: "Test Translation" } });
+    expect((await checkTranslationFile(core, "tr_tst_v1", "YLT")).ok).toBe(false);
+    expect(readableTranslations()).not.toContain("TST");
+  });
+
+  it("reads, compares and searches like a built-in version once routed", async () => {
+    routeTranslation("TST", "tr_tst_v1");
+    expect(readableTranslations()).toEqual(["BSB", "WEB", "KJV", "LSV", "TST"]);
+    const chapter = await getChapter(core, "JHN", 1, "TST");
+    expect(chapter.map((v) => v.verse)).toEqual([1, 2, 3, 4, 5]);
+    expect(chapter[0]?.text).toBe((await getChapter(core, "JHN", 1, "KJV"))[0]?.text);
+    const texts = await getTexts(core, 43001001);
+    expect(Object.keys(texts).sort()).toEqual(["BSB", "KJV", "LSV", "TST", "WEB"]);
+    const range = await getTextsInRange(core, 43001001, 43001002);
+    expect(range.map((r) => Object.keys(r.texts).length)).toEqual([5, 5]);
+    expect((await getTextsForOrds(core, [43001003], "TST")).get(43001003)).toMatch(/^All things were made by him/);
+    const hits = await searchPassages(core, buildFtsQuery("darkness") ?? "", "TST");
+    expect(hits.map((h) => h.ord)).toEqual([43001005]);
+    expect(await countPassages(core, buildFtsQuery("darkness") ?? "", "TST")).toBe(1);
+    const [source] = await getTranslationSources(core);
+    expect(source).toMatchObject({
+      license: "PUBLIC_DOMAIN",
+      attribution: "Test text, public domain.",
+      url: "https://example.org/tst",
+      translation: { code: "TST", name: "Test Translation" },
+    });
+  });
+
+  it("stops being read the moment it is removed", async () => {
+    routeTranslation("TST", "tr_tst_v1");
+    unrouteTranslation("TST");
+    expect(Object.keys(await getTexts(core, 43001001))).not.toContain("TST");
+    expect(await getChapter(core, "JHN", 1, "TST")).toEqual([]);
+  });
+
+  it("refuses a schema name that is not a translation's", () => {
+    expect(() => routeTranslation("TST", "main; DROP TABLE texts")).toThrow();
+  });
+});
+
+// Whichever ASV the manifest lists: repackaging bumps its version.
+const asvFile = haveBundles && existsSync(path.join(bundles, "manifest.json"))
+  ? (JSON.parse(readFileSync(path.join(bundles, "manifest.json"), "utf8")) as { translations?: Array<{ code: string; file: string }> })
+      .translations?.find((t) => t.code === "ASV")?.file
+  : undefined;
+const asvPath = path.join(bundles, asvFile ?? "translation-asv.v1.db");
+describe.skipIf(!haveBundles || !existsSync(asvPath))("the pipeline's ASV file, as the app downloads it", { timeout: 30_000 }, () => {
+  const raw = haveBundles ? new DatabaseSync(corePath, { readOnly: true }) : (null as unknown as DatabaseSync);
+  const core = haveBundles ? wrap(raw) : (null as unknown as Db);
+  afterAll(() => unrouteTranslation("ASV"));
+
+  it("parses its manifest entry, verifies, checks, and leaves its blank Matthew 23:14 out rather than showing BSB", async () => {
+    const manifest = JSON.parse(readFileSync(path.join(bundles, "manifest.json"), "utf8")) as unknown;
+    const entry = parseCatalogue(manifest, "http://localhost:8787/manifest.json").entries.find((e) => e.code === "ASV");
+    if (entry === undefined) throw new Error("manifest has no ASV entry");
+    expect(await verifyDownload(new Uint8Array(readFileSync(asvPath)), entry)).toBe(true);
+    raw.exec(`ATTACH DATABASE '${asvPath.replace(/'/g, "''")}' AS tr_asv_v1`);
+    expect((await checkTranslationFile(core, "tr_asv_v1", "ASV", entry)).ok).toBe(true);
+    routeTranslation("ASV", "tr_asv_v1");
+    const texts = await getTexts(core, verseOrd("MAT", 23, 14));
+    // The KJV prints it; the ASV keeps the verse number with no text, as the critical texts omit it.
+    expect(texts.KJV).toBeDefined();
+    expect(texts.ASV).toBeUndefined();
+    expect(verseTextIn(texts, "ASV", true)).toBeNull();
+    expect((await getChapter(core, "MAT", 23, "ASV")).some((v) => v.verse === 14)).toBe(false);
+    expect((await searchPassages(core, buildFtsQuery("beginning") ?? "", "ASV", 3)).length).toBe(3);
   });
 });
 
@@ -133,5 +254,41 @@ describe.skipIf(!existsSync(path.join(bundles, "jhn.v1.db")))("queries against U
     const r = resolvePassage(pericopes, entries, 43001001, 43001020);
     expect(r.pericopes.map((p) => p.pericope.label)).toEqual(["The Word became flesh", "The testimony of John the Baptist"]);
     expect(r.pericopes[0]?.entries.map((e) => e.verse_id)).toEqual(["JHN.1.1"]);
+  });
+});
+
+// Runs without the bundles: a translation file in the pipeline's own format,
+// so the hits come from the same unicode61 remove_diacritics 2 the app uses.
+describe("passage excerpts from a real FTS5 index", () => {
+  // Acts 6:5, ASV, as eBible prints it (precomposed ü), and the same text in
+  // NFD under the next ord, so a decomposed diaeresis is folded too.
+  const verse =
+    "And the saying pleased the whole multitude: and they chose Stephen, a man full of faith and of the Holy Spirit, and Philip, and Prochorus, and Nicanor, and Timon, and Parmenas, and Nicolaüs a proselyte of Antioch;";
+  const file = path.join(mkdtempSync(path.join(tmpdir(), "yada-fts-")), "translation-tsd.v1.db");
+  const build = new DatabaseSync(file);
+  build.exec(TRANSLATION_DDL);
+  const insert = build.prepare("INSERT INTO texts (ord, text) VALUES (?, ?)");
+  insert.run(44006005, verse);
+  insert.run(44006006, verse.normalize("NFD"));
+  build.exec("INSERT INTO texts_fts(texts_fts) VALUES ('rebuild')");
+  build.close();
+  const raw = new DatabaseSync(":memory:");
+  raw.exec(`ATTACH DATABASE '${file.replace(/'/g, "''")}' AS tr_tsd_v1`);
+  const db = wrap(raw);
+  // Routing is module-wide: set at collection, it would leak into the other suites' readableTranslations().
+  beforeAll(() => routeTranslation("TSD", "tr_tsd_v1"));
+  afterAll(() => unrouteTranslation("TSD"));
+
+  it("shows a hit at the end of a long verse", async () => {
+    const [hit] = await searchPassages(db, buildFtsQuery("proselyte") ?? "", "TSD");
+    expect(splitSnippet(hit?.snippet ?? "").filter((p) => p.hit).map((p) => p.text)).toEqual(["proselyte"]);
+    expect(hit?.snippet.startsWith("…Parmenas, and Nicolaüs a ")).toBe(true);
+  });
+
+  it("matches across diacritics, precomposed or not, and keeps the verse's spelling", async () => {
+    const hits = await searchPassages(db, buildFtsQuery("nicolaus") ?? "", "TSD");
+    expect(hits.map((h) => h.ord)).toEqual([44006005, 44006006]);
+    expect(hits.map((h) => splitSnippet(h.snippet).find((p) => p.hit)?.text)).toEqual(["Nicolaüs", "Nicolaüs".normalize("NFD")]);
+    expect(hits.every((h) => h.snippet.startsWith("…Timon, and Parmenas, and "))).toBe(true);
   });
 });

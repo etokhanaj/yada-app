@@ -69,6 +69,36 @@ describe("yada validate", () => {
     expect(errorsFor(PIPELINE_RULES.LEXICAL_IN_SOURCE).join(" ")).toMatch(/ἀνήρ/);
   });
 
+  it("rejects a lexical note whose parse code is not the source's (the fixture's old V-PAM-3P)", () => {
+    // CLAUDE.md rule 4. The fixture carried this Robinson-style code until the
+    // parse rule compared it with staging.db (docs/milestone-0.md).
+    const broken = clone(entry);
+    (broken.claims[0]!.evidence[0] as { note?: string }).note = "V-PAM-3P";
+    store(broken);
+    expect(errorsFor(PIPELINE_RULES.PARSE_IN_SOURCE).join(" ")).toMatch(/V-PAM-3P.*not a MorphGNT code.*V- 3PAD-P--/);
+  });
+
+  it("rejects a well-formed code the verse does not contain, and a prose parse the code contradicts", () => {
+    const broken = clone(entry);
+    (broken.claims[0]!.evidence[0] as { note?: string }).note = "V- 3AAD-P--";
+    (broken.claims[1]!.evidence[0] as { note?: string }).note = "genitive plural";
+    store(broken);
+    const messages = errorsFor(PIPELINE_RULES.PARSE_IN_SOURCE).join(" ");
+    expect(messages).toMatch(/quotes V- 3AAD-P--, which no word in scope carries/);
+    expect(messages).toMatch(/"γυνή" states genitive, but the source tags it N- ----NPF-/);
+  });
+
+  it("checks a parse against the token the lexical ref names, not every word in the verse", () => {
+    // V- 3PAD-P-- is in the verse, on σιγάτωσαν; quoting it for γυνή is not γυνή's parse.
+    const broken = clone(entry);
+    (broken.claims[1]!.evidence[0] as { note?: string }).note = "V- 3PAD-P--";
+    store(broken);
+    const report = validateBook(staging.db, "1CO");
+    expect(report.findings.filter((f) => f.rule === PIPELINE_RULES.PARSE_IN_SOURCE)).toEqual([
+      expect.objectContaining({ level: "warn", claimId: "1CO.14.34.c2", message: expect.stringMatching(/only other words' codes/) }),
+    ]);
+  });
+
   it("requires verse evidence to resolve in staging, not merely to parse", () => {
     const broken = clone(entry);
     broken.claims[4]!.evidence = [{ type: "verse", ref: "1CO.16.1" }];

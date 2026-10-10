@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildFtsQuery, englishVariants, escapeLike, glossMatches, glossStem, planSearch, quoteFtsTerm,
+  buildFtsQuery, englishVariants, escapeLike, EXCERPT_TOKENS, excerptAroundHit, glossMatches, glossStem, planSearch, quoteFtsTerm,
   SNIPPET_CLOSE, SNIPPET_OPEN, splitSnippet,
 } from "./searchQuery";
 
@@ -84,5 +84,40 @@ describe("snippet splitting", () => {
       { text: "If you ", hit: false }, { text: "love", hit: true },
       { text: " those who ", hit: false }, { text: "love", hit: true }, { text: " you", hit: false },
     ]);
+  });
+});
+
+const mark = (word: string): string => `${SNIPPET_OPEN}${word}${SNIPPET_CLOSE}`;
+
+describe("passage excerpts", () => {
+  it("keeps a short verse whole", () => {
+    const verse = `For God so ${mark("loved")} the world`;
+    expect(excerptAroundHit(verse)).toBe(verse);
+  });
+
+  it("starts a long English verse a few words before its first hit", () => {
+    // Acts 6:5, ASV.
+    const verse = `And the saying pleased the whole multitude: and they chose ${mark("Stephen")}, a man full of faith and of the Holy Spirit, and Philip, and Prochorus, and Nicanor, and Timon, and Parmenas, and Nicolaüs a proselyte of Antioch;`;
+    const excerpt = excerptAroundHit(verse);
+    expect(excerpt).toBe(`…multitude: and they chose ${mark("Stephen")}, a man full of faith and of the Holy Spirit, and Philip, and Prochorus, and…`);
+    expect(excerpt.match(/\p{L}+/gu)).toHaveLength(EXCERPT_TOKENS);
+  });
+
+  it("shows a hit near the end of a long verse, where snippet() hid it", () => {
+    // The incident: snippet() ended its window on "proselyte", past the row's two lines.
+    const verse = `And the saying pleased the whole multitude: and they chose Stephen, a man full of faith and of the Holy Spirit, and Philip, and Prochorus, and Nicanor, and Timon, and Parmenas, and Nicolaüs a ${mark("proselyte")} of Antioch;`;
+    expect(excerptAroundHit(verse)).toBe(`…Parmenas, and Nicolaüs a ${mark("proselyte")} of Antioch;`);
+  });
+
+  it("counts a word with a combining diacritic as one word, as unicode61 does", () => {
+    const verse = `${"and ".repeat(10)}Nicolau\u0308s a ${mark("proselyte")} of Antioch and ${"more ".repeat(20)}`.trim();
+    const excerpt = excerptAroundHit(verse);
+    expect(excerpt.startsWith("…and and Nicolau\u0308s a ")).toBe(true);
+  });
+
+  it("keeps the marker on a hit that opens the window", () => {
+    const verse = `${mark("Grace")} ${"and peace ".repeat(15)}`.trim();
+    expect(excerptAroundHit(verse).startsWith(SNIPPET_OPEN)).toBe(true);
+    expect(excerptAroundHit(verse).endsWith("…")).toBe(true);
   });
 });

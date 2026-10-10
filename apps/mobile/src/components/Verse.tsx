@@ -11,19 +11,22 @@
  * - A verse with an explanation ends in a small muted note glyph bound to its
  *   last word (amendment 10, YouVersion's note marker; v2-review U9).
  * - LORD in small capitals, the BSB's convention (amendment 12).
+ * - The LSV's supplied words, [in brackets], in mutedInk with their brackets;
+ *   VoiceOver reads them without (lib/supplied.ts). The text is never altered.
  */
 
 import { type ReactNode, useState } from "react";
 import { Pressable, StyleSheet, Text, type TextLayoutLine, View } from "react-native";
 
 import { FONTS, RADIUS, useAXLevel, usePalette, useType } from "../design/tokens";
-import { splitDivineName, splitSuperscription, type TextSegment } from "../lib/reader";
+import { splitSuperscription, type TextSegment } from "../lib/reader";
+import { scriptureSegments, spokenText } from "../lib/supplied";
 import { Icon } from "./Icon";
 import { Scripture } from "./Type";
 
-/** Scripture text with LORD in small capitals (amendment 12), for excerpts in lists. */
-export function DivineText({ text }: { text: string }) {
-  return <DivineName segments={splitDivineName(text)} />;
+/** Scripture text with LORD in small capitals (amendment 12), for excerpts in lists; the LSV's supplied words muted. */
+export function DivineText({ text, translation = "" }: { text: string; translation?: string }) {
+  return <DivineName segments={scriptureSegments(text, translation)} />;
 }
 
 /** Where this verse sits in a selected range, so the range draws as one block. */
@@ -39,18 +42,24 @@ const GAP = 14;
 const JOIN = "⁠";
 
 function DivineName({ segments }: { segments: readonly TextSegment[] }) {
+  const palette = usePalette();
   return (
     <>
-      {segments.map((s, i) =>
-        s.smallCaps ? (
+      {segments.map((s, i) => {
+        const muted = s.supplied === true ? { color: palette.mutedInk } : null;
+        return s.smallCaps ? (
           // Drawn as "Lord" in the font's small capitals; read as "Lord".
-          <Text key={i} style={{ fontVariant: ["small-caps"], letterSpacing: 0.6 }}>
+          <Text key={i} style={[{ fontVariant: ["small-caps"], letterSpacing: 0.6 }, muted]}>
             {s.text.charAt(0) + s.text.slice(1).toLowerCase()}
+          </Text>
+        ) : muted !== null ? (
+          <Text key={i} style={muted}>
+            {s.text}
           </Text>
         ) : (
           s.text
-        ),
-      )}
+        );
+      })}
     </>
   );
 }
@@ -62,7 +71,7 @@ function sliceSegments(segments: readonly TextSegment[], start: number, end: num
   for (const s of segments) {
     const a = Math.max(start, at);
     const b = Math.min(end, at + s.text.length);
-    if (a < b) out.push({ text: s.text.slice(a - at, b - at), smallCaps: s.smallCaps });
+    if (a < b) out.push({ ...s, text: s.text.slice(a - at, b - at) });
     at += s.text.length;
   }
   return out;
@@ -70,8 +79,10 @@ function sliceSegments(segments: readonly TextSegment[], start: number, end: num
 
 export function Verse({
   verse,
+  through = verse,
   chapter,
   text,
+  translation,
   place,
   bookmarked,
   hasEntry,
@@ -80,8 +91,12 @@ export function Verse({
   testID,
 }: {
   verse: number;
+  /** Last verse when the translation bridges verses into one ("1–2"); `verse` otherwise. */
+  through?: number;
   chapter: number;
   text: string;
+  /** Whose text this is: the LSV's brackets are drawn and read differently. */
+  translation: string;
   place: SelectionPlace;
   bookmarked: boolean;
   hasEntry: boolean;
@@ -97,7 +112,7 @@ export function Verse({
   const opensBlock = place === "only" || place === "first";
   const closesBlock = place === "only" || place === "last";
   const { title: superscription, body } = verse === 1 ? splitSuperscription(text) : { title: null, body: text };
-  const segments = splitDivineName(body);
+  const segments = scriptureSegments(body, translation);
   const small = scripture.size * 0.85;
 
   const marker = hasEntry ? (
@@ -121,7 +136,7 @@ export function Verse({
         letterSpacing: 0,
       }}
     >
-      {verse}
+      {through > verse ? `${verse}–${through}` : verse}
     </Text>
   );
 
@@ -135,7 +150,11 @@ export function Verse({
   ) : null;
 
   const label = [
-    verse === 1 ? `Chapter ${chapter}, verse 1` : `Verse ${verse}`,
+    through > verse
+      ? `${verse === 1 ? `Chapter ${chapter}, verses` : "Verses"} ${verse} to ${through}`
+      : verse === 1
+        ? `Chapter ${chapter}, verse 1`
+        : `Verse ${verse}`,
     bookmarked ? "bookmarked" : null,
     hasEntry ? "has an explanation" : null,
   ]
@@ -158,7 +177,7 @@ export function Verse({
       unstable_pressDelay={90}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      accessibilityLabel={`${label}. ${text}`}
+      accessibilityLabel={`${label}. ${spokenText(text, translation)}`}
       accessibilityHint={selected ? "Tap another verse to extend the selection" : "Selects this verse"}
       accessibilityActions={actions}
       onAccessibilityAction={(e) => onAction(e.nativeEvent.actionName as VerseAction)}
@@ -188,7 +207,8 @@ export function Verse({
         />
       ) : null}
       {superscription !== null ? (
-        <Scripture tone="muted" style={{ fontStyle: "italic", fontSize: Math.round(small), lineHeight: Math.round(small * 1.5), marginBottom: 10 }}>
+        // Canvas `.sup`: the drawn Literata Italic, not a slanted upright.
+        <Scripture tone="muted" style={{ fontFamily: FONTS.scriptureItalic, fontSize: Math.round(small), lineHeight: Math.round(small * 1.5), marginBottom: 10 }}>
           {superscription}
         </Scripture>
       ) : null}

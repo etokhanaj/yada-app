@@ -5,7 +5,9 @@
  *
  * - Increase Contrast ("darker system colours") swaps mutedInk and divider (brief §3).
  * - Reduce Motion turns every Yada animation into a cut or cross-fade (brief §5).
- * - Reduce Transparency draws glass controls solid.
+ * - Reduce Transparency draws glass controls and the reader's collapsed header
+ *   line solid (palette.glassSolid, hairline edge kept). The ⋯ menu is UIKit's
+ *   and follows the setting itself.
  * - VoiceOver on: the reader header never steps back, so its title is always
  *   one swipe away (build plan, "Header step-back + VoiceOver").
  */

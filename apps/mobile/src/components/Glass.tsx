@@ -28,7 +28,9 @@ function GlassSurface({ children }: { children: ReactNode }) {
       <View
         style={[
           styles.clip,
-          { borderColor: palette.edge, backgroundColor: reduceTransparency ? palette.sheet : "transparent" },
+          // Reduce Transparency: no blur, a solid ground (palette.glassSolid), the hairline edge kept
+          // so the control still has a boundary where the solid matches the paper behind it.
+          { borderColor: palette.edge, backgroundColor: reduceTransparency ? palette.glassSolid : "transparent" },
         ]}
       >
         {reduceTransparency ? null : (

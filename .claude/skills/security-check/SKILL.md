@@ -13,7 +13,12 @@ content. Check each and report pass/fail with evidence.
 - Scan staged diff and history for `sk-ant-`, R2 secrets, `BEGIN PRIVATE KEY`:
   `git log --all -p | grep -cE "sk-ant-|BEGIN PRIVATE KEY"` must be 0.
 - Keys read only from `.env.local` into one command's environment; never echoed or logged.
-- Nothing in `apps/mobile` contains a key: the app never calls an API.
+- Nothing in `apps/mobile` source contains a key. The one API the app calls is API.Bible, on a
+  dev-only path (`YADA_DEV_LICENSED=1`, docs/licensed-translations.md); its key is embedded in any build
+  made with the flag, so release and TestFlight builds must not carry it. Check that release-ios.sh
+  still refuses the three names (environment and `apps/mobile/.env*`), unsets them for the archive and
+  checks the archived `EXConstants.bundle/app.config`; that app.config.ts throws for a flagged Release
+  build; and that `licensedEnabled()` is false unless `__DEV__`.
 
 ## Spending
 - Every model or storage call goes through `budget.ts` / a `--confirm` gate with a ceiling.
@@ -26,7 +31,8 @@ content. Check each and report pass/fail with evidence.
   deliberately updated.
 
 ## App
-- No network calls except the bundle manifest and bundles. No analytics SDK.
+- No network calls except the bundle manifest and bundles, and API.Bible in flagged dev builds
+  only. No analytics SDK.
 - User data stays in `user.db` on device.
 
 If a secret was ever committed, say so and that the key must be rotated — removing it is not enough.

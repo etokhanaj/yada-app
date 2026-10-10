@@ -21,6 +21,10 @@ Start from `docs/handoff-2026-09-13.md` for current state. Governing docs (froze
 6. `unreviewed-dev` bundles are for local builds only; `publish` refuses them.
 7. Never trust an exit code that came through a pipe.
 8. Comments explain *why*, citing the incident or rule.
+9. Licensed translations (NIV, NKJV, NLT via API.Bible; any future ESV, CSB) are display-only. They
+   never enter the content pipeline or any AI call: not prompts, grounding, adversary, regression or
+   evaluation. API.Bible §9.2 forbids AI training on its content; Yada's rule is stricter. Explanations
+   are built only from the Greek, Hebrew, BSB, WEB, KJV and LSV. See `docs/licensed-translations.md`.
 
 ## Design
 

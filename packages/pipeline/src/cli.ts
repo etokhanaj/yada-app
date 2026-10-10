@@ -5,12 +5,14 @@
  * Network access is limited to `ingest` and to the gated stages — `generate`,
  * `adversary`, `regress --live` and `publish` — each of which does nothing
  * without an explicit `--confirm`, and whose model calls go through budget.ts.
+ * `batch status` and `batch collect` only read a batch already paid for;
+ * `batch recover` is offline.
  */
 
 import { assertSchemaAlignment, openStaging } from "./db.js";
 import { ORACLE_FIXTURES, checkAgainstFixture, coverage } from "./derive.js";
 import { CEILING_USD, spentSoFar } from "./budget.js";
-import { dryRun, loadPericopes } from "./generate.js";
+import { buildRequests, dryRun, loadPericopes } from "./generate.js";
 import { inspectAll } from "./inspect.js";
 import { packageCore, packageUnderstand, readBundleManifest, understandBooks, writeBundleManifest } from "./package.js";
 import { importGolden } from "./store.js";
@@ -25,6 +27,8 @@ import { ADVERSARY_MODEL, ZERO_C_MAX_DISAGREEMENT, adversaryDryRun, disagreement
 import { requireApiKey } from "./budget.js";
 import { LIVE_MODEL, LIVE_VERSE, runCiTier, runLiveRegress } from "./regress.js";
 import { PublishRefused, formatBytes, publish, totalBytes } from "./publish.js";
+import { BatchNotEnded, batchStatus, collectBatch, recoverBatch, submitBatch } from "./batch.js";
+import { DOWNLOADABLE, TranslationRefused, packageTranslation, type TranslationReport } from "./translations.js";
 
 /** `--model claude-sonnet-5` -> "claude-sonnet-5" */
 function flagValue(args: readonly string[], flag: string): string | undefined {
@@ -60,25 +64,31 @@ async function confirmedRun(book: string, only?: string): Promise<number> {
   const results: GenerationResult[] = [];
   for (const model of models) {
     for (const pericope of pericopes) {
-      try {
-        const result = await generatePericope(book, pericope, model, { confirm: true });
-        results.push(result);
-        const perVerse = Math.round(result.outputTokens / Math.max(result.verses.length, 1));
-        console.log(
-          `  ${model.padEnd(17)} ${result.pericopeId.padEnd(16)} ` +
-            `in ${result.inputTokens} out ${result.outputTokens} ` +
-            `(thinking ${result.thinkingTokens}, ${perVerse}/verse) ` +
-            `$${result.costUsd.toFixed(3)} ${result.stopReason ?? "?"} ${Math.round(result.elapsedMs / 1000)}s`,
-        );
-        if (result.stopReason === "max_tokens") {
-          console.log(`    TRUNCATED — max_tokens reached. This entry is incomplete.`);
+      // A pericope too long for one response is several requests (generate.ts
+      // chunkVerses); each is priced against the ceiling on its own.
+      const parts = Math.max(buildRequests(book, pericope).length, 1);
+      for (let part = 1; part <= parts; part += 1) {
+        try {
+          const result = await generatePericope(book, pericope, model, { confirm: true, ...(parts > 1 ? { part } : {}) });
+          results.push(result);
+          const perVerse = Math.round(result.outputTokens / Math.max(result.verses.length, 1));
+          const label = result.parts === 1 ? result.pericopeId : `${result.pericopeId} ${result.part}/${result.parts}`;
+          console.log(
+            `  ${model.padEnd(17)} ${label.padEnd(16)} ` +
+              `in ${result.inputTokens} out ${result.outputTokens} ` +
+              `(thinking ${result.thinkingTokens}, ${perVerse}/verse) ` +
+              `$${result.costUsd.toFixed(3)} ${result.stopReason ?? "?"} ${Math.round(result.elapsedMs / 1000)}s`,
+          );
+          if (result.stopReason === "max_tokens") {
+            console.log(`    TRUNCATED — max_tokens reached. This entry is incomplete.`);
+          }
+        } catch (error) {
+          // A failure here has usually already cost money, so it is reported and
+          // the run stops rather than pressing on into the ceiling.
+          console.error(`  FAILED ${model} ${pericope.id}${parts > 1 ? ` part ${part}/${parts}` : ""}: ${(error as Error).message}`);
+          console.error(`  stopping. $${(spentSoFar() - spentBefore).toFixed(2)} spent this run.`);
+          return 1;
         }
-      } catch (error) {
-        // A failure here has usually already cost money, so it is reported and
-        // the run stops rather than pressing on into the ceiling.
-        console.error(`  FAILED ${model} ${pericope.id}: ${(error as Error).message}`);
-        console.error(`  stopping. $${(spentSoFar() - spentBefore).toFixed(2)} spent this run.`);
-        return 1;
       }
     }
   }
@@ -87,6 +97,80 @@ async function confirmedRun(book: string, only?: string): Promise<number> {
   console.log(`  responses:      content/responses/`);
   console.log(`\n  Nothing here is reviewed. Every entry is flagged and must stay that way`);
   console.log(`  until a human has actually read it.`);
+  return 0;
+}
+
+/**
+ * The batch spending path: one Message Batch for the whole book. Its worst
+ * case is checked against the ceiling as a single sum before submission,
+ * because a submitted batch cannot be stopped request by request.
+ */
+async function confirmedBatch(book: string, only?: string): Promise<number> {
+  const models = only === undefined ? [...MILESTONE_0_MODELS] : [only];
+  ensureDirs();
+  const pericopes = loadPericopes(book);
+
+  console.log(`generate --batch --confirm ${book}: THIS WILL SPEND MONEY`);
+  console.log(`  pericopes:     ${pericopes.length}`);
+  console.log(`  models:        ${models.join(", ")}`);
+  console.log(`  ceiling:       $${CEILING_USD} (already spent or reserved: $${spentSoFar().toFixed(2)})`);
+  console.log(`  counting tokens for every request before anything is sent...\n`);
+
+  const db = openStaging();
+  try {
+    const { batchId, plan } = await submitBatch(db, book, pericopes, models, { confirm: true });
+    for (const s of plan.skipped) console.log(`  SKIP ${s.pericopeId} (${s.reason})`);
+    console.log(`  submitted batch ${batchId}`);
+    console.log(`  requests:      ${plan.requests.length}`);
+    console.log(`  worst case:    $${plan.worstCaseUsd.toFixed(2)} (batch rate, every request at max_tokens)`);
+    console.log(`  reserved in content/usage.jsonl until collected; measured cost replaces it.`);
+    console.log(`\n  next: yada batch status ${batchId}`);
+    console.log(`        yada batch collect ${batchId}   (once it has ended)`);
+    return 0;
+  } catch (error) {
+    console.error(`  ${(error as Error).message}`);
+    return 1;
+  } finally {
+    db.close();
+  }
+}
+
+function packageTranslationCommand(code: string | undefined): number {
+  if (code === undefined) {
+    console.error(`usage: yada package translation <${DOWNLOADABLE.map((t) => t.code).join("|")}>`);
+    return 2;
+  }
+  let report: TranslationReport;
+  try {
+    report = packageTranslation(code);
+  } catch (error) {
+    if (error instanceof TranslationRefused) {
+      console.error(`package translation ${code.toUpperCase()}: REFUSED. ${error.message}`);
+      if (error.gaps !== undefined) {
+        console.error(`  numbered outside the versification: ${error.gaps.extra.join(", ")}`);
+        console.error(`  missing from the versification:     ${error.gaps.missing.join(", ")}`);
+      }
+      return 1;
+    }
+    throw error;
+  }
+  const { info, gaps } = report;
+  console.log(
+    `  ${info.code.padEnd(9)} ${info.file.padEnd(24)} ${formatBytes(info.bytes)}  ` +
+      `${info.download_bytes === undefined ? "" : `(${formatBytes(info.download_bytes)} gzipped)  `}${info.verses} verses` +
+      `${report.reused ? "  (unchanged)" : ""}`,
+  );
+  console.log(
+    gaps.missing.length === 0
+      ? `  every verse of the English versification is present`
+      : `  missing ${gaps.missing.length} verses of the English versification: ${gaps.missing.join(", ")}`,
+  );
+  const previous = readBundleManifest();
+  const translations = [...(previous?.translations ?? []).filter((t) => t.code !== info.code), info].sort(
+    (a, b) => DOWNLOADABLE.findIndex((t) => t.code === a.code) - DOWNLOADABLE.findIndex((t) => t.code === b.code),
+  );
+  writeBundleManifest(previous?.bundles ?? [], translations);
+  console.log(`\npackage: manifest lists ${translations.length} translations -> content/bundles/manifest.json`);
   return 0;
 }
 
@@ -142,7 +226,7 @@ async function main(): Promise<number> {
         );
       }
       const t = report.texts.byTranslation;
-      console.log(`  English: BSB ${t.BSB}, WEB ${t.WEB}, KJV ${t.KJV} verses`);
+      console.log(`  English: BSB ${t.BSB}, WEB ${t.WEB}, KJV ${t.KJV}, LSV ${t.LSV} verses`);
       console.log(
         `  English verses with no original-language tokens: ${report.textOnly}; ` +
           `original verses with no English: ${report.originalOnly.length}` +
@@ -214,9 +298,12 @@ async function main(): Promise<number> {
       // `package`            core + every book with content, reviewed entries only
       // `package JHN`        one Understand bundle
       // `--allow-unreviewed` include flagged entries, marked unreviewed-dev
+      // `package translation ASV`  one downloadable translation
+      if (rest[0] === "translation") return packageTranslationCommand(rest[1]);
       const allowUnreviewed = rest.includes("--allow-unreviewed");
       const only = rest.find((arg) => !arg.startsWith("--"));
-      const previous = readBundleManifest()?.bundles ?? [];
+      const previousManifest = readBundleManifest();
+      const previous = previousManifest?.bundles ?? [];
       const built: BundleInfo[] = [];
 
       if (only === undefined || only.toLowerCase() === "core") {
@@ -242,7 +329,7 @@ async function main(): Promise<number> {
         );
       }
       const merged = [...previous.filter((b) => !built.some((n) => n.name === b.name)), ...built];
-      writeBundleManifest(merged);
+      writeBundleManifest(merged, previousManifest?.translations ?? []);
       console.log(`\npackage: ${built.length} bundles built, manifest lists ${merged.length} -> content/bundles/manifest.json`);
       return 0;
     }
@@ -291,7 +378,7 @@ async function main(): Promise<number> {
     case "generate": {
       const book = rest.find((arg, i) => !arg.startsWith("--") && rest[i - 1] !== "--model");
       if (book === undefined) {
-        console.error("usage: yada generate [--dry-run | --confirm] [--model M] <BOOK>");
+        console.error("usage: yada generate [--dry-run | --confirm] [--batch] [--model M] <BOOK>");
         return 2;
       }
       // Default to dry-run. Spending must be asked for explicitly and can never
@@ -305,7 +392,72 @@ async function main(): Promise<number> {
         return 0;
       }
       const modelFlag = rest.indexOf("--model");
-      return await confirmedRun(book, modelFlag === -1 ? undefined : rest[modelFlag + 1]);
+      const only = modelFlag === -1 ? undefined : rest[modelFlag + 1];
+      return rest.includes("--batch") ? await confirmedBatch(book, only) : await confirmedRun(book, only);
+    }
+
+    case "batch": {
+      const [action, batchId] = rest;
+      if ((action !== "status" && action !== "collect" && action !== "recover") || batchId === undefined) {
+        console.error("usage: yada batch <status|collect|recover> <BATCH_ID>");
+        return 2;
+      }
+      const db = openStaging();
+      try {
+        if (action === "recover") {
+          const report = recoverBatch(db, batchId);
+          console.log(`batch recover ${batchId}:`);
+          if (report.batchRow) console.log(`  batches row rebuilt`);
+          for (const id of report.restaged) console.log(`  request map rebuilt from usage.jsonl: ${id}`);
+          for (const id of report.reserved) console.log(`  worst case re-reserved from staging.db: ${id}`);
+          if (!report.batchRow && report.restaged.length === 0 && report.reserved.length === 0) {
+            console.log(`  nothing missing; already recorded`);
+          }
+          console.log(`\n  next: yada batch status ${batchId}`);
+          return 0;
+        }
+        if (action === "status") {
+          const status = await batchStatus(db, batchId);
+          const c = status.counts;
+          console.log(`batch ${batchId} (${status.book}): ${status.processingStatus}`);
+          console.log(`  processing ${c.processing}, succeeded ${c.succeeded}, errored ${c.errored}, canceled ${c.canceled}, expired ${c.expired}`);
+          console.log(`  created ${status.createdAt}${status.endedAt === null ? "" : `, ended ${status.endedAt}`}`);
+          if (status.processingStatus === "ended") console.log(`  next: yada batch collect ${batchId}`);
+          return 0;
+        }
+        ensureDirs();
+        const report = await collectBatch(db, batchId);
+        let failed = 0;
+        for (const r of report.collected) {
+          if (r.result !== "succeeded") {
+            failed += 1;
+            console.log(`  ${r.result.toUpperCase()} ${r.model} ${r.pericopeId}${r.error === undefined ? "" : `: ${r.error}`} (worst case stays reserved)`);
+            continue;
+          }
+          console.log(
+            `  ${r.model.padEnd(17)} ${r.pericopeId.padEnd(16)} in ${r.inputTokens} out ${r.outputTokens} ` +
+              `(thinking ${r.thinkingTokens}) $${(r.costUsd ?? 0).toFixed(3)} ${r.stopReason ?? "?"}`,
+          );
+          if (r.stopReason === "max_tokens") console.log(`    TRUNCATED — max_tokens reached. This entry is incomplete.`);
+        }
+        const cost = report.collected.reduce((sum, r) => sum + (r.costUsd ?? 0), 0);
+        console.log(`\nbatch collect ${batchId}: ${report.collected.length} new results, $${cost.toFixed(2)} measured`);
+        if (report.alreadyCollected > 0) console.log(`  already collected earlier: ${report.alreadyCollected}`);
+        for (const id of report.unknown) console.log(`  UNKNOWN custom_id ${id} — not submitted from here, ignored`);
+        for (const id of report.missing) console.log(`  MISSING ${id} — no result yet`);
+        console.log(`  responses:  content/responses/ — run yada ingest-responses to store them as flagged.`);
+        console.log(`\n  Nothing here is reviewed. Every entry is flagged and must stay that way`);
+        console.log(`  until a human has actually read it.`);
+        return failed > 0 || report.unknown.length > 0 || report.missing.length > 0 ? 1 : 0;
+      } catch (error) {
+        if (error instanceof BatchNotEnded) {
+          console.error(error.message);
+          return 1;
+        }
+        throw error;
+      } finally {
+        db.close();
+      }
     }
 
     case "ingest-responses": {
@@ -464,7 +616,9 @@ async function main(): Promise<number> {
         const plan = report.plan;
         console.log(`publish${report.dryRun ? " --dry-run: NOTHING WAS UPLOADED" : ": uploaded to R2"}`);
         console.log(`  verified: ${plan.bundles.length} bundles, ${formatBytes(totalBytes(plan))}, sha256 and size match the manifest`);
-        for (const b of plan.bundles) console.log(`    ${b.info.file.padEnd(16)} ${b.info.review_gate}`);
+        for (const b of plan.bundles) {
+          console.log(`    ${b.info.file.padEnd(24)} ${"review_gate" in b.info ? b.info.review_gate : "translation"}`);
+        }
         if (plan.ignored.length > 0) console.log(`  not in the manifest, not uploaded: ${plan.ignored.join(", ")}`);
         if (report.dryRun) {
           console.log(`  order on --confirm: bundles, then manifest.json last`);
@@ -484,9 +638,10 @@ async function main(): Promise<number> {
 
     default: {
       console.log(
-        "usage: yada <ingest|normalize|derive BOOK|oracle|generate [--dry-run|--confirm] BOOK|inspect|import-golden|" +
+        "usage: yada <ingest|normalize|derive BOOK|oracle|generate [--dry-run|--confirm] [--batch] BOOK|" +
+          "batch <status|collect|recover> ID|inspect|import-golden|" +
           "ingest-responses [--model M]|validate BOOK|adversary [--dry-run|--confirm] [--model M] BOOK|" +
-          "regress [--live --dry-run|--live --confirm]|publish [--dry-run|--confirm]|package [core|BOOK] [--allow-unreviewed]>",
+          "regress [--live --dry-run|--live --confirm]|publish [--dry-run|--confirm]|package [core|BOOK] [--allow-unreviewed]|package translation CODE>",
       );
       return command === undefined ? 0 : 2;
     }

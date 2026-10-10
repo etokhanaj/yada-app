@@ -14,6 +14,8 @@ export interface TextSegment {
   readonly text: string;
   /** Rendered in small capitals (amendment 12). */
   readonly smallCaps: boolean;
+  /** A word the LSV's translators supplied, drawn muted (lib/supplied.ts). */
+  readonly supplied?: boolean;
 }
 
 /**
@@ -121,6 +123,24 @@ export function scrollToClearBar(
   if (selection.bottom > bounds.barTop - gap) return selection.bottom - (bounds.barTop - gap);
   if (selection.top < bounds.headerBottom + gap) return selection.top - (bounds.headerBottom + gap);
   return 0;
+}
+
+/**
+ * Where the docked bar starts, in window y: it sits on the bottom edge. Null
+ * until the bar has been measured, so a selection is never placed against a
+ * bar of height zero (it would leave the verse under the real one).
+ */
+export function barTopIn(windowHeight: number, barHeight: number): number | null {
+  return barHeight > 0 ? windowHeight - barHeight : null;
+}
+
+/**
+ * Where Understand starts at its medium detent, in window y (amendment 1: the
+ * verse stays visible above it). `medium` is the detent as a fraction of the
+ * screen, SHEET_MEDIUM in the app.
+ */
+export function sheetTopIn(windowHeight: number, medium: number): number {
+  return windowHeight * (1 - medium);
 }
 
 // ---------------------------------------------------------------------------

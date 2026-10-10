@@ -107,7 +107,7 @@ export default function BookmarksScreen() {
               }
             >
               <Scripture step="claim" numberOfLines={ax ? 3 : 2} style={{ fontFamily: "Literata" }}>
-                <DivineText text={excerpt} />
+                <DivineText text={excerpt} translation={translation} />
               </Scripture>
             </ListRow>
           </View>

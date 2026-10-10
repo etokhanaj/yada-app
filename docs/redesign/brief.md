@@ -388,12 +388,14 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
     split `Book | Translation` capsule. Switching translation stays at the top of Contents; seeing other
     translations is Compare's job. While reading, the header steps back to one 13 pt line under the
     island (`1 Corinthians 14 · BSB`); scrolling up or tapping it restores the controls (canvas D-05).
-14. **Depth** (canvas DP-01–06, approved by John 9 Oct): the passage's key word (first `key_words`
-    entry) set large in its own script, with transliteration and gloss and the passage title beneath, on
-    Home's Start / Continue row and the Start here header; when the passage has no entry, the passage
-    title carries it in Literata. Chapter openings show the passage title in small caps above verse 1.
-    Start here passages are numbered in Literata. No illustration, mood photography or background
-    watermark; manuscript photography only after image rights clear PRD 0E.
+14. **Depth** (canvas DP-01–06, approved by John 9 Oct; English-led cover chosen 10 Oct): on Home's
+    Start / Continue row the passage title leads in large Literata semibold; beneath it, one line with the
+    passage's key word (first `key_words` entry) at reading size in its own script, then transliteration,
+    gloss and range in mutedInk. Start here: "The Gospel of John" large title with the same one-line
+    word underneath. When the passage has no entry, the title alone (DP-02). Chapter openings show the
+    passage title in small caps above verse 1. Start here passages are numbered in Literata. The word
+    card keeps the large headword (the word is its subject). No illustration, mood photography or
+    background watermark; manuscript photography only after image rights clear PRD 0E.
 15. **Brand** (kit v1.0, 9 Oct; details `brand/README.md`): palette moves from warm paper + navy to chalk
     + forest, chartreuse as the dark-mode accent and the difference highlighter. Home title is the
     outlined wordmark. App icon, dark and tinted icons, splash symbol and web favicons from the kit.
@@ -408,3 +410,25 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
     Layers `splash-stem.png` + `splash-leaf.png` share `splash-symbol-dark.png`'s frame; pivot at 54.4% x,
     57.0% y. Runs only once the reader is ready (never lengthens launch). Reduce Motion: 150 ms cross-fade.
     Warm launch: none. No haptic. VoiceOver focus waits for the reader.
+18. **Resume at the exact verse** (decided by John 10 Oct). A cold launch with a saved position opens the
+    reader at that verse, scrolled so it sits just below the header, with `‹ Home` leading back. Nothing
+    else is restored (no selection, sheet or Understand). No saved position: first launch opens John 1 as
+    before. No time limit and no "welcome back". The launch overlay (§8.17) lifts into the reader.
+    Home's Continue row stays for anyone who goes back to Home.
+19. **Simpler Understand** (canvas U-01–04, chosen by John 10 Oct; supersedes the section order in §4 and
+    J01-03/04). Three parts, then one group:
+    - What's happening (clamped at medium, §8 item 1).
+    - What we can see: reading claims only, three then `Show all N`.
+    - Where readers differ (renamed from "Where interpretation differs"): disputed claims with
+      `Compare the N readings`.
+    - Go further: `Original Greek / Hebrew · N notes` (expands to the interlinear, glosses line, then
+      "In the Greek / Hebrew" with the grammar claims), Compare translations, the passage, Related
+      passages (opens the Go deeper list).
+    A grammar claim is one whose evidence carries a morphology code or apparatus note. Until the pipeline
+    tags claims (below), the app uses that rule; once entries carry `kind`, the app reads it instead.
+    **Pipeline follow-up, before John's Gospel is generated:** add `kind: "reading" | "grammar"` to claims in
+    the schema, have the prompt write reading claims first and tag each, and re-tag the 7 existing entries.
+20. **More translations** (canvas MT-01–06; `docs/more-translations-plan.md`; approved by John 10 Oct).
+    Contents gets one `Translation` row instead of the switch. Translations sheet in three groups: On
+    your iPhone, Download (public domain, built and served by our pipeline from R2), Online (API.Bible,
+    dev flag). Compare shows your translation plus up to three others.

@@ -78,8 +78,7 @@ export function useLayout() {
   };
 }
 
-/** Understand's medium detent, as a fraction of the screen (amendment 1: the verse stays visible above it). */
-export const SHEET_MEDIUM = 0.55;
+export { SHEET_MEDIUM } from "./sheet";
 
 export const RADIUS = {
   /** Selection wash and Here / Next rows. */

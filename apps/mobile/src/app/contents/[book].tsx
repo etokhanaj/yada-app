@@ -2,7 +2,7 @@ import { BOOK_CODES, isBookCode } from "@yada/schema";
 import { useLocalSearchParams } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { TranslationSwitch, usePickChapter } from "../../components/Contents";
+import { TranslationValueRow, usePickChapter } from "../../components/Contents";
 import { SheetScreen } from "../../components/Sheet";
 import { Chrome } from "../../components/Type";
 import { useLayout, usePalette } from "../../design/tokens";
@@ -21,7 +21,7 @@ export default function ContentsChapters() {
 
   return (
     <SheetScreen title={meta.name} backLabel={null} footer={false} testID="contents-chapters">
-      <TranslationSwitch />
+      <TranslationValueRow />
       <View style={styles.grid}>
         {Array.from({ length: meta.chapters }, (_, i) => i + 1).map((chapter) => {
           const on = chapter === current;

@@ -1,0 +1,147 @@
+# A downloaded translation, end to end (MT-02–05): download YLT, read in it, search it,
+# go back to BSB, remove it with ⋯ → Remove. Leaves the app on BSB without YLT.
+#
+# Needs a local static server on port 8787 serving content/bundles (manifest.json and
+# the translation-*.db files), which a dev build reads by default (DEV_MANIFEST_URL in
+# src/data/translations.ts), for example from the repo root:
+#   npx serve -p 8787 content/bundles
+# Without it the Download section never lists YLT and the flow stops at the first wait.
+appId: studio.yada.reader
+---
+- launchApp
+- openLink: studio.yada.reader:///read/JHN/1
+- waitForAnimationToEnd
+- openLink: studio.yada.reader:///translations
+- waitForAnimationToEnd
+- assertVisible:
+    id: translations
+# Start without YLT whatever an earlier run left behind.
+- runFlow:
+    when:
+      visible:
+        id: translation-YLT
+    commands:
+      # Screen point, not id: Maestro places elements inside a sheet shifted by the sheet's
+      # origin, so a tap on the menu's own id landed on the row and chose YLT (10 Oct 2026).
+      # YLT is the fifth row on your iPhone; iPhone 17 Pro, default text size.
+      - tapOn:
+          point: "89%,57%"
+      - waitForAnimationToEnd
+      - tapOn: "Remove"
+      - waitForAnimationToEnd
+      - extendedWaitUntil:
+          notVisible:
+            id: translation-YLT
+          timeout: 5000
+# A translation removed earlier in the same launch comes back from its still-attached
+# file without downloading (downloadTranslation), so relaunch for a real download.
+- launchApp
+- openLink: studio.yada.reader:///read/JHN/1
+- waitForAnimationToEnd
+- openLink: studio.yada.reader:///translations
+- waitForAnimationToEnd
+# Download rows appear once the manifest answers, below the On your iPhone rows.
+- scrollUntilVisible:
+    element:
+      id: download-YLT
+    timeout: 15000
+- assertVisible: "Young.s Literal Translation, [0-9.]+ megabytes, download"
+# One tap only: a second tap on a downloading row cancels it.
+- tapOn:
+    id: download-YLT
+- waitForAnimationToEnd
+# Done, the row moves to On your iPhone and its label says downloaded.
+- extendedWaitUntil:
+    visible: "Young.s Literal Translation, downloaded, .*"
+    timeout: 60000
+- assertVisible:
+    id: translation-YLT
+
+# Picking a version closes Translations back to the page, now in that version.
+- tapOn:
+    id: translation-YLT
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    notVisible:
+      id: translations
+    timeout: 5000
+- assertVisible: "John 1, YLT"
+
+# Maestro's iOS driver keeps a stale hierarchy once a native sheet has been dismissed and
+# another presented (seen with Maestro 2.11, 10 Oct 2026), so the flow relaunches here.
+- launchApp
+- openLink: studio.yada.reader:///read/JHN/1
+- waitForAnimationToEnd
+# The choice outlives a relaunch.
+- assertVisible: "John 1, YLT"
+- tapOn:
+    id: reader-back
+- waitForAnimationToEnd
+# A deep link into the open reader re-renders it, and a tap that lands in that
+# moment is dropped (Maestro 2.11, 10 Oct 2026); tap once more if Home did not come up.
+- runFlow:
+    when:
+      notVisible:
+        id: home-search
+    commands:
+      - tapOn:
+          id: reader-back
+      - waitForAnimationToEnd
+- tapOn:
+    id: home-search
+- waitForAnimationToEnd
+- assertVisible:
+    id: search
+# YLT's Genesis 1:2, "the earth hath existed waste and void": both words are in no
+# built-in version's verse, so a hit proves Search reads the downloaded file.
+- inputText: "existed waste"
+- assertVisible: "Passages · 1"
+- assertVisible:
+    id: result-passage-1001002
+- tapOn:
+    id: search-cancel
+- waitForAnimationToEnd
+
+# Relaunch again (stale hierarchy, as above), then back to BSB by its row.
+- launchApp
+- openLink: studio.yada.reader:///read/JHN/1
+- waitForAnimationToEnd
+- openLink: studio.yada.reader:///translations
+- waitForAnimationToEnd
+- assertVisible: "Young.s Literal Translation, selected, downloaded, .*"
+- tapOn:
+    id: translation-BSB
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    notVisible:
+      id: translations
+    timeout: 5000
+- assertVisible: "John 1, BSB"
+
+# Remove YLT with ⋯ → Remove (stale hierarchy, as above).
+- launchApp
+- openLink: studio.yada.reader:///read/JHN/1
+- waitForAnimationToEnd
+- openLink: studio.yada.reader:///translations
+- waitForAnimationToEnd
+- assertVisible: "Young.s Literal Translation, downloaded, .*"
+# Screen point for the same reason as at the top of this flow.
+- tapOn:
+    point: "89%,57%"
+- waitForAnimationToEnd
+- tapOn: "Remove"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    notVisible:
+      id: translation-YLT
+    timeout: 5000
+# Back among the downloads on offer.
+- scrollUntilVisible:
+    element:
+      id: download-YLT
+    timeout: 15000
+
+# Leave the simulator on BSB, as a cold launch finds it.
+- launchApp
+- waitForAnimationToEnd
+- assertVisible: "John 1, BSB"

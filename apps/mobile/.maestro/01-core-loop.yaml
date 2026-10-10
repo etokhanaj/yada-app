@@ -1,71 +1,135 @@
-# Not yet run: Maestro is not installed on the build machine (v2 redesign,
-# 9 Oct; ask John before installing it). Flows use testIDs (accessibility identifiers) and deep links
+# Run with Maestro 2.11 (brew install mobile-dev-inc/tap/maestro, JDK 17). A dev-client
+# build also needs the Metro link opened after each launchApp.
+
 # (studio.yada.reader:///read/<BOOK>/<chapter>?verse=N). Run all with:
 #   maestro test apps/mobile/.maestro/
 #
-# Journey 01: 1 Cor 14 → select 34 → the docked action bar → Understand → a claim → Why → Original →
+# Journey 01: 1 Cor 14 → select 34 → the docked action bar → Understand → Go further → Original →
+# a grammar claim under "In the Greek" → Why → Original →
 # word card → occurrences → back to the exact reading position.
 appId: studio.yada.reader
 ---
 - launchApp
 - openLink: studio.yada.reader:///read/1CO/14?verse=34
+- waitForAnimationToEnd
 - assertVisible:
     id: verse-34
 - tapOn:
     id: verse-34
+- waitForAnimationToEnd
 - assertVisible:
     id: action-bar
-- assertVisible: "Understand 14:34"
 - assertVisible:
     id: bar-original
 - assertVisible:
     id: bar-compare
 - tapOn:
     id: bar-understand
+- waitForAnimationToEnd
 - assertVisible:
     id: understand
 - assertVisible: "1 Corinthians 14:34"
 - assertVisible:
     id: unreviewed
 - assertVisible: "What we can see"
+# c1 states a parse, so it sits under Original as "In the Greek", not in What we can see (brief §8.19).
+- assertNotVisible:
+    id: claim-1CO.14.34.c1
+- scrollUntilVisible:
+    element:
+      text: "Where readers differ"
+    centerElement: true
+# Not centred: at the large detent Original sits near the end, where nothing can scroll it to the middle.
+- scrollUntilVisible:
+    element:
+      id: toggle-original
+- assertVisible: "Go further"
+- tapOn:
+    id: toggle-original
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      text: "In the Greek"
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      id: claim-1CO.14.34.c1
+    centerElement: true
 - tapOn:
     id: claim-1CO.14.34.c1
+- waitForAnimationToEnd
 - assertVisible: "Why we say this"
 - assertVisible: "How we know"
 - assertVisible: "From the Greek text and its parsing (MorphGNT)."
 - tapOn:
     id: back-to-reading
+- waitForAnimationToEnd
 - assertVisible:
     id: verse-34
+# Resume at the exact verse (brief §8.18): a cold launch with a saved position opens the reader
+# there, the verse near the top under the header, with nothing else restored (no selection, so
+# no action bar). The saved verse is the top visible one, at or just above 34.
+- stopApp
+- launchApp
+- waitForAnimationToEnd
+- assertVisible: "1 Corinthians 14, BSB"
+- assertVisible:
+    id: verse-34
+- assertNotVisible:
+    id: action-bar
+- assertNotVisible:
+    id: understand
+# Maestro's iOS driver keeps a stale hierarchy once a native sheet has been dismissed and
+# another presented (seen with Maestro 2.11, 10 Oct 2026), so the flow relaunches here.
+- launchApp
+- openLink: studio.yada.reader:///read/1CO/14?verse=34&select=1
+- waitForAnimationToEnd
 - tapOn:
     id: bar-understand
+- waitForAnimationToEnd
+# Not centred: at the large detent Original sits near the end, where nothing can scroll it to the middle.
 - scrollUntilVisible:
     element:
       id: toggle-original
 - tapOn:
     id: toggle-original
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: word-σιγάτωσαν
+    centerElement: true
 - tapOn:
     id: word-σιγάτωσαν
-- assertVisible: "Word"
+- waitForAnimationToEnd
+- assertVisible:
+    id: word
 - assertVisible: "Verb, present active imperative, 3rd person plural"
+- scrollUntilVisible:
+    element:
+      id: see-occurrences
+    centerElement: true
 - tapOn:
     id: see-occurrences
+- waitForAnimationToEnd
 - assertVisible: "σιγάω in 1 Corinthians"
 - assertVisible:
     id: occurrence-1CO.14.28
 - tapOn:
     id: back-to-reading
+- waitForAnimationToEnd
 # Back on the reader, same chapter, verse 34 still selected.
-- assertVisible: "1 Corinthians 14"
+- assertVisible: "1 Corinthians 14, BSB"
 - assertVisible:
     id: verse-34
 - assertVisible:
     id: action-bar
 # A verse with no explanation offers no Understand (J01-15).
 - openLink: studio.yada.reader:///read/1TI/2?verse=11
+- waitForAnimationToEnd
 - tapOn:
     id: verse-11
+- waitForAnimationToEnd
 - assertVisible:
     id: bar-original
-- assertNotVisible:
-    id: bar-understand
+# By label: with modal flags ignored, the 1 Corinthians reader beneath is still in the snapshot.
+- assertNotVisible: "Understand verse 11"

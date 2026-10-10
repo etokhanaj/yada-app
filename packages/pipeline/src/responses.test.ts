@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -117,6 +117,68 @@ describe("ingest-responses", () => {
     expect(report.stored).toEqual([]);
     expect(report.rejected.map((r) => r.reason).join(" ")).toMatch(/close_rendering/);
     expect(report.rejected.map((r) => r.reason).join(" ")).toMatch(/claim-atomicity/);
+  });
+
+  it("refuses a duplicate display rank and says which claims collide (Psalm 23:6, prompt 1.2)", () => {
+    // Opus ranked two "Where interpretation differs" claims 1 on PSA.23.6. A
+    // debated and an interpretation claim share that group, so the collision
+    // is across categories; renumbering would hide it from the prompt's measurement.
+    const entry = leviticus();
+    const debated = entry.claims.find((c) => c.id === "LEV.19.18.c9")!;
+    entry.claims.push({
+      ...entry.claims[0]!,
+      id: "LEV.19.18.c10",
+      claim: "The neighbour is read here as a fellow Israelite.",
+      category: "interpretation",
+      evidence_strength: "supported",
+      display_rank: debated.display_rank,
+    });
+    writeResponse([entry], { pericope: entry.pericope_id });
+    const report = ingestResponses(staging.db, dir);
+    expect(report.stored).toEqual([]);
+    expect(report.rejected[0]?.reason).toMatch(
+      /display-rank-unique \(\[LEV\.19\.18\.c10\] display_rank 1 is already used by claim "LEV\.19\.18\.c9" in group where_interpretation_differs\)/,
+    );
+  });
+
+  it("drops the pericope object from a later part of a split pericope and keeps part 1's", () => {
+    const entry = leviticus();
+    const pericope = (summary: string) => ({
+      pericope_id: entry.pericope_id,
+      book: "LEV",
+      schema_version: entry.schema_version,
+      prompt_version: "pericope@1.0.0",
+      span: { start: "LEV.19.11", end: "LEV.19.18" },
+      summary_one_sentence: summary,
+      key_ideas: ["holiness"],
+      claims: [],
+      review: { status: "flagged", flags: [] },
+    });
+    const later = { ...entry, verse_id: "LEV.19.17" };
+    writeFileSync(
+      path.join(dir, `${entry.pericope_id}.part1of2.claude-opus-5.json`),
+      JSON.stringify({ pericope_id: entry.pericope_id, part: 1, parts: 2, verses: [entry.verse_id], model: "claude-opus-5", stop_reason: "end_turn", text: JSON.stringify({ pericope: pericope("Part one's summary."), verses: [entry] }) }),
+    );
+    // Asked to leave it empty; even a well-formed one from a later part is not stored.
+    writeFileSync(
+      path.join(dir, `${entry.pericope_id}.part2of2.claude-opus-5.json`),
+      JSON.stringify({ pericope_id: entry.pericope_id, part: 2, parts: 2, verses: ["LEV.19.17"], model: "claude-opus-5", stop_reason: "end_turn", text: JSON.stringify({ pericope: pericope("Part two's summary."), verses: [later] }) }),
+    );
+    const report = ingestResponses(staging.db, dir);
+    expect(report.rejected).toEqual([]);
+    expect(report.stored.map((s) => s.id).sort()).toEqual([entry.pericope_id, "LEV.19.18", "LEV.19.17"].sort());
+    expect(String(rows("SELECT payload FROM pericope_entries")[0]?.["payload"])).toMatch(/Part one's summary/);
+  });
+
+  it("refuses a verse a part was not asked for, so it cannot collide with the part that was", () => {
+    const entry = leviticus();
+    writeResponse([entry], { pericope: entry.pericope_id, name: `${entry.pericope_id}.part2of2.claude-opus-5.json` });
+    const file = path.join(dir, `${entry.pericope_id}.part2of2.claude-opus-5.json`);
+    const body = JSON.parse(readFileSync(file, "utf8"));
+    writeFileSync(file, JSON.stringify({ ...body, part: 2, parts: 2, verses: ["LEV.19.17"] }));
+    const report = ingestResponses(staging.db, dir);
+    expect(report.stored).toEqual([]);
+    expect(report.rejected[0]?.reason).toMatch(/part 2 of 2 was asked for LEV\.19\.17, not LEV\.19\.18/);
   });
 
   it("refuses an entry for a different pericope than the one requested", () => {

@@ -82,6 +82,8 @@ export function loadGolden(name: string): VerseEntry {
 export function seed1Co1434(db: DatabaseSync): VerseEntry {
   const entry = loadGolden("1co.14.34");
   const lemmas: Record<string, string> = { σιγάτωσαν: "σιγάω", γυναῖκες: "γυνή" };
+  // The MorphGNT codes the fixture's lexical notes quote, as staging.db has them.
+  const morphs: Record<string, string> = { σιγάτωσαν: "V- 3PAD-P--", γυναῖκες: "N- ----NPF-" };
   seedVerse(
     db,
     entry.verse_id,
@@ -89,6 +91,7 @@ export function seed1Co1434(db: DatabaseSync): VerseEntry {
       surface: word.surface,
       lemma: lemmas[word.surface] ?? word.surface,
       ...(word.strongs === undefined ? {} : { strongs: word.strongs }),
+      ...(morphs[word.surface] === undefined ? {} : { morph: morphs[word.surface] as string }),
     })),
   );
   seedVerse(db, "1CO.14.35", [{ surface: "ἄνδρας", lemma: "ἀνήρ", strongs: "G0435" }]);

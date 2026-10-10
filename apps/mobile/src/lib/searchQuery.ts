@@ -147,3 +147,39 @@ export function splitSnippet(snippet: string): Array<{ text: string; hit: boolea
   }
   return parts.filter((p) => p.text.length > 0);
 }
+
+/**
+ * unicode61's token characters: letters, numbers and private use, plus the
+ * combining marks remove_diacritics folds into the letter before them. Other
+ * marks separate tokens, as FTS5 splits on Hebrew points. Only used to count
+ * words for the window; which words are hits, SQLite has already marked.
+ */
+const FTS_TOKEN = /[\p{L}\p{N}\p{Co}̀-ͯ]+/gu;
+
+/** What snippet(…, 20) gave before: twenty words, cut with an ellipsis. */
+export const EXCERPT_TOKENS = 20;
+
+/**
+ * Words kept before the first hit. A result row shows two lines, about
+ * fifteen words, so the hit has to come early to be seen at all.
+ */
+const LEAD_TOKENS = 4;
+
+/**
+ * An excerpt of a highlight()-marked verse that shows its first hit: at most
+ * EXCERPT_TOKENS words, starting LEAD_TOKENS before the hit, "…" where cut.
+ */
+export function excerptAroundHit(marked: string, length = EXCERPT_TOKENS): string {
+  const tokens = [...marked.matchAll(FTS_TOKEN)].map((m) => ({ start: m.index, end: m.index + m[0].length }));
+  const hit = marked.indexOf(SNIPPET_OPEN);
+  const first = hit < 0 ? 0 : Math.max(0, tokens.findIndex((t) => t.start > hit));
+  const from = Math.max(0, first - LEAD_TOKENS);
+  const to = Math.min(tokens.length, from + length);
+  if (from === 0 && to === tokens.length) return marked;
+
+  let begin = from === 0 ? 0 : (tokens[from]?.start ?? 0);
+  if (marked[begin - 1] === SNIPPET_OPEN) begin -= 1;
+  let end = to === tokens.length ? marked.length : (tokens[to - 1]?.end ?? marked.length);
+  if (marked[end] === SNIPPET_CLOSE) end += 1;
+  return `${from > 0 ? "…" : ""}${marked.slice(begin, end)}${to < tokens.length ? "…" : ""}`;
+}

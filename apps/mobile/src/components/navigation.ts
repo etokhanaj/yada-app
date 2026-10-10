@@ -22,6 +22,12 @@ export interface ReaderTarget {
   readonly from?: string;
   /** Select the target verse on arrival, so its actions are one tap away. */
   readonly select?: boolean;
+  /**
+   * Resuming a saved position (brief §8.18): the verse sits just below the
+   * header, where it was being read, not a fifth of the way down where a jump
+   * leaves room above a selection.
+   */
+  readonly resume?: boolean;
 }
 
 export function readerHref(target: ReaderTarget) {
@@ -29,6 +35,7 @@ export function readerHref(target: ReaderTarget) {
   if (target.verse !== undefined) params["verse"] = String(target.verse);
   if (target.from !== undefined) params["from"] = target.from;
   if (target.select === true) params["select"] = "1";
+  if (target.resume === true) params["resume"] = "1";
   return { pathname: "/read/[book]/[chapter]" as const, params };
 }
 
@@ -41,15 +48,19 @@ interface NavigatorLike {
 }
 
 /**
- * The stack the sheets are presented on: the nearest navigator, this one or
+ * The stack the sheets are presented on: the outermost navigator, this one or
  * above, whose routes include a sheet. Not simply the top one: expo-router
  * wraps the root Stack in its own container, and a POP sent there does nothing.
+ * Not the nearest either: a sheet's own stack can hold a screen named like a
+ * root sheet (evidence/translations beside the root Translations sheet), and
+ * popping that stack leaves every sheet open.
  */
 function hostOf(navigation: NavigatorLike): NavigatorLike {
+  let host = navigation;
   for (let at: NavigatorLike | undefined = navigation; at !== undefined; at = at.getParent()) {
-    if (at.getState()?.routes?.some((r) => SHEET_ROUTES.has(r.name)) === true) return at;
+    if (at.getState()?.routes?.some((r) => SHEET_ROUTES.has(r.name)) === true) host = at;
   }
-  return navigation;
+  return host;
 }
 
 function popHost(navigation: NavigatorLike, count: number): void {

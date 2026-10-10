@@ -12,10 +12,11 @@ import {
   type BookCode,
   decodeMorphemes,
   type BundleMorpheme,
+  parseVerseId,
   verseOrd,
 } from "@yada/schema";
 
-import { glossMatches, glossStem, escapeLike, SNIPPET_CLOSE, SNIPPET_OPEN } from "../lib/searchQuery";
+import { excerptAroundHit, glossMatches, glossStem, escapeLike, SNIPPET_CLOSE, SNIPPET_OPEN } from "../lib/searchQuery";
 import type { EntryRow, PericopeRow } from "../lib/pericopes";
 
 type Bind = string | number | null;
@@ -25,8 +26,115 @@ export interface Db {
   getFirstAsync<T>(source: string, params: Bind[]): Promise<T | null>;
 }
 
-export type Translation = "BSB" | "WEB" | "KJV";
+/** The versions the core bundle carries, in On your iPhone order. */
+export type Translation = "BSB" | "WEB" | "KJV" | "LSV";
+export const BUILT_IN: readonly Translation[] = ["BSB", "WEB", "KJV", "LSV"];
+
+export function isTranslation(value: unknown): value is Translation {
+  return value === "BSB" || value === "WEB" || value === "KJV" || value === "LSV";
+}
+
+/** Any version the reader can read: built in, or downloaded and attached ("YLT"). */
+export type TranslationCode = string;
+
 export type Script = "greek" | "hebrew";
+
+// ---------------------------------------------------------------------------
+// Downloaded translations
+// ---------------------------------------------------------------------------
+
+/**
+ * Downloaded versions live in their own files, ATTACHed to the core
+ * connection under a schema name (data/translations.ts), in the pipeline's
+ * format (TRANSLATION_DDL in @yada/schema): one translation per file, so
+ * `texts` is keyed by `ord` alone and the code is `meta.code`. Reads route by
+ * code, so the reader, Compare and Search treat an installed version like a
+ * built-in one (plan, App 2). Removing one stops routing to it at once; the
+ * file itself is detached and deleted only at the next launch
+ * (data/bundles.ts rule 1).
+ */
+const attached = new Map<TranslationCode, string>();
+
+const SCHEMA = /^tr_[a-z0-9]+_v\d+$/;
+
+export function routeTranslation(code: TranslationCode, schema: string): void {
+  if (!SCHEMA.test(schema)) throw new Error(`Not a translation schema: ${schema}`);
+  attached.set(code, schema);
+}
+
+export function unrouteTranslation(code: TranslationCode): void {
+  attached.delete(code);
+}
+
+export function isDownloaded(code: TranslationCode): boolean {
+  return attached.has(code);
+}
+
+/** What the manifest promised about a file, checked against the file itself at download. */
+export interface TranslationExpectation {
+  readonly verses: number;
+  readonly missing: readonly string[];
+}
+
+/**
+ * An attached file's `meta` and verse count, read before it is routed: a file
+ * whose code does not match, whose verse count is not the one its own `meta`
+ * (and, at download, the manifest) states, or which prints a verse the
+ * manifest lists as `missing`, is never offered for reading. "Not in ASV" is
+ * shown on the strength of `missing`, so the file must agree with it.
+ */
+export async function checkTranslationFile(
+  db: Db,
+  schema: string,
+  code: TranslationCode,
+  expected?: TranslationExpectation,
+): Promise<{ ok: boolean; meta: Record<string, string>; verses: number }> {
+  if (!SCHEMA.test(schema)) return { ok: false, meta: {}, verses: 0 };
+  const rows = await db.getAllAsync<{ key: string; value: string }>(`SELECT key, value FROM ${schema}.meta`, []);
+  const meta = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  // Every row, empty ones included: `meta.verses` counts what the source file numbers, and the
+  // ASV and MSB number a few verses they leave blank (as BSB leaves Romans 16:24).
+  const count = await db.getFirstAsync<{ n: number }>(`SELECT count(*) AS n FROM ${schema}.texts`, []);
+  const verses = count?.n ?? 0;
+  let ok = meta["code"] === code && verses > 0 && String(verses) === meta["verses"];
+  if (ok && expected !== undefined) {
+    const ords = expected.missing.flatMap((id) => {
+      const ref = parseVerseId(id);
+      return ref === null ? [] : [verseOrd(ref.book, ref.chapter, ref.verse)];
+    });
+    const printed =
+      ords.length === 0
+        ? 0
+        : ((await db.getFirstAsync<{ n: number }>(`SELECT count(*) AS n FROM ${schema}.texts WHERE ord IN (${ords.map(() => "?").join(",")})`, ords))?.n ?? 0);
+    ok = verses === expected.verses && printed === 0;
+  }
+  return { ok, meta, verses };
+}
+
+/** Built-in and routed versions: what reads can be asked for. */
+export function readableTranslations(): TranslationCode[] {
+  return [...BUILT_IN, ...attached.keys()];
+}
+
+/**
+ * Where one version's rows are, as `alias`: core's shared `texts`, filtered by
+ * code, or an attached file's own, which holds nothing else.
+ */
+function textsOf(translation: TranslationCode, alias: string): { schema: string; filter: string; params: Bind[] } {
+  const schema = attached.get(translation);
+  return schema === undefined
+    ? { schema: "", filter: `${alias}.translation = ?`, params: [translation] }
+    : { schema: `${schema}.`, filter: "1", params: [] };
+}
+
+/** Every texts table, core first, as one statement; an attached file's code is bound, not read from a column it lacks. */
+function allTexts(where: string, params: Bind[]): { sql: string; params: Bind[] } {
+  const parts = [
+    { sql: `SELECT ord, translation, text FROM texts WHERE ${where}`, params },
+    ...[...attached].map(([code, schema]) => ({ sql: `SELECT ord, ? AS translation, text FROM ${schema}.texts WHERE ${where}`, params: [code, ...params] })),
+  ];
+  return { sql: parts.map((p) => p.sql).join(" UNION ALL "), params: parts.flatMap((p) => p.params) };
+}
 
 export function scriptOf(book: BookCode): Script {
   return BOOK_CODES[book].testament === "NT" ? "greek" : "hebrew";
@@ -48,6 +156,8 @@ export function bookBounds(book: BookCode): [number, number] {
 export interface VerseText {
   readonly ord: number;
   readonly verse: number;
+  /** Last verse of a bridged row ("1–2"), set only by licensed text; bundled verses are never bridged. */
+  readonly through?: number;
   readonly text: string;
 }
 
@@ -56,33 +166,29 @@ export interface VerseText {
  * Hebrew-only; English prints it inside verse 1), and empty rows are skipped:
  * BSB carries an empty Romans 16:24 rather than no row.
  */
-export async function getChapter(db: Db, book: BookCode, chapter: number, translation: Translation): Promise<VerseText[]> {
+export async function getChapter(db: Db, book: BookCode, chapter: number, translation: TranslationCode): Promise<VerseText[]> {
   const [lo, hi] = chapterBounds(book, chapter);
+  const t = textsOf(translation, "t");
   const rows = await db.getAllAsync<{ ord: number; text: string }>(
-    "SELECT ord, text FROM texts WHERE translation = ? AND ord BETWEEN ? AND ? AND text <> '' ORDER BY ord",
-    [translation, lo, hi],
+    `SELECT ord, text FROM ${t.schema}texts t WHERE ${t.filter} AND ord BETWEEN ? AND ? AND text <> '' ORDER BY ord`,
+    [...t.params, lo, hi],
   );
   return rows.map((r) => ({ ord: r.ord, verse: r.ord % 1000, text: r.text }));
 }
 
-export async function getTexts(db: Db, ord: number): Promise<Partial<Record<Translation, string>>> {
-  const rows = await db.getAllAsync<{ translation: Translation; text: string }>(
-    "SELECT translation, text FROM texts WHERE ord = ? AND text <> ''",
-    [ord],
-  );
+/** One verse in every readable version, keyed by code. */
+export type VerseTexts = Partial<Record<TranslationCode, string>>;
+
+export async function getTexts(db: Db, ord: number): Promise<VerseTexts> {
+  const q = allTexts("ord = ? AND text <> ''", [ord]);
+  const rows = await db.getAllAsync<{ translation: TranslationCode; text: string }>(q.sql, q.params);
   return Object.fromEntries(rows.map((r) => [r.translation, r.text]));
 }
 
-export async function getTextsInRange(
-  db: Db,
-  lo: number,
-  hi: number,
-): Promise<Array<{ ord: number; texts: Partial<Record<Translation, string>> }>> {
-  const rows = await db.getAllAsync<{ ord: number; translation: Translation; text: string }>(
-    "SELECT ord, translation, text FROM texts WHERE ord BETWEEN ? AND ? AND text <> '' ORDER BY ord",
-    [lo, hi],
-  );
-  const byOrd = new Map<number, Partial<Record<Translation, string>>>();
+export async function getTextsInRange(db: Db, lo: number, hi: number): Promise<Array<{ ord: number; texts: VerseTexts }>> {
+  const q = allTexts("ord BETWEEN ? AND ? AND text <> ''", [lo, hi]);
+  const rows = await db.getAllAsync<{ ord: number; translation: TranslationCode; text: string }>(`${q.sql} ORDER BY ord`, q.params);
+  const byOrd = new Map<number, VerseTexts>();
   for (const r of rows) {
     const texts = byOrd.get(r.ord) ?? {};
     texts[r.translation] = r.text;
@@ -91,15 +197,16 @@ export async function getTextsInRange(
   return [...byOrd].map(([ord, texts]) => ({ ord, texts }));
 }
 
-export async function getTextsForOrds(db: Db, ords: readonly number[], translation: Translation): Promise<Map<number, string>> {
+export async function getTextsForOrds(db: Db, ords: readonly number[], translation: TranslationCode): Promise<Map<number, string>> {
   const out = new Map<number, string>();
   // SQLite's default variable limit is generous, but chunking keeps one
   // pathological lexeme (καί occurs ~9,000 times) from ever hitting it.
+  const t = textsOf(translation, "t");
   for (let i = 0; i < ords.length; i += 400) {
     const chunk = ords.slice(i, i + 400);
     const rows = await db.getAllAsync<{ ord: number; text: string }>(
-      `SELECT ord, text FROM texts WHERE translation = ? AND ord IN (${chunk.map(() => "?").join(",")})`,
-      [translation, ...chunk],
+      `SELECT ord, text FROM ${t.schema}texts t WHERE ${t.filter} AND ord IN (${chunk.map(() => "?").join(",")})`,
+      [...t.params, ...chunk],
     );
     for (const r of rows) out.set(r.ord, r.text);
   }
@@ -279,24 +386,34 @@ export interface PassageHit {
  * bm25 rank: a reader scanning results expects Genesis before Revelation, the
  * way a concordance lists them.
  */
-export async function searchPassages(db: Db, match: string, translation: Translation, limit = 100): Promise<PassageHit[]> {
-  return db.getAllAsync<PassageHit>(
+export async function searchPassages(db: Db, match: string, translation: TranslationCode, limit = 100): Promise<PassageHit[]> {
+  const t = textsOf(translation, "t");
+  // An FTS5 table is matched through its hidden column, named after the table:
+  // `f.texts_fts` works for core and an attached schema alike. A downloaded
+  // file's index keys on `ord` (its rowid), so `t.rowid = f.rowid` holds there too.
+  // highlight(), not snippet(): snippet() could end its window on the hit,
+  // which the result row's two-line cap then cut off (ASV "proselyte" showed
+  // Acts 6:5 without the word). SQLite still marks the hits, so the tokenizer
+  // and diacritic folding are FTS5's own; excerptAroundHit only picks the window.
+  const rows = await db.getAllAsync<{ ord: number; marked: string }>(
     `SELECT t.ord AS ord,
-            snippet(texts_fts, 0, '${SNIPPET_OPEN}', '${SNIPPET_CLOSE}', '…', 20) AS snippet
-       FROM texts_fts
-       JOIN texts t ON t.rowid = texts_fts.rowid
-      WHERE texts_fts MATCH ? AND t.translation = ?
+            highlight(f.texts_fts, 0, '${SNIPPET_OPEN}', '${SNIPPET_CLOSE}') AS marked
+       FROM ${t.schema}texts_fts f
+       JOIN ${t.schema}texts t ON t.rowid = f.rowid
+      WHERE f.texts_fts MATCH ? AND ${t.filter}
       ORDER BY t.ord
       LIMIT ?`,
-    [match, translation, limit],
+    [match, ...t.params, limit],
   );
+  return rows.map((r) => ({ ord: r.ord, snippet: excerptAroundHit(r.marked) }));
 }
 
-export async function countPassages(db: Db, match: string, translation: Translation): Promise<number> {
+export async function countPassages(db: Db, match: string, translation: TranslationCode): Promise<number> {
+  const t = textsOf(translation, "t");
   const row = await db.getFirstAsync<{ n: number }>(
-    `SELECT count(*) AS n FROM texts_fts JOIN texts t ON t.rowid = texts_fts.rowid
-      WHERE texts_fts MATCH ? AND t.translation = ?`,
-    [match, translation],
+    `SELECT count(*) AS n FROM ${t.schema}texts_fts f JOIN ${t.schema}texts t ON t.rowid = f.rowid
+      WHERE f.texts_fts MATCH ? AND ${t.filter}`,
+    [match, ...t.params],
   );
   return row?.n ?? 0;
 }
@@ -357,6 +474,31 @@ export interface SourceRow {
 
 export async function getSources(db: Db): Promise<SourceRow[]> {
   return db.getAllAsync<SourceRow>("SELECT * FROM sources ORDER BY source", []);
+}
+
+/**
+ * Each routed download as a sources row, read from its own `meta`: the
+ * licence and attribution travel inside the file (rule 3), written there by
+ * `yada package translation` from the pipeline's source entry.
+ */
+export async function getTranslationSources(db: Db): Promise<Array<SourceRow & { translation: { code: string; name: string } }>> {
+  const out: Array<SourceRow & { translation: { code: string; name: string } }> = [];
+  for (const [code, schema] of attached) {
+    const rows = await db.getAllAsync<{ key: string; value: string }>(`SELECT key, value FROM ${schema}.meta`, []);
+    const meta = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+    const name = meta["name"] ?? code;
+    out.push({
+      // Never shown for a download (its row is titled by name and code); unique, and distinct from core's datasets.
+      dataset: `translation:${code}`,
+      source: name,
+      license: meta["license"] ?? "",
+      attribution: meta["attribution"] ?? "",
+      url: meta["source"] ?? "",
+      encumbered: null,
+      translation: { code, name },
+    });
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------

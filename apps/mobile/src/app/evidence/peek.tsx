@@ -6,19 +6,21 @@
 
 import { formatDisplayRef, ordToParts, parseVerseId, RelationshipSchema, verseOrd } from "@yada/schema";
 import { useLocalSearchParams } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Icon } from "../../components/Icon";
+import { DivineText } from "../../components/Verse";
 import { useSheetNav } from "../../components/navigation";
 import { Section, SheetScreen } from "../../components/Sheet";
 import { Chrome, Original, Prose, Scripture } from "../../components/Type";
 import { useCore, useLog, useQuery } from "../../data/AppData";
-import { getTextsInRange, getTokens, scriptOf } from "../../data/queries";
-import { LAYOUT, usePalette } from "../../design/tokens";
+import { getTextsInRange, getTokens, isDownloaded, scriptOf } from "../../data/queries";
+import { FONTS, LAYOUT, usePalette, useType } from "../../design/tokens";
 import { formatRange, resolveRef } from "../../lib/chapters";
 import { sameOpening } from "../../lib/echo";
 import { RELATIONSHIP_LABEL } from "../../lib/evidence";
-import { chapterTitle } from "../../lib/reader";
+import { chapterTitle, splitSuperscription } from "../../lib/reader";
+import { bsbStandsIn, notInLine, verseTextIn } from "../../lib/translations";
 import { useSettings } from "../../state/settings";
 
 export default function PeekScreen() {
@@ -30,6 +32,8 @@ export default function PeekScreen() {
   const core = useCore();
   const log = useLog();
   const palette = usePalette();
+  const small = Math.round(useType("scripture").size * 0.85);
+  const verseNumber = useType("verseNumber");
   const { jumpTo } = useSheetNav();
   const translation = useSettings((s) => s.translation);
 
@@ -88,18 +92,49 @@ export default function PeekScreen() {
           {note !== null ? <Prose step="claim">{note}</Prose> : null}
         </Section>
       ) : null}
+      {/* J01-10: the passage set as the reader sets it, one paragraph per verse at reading size,
+          so the peek previews what `Read` opens rather than a run-on quotation. */}
       <View style={{ marginTop: relationship !== null || note !== null ? 16 : 0 }}>
-        <Scripture step="explanation">
-          {(data ?? []).map((v, i) => (
-            <Scripture key={v.ord} step="explanation">
-              {i > 0 ? " " : ""}
-              <Scripture step="explanation" tone="muted" style={{ fontSize: 13 }}>
-                {`${ordToParts(v.ord).verse} `}
+        {/* The peek quotes the passage, not an explanation, so it names the text it shows. */}
+        {(data ?? []).some((v) => bsbStandsIn(v.texts, translation, isDownloaded(translation))) ? (
+          <Chrome step="note" tone="muted" style={{ marginBottom: 10 }} testID="bsb-basis">
+            Shown in BSB
+          </Chrome>
+        ) : null}
+        {(data ?? []).map((v) => {
+          const n = ordToParts(v.ord).verse;
+          // A downloaded version without this verse keeps its number and says so, muted, rather
+          // than setting BSB's words under ASV's name (lib/translations.ts, verseTextIn).
+          const own = verseTextIn(v.texts, translation, isDownloaded(translation));
+          const text = own ?? "";
+          // A psalm's title gets its own italic line here too (amendment 12), not run into verse 1.
+          const { title, body } = n === 1 ? splitSuperscription(text) : { title: null, body: text };
+          return (
+            <View key={v.ord}>
+              {title !== null ? (
+                <Scripture tone="muted" style={{ fontFamily: FONTS.scriptureItalic, fontSize: small, lineHeight: Math.round(small * 1.5), marginBottom: 10 }}>
+                  {title}
+                </Scripture>
+              ) : null}
+              <Scripture style={{ marginBottom: 14 }}>
+                <Text
+                  style={{
+                    // Nested text inherits Literata; verse numbers are set in the system face (canvas `.vn`).
+                    fontFamily: "System",
+                    fontSize: verseNumber.size,
+                    fontWeight: "600",
+                    color: palette.mutedInk,
+                    fontVariant: ["tabular-nums"],
+                    letterSpacing: 0,
+                  }}
+                >
+                  {n}
+                </Text>{" "}
+                {own === null ? <Text style={{ color: palette.mutedInk }}>{notInLine(translation)}</Text> : <DivineText text={body} />}
               </Scripture>
-              {v.texts[translation] ?? v.texts.BSB ?? ""}
-            </Scripture>
-          ))}
-        </Scripture>
+            </View>
+          );
+        })}
       </View>
       {span !== null ? (
         <Pressable

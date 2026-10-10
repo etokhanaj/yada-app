@@ -49,6 +49,7 @@ import {
   type BundleMorpheme,
   type ReviewGate,
   type SourceManifestEntry,
+  type TranslationInfo,
 } from "@yada/schema";
 
 import { openStaging } from "./db.js";
@@ -72,7 +73,7 @@ function scriptOf(book: BookCode): "greek" | "hebrew" {
   return BOOK_CODES[book].testament === "NT" ? "greek" : "hebrew";
 }
 
-function sha256File(file: string): string {
+export function sha256File(file: string): string {
   return createHash("sha256").update(readFileSync(file)).digest("hex");
 }
 
@@ -84,10 +85,10 @@ export function readBundleManifest(): BundleManifest | null {
 }
 
 /** Highest version already on disk for a bundle name, whatever the manifest says. */
-function highestVersionOnDisk(name: string): number {
-  if (!existsSync(BUNDLES)) return 0;
+export function highestVersionOnDisk(name: string, dir: string = BUNDLES): number {
+  if (!existsSync(dir)) return 0;
   const pattern = new RegExp(`^${name.toLowerCase()}\\.v(\\d+)\\.db$`);
-  return readdirSync(BUNDLES).reduce((max, file) => {
+  return readdirSync(dir).reduce((max, file) => {
     const match = pattern.exec(file);
     return match?.[1] === undefined ? max : Math.max(max, Number(match[1]));
   }, 0);
@@ -134,7 +135,7 @@ function finalize(
   };
 }
 
-function freshDb(file: string, ddl: string): DatabaseSync {
+export function freshDb(file: string, ddl: string): DatabaseSync {
   if (existsSync(file)) rmSync(file);
   const db = new DatabaseSync(file);
   // Bundles are read-only on device; a rollback journal would only leave a
@@ -341,7 +342,11 @@ export function packageCore(): CoreReport {
   const insertSource = out.prepare(
     "INSERT OR REPLACE INTO sources (dataset, source, license, attribution, url, encumbered) VALUES (?, ?, ?, ?, ?, ?)",
   );
+  // A downloadable translation carries its own attribution in its own file; listing it here
+  // would credit text the reader may not have, and change core's bytes for every new version.
+  const downloadable = new Set(SOURCES.filter((s) => s.downloadable === true).map((s) => s.dataset));
   for (const entry of manifest) {
+    if (downloadable.has(entry.dataset)) continue;
     insertSource.run(
       entry.dataset,
       entry.source,
@@ -470,13 +475,18 @@ export function understandBooks(): BookCode[] {
   return [...books].filter(isBookCode).sort((a, b) => BOOK_ORDER.indexOf(a) - BOOK_ORDER.indexOf(b));
 }
 
-export function writeBundleManifest(bundles: BundleInfo[], minAppVersion = "1.0.0"): BundleManifest {
+export function writeBundleManifest(
+  bundles: BundleInfo[],
+  translations: TranslationInfo[] = [],
+  minAppVersion = "1.0.0",
+): BundleManifest {
   const manifest: BundleManifest = {
     format: BUNDLE_FORMAT,
     generated_at: new Date().toISOString(),
     min_app_version: minAppVersion,
     schema_versions: [SCHEMA_VERSION],
     bundles,
+    ...(translations.length === 0 ? {} : { translations }),
   };
   BundleManifestSchema.parse(manifest);
   writeFileSync(BUNDLE_MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`);

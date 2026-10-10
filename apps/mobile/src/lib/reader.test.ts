@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import { SHEET_MEDIUM } from "../design/sheet";
 import {
   barItems,
+  barTopIn,
+  sheetTopIn,
   chapterTitle,
   HEADER_START,
   headerOnScroll,
@@ -92,6 +95,63 @@ describe("scrollToClearBar", () => {
 
   it("starts a too-tall selection at the header so its opening is visible", () => {
     expect(scrollToClearBar({ top: 400, bottom: 1400 }, bounds)).toBe(288);
+  });
+
+  // Build-plan risk: the bar's placement logic needs its own tests (verse kept
+  // above the bar). These follow the reader's two real callers.
+  describe("in the reader", () => {
+    // iPhone 15 portrait; the bar's height is measured on layout.
+    const windowHeight = 852;
+    const shift = (s: { top: number; bottom: number }, delta: number) => ({ top: s.top - delta, bottom: s.bottom - delta });
+
+    it("puts the bar's top at the window height minus its measured height", () => {
+      expect(barTopIn(windowHeight, 150)).toBe(702);
+    });
+
+    it("places nothing until the bar is measured, so the verse is never left under it", () => {
+      expect(barTopIn(windowHeight, 0)).toBeNull();
+    });
+
+    it("keeps the selected verse 12 pt above the docked bar", () => {
+      const barTop = barTopIn(windowHeight, 150) ?? 0;
+      const verse = { top: 600, bottom: 720 };
+      const delta = scrollToClearBar(verse, { headerBottom: 110, barTop });
+      expect(delta).toBe(30);
+      expect(shift(verse, delta).bottom).toBe(barTop - 12);
+    });
+
+    it("clears Understand's medium detent, which covers the bottom 55% (amendment 1)", () => {
+      const sheetTop = sheetTopIn(windowHeight, SHEET_MEDIUM);
+      expect(sheetTop).toBeCloseTo(383.4);
+      const verse = { top: 500, bottom: 560 };
+      const delta = scrollToClearBar(verse, { headerBottom: 110, barTop: sheetTop });
+      expect(shift(verse, delta).bottom).toBeCloseTo(sheetTop - 12);
+      expect(shift(verse, delta).top).toBeGreaterThanOrEqual(110 + 12);
+    });
+
+    it("leaves a selection that exactly fits the gap", () => {
+      const bounds = { headerBottom: 110, barTop: 702 };
+      expect(scrollToClearBar({ top: 122, bottom: 690 }, bounds)).toBe(0);
+    });
+
+    it("treats one point more than the gap as too tall: its opening stays at the header", () => {
+      const bounds = { headerBottom: 110, barTop: 702 };
+      expect(scrollToClearBar({ top: 122, bottom: 691 }, bounds)).toBe(0);
+      expect(scrollToClearBar({ top: 300, bottom: 869 }, bounds)).toBe(178);
+    });
+
+    it("brings a verse down below the taller header at AX sizes", () => {
+      // AX5: header and bar both grow; the bar shows two rows (E-02).
+      const bounds = { headerBottom: 200, barTop: barTopIn(windowHeight, 260) ?? 0 };
+      expect(scrollToClearBar({ top: 150, bottom: 300 }, bounds)).toBe(-62);
+    });
+
+    it("starts a long verse at the AX header when the gap cannot hold it", () => {
+      const bounds = { headerBottom: 200, barTop: barTopIn(windowHeight, 260) ?? 0 };
+      const verse = { top: 450, bottom: 900 };
+      const delta = scrollToClearBar(verse, bounds);
+      expect(shift(verse, delta).top).toBe(212);
+    });
   });
 });
 

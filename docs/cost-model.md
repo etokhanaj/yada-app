@@ -246,7 +246,9 @@ otherwise". That choice is John's.
 - **The 128k output cap.** `maxTokensFor` is 7,000 × verses + 24,000, capped at
   128,000. At Sonnet's 1 Cor average (3,824 per verse) a pericope of about 33
   verses reaches the cap, so long pericopes need splitting or measuring before
-  batch submission.
+  batch submission. Splitting now plans on the worst measured rate instead
+  (Opus Gen 1, 6,697 per verse, plus 20%), which gives 15 verses per request;
+  33 at Sonnet's pooled 4,902 would be ~162k (code review, 10 Oct 2026).
 - **Batch discount assumed.** Batch latency with 20-minute outputs is also
   unobserved.
 - **Adversarial pass unmeasured.** The +34% is carried over from the old model.

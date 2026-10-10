@@ -5,7 +5,7 @@
 #   APPLE_TEAM_ID=… apps/mobile/scripts/release-ios.sh [--no-upload]
 #
 # --no-upload stops after the signed .ipa is exported. Each run bumps
-# expo.ios.buildNumber in app.json; commit that change after an upload.
+# build.json (read by app.config.ts as ios.buildNumber); commit that change after an upload.
 #
 # The four values come from the environment and are never printed: xcodebuild
 # logs its full command line, so every log is redacted before any of it is shown
@@ -47,6 +47,14 @@ export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 app="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$app"
+
+# Code review, 10 Oct 2026: the API.Bible key reached release builds through the environment
+# and apps/mobile/.env*. Refused before anything evaluates app.config.ts (prebuild included).
+# shellcheck source=licensed-guard.sh
+source "$app/scripts/licensed-guard.sh"
+if ! refuse_licensed_build "$app"; then
+  exit 1
+fi
 
 redact() {
   perl -pi -e '
@@ -91,11 +99,11 @@ fi
 
 build="$(node -e '
   const fs = require("fs");
-  const config = JSON.parse(fs.readFileSync("app.json", "utf8"));
-  const next = Number(config.expo.ios.buildNumber ?? "0") + 1;
-  if (!Number.isInteger(next) || next < 1) throw new Error("expo.ios.buildNumber is not a whole number");
-  config.expo.ios.buildNumber = String(next);
-  fs.writeFileSync("app.json", JSON.stringify(config, null, 2) + "\n");
+  const build = JSON.parse(fs.readFileSync("build.json", "utf8"));
+  const next = Number(build.buildNumber ?? "0") + 1;
+  if (!Number.isInteger(next) || next < 1) throw new Error("build.json buildNumber is not a whole number");
+  build.buildNumber = String(next);
+  fs.writeFileSync("build.json", JSON.stringify(build, null, 2) + "\n");
   console.log(next);
 ')"
 # Prebuild copies buildNumber into Info.plist only when it generates the
@@ -116,7 +124,9 @@ auth=(
   -authenticationKeyIssuerID "$ASC_ISSUER_ID"
 )
 
-step "archive" "$out/archive.log" xcodebuild archive \
+# Defence in depth (review, 10 Oct 2026): the archive's config phase never sees the licensed
+# names, even if one appears between the check above and here.
+step "archive" "$out/archive.log" env -u YADA_DEV_LICENSED -u API_BIBLE_KEY -u API_BIBLE_URL xcodebuild archive \
   -workspace ios/Yada.xcworkspace \
   -scheme Yada \
   -configuration Release \
@@ -125,6 +135,12 @@ step "archive" "$out/archive.log" xcodebuild archive \
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   CODE_SIGN_STYLE=Automatic \
   "${auth[@]}"
+
+# And the result is checked: the embedded Expo config must carry no key (review, 10 Oct 2026).
+if ! assert_no_licensed_key "$out/Yada.xcarchive/Products/Applications/Yada.app"; then
+  echo "Refusing to export $out/Yada.xcarchive. Delete it; it must not be uploaded." >&2
+  exit 1
+fi
 
 # Holds the team id, so it lives in the private temp dir, not next to the logs.
 cat >"$private/ExportOptions.plist" <<PLIST
@@ -142,11 +158,25 @@ cat >"$private/ExportOptions.plist" <<PLIST
 </plist>
 PLIST
 
+# With the API key, export asks Apple to sign in the cloud, and a key without the Admin role is
+# refused ("Cloud signing permission error", 10 Oct 2026). When this Mac holds an Apple Distribution
+# certificate for the team, export signs locally and lets Xcode's signed-in account create the
+# App Store profile instead; the key is still what uploads.
+# Captured first, not piped into grep -q: under pipefail an early grep exit can fail the pipe on
+# a match (rule 7).
+export_auth=("${auth[@]}")
+identities="$(security find-identity -v -p codesigning)"
+while IFS= read -r line; do
+  case "$line" in
+    *"Apple Distribution"*"($APPLE_TEAM_ID)"*) export_auth=(-allowProvisioningUpdates) ;;
+  esac
+done <<<"$identities"
+
 step "export" "$out/export.log" xcodebuild -exportArchive \
   -archivePath "$out/Yada.xcarchive" \
   -exportPath "$out/export" \
   -exportOptionsPlist "$private/ExportOptions.plist" \
-  "${auth[@]}"
+  "${export_auth[@]}"
 
 ipa="$out/export/Yada.ipa"
 if [ ! -f "$ipa" ]; then

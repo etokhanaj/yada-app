@@ -159,7 +159,7 @@
           "lemma": "σιγάω",
           "strongs": "G4601",
           "dataset": "MorphGNT",
-          "note": "V-PAM-3P"
+          "note": "V- 3PAD-P--"
         },
         {
           "type": "verse",
@@ -182,7 +182,7 @@
           "lemma": "γυνή",
           "strongs": "G1135",
           "dataset": "MorphGNT",
-          "note": "N-NFP"
+          "note": "N- ----NPF-"
         },
         {
           "type": "verse",

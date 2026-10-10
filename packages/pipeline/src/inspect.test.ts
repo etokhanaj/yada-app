@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { checkProvenance, collectEntries, extractJson, inspectAll } from "./inspect.js";
+import { checkProvenance, collectEntries, extractJson, inspectAll, responseEntries } from "./inspect.js";
 import { GOLDEN } from "./paths.js";
 
 /**
@@ -54,6 +54,27 @@ describe("collecting entries from whatever container arrived", () => {
     expect(
       collectEntries({ pericope: { pericope_id: "GEN.1.1-1.5" }, verses: [{ verse_id: "GEN.1.1" }] }),
     ).toHaveLength(2);
+  });
+});
+
+describe("a later part of a split pericope", () => {
+  it("contributes its verses but not the pericope object it was asked to leave empty", () => {
+    const value = { pericope: { pericope_id: "JHN.11.1-11.44" }, verses: [{ verse_id: "JHN.11.23" }] };
+    expect(responseEntries(value, { part: 2 })).toEqual([{ verse_id: "JHN.11.23" }]);
+    expect(responseEntries(value, { part: 1 })).toHaveLength(2);
+    expect(responseEntries(value, {})).toHaveLength(2);
+  });
+
+  it("is not scored as a schema failure by inspect", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "yada-inspect-"));
+    const blank = { summary_one_sentence: "", key_ideas: [], discussion_questions: [], movement: [], claims: [], related_passages: [], no_significant_dispute: false };
+    writeFileSync(
+      path.join(dir, "1CO.14.26-14.40.part2of2.claude-opus-5.json"),
+      JSON.stringify({ pericope_id: "1CO.14.26-14.40", part: 2, parts: 2, text: JSON.stringify({ pericope: blank, verses: [] }) }),
+    );
+    const report = inspectAll(dir);
+    rmSync(dir, { recursive: true, force: true });
+    expect([report.parsed, report.parseFailures, report.entries.length]).toEqual([0, 0, 0]);
   });
 });
 

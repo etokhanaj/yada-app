@@ -4,8 +4,9 @@
  * Built only from the pericope labels in the John bundle: no invented
  * introductions, no prose Yada has not reviewed. Speak's lesson outline marks
  * the current lesson (https://mobbin.com/screens/9e4fb95e-0e88-4662-8089-86da1f6cc31a);
- * here the next passage takes the mark everything chosen takes (wash and bar),
- * `Next` in ink, and finished passages a check, muted.
+ * here the next passage is marked in type: its number and `Next` in the accent,
+ * its title semibold. Not the wash and bar, which mean a selected verse only.
+ * Finished passages take a check, muted.
  */
 
 import { ordToParts, verseOrd } from "@yada/schema";
@@ -13,7 +14,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { Cover, coverLabel } from "../components/Cover";
+import { CoverWordLine } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { readerHref } from "../components/navigation";
 import { ListRow, PageScreen } from "../components/Page";
@@ -21,14 +22,13 @@ import { Chrome } from "../components/Type";
 import { useAppData, useCore, useLog, useQuery } from "../data/AppData";
 import { loadPassageCover, loadPericopes } from "../data/understand";
 import { loadThreadStep, saveThreadStep } from "../data/user";
-import { useLayout, usePalette } from "../design/tokens";
+import { useLayout } from "../design/tokens";
 import { rangeInBook, threadMark } from "../lib/saved";
 
 const THREAD = "start-here-john";
 
 export default function ThreadScreen() {
   const { user } = useAppData();
-  const palette = usePalette();
   const { ax } = useLayout();
   const log = useLog();
   const core = useCore();
@@ -46,18 +46,17 @@ export default function ThreadScreen() {
   return (
     <PageScreen
       title="The Gospel of John"
-      subtitle={(cover === undefined || cover === null) && pericopes !== undefined ? `${pericopes.length} passages` : undefined}
+      // DP-03: the large title, then the Gospel's opening word on one line ending in the count.
+      // Not one accessible element: the word keeps its own view so VoiceOver reads it in Greek.
+      subtitle={
+        pericopes === undefined ? undefined : cover !== undefined && cover !== null && cover.word !== null ? (
+          <CoverWordLine cover={cover} after={`${pericopes.length} passages, in order`} />
+        ) : (
+          `${pericopes.length} passages`
+        )
+      }
       testID="thread"
     >
-      {cover !== undefined && cover !== null && pericopes !== undefined ? (
-        <View
-          accessible
-          accessibilityLabel={`${coverLabel(cover)}. ${pericopes.length} passages, in order`}
-          style={{ paddingBottom: 18, marginBottom: 6, boxShadow: `0 1px 0 ${palette.divider}` }}
-        >
-          <Cover cover={cover} footer={false} after={`${pericopes.length} passages, in order`} />
-        </View>
-      ) : null}
       {(pericopes ?? []).map((pericope, index) => {
         const mark = threadMark(index, step);
         const range = rangeInBook(pericope.pericope_id);
@@ -82,7 +81,7 @@ export default function ThreadScreen() {
               mark === "done" ? (
                 <Icon name="check" size={20} tone="accent" />
               ) : mark === "next" ? (
-                <Chrome step="note" tone="ink" style={{ fontWeight: "700" }}>
+                <Chrome step="note" tone="accent" style={{ fontWeight: "700" }}>
                   Next
                 </Chrome>
               ) : undefined
@@ -90,7 +89,11 @@ export default function ThreadScreen() {
           >
             {/* Numbered in Literata old-style figures, the range indented under the title (DP-03). */}
             <View style={styles.numbered}>
-              <Chrome tone="muted" style={[styles.title, styles.num]} maxFontSizeMultiplier={2.2}>
+              <Chrome
+                tone={mark === "next" ? "accent" : "muted"}
+                style={[styles.title, styles.num, mark === "next" ? { fontWeight: "600" } : null]}
+                maxFontSizeMultiplier={2.2}
+              >
                 {index + 1}
               </Chrome>
               <Chrome tone={mark === "done" ? "muted" : "ink"} style={[styles.title, { flex: 1, fontWeight: mark === "next" ? "600" : "400" }]} maxFontSizeMultiplier={2.2}>

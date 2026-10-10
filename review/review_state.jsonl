@@ -1,7 +1,7 @@
-{"verse_id":"GEN.1.1","status":"flagged","decision":null,"rating":null,"reason":"imported from golden/","updated_at":"2026-09-13T05:04:24.357Z"}
-{"verse_id":"LEV.19.18","status":"flagged","decision":null,"rating":null,"reason":"imported from golden/","updated_at":"2026-09-13T05:04:24.367Z"}
-{"verse_id":"PSA.23.1","status":"flagged","decision":null,"rating":null,"reason":"imported from golden/","updated_at":"2026-09-13T05:04:24.371Z"}
-{"verse_id":"ISA.53.5","status":"flagged","decision":null,"rating":null,"reason":"imported from golden/","updated_at":"2026-09-13T05:04:24.362Z"}
-{"verse_id":"JHN.1.1","status":"flagged","decision":null,"rating":null,"reason":"imported from golden/","updated_at":"2026-09-13T05:04:24.364Z"}
-{"verse_id":"1CO.14.34","status":"flagged","decision":null,"rating":null,"reason":"imported from golden/","updated_at":"2026-09-13T05:04:24.348Z"}
-{"verse_id":"REV.13.18","status":"flagged","decision":null,"rating":null,"reason":"imported from golden/","updated_at":"2026-09-13T05:04:24.374Z"}
+{"verse_id":"GEN.1.1","status":"human_reviewed","decision":"approved","rating":4,"reason":null,"updated_at":"2026-10-10T14:22:58.026Z"}
+{"verse_id":"LEV.19.18","status":"human_reviewed","decision":"approved","rating":4,"reason":null,"updated_at":"2026-10-10T14:22:59.766Z"}
+{"verse_id":"PSA.23.1","status":"human_reviewed","decision":"approved","rating":4,"reason":null,"updated_at":"2026-10-10T14:23:02.388Z"}
+{"verse_id":"ISA.53.5","status":"human_reviewed","decision":"approved","rating":4,"reason":null,"updated_at":"2026-10-10T14:23:07.019Z"}
+{"verse_id":"JHN.1.1","status":"human_reviewed","decision":"approved","rating":4,"reason":null,"updated_at":"2026-10-10T14:23:10.639Z"}
+{"verse_id":"1CO.14.34","status":"human_reviewed","decision":"approved","rating":4,"reason":null,"updated_at":"2026-10-10T14:23:13.412Z"}
+{"verse_id":"REV.13.18","status":"human_reviewed","decision":"approved","rating":5,"reason":null,"updated_at":"2026-10-10T14:23:16.257Z"}

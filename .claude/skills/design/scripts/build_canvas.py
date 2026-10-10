@@ -60,6 +60,8 @@ def ic(name, size=20):
         "more": '<circle cx="5" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle>',
         "check": '<path d="m5 12.5 4.5 4.5L19 7"></path>',
         "note": '<rect x="4" y="4.5" width="16" height="15" rx="4"></rect><path d="M8.5 10h7M8.5 14h4.5"></path>',
+        "download": '<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"></path>',
+        "cloud": '<path d="M7.5 18.5h9a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 6.6 11.1 3.7 3.7 0 0 0 7.5 18.5z"></path>',
         "search": '<circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path>',
         "bookmark": '<path d="M7 4h10v16l-5-3.6L7 20z"></path>',
         "bookmarkf": '<path d="M7 4h10v16l-5-3.6L7 20z" fill="currentColor"></path>',
@@ -129,9 +131,9 @@ def verses_html(rows, sel=(), before=None, ch=None, bm=(), sup=None, book=None):
     return "".join(out)
 
 
-def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True, bm=(), sup=None, collapsed=False, opener=None):
-    title = f"{BOOK[book]} {ch} · BSB"
-    rows = text("BSB", book, ch, a, b)
+def reader(book, ch, a, b, back=("Home", "Home"), sel=(), offset=0, hint=False, foot=None, scrolled=True, abar=None, entry=True, bm=(), sup=None, collapsed=False, opener=None, tr="BSB", rows_override=None):
+    title = f"{BOOK[book]} {ch} · {tr}"
+    rows = rows_override if rows_override is not None else text(tr, book, ch, a, b)
     h = header(back, title, scrolled)
     if collapsed and STYLE != "v1":
         # While reading, the controls step back to one quiet line under the island (YouVersion's scroll state);
@@ -262,6 +264,46 @@ def understand_body(k, start="top", show_all=False, hint=False, orig=False, larg
         parts.append(sec("Passage", row(f"{E(t)} · {r}", cls="plain")))
         gd = "".join(row(f'{E(fref(p["ref"]))} — {REL[p["relationship"]]}', extra=f'<span class="note muted">{lang(p["note"])}</span>') for p in e["related_passages"])
         parts.append(sec("Go deeper", gd))
+    return "".join(parts)
+
+
+def is_grammar(c):
+    """A claim that states a parse or an apparatus fact: its evidence carries a morphology code or apparatus note.
+    These move under Original (as "In the Greek / Hebrew") in the simplified Understand; nothing is reworded."""
+    if c["category"] != "text":
+        return False
+    return any(ev.get("type") == "apparatus" or (ev.get("type") == "lexical" and ev.get("note")) for ev in c["evidence"])
+
+
+def understand_simple_body(k, start="top", clamp=False, orig=False):
+    e = G[k]
+    plain_all = sorted([c for c in e["claims"] if c["category"] != "debated"], key=lambda c: c["display_rank"])
+    reader_claims = [c for c in plain_all if not is_grammar(c)]
+    grammar = [c for c in plain_all if is_grammar(c)]
+    deb = sorted([c for c in e["claims"] if c["category"] == "debated"], key=lambda c: c["display_rank"])
+    lname = LANGNAME[k]
+    parts = []
+    if start == "top":
+        body = f'<p class="expl clamp">{lang(e["whats_happening"])}</p><button class="more d">More</button>' if clamp else f'<p class="expl">{lang(e["whats_happening"])}</p>'
+        parts.append(sec("What’s happening", body, first=True))
+    if start in ("top",):
+        shown = reader_claims[:3]
+        more = f'<button class="more">Show all {len(reader_claims)}</button>' if len(reader_claims) > 3 else ""
+        parts.append(sec("What we can see", "".join(row(lang(c["claim"]), claim_label(c)) for c in shown) + more))
+        drows = "".join(row(lang(c["claim"]), extra=f'<span class="link">Compare the {len(c["positions"])} readings</span>') for c in deb)
+        parts.append(sec("Where readers differ", drows))
+    t, r = PASSAGE[k]
+    n_rel = len(e["related_passages"])
+    disc = f'<button class="disc gfdisc" aria-expanded="{"true" if orig else "false"}"><span>Original {lname}</span><span class="gfcount">{len(grammar)} notes</span>{ic("up" if orig else "down", 18)}</button>'
+    inner_orig = ""
+    if orig:
+        g_rows = "".join(row(lang(c["claim"]), claim_label(c)) for c in grammar)
+        src = "STEPBible (TAHOT)" if lname == "Hebrew" else "STEPBible (TAGNT, TBESG)"
+        inner_orig = (f'<div class="orig">{interlinear(k)}<p class="note muted src">Glosses: {src}</p>'
+                      f'<h3 class="lbl">In the {lname}</h3>{g_rows}</div>')
+    further = (disc + inner_orig + row("Compare translations", cls="plain") + row(f"{E(t)} · {r}", cls="plain")
+               + row(f"Related passages", extra=f'<span class="note muted">{n_rel} passages</span>', cls="plain"))
+    parts.append(sec("Go further", further, first=(start != "top")))
     return "".join(parts)
 
 
@@ -583,7 +625,7 @@ if STYLE != "v1":
     def seg(on):
         return '<div class="seg" role="radiogroup" aria-label="Translation">' + "".join(
             f'<button role="radio" aria-checked="{"true" if t == on else "false"}" class="{"on" if t == on else ""}">{t}</button>' for t in ("BSB", "WEB", "KJV")) + "</div>"
-    ntl = "".join(lrow(E(n), cls="book here" if c == "1CO" else "book", right='<span class="note muted">Reading</span>' if c == "1CO" else None) for c, n, t in BOOKS if t == "NT" and BOOKS.index((c, n, t)) >= 39)
+    ntl = "".join(lrow(E(n), chev=c != "1CO", cls="book cur" if c == "1CO" else "book", right=f'<span class="ck">{ic("check", 22)}</span>' if c == "1CO" else None) for c, n, t in BOOKS if t == "NT" and BOOKS.index((c, n, t)) >= 39)
     under14 = reader("1CO", 14, 33, 40, offset=-8) + scrim()
     F("C-01", "Contents: books", under14 + sheet("lg", "Contents", None, seg("BSB") + sec("New Testament", ntl), foot=False), "hs")
     chg = '<div class="chg">' + "".join(f'<button class="{"on" if n == 14 else ""}" aria-label="Chapter {n}{", reading" if n == 14 else ""}">{n}</button>' for n in range(1, 17)) + "</div>"
@@ -695,7 +737,14 @@ if STYLE != "v1":
     start_cover = (f'<button class="lead coverlead" aria-label="Start with John. {kwj["surface"]}, logos, word. 46 passages, in order">'
                    f'<span class="rm cover"><span class="lbl">Start with John</span>{cover(kwj["surface"], "el", "logos", kwj["gloss"], "The Word became flesh · 1:1–18")}</span>'
                    f'<span class="chev">{ic("right", 18)}</span></button>')
-    F("DP-01", "Home, first launch: typographic cover", page(None, "Yada", start_cover + sec("Old Testament", ot), right=HOME_ICONS), "dp")
+
+    # Variant: English leads, the Greek word follows as the hint of what is underneath
+    start_cover_en = (f'<button class="lead coverlead" aria-label="Start with John. The Word became flesh, John 1:1 to 18. {kwj["surface"]}, logos, word.">'
+                      f'<span class="rm cover"><span class="lbl">Start with John</span>'
+                      f'<span class="cw lit">The Word became flesh</span>'
+                      f'<span class="cwsm"><span lang="el" class="gk">{kwj["surface"]}</span> <span class="muted">logos · “{E(kwj["gloss"])}” · 1:1–18</span></span></span>'
+                      f'<span class="chev">{ic("right", 18)}</span></button>')
+    F("DP-01", "Home, first launch: English leads, Greek beneath", page(None, "Yada", start_cover_en + sec("Old Testament", ot), right=HOME_ICONS), "dp")
     # John 8:2 sits in a passage with no entry: the passage title carries the cover instead of a word
     cont_cover = (f'<button class="lead coverlead"><span class="rm cover"><span class="lbl">Continue · John 8:2</span>'
                   f'<span class="cw lit">The woman caught in adultery</span>'
@@ -707,7 +756,7 @@ if STYLE != "v1":
         right = (f'<span class="ck" aria-label="read">{ic("check", 20)}</span>' if i < 2 else ('<span class="nextw">Next</span>' if i == 2 else None))
         numrows += lrow(f'<span class="num">{i + 1}</span><span class="nt">{E(lab)}</span>', sub=prange(pid), right=right, chev=(i == 2), cls="numrow" + state)
     st_cover = (f'<div class="cover stcover"><h1 class="ltitle">The Gospel of John</h1>'
-                f'<span class="cw" lang="el">{kwj["surface"]}</span><span class="ct">logos · “{E(kwj["gloss"])}” · 46 passages, in order</span></div>')
+                f'<span class="cwsm"><span lang="el" class="gk">{kwj["surface"]}</span> <span class="muted">logos · “{E(kwj["gloss"])}” · 46 passages, in order</span></span></div>')
     F("DP-03", "Start here: cover and numbered passages", pg_header(("Home", "Home")) + f'<div class="pg">{st_cover}{numrows}</div>', "dp")
     F("DP-04", "Chapter opening: John 1", reader("JHN", 1, 1, 7, scrolled=False, opener="The Word became flesh"), "dp")
     F("DP-05", "Chapter opening: Genesis 1", reader("GEN", 1, 1, 6, scrolled=False, opener="The first day"), "dp")
@@ -717,6 +766,87 @@ if STYLE != "v1":
                    morphemes=G["gen.1.1"]["gloss"][0]["morphemes"])
     F("DP-06", "Word card: Hebrew headword at cover scale", reader("GEN", 1, 1, 4, sel=(1,), scrolled=False) + scrim() + BACK_U("gen.1.1", start="orig", orig=True, mark=0) + scrim("s2") +
       sheet("lg2", "Word", "Genesis 1:1", wc), "dp")
+
+# ================= Simpler Understand (variant) =================
+if STYLE != "v1":
+    def understand_simple(k, pos, **kw):
+        bb, cc, vv = G[k]["verse_id"].split(".")
+        return sheet(pos, f"{BOOK[bb]} {cc}:{vv}", body=understand_simple_body(k, **kw), unrev=True, scrolled=kw.get("start", "top") != "top")
+    F("U-01", "Simpler Understand, medium: plain claims first", reader("1CO", 14, 33, 36, sel=(34,), offset=-70) + scrim() + understand_simple("1co.14.34", "med", clamp=True), "uv")
+    F("U-02", "Simpler Understand, large: three parts and Go further", reader("1CO", 14, 33, 36, sel=(34,)) + scrim() + understand_simple("1co.14.34", "lg"), "uv")
+    F("U-03", "Grammar moves under Original Greek", reader("1CO", 14, 33, 36, sel=(34,)) + scrim() + understand_simple("1co.14.34", "lg", start="further", orig=True), "uv")
+    F("U-04", "Same pattern, John 1:1", reader("JHN", 1, 1, 6, sel=(1,), scrolled=False) + scrim() + understand_simple("jhn.1.1", "lg"), "uv")
+
+# ================= More translations (v2) =================
+if STYLE != "v1":
+    TRD = "/private/tmp/claude-501/-Users-johnetokhana-Claude/b0718a7c-7cc7-4fe2-86c6-f104d0d3c1e7/scratchpad/tr"
+    def vpl(fileid, book, ch, a, b):
+        out = []
+        for line in open(f"{TRD}/{fileid}.txt", encoding="utf8"):
+            m = re.match(r"^(\S+) (\d+):(\d+) (.*)$", line.strip())
+            if m and m.group(1) == book and int(m.group(2)) == ch and a <= int(m.group(3)) <= b:
+                out.append((int(m.group(3)), m.group(4)))
+        return out
+    # Translation covers: a small book in one of five brand tones. Tone is identity, never state
+    # (current = tick + semibold); fixed per translation so a reader learns them.
+    COVER = {"BSB": "forest", "WEB": "paper", "KJV": "ink", "LSV": "lime", "ASV": "sage", "YLT": "paper",
+             "DBY": "forest", "GNV": "ink", "MSB": "lime", "NIV": "sage", "NKJV": "forest", "NLT": "paper"}
+    def tile(ab):
+        return f'<span class="cov cov-{COVER.get(ab, "paper")}" aria-hidden="true"><span class="covab">{ab}</span><span class="covrule"></span></span>'
+    def trrow(ab, name, meta, right, cls="", label=None):
+        lab = label or f"{name}, {meta}"
+        sub_html = f'<span class="note muted lsub">{meta}</span>' if meta else ""
+        return (f'<div class="trrow {cls}" role="button" aria-label="{E(lab)}">{tile(ab)}'
+                f'<span class="rm"><span class="lmain">{E(name)}</span>{sub_html}</span>'
+                f'<span class="trright">{right}</span></div>')
+    DL = f'<button class="trbtn" aria-label="Download">{ic("download", 22)}</button>'
+    MORE = f'<button class="trbtn" aria-label="More">{ic("more", 22)}</button>'
+    CHECK = f'<span class="ck">{ic("check", 22)}</span>'
+    CLOUD = f'<span class="muted">{ic("cloud", 22)}</span>'
+    def ring(p):
+        return (f'<span class="ring" role="progressbar" aria-valuenow="{p}" aria-label="Downloading, {p} percent">'
+                f'<svg viewBox="0 0 36 36" width="30" height="30"><circle cx="18" cy="18" r="15" fill="none" stroke="var(--div)" stroke-width="3"></circle>'
+                f'<circle cx="18" cy="18" r="15" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="{p * 0.942:.1f} 100" transform="rotate(-90 18 18)"></circle>'
+                f'<rect x="13" y="13" width="10" height="10" rx="2" fill="var(--accent)"></rect></svg></span>')
+    on_phone = (trrow("BSB", "Berean Standard Bible", "", CHECK, cls="current", label="Berean Standard Bible, selected")
+              + trrow("WEB", "World English Bible", "", "")
+              + trrow("KJV", "King James Version", "", "")
+              + trrow("LSV", "Literal Standard Version", "", ""))
+    def downloadable(state=None):
+        rows_ = [("ASV", "American Standard Version", "1901 · 1.3 MB"), ("YLT", "Young’s Literal Translation", "1898 · 1.3 MB"),
+                 ("DBY", "Darby Translation", "1890 · 1.3 MB"), ("GNV", "Geneva Bible", "1599 · 1.3 MB"), ("MSB", "Majority Standard Bible", "2024 · 1.2 MB")]
+        out = ""
+        for ab, nm, meta in rows_:
+            if state == "dl" and ab == "YLT":
+                out += trrow(ab, nm, "0.6 of 1.3 MB", ring(46), label=f"{nm}, downloading, 46 percent. Double tap to cancel.")
+            else:
+                out += trrow(ab, nm, meta, DL, label=f"{nm}, {meta}, download")
+        return out
+    online = (trrow("NIV", "New International Version", "Biblica", "")
+            + trrow("NKJV", "New King James Version", "Thomas Nelson", "")
+            + trrow("NLT", "New Living Translation", "Tyndale House", ""))
+    def tr_sheet(state=None, offline=False):
+        dl = downloadable(state)
+        on = online
+        if offline:
+            # Rows stay readable (dimming would fail contrast); only the actions go.
+            dl = '<p class="note muted offl">Downloads need a connection.</p>' + dl.replace(DL, "")
+        ph = on_phone
+        if state == "done":
+            ph += trrow("YLT", "Young’s Literal Translation", "Downloaded · 1.3 MB", MORE)
+            dl = dl.replace(trrow("YLT", "Young’s Literal Translation", "1898 · 1.3 MB", DL, label="Young’s Literal Translation, 1898 · 1.3 MB, download"), "")
+        body = (sec("On your iPhone", ph, first=True) + sec("Download", dl)
+                + sec("Online", '<p class="note muted offl">Needs a connection.</p>' + on))
+        return sheet("lg", "Translations", None, body, back=True, foot=False)
+    under = reader("JHN", 1, 1, 9, scrolled=False) + scrim()
+    contents_tr = lrow("Translation", right='<span class="valr">BSB</span>', cls="valrow").replace('<button class="lrow valrow">', '<button class="lrow valrow" aria-label="Translation, Berean Standard Bible">', 1)
+    ntl2 = "".join(lrow(E(n), chev=c != "JHN", cls="book cur" if c == "JHN" else "book", right=CHECK if c == "JHN" else None) for c, n, t in BOOKS if t == "NT")
+    F("MT-01", "Contents: one Translation row replaces the switch", under + sheet("lg", "Contents", None, f'<section class="sec first">{contents_tr}</section>' + sec("New Testament", ntl2), foot=False), "mt")
+    F("MT-02", "Translations: on your iPhone, download, online", under + tr_sheet(), "mt")
+    F("MT-03", "Downloading Young’s Literal Translation", under + tr_sheet("dl"), "mt")
+    F("MT-04", "Downloaded: YLT joins On your iPhone", under + tr_sheet("done"), "mt")
+    F("MT-05", "No connection", under + tr_sheet(offline=True), "mt")
+    F("MT-06", "Reading John 1 in YLT", reader("JHN", 1, 1, 9, scrolled=False, tr="YLT", rows_override=vpl("engylt", "JOH", 1, 1, 9)), "mt")
 
 # ================= Splash (v2) =================
 if STYLE != "v1":
@@ -760,7 +890,7 @@ W, H, GX, GY = 1430, 1026, 80, 120
 names, boards = [], {}
 y = 0
 notes = {}
-GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"), ("hs", "Home, Search, Contents"), ("ss", "Settings and saved"), ("es", "Edge states"), ("so", "Sources"), ("dp", "Depth"), ("sp", "Splash")) if STYLE != "v1" else ())
+GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"), ("hs", "Home, Search, Contents"), ("ss", "Settings and saved"), ("es", "Edge states"), ("so", "Sources"), ("dp", "Depth"), ("sp", "Splash"), ("uv", "Simpler Understand (variant)"), ("mt", "More translations")) if STYLE != "v1" else ())
 for gi, (grp, label) in enumerate(GROUPS):
     fr = [f for f in FRAMES if f[3] == grp]
     notes[f"t_{grp}" + ("" if STYLE == "v1" else f"_{STYLE}")] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX}

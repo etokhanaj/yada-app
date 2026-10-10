@@ -3,11 +3,13 @@ import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { gunzipSync } from "node:zlib";
 
 import { HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUNDLE_FORMAT, SCHEMA_VERSION, type BundleInfo } from "@yada/schema";
 
 import { PublishRefused, planPublish, publish, type ObjectStore } from "./publish.js";
+import { gzipTranslation } from "./translations.js";
 
 /**
  * No R2 call is made here and no credential exists: the fake client records
@@ -47,31 +49,59 @@ function bundle(name: string, content: string, overrides: Partial<BundleInfo> = 
   };
 }
 
-function manifest(bundles: BundleInfo[]): void {
+function manifest(bundles: BundleInfo[], translations?: unknown[]): void {
   writeFileSync(
     path.join(dir, "manifest.json"),
-    JSON.stringify({ format: BUNDLE_FORMAT, generated_at: "2026-09-13T00:00:00Z", min_app_version: "1.0.0", schema_versions: [SCHEMA_VERSION], bundles }),
+    JSON.stringify({ format: BUNDLE_FORMAT, generated_at: "2026-09-13T00:00:00Z", min_app_version: "1.0.0", schema_versions: [SCHEMA_VERSION], bundles, translations }),
   );
 }
 
-function fakeStore(existing: Record<string, string> = {}) {
+/** `existing` maps a key to its recorded sha256, or to that and the encoding it is served with. */
+function fakeStore(existing: Record<string, string | { sha256: string; encoding?: string }> = {}) {
   const sent: Array<{ type: "head" | "put"; key: string }> = [];
+  const puts: PutObjectCommand["input"][] = [];
   const client = {
     send: async (command: unknown) => {
       if (command instanceof HeadObjectCommand) {
         const key = command.input.Key as string;
         sent.push({ type: "head", key });
-        if (existing[key] === undefined) throw Object.assign(new Error("not found"), { name: "NotFound" });
-        return { Metadata: { sha256: existing[key] } };
+        const object = existing[key];
+        if (object === undefined) throw Object.assign(new Error("not found"), { name: "NotFound" });
+        return typeof object === "string"
+          ? { Metadata: { sha256: object } }
+          : { Metadata: { sha256: object.sha256 }, ContentEncoding: object.encoding };
       }
       if (command instanceof PutObjectCommand) {
         sent.push({ type: "put", key: command.input.Key as string });
+        puts.push(command.input);
         return {};
       }
       throw new Error("unexpected command");
     },
   } as unknown as ObjectStore;
-  return { client, sent };
+  return { client, sent, puts };
+}
+
+/** A translation entry as `yada package translation` writes it, over a file of `content`. */
+function translation(content: string | Buffer, overrides: Record<string, unknown> = {}) {
+  writeFileSync(path.join(dir, "translation-ylt.v1.db"), content);
+  return {
+    code: "YLT",
+    name: "Young's Literal Translation",
+    year: 1898,
+    version: 1,
+    file: "translation-ylt.v1.db",
+    sha256: createHash("sha256").update(content).digest("hex"),
+    bytes: Buffer.byteLength(content),
+    download_bytes: gzipTranslation(Buffer.from(content)).length,
+    format: BUNDLE_FORMAT,
+    license: "PUBLIC_DOMAIN",
+    attribution: "Young's Literal Translation, by Robert Young. Public domain.",
+    cover: "paper",
+    verses: 31102,
+    missing: [],
+    ...overrides,
+  };
 }
 
 describe("publish", () => {
@@ -84,6 +114,66 @@ describe("publish", () => {
     // Every existence check happens before the first upload.
     expect(sent.findIndex((s) => s.type === "put")).toBe(sent.filter((s) => s.type === "head").length);
     expect(report.uploaded.at(-1)).toBe("manifest.json");
+  });
+
+  it("uploads and verifies downloadable translations before the manifest", async () => {
+    const ylt = translation("ylt bytes");
+    manifest([bundle("core", "core bytes")], [ylt]);
+    const { client, sent } = fakeStore();
+    await publish({ confirm: true, dir, client, env: ENV });
+    expect(sent.filter((s) => s.type === "put").map((s) => s.key)).toEqual([
+      "core.v1.db",
+      "translation-ylt.v1.db",
+      "manifest.json",
+    ]);
+
+    manifest([bundle("core", "core bytes")], [{ ...ylt, bytes: 1 }]);
+    expect(() => planPublish(dir)).toThrow(/translation-ylt\.v1\.db is 9 bytes/);
+  });
+
+  it("uploads translations gzipped, keeping the decompressed file's digest, and bundles as they are", async () => {
+    const content = Buffer.from("In the beginning was the Word. ".repeat(500));
+    const ylt = translation(content);
+    manifest([bundle("core", "core bytes")], [ylt]);
+    const { client, puts } = fakeStore();
+    await publish({ confirm: true, dir, client, env: ENV });
+
+    const core = puts.find((p) => p.Key === "core.v1.db");
+    expect(core?.ContentEncoding).toBeUndefined();
+    expect(Buffer.from(core?.Body as Uint8Array).toString()).toBe("core bytes");
+
+    const put = puts.find((p) => p.Key === "translation-ylt.v1.db");
+    expect(put).toMatchObject({ ContentEncoding: "gzip", ContentType: "application/vnd.sqlite3", Metadata: { sha256: ylt.sha256 } });
+    const body = put?.Body as Uint8Array;
+    expect(body.length).toBe(ylt.download_bytes);
+    expect(body.length).toBeLessThan(content.length);
+    expect(gunzipSync(body).equals(content)).toBe(true);
+  });
+
+  it("refuses the entire publish when a translation's gzipped size is not the manifest's", async () => {
+    manifest([bundle("core", "core bytes")], [translation("ylt bytes", { download_bytes: 1 })]);
+    const { client, sent } = fakeStore();
+    await expect(publish({ confirm: true, dir, client, env: ENV })).rejects.toThrow(/translation-ylt\.v1\.db gzips to \d+ bytes, manifest says 1/);
+    expect(sent).toEqual([]);
+  });
+
+  it("still publishes a translation entry written before download_bytes existed", async () => {
+    const { download_bytes: _absent, ...ylt } = translation("ylt bytes");
+    manifest([bundle("core", "core bytes")], [ylt]);
+    const { client, puts } = fakeStore();
+    await publish({ confirm: true, dir, client, env: ENV });
+    expect(puts.find((p) => p.Key === "translation-ylt.v1.db")?.ContentEncoding).toBe("gzip");
+  });
+
+  it("skips a translation already in the bucket gzipped, and refuses one uploaded whole", async () => {
+    const ylt = translation("ylt bytes");
+    manifest([bundle("core", "core bytes")], [ylt]);
+    const gzipped = fakeStore({ "translation-ylt.v1.db": { sha256: ylt.sha256, encoding: "gzip" } });
+    expect((await publish({ confirm: true, dir, client: gzipped.client, env: ENV })).unchanged).toEqual(["translation-ylt.v1.db"]);
+
+    const whole = fakeStore({ "translation-ylt.v1.db": ylt.sha256 });
+    await expect(publish({ confirm: true, dir, client: whole.client, env: ENV })).rejects.toThrow(/uncompressed/);
+    expect(whole.sent.filter((s) => s.type === "put")).toEqual([]);
   });
 
   it("uploads nothing on --dry-run and needs no credentials", async () => {
