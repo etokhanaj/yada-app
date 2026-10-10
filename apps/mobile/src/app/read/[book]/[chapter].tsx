@@ -1,63 +1,59 @@
 /**
- * The reading surface. One chapter, one column, almost no chrome.
+ * The reading surface. One chapter, one column, chrome that steps back.
  *
- * Header: "‹  John 1 · BSB  Aa" — back, the contents sheet, the translation,
- * type settings. Chapter identity also sits inside the scroll as a quiet
- * centred head (e-reader convention, 0A design pass). Previous/next chapter
- * are links at the end of the text, not floating buttons.
+ * Header: `‹ Home` (or the return chip) · the chapter title, opening Contents ·
+ * `Aa`, floating glass over the text (ReaderHeader). Tapping verses selects
+ * them; the action bar docks to the bottom and the selection scrolls to stay
+ * above it. Chapter links are capsules at the foot.
  *
  * The reader stays mounted under every sheet it opens, so Back to reading
  * returns to the exact scroll position and selection without restoring
  * anything. The top visible verse is saved to user.db as it changes, so
- * Continue reading on Home survives a relaunch.
+ * Continue on Home survives a relaunch.
  */
 
-import { BOOK_CODES, formatDisplayRef, parseVerseId } from "@yada/schema";
+import { BOOK_CODES, formatDisplayRef, formatVerseId, parseVerseId } from "@yada/schema";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActionSheetIOS,
   FlatList,
-  Modal,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Pressable,
-  ScrollView,
   Share,
   StyleSheet,
   useWindowDimensions,
   View,
   type ViewToken,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BookChapterList } from "../../../components/BookChapterList";
-import { SelectionPill, type SelectionRect } from "../../../components/SelectionPill";
-import { Chrome, Label, Prose, Scripture } from "../../../components/Type";
+import { ActionBar } from "../../../components/ActionBar";
+import { useLaunch } from "../../../components/LaunchOverlay";
+import { Icon } from "../../../components/Icon";
+import { ReaderHeader } from "../../../components/ReaderHeader";
+import { Chrome, Prose } from "../../../components/Type";
+import { Verse, type SelectionPlace, type VerseAction } from "../../../components/Verse";
 import { useAppData, useCore, useQuery } from "../../../data/AppData";
-import { getChapter, type VerseText } from "../../../data/queries";
+import { chapterBounds, getChapter, scriptOf, type VerseText } from "../../../data/queries";
+import { loadEntryOrds, loadPericopes } from "../../../data/understand";
+import { pericopeForVerse } from "../../../lib/pericopes";
 import { listBookmarks, savePosition, toggleBookmark } from "../../../data/user";
-import { FONTS, leading, SPACE, TYPE, usePalette } from "../../../design/tokens";
+import { SHEET_MEDIUM, SPACE, useLayout, usePalette } from "../../../design/tokens";
 import { chapterFromParams, nextChapter, prevChapter, type ChapterRef } from "../../../lib/chapters";
-import { EMPTY_SELECTION, formatSpan, isSelected, selectionSpan, spanRef, tapVerse } from "../../../lib/selection";
-import { TRANSLATIONS, useSettings, type Translation } from "../../../state/settings";
+import { useReduceMotion } from "../../../lib/motion";
+import { chapterTitle, HEADER_START, headerOnScroll, scrollToClearBar, shortRef } from "../../../lib/reader";
+import { EMPTY_SELECTION, formatSpan, selectionSpan, spanRef, tapVerse } from "../../../lib/selection";
+import { useAccessibility } from "../../../state/accessibility";
+import { TRANSLATIONS, useSettings } from "../../../state/settings";
 
-/**
- * The back control names where it returns to, in a narrow header: "1 Cor 14:34".
- * Long book names shorten to their first three letters, as printed Bibles do.
- */
-function shortRef(ref: { book: ChapterRef["book"]; chapter: number; verse: number }): string {
-  const name = BOOK_CODES[ref.book].name;
-  const parts = name.split(" ");
-  const last = parts[parts.length - 1] ?? name;
-  const short = name.length <= 6 ? name : [...parts.slice(0, -1), last.slice(0, 3)].join(" ");
-  return `${short} ${ref.chapter}:${ref.verse}`;
-}
-
-function chapterTitle(ref: ChapterRef): string {
-  // "Psalms 23" reads wrong; a single psalm is a Psalm.
-  const name = ref.book === "PSA" ? "Psalm" : BOOK_CODES[ref.book].name;
-  return `${name} ${ref.chapter}`;
+function placeIn(span: { start: number; end: number } | null, verse: number): SelectionPlace {
+  if (span === null || verse < span.start || verse > span.end) return "none";
+  if (span.start === span.end) return "only";
+  if (verse === span.start) return "first";
+  if (verse === span.end) return "last";
+  return "middle";
 }
 
 export default function ReaderScreen() {
@@ -68,27 +64,46 @@ export default function ReaderScreen() {
   const fromRef = params.from === undefined ? null : parseVerseId(params.from);
 
   const palette = usePalette();
-  const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
+  const { gutter, ax } = useLayout();
+  const reduceMotion = useReduceMotion();
+  const screenReader = useAccessibility((s) => s.screenReader);
   const core = useCore();
   const { user } = useAppData();
   const translation = useSettings((s) => s.translation);
-  const setTranslation = useSettings((s) => s.setTranslation);
+  const hintSeen = useSettings((s) => s.hintSeen);
+  const markHintSeen = useSettings((s) => s.markHintSeen);
+  // The hint is for the first visit only; once seen it never returns, even before its first tap.
+  const [showHint] = useState(!hintSeen);
 
-  const { data: verses } = useQuery(() => getChapter(core, book, chapter, translation), [book, chapter, translation]);
+  const { data: verses, error: versesError } = useQuery(() => getChapter(core, book, chapter, translation), [book, chapter, translation]);
+  // DP-04: the passage holding verse 1 names the chapter opening.
+  const { data: opener } = useQuery(
+    async () => pericopeForVerse(await loadPericopes(book), chapterBounds(book, chapter)[0])?.label ?? null,
+    [book, chapter],
+  );
+  const { data: entryOrds } = useQuery(() => loadEntryOrds(book, ...chapterBounds(book, chapter)), [book, chapter]);
   const [selection, setSelection] = useState(EMPTY_SELECTION);
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
-  const [contentsOpen, setContentsOpen] = useState(false);
-  const [headerBottom, setHeaderBottom] = useState(insets.top + 44);
-  const [rect, setRect] = useState<SelectionRect | null>(null);
+  const [headerHeight, setHeaderHeight] = useState(110);
+  const [barHeight, setBarHeight] = useState(0);
+  const [header, setHeader] = useState(HEADER_START);
 
   const listRef = useRef<FlatList<VerseText>>(null);
   const rows = useRef(new Map<number, View>());
   const scrolledFor = useRef<string | null>(null);
+  const offset = useRef(0);
+  const dragging = useRef(false);
+
+  // The launch overlay lifts once the first chapter can draw (brief §8.17).
+  useEffect(() => {
+    if (verses !== undefined || versesError !== undefined) useLaunch.getState().markReady();
+  }, [verses, versesError]);
 
   // A new chapter starts with nothing selected, unless the link asked for its verse.
   useEffect(() => {
     setSelection(params.select === "1" && target !== null ? { anchor: target, end: null } : EMPTY_SELECTION);
+    setHeader(HEADER_START);
   }, [book, chapter, target, params.select]);
 
   // Land on the requested verse once its chapter is on screen; once per arrival.
@@ -100,7 +115,7 @@ export default function ReaderScreen() {
     const index = target === null ? -1 : verses.findIndex((v) => v.verse === target);
     const timer = setTimeout(() => {
       if (index < 0) listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      else listRef.current?.scrollToIndex({ index, viewPosition: 0.15, animated: false });
+      else listRef.current?.scrollToIndex({ index, viewPosition: 0.2, animated: false });
     }, 60);
     return () => clearTimeout(timer);
   }, [verses, book, chapter, target]);
@@ -132,185 +147,207 @@ export default function ReaderScreen() {
   }).current;
 
   const span = selectionSpan(selection);
+  const ordOf = (verse: number) => chapterBounds(book, chapter)[0] - 1 + verse;
+  // A range offers Understand when any verse in it has an entry (passage Understand, J01-12).
+  const hasEntry =
+    span !== null &&
+    entryOrds !== undefined &&
+    Array.from({ length: span.end - span.start + 1 }, (_, i) => span.start + i).some((v) => entryOrds.has(ordOf(v)));
 
-  /** Measure the selected rows in window coordinates so the pill can sit beside them. */
-  const measureSelection = useCallback(() => {
-    if (span === null) {
-      setRect(null);
-      return;
-    }
-    const first = rows.current.get(span.start);
-    const last = rows.current.get(span.end);
-    if (first === undefined || last === undefined) {
-      setRect(null);
-      return;
-    }
-    first.measureInWindow((_x, top) => {
-      last.measureInWindow((_x2, lastTop, _w, lastHeight) => {
-        const bottom = lastTop + lastHeight;
-        // Scrolled entirely out of view: no pill floating over unrelated text.
-        if (bottom < headerBottom || top > window.height) setRect(null);
-        else setRect({ top, bottom });
+  /** Scroll so the selection sits between the header and `barTop` (window y). */
+  const scrollSelectionAbove = useCallback(
+    (barTop: number) => {
+      if (span === null) return;
+      const first = rows.current.get(span.start);
+      const last = rows.current.get(span.end);
+      if (first === undefined || last === undefined) return;
+      first.measureInWindow((_x, top) => {
+        last.measureInWindow((_x2, lastTop, _w, lastHeight) => {
+          const delta = scrollToClearBar({ top, bottom: lastTop + lastHeight }, { headerBottom: headerHeight, barTop });
+          if (Math.abs(delta) > 1) {
+            listRef.current?.scrollToOffset({ offset: Math.max(0, offset.current + delta), animated: !reduceMotion });
+          }
+        });
       });
-    });
-  }, [span?.start, span?.end, headerBottom, window.height]);
+    },
+    [span?.start, span?.end, headerHeight, reduceMotion],
+  );
+
+  /** Brief §4: the selected verse scrolls to stay above the bar. */
+  const keepSelectionVisible = useCallback(() => {
+    if (barHeight > 0) scrollSelectionAbove(window.height - barHeight);
+  }, [scrollSelectionAbove, barHeight, window.height]);
 
   useEffect(() => {
-    const frame = requestAnimationFrame(measureSelection);
+    const frame = requestAnimationFrame(keepSelectionVisible);
     return () => cancelAnimationFrame(frame);
-  }, [measureSelection, verses]);
+  }, [keepSelectionVisible]);
 
   const goTo = useCallback((next: ChapterRef) => {
-    setContentsOpen(false);
     router.setParams({ book: next.book, chapter: String(next.chapter), verse: undefined, from: undefined, select: undefined });
   }, []);
 
-  const selectedText = useCallback((): string => {
+  const label = span === null ? "" : formatSpan(BOOK_CODES[book].name, chapter, span);
+  const sheetRef = span === null ? "" : spanRef(book, chapter, span);
+  const verseLabel = span === null ? "" : span.start === span.end ? `${chapter}:${span.start}` : `${chapter}:${span.start}–${span.end}`;
+  const ids = span === null ? [] : Array.from({ length: span.end - span.start + 1 }, (_, i) => formatVerseId(book, chapter, span.start + i));
+  const allMarked = ids.length > 0 && ids.every((id) => bookmarks.has(id));
+
+  const selectedText = (): string => {
     if (span === null || verses === undefined) return "";
     return verses
       .filter((v) => v.verse >= span.start && v.verse <= span.end)
       .map((v) => (span.start === span.end ? v.text : `${v.verse} ${v.text}`))
       .join(" ");
-  }, [span, verses]);
+  };
 
-  const label = span === null ? "" : formatSpan(BOOK_CODES[book].name, chapter, span);
-  const sheetRef = span === null ? "" : spanRef(book, chapter, span);
+  /**
+   * Amendment 1: at the medium detent the verse stays visible above Understand.
+   * Before the sheet rises, scroll the selection into the space it leaves (the
+   * top 45% of the screen); at AX sizes the sheet opens large and covers it anyway.
+   */
+  const clearForSheet = () => {
+    if (!ax) scrollSelectionAbove(window.height * (1 - SHEET_MEDIUM));
+  };
 
-  function more(): void {
-    if (span === null) return;
-    const ids = Array.from({ length: span.end - span.start + 1 }, (_, i) => `${book}.${chapter}.${span.start + i}`);
-    const allMarked = ids.every((id) => bookmarks.has(id));
+  // Original and Compare open Understand at that section: one depth-1 surface, never three (brief §1 rule 1).
+  const open = (section?: "original" | "compare") => {
+    clearForSheet();
+    router.push({ pathname: "/understand", params: section === undefined ? { ref: sheetRef } : { ref: sheetRef, section } });
+  };
+
+  async function act(action: string): Promise<void> {
+    // Menu items and VoiceOver actions both arrive by lowercase id.
     const quote = `${selectedText()}\n— ${label} (${translation})`;
-    ActionSheetIOS.showActionSheetWithOptions(
-      { options: ["Copy", "Share", allMarked ? "Remove bookmark" : "Bookmark", "Cancel"], cancelButtonIndex: 3, title: label },
-      (index) => {
-        if (index === 0) {
-          void Clipboard.setStringAsync(quote);
-          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        } else if (index === 1) {
-          void Share.share({ message: quote });
-        } else if (index === 2) {
-          void (async () => {
-            for (const id of ids) {
-              const marked = bookmarks.has(id);
-              if (allMarked ? marked : !marked) await toggleBookmark(user, id);
-            }
-            const now = await listBookmarks(user);
-            setBookmarks(new Set(now.map((r) => r.verse_id)));
-            void Haptics.selectionAsync();
-          })();
-        }
-      },
-    );
+    if (action === "copy") {
+      await Clipboard.setStringAsync(quote);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else if (action === "share") {
+      void Share.share({ message: quote });
+    } else if (action === "original") {
+      open("original");
+    } else if (action === "compare") {
+      open("compare");
+    } else if (action === "understand") {
+      open();
+    } else {
+      for (const id of ids) {
+        const marked = bookmarks.has(id);
+        if (allMarked ? marked : !marked) await toggleBookmark(user, id);
+      }
+      const now = await listBookmarks(user);
+      setBookmarks(new Set(now.map((r) => r.verse_id)));
+      void Haptics.selectionAsync();
+    }
   }
 
-  function chooseTranslation(): void {
-    const options = [...TRANSLATIONS.map((t) => `${t.code} · ${t.name}`), "Cancel"];
-    ActionSheetIOS.showActionSheetWithOptions({ options, cancelButtonIndex: options.length - 1, title: "Translation" }, (index) => {
-      const pick = TRANSLATIONS[index];
-      if (pick !== undefined) setTranslation(pick.code);
-    });
-  }
+  const tap = (verse: number) => {
+    setSelection((s) => tapVerse(s, verse));
+    void Haptics.selectionAsync();
+    if (!hintSeen) markHintSeen();
+  };
+
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    offset.current = y;
+    // VoiceOver on: the header never steps back, so its title stays one swipe away.
+    setHeader((h) => headerOnScroll(h, y, dragging.current && !screenReader));
+  };
 
   const prev = prevChapter(book, chapter);
   const next = nextChapter(book, chapter);
   const translationName = TRANSLATIONS.find((t) => t.code === translation)?.name ?? translation;
+  const title = chapterTitle(book, chapter);
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.paper }}>
-      <ReaderHeader
-        title={chapterTitle(ref)}
-        translation={translation}
-        backLabel={fromRef === null ? null : shortRef(fromRef)}
-        backAccessibility={fromRef === null ? null : formatDisplayRef(fromRef)}
-        onLayoutBottom={setHeaderBottom}
-        onContents={() => setContentsOpen(true)}
-        onTranslation={chooseTranslation}
-      />
-
       {verses === undefined ? null : (
         <FlatList
           ref={listRef}
           data={verses}
           keyExtractor={(v) => String(v.ord)}
-          contentContainerStyle={styles.body}
+          contentContainerStyle={{
+            paddingTop: headerHeight + SPACE.sm,
+            paddingHorizontal: gutter,
+            paddingBottom: Math.max(barHeight, SPACE.xxl) + SPACE.lg,
+          }}
           showsVerticalScrollIndicator={false}
           initialNumToRender={40}
           windowSize={15}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-          onScroll={() => (span === null ? undefined : measureSelection())}
-          // Text size and Dynamic Type changes move the selected rows without a
-          // scroll; follow them so the pill never lands on the wrong verse.
-          onContentSizeChange={() => (span === null ? undefined : requestAnimationFrame(measureSelection))}
-          scrollEventThrottle={32}
+          onScroll={onScroll}
+          onScrollBeginDrag={() => (dragging.current = true)}
+          onMomentumScrollEnd={() => (dragging.current = false)}
+          onScrollEndDrag={(e) => {
+            if (e.nativeEvent.velocity === undefined || Math.abs(e.nativeEvent.velocity.y) < 0.01) dragging.current = false;
+          }}
+          scrollEventThrottle={16}
           onScrollToIndexFailed={({ index, averageItemLength }) => {
             // Rows are variable height, so a far-off verse is not yet measured.
             // A pixel estimate lands on the wrong verse (0A: verse 7 instead of
             // 34); get close, let rows render, then ask again by index.
             listRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
-            setTimeout(() => listRef.current?.scrollToIndex({ index, viewPosition: 0.15, animated: false }), 120);
+            setTimeout(() => listRef.current?.scrollToIndex({ index, viewPosition: 0.2, animated: false }), 120);
           }}
           ListHeaderComponent={
-            <View style={styles.chapterHead}>
-              <Label accessibilityRole="header" style={{ fontFamily: FONTS.scripture, fontSize: TYPE.chapterHead.size, letterSpacing: TYPE.chapterHead.tracking, lineHeight: leading(TYPE.chapterHead.size, TYPE.chapterHead.ratio) }}>
-                {chapterTitle(ref)}
-              </Label>
-              <View style={[styles.rule, { backgroundColor: palette.divider }]} />
-            </View>
-          }
-          renderItem={({ item }) => {
-            const selected = isSelected(selection, item.verse);
-            const verseId = `${book}.${chapter}.${item.verse}`;
-            const marked = bookmarks.has(verseId);
-            return (
-              <View
-                ref={(node) => {
-                  if (node === null) rows.current.delete(item.verse);
-                  else rows.current.set(item.verse, node);
-                }}
-                collapsable={false}
-              >
-                <Pressable
-                  onPress={() => setSelection((s) => tapVerse(s, item.verse))}
-                  style={({ pressed }) => [
-                    styles.verseRow,
-                    { backgroundColor: selected || pressed ? palette.selection : "transparent" },
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={`Verse ${item.verse}${marked ? ", bookmarked" : ""}. ${item.text}`}
-                  accessibilityHint={selected ? "Tap another verse to extend the selection" : "Selects this verse"}
-                  testID={`verse-${item.verse}`}
+            <>
+              {showHint ? (
+                <Prose step="note" tone="muted" style={{ marginBottom: 20 }} testID="reader-hint">
+                  Tap a verse to see what it meant.
+                </Prose>
+              ) : null}
+              {opener != null ? (
+                // Literata small caps, tracked, above the numeral (DP-04, brief §8.14).
+                <Chrome
+                  tone="muted"
+                  accessibilityRole="header"
+                  style={{ fontFamily: "Literata", fontVariant: ["small-caps"], fontSize: 17, letterSpacing: 1.5, marginTop: 2, marginBottom: 14 }}
+                  maxFontSizeMultiplier={2.35}
+                  testID="chapter-opener"
                 >
-                  <Scripture>
-                    <Scripture tone={marked ? "accent" : "muted"} style={{ fontSize: TYPE.meta.size + 1 }}>
-                      {item.verse}
-                      {"  "}
-                    </Scripture>
-                    {item.text}
-                  </Scripture>
-                </Pressable>
-              </View>
-            );
-          }}
+                  {opener.toLowerCase()}
+                </Chrome>
+              ) : null}
+            </>
+          }
+          renderItem={({ item }) => (
+            <View
+              ref={(node) => {
+                if (node === null) rows.current.delete(item.verse);
+                else rows.current.set(item.verse, node);
+              }}
+              collapsable={false}
+            >
+              <Verse
+                verse={item.verse}
+                chapter={chapter}
+                text={item.text}
+                place={placeIn(span, item.verse)}
+                bookmarked={bookmarks.has(`${book}.${chapter}.${item.verse}`)}
+                hasEntry={entryOrds?.has(item.ord) ?? false}
+                onPress={() => tap(item.verse)}
+                onAction={(action: VerseAction) => {
+                  setSelection({ anchor: item.verse, end: null });
+                  void act(action);
+                }}
+                testID={`verse-${item.verse}`}
+              />
+            </View>
+          )}
           ListFooterComponent={
             <View style={styles.footer}>
-              <View style={styles.footerLinks}>
+              <View style={styles.links}>
                 {prev !== null ? (
-                  <Pressable onPress={() => goTo(prev)} hitSlop={8} accessibilityRole="link" testID="prev-chapter">
-                    <Chrome size={16}>‹ {chapterTitle(prev)}</Chrome>
-                  </Pressable>
+                  <ChapterLink direction="prev" title={chapterTitle(prev.book, prev.chapter)} onPress={() => goTo(prev)} />
                 ) : (
                   <View />
                 )}
                 {next !== null ? (
-                  <Pressable onPress={() => goTo(next)} hitSlop={8} accessibilityRole="link" testID="next-chapter">
-                    <Chrome size={16}>{chapterTitle(next)} ›</Chrome>
-                  </Pressable>
+                  <ChapterLink direction="next" title={chapterTitle(next.book, next.chapter)} onPress={() => goTo(next)} />
                 ) : null}
               </View>
-              <Prose step="note" tone="muted" style={{ textAlign: "center", marginTop: SPACE.xl }}>
+              <Prose step="note" tone="muted" style={{ marginTop: 14 }}>
                 {translationName}
               </Prose>
             </View>
@@ -318,186 +355,75 @@ export default function ReaderScreen() {
         />
       )}
 
-      {span !== null && rect !== null ? (
-        <SelectionPill
-          key={`${span.start}-${span.end}`}
-          rect={rect}
-          minTop={headerBottom + SPACE.xs}
-          maxBottom={window.height - Math.max(insets.bottom, SPACE.md)}
-          onUnderstand={() => router.push({ pathname: "/understand", params: { ref: sheetRef } })}
-          onOriginal={() => router.push({ pathname: "/original", params: { ref: sheetRef } })}
-          onCompare={() => router.push({ pathname: "/compare", params: { ref: sheetRef } })}
-          onMore={more}
+      <ReaderHeader
+        title={title}
+        translation={translation}
+        back={fromRef === null ? null : { label: shortRef(fromRef), accessibility: formatDisplayRef(fromRef) }}
+        collapsed={header.collapsed}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+        onContents={() => router.push({ pathname: "/contents", params: { book, chapter: String(chapter) } })}
+        onType={() => router.push("/type-settings")}
+        onExpand={() => setHeader((h) => ({ ...h, collapsed: false }))}
+        onHeight={setHeaderHeight}
+      />
+
+      {span !== null ? (
+        <ActionBar
+          verseLabel={verseLabel}
+          hasEntry={hasEntry}
+          bookmarked={allMarked}
+          script={scriptOf(book)}
+          onUnderstand={() => open()}
+          onOriginal={() => open("original")}
+          onCompare={() => open("compare")}
+          onMenu={(action) => void act(action)}
+          onHeight={setBarHeight}
         />
       ) : null}
 
-      <ContentsSheet
-        visible={contentsOpen}
-        current={ref}
-        onPick={(b, c) => goTo({ book: b, chapter: c })}
-        onClose={() => setContentsOpen(false)}
-      />
     </View>
   );
 }
 
-function ReaderHeader({
-  title,
-  translation,
-  backLabel,
-  backAccessibility,
-  onLayoutBottom,
-  onContents,
-  onTranslation,
-}: {
-  title: string;
-  translation: Translation;
-  backLabel: string | null;
-  backAccessibility: string | null;
-  onLayoutBottom: (y: number) => void;
-  onContents: () => void;
-  onTranslation: () => void;
-}) {
-  const insets = useSafeAreaInsets();
+function ChapterLink({ direction, title, onPress }: { direction: "prev" | "next"; title: string; onPress: () => void }) {
   const palette = usePalette();
   return (
-    <View
-      style={[styles.header, { paddingTop: insets.top + SPACE.xs, backgroundColor: palette.paper }]}
-      onLayout={(e) => onLayoutBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="link"
+      accessibilityLabel={`${direction === "prev" ? "Previous" : "Next"} chapter, ${title}`}
+      testID={`${direction}-chapter`}
+      style={({ pressed }) => [
+        styles.link,
+        direction === "prev" ? { paddingLeft: 10, paddingRight: 16 } : { paddingLeft: 16, paddingRight: 10 },
+        { backgroundColor: palette.fill, opacity: pressed ? 0.7 : 1 },
+      ]}
     >
-      <Pressable
-        onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={backAccessibility === null ? "Home" : `Back to ${backAccessibility}`}
-        testID="reader-back"
-        style={styles.headerSide}
-      >
-        <Chrome size={17} numberOfLines={1}>
-          ‹{backLabel === null ? "" : ` ${backLabel}`}
-        </Chrome>
-      </Pressable>
-      <View style={styles.headerCentre}>
-        <Pressable onPress={onContents} hitSlop={8} accessibilityRole="button" accessibilityHint="Opens books and chapters" testID="reader-contents">
-          <Chrome size={16} tone="ink">
-            {title}
-          </Chrome>
-        </Pressable>
-        <Chrome size={16} tone="muted">
-          {" · "}
-        </Chrome>
-        <Pressable onPress={onTranslation} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Translation, ${translation}`} testID="reader-translation">
-          <Chrome size={16} tone="muted">
-            {translation}
-          </Chrome>
-        </Pressable>
-      </View>
-      <Pressable
-        onPress={() => router.push("/type-settings")}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel="Text size and appearance"
-        testID="reader-type"
-        style={[styles.headerSide, { alignItems: "flex-end" }]}
-      >
-        <Chrome size={17} tone="muted" style={{ fontFamily: FONTS.scripture }}>
-          Aa
-        </Chrome>
-      </Pressable>
-    </View>
-  );
-}
-
-function ContentsSheet({
-  visible,
-  current,
-  onPick,
-  onClose,
-}: {
-  visible: boolean;
-  current: ChapterRef;
-  onPick: (book: ChapterRef["book"], chapter: number) => void;
-  onClose: () => void;
-}) {
-  const palette = usePalette();
-  const scroll = useRef<ScrollView>(null);
-  return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: palette.paper }}>
-        <View style={styles.sheetBar}>
-          <Label>Contents</Label>
-          <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button" testID="contents-done">
-            <Chrome size={17}>Done</Chrome>
-          </Pressable>
-        </View>
-        <ScrollView ref={scroll} contentContainerStyle={{ padding: SPACE.lg, paddingTop: SPACE.sm, paddingBottom: SPACE.xxl }}>
-          <BookChapterList
-            current={current}
-            onPick={onPick}
-            onCurrentLayout={(y) => scroll.current?.scrollTo({ y: Math.max(0, y - SPACE.md), animated: false })}
-          />
-        </ScrollView>
-      </View>
-    </Modal>
+      {direction === "prev" ? <Icon name="back" size={18} tone="muted" /> : null}
+      <Chrome tone="ink" size={15} style={{ fontWeight: "500" }}>
+        {title}
+      </Chrome>
+      {direction === "next" ? <Icon name="forward" size={18} tone="muted" /> : null}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: SPACE.lg,
-    paddingBottom: SPACE.sm,
-    columnGap: SPACE.sm,
-  },
-  headerSide: {
-    flexShrink: 1,
-    maxWidth: "34%",
-    minWidth: 32,
-  },
-  headerCentre: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    flexWrap: "wrap",
-  },
-  body: {
-    paddingHorizontal: SPACE.lg,
-    paddingBottom: SPACE.xxl * 2,
-  },
-  chapterHead: {
-    alignItems: "center",
-    paddingTop: SPACE.lg,
-    paddingBottom: SPACE.xl,
-  },
-  rule: {
-    height: StyleSheet.hairlineWidth,
-    width: 56,
-    marginTop: SPACE.md,
-  },
-  verseRow: {
-    borderRadius: 5,
-    paddingHorizontal: SPACE.sm,
-    paddingVertical: SPACE.xs,
-    marginHorizontal: -SPACE.sm,
-    marginBottom: SPACE.sm,
-  },
   footer: {
-    paddingTop: SPACE.xl,
+    paddingTop: 12,
+    paddingBottom: 40,
   },
-  footerLinks: {
+  links: {
     flexDirection: "row",
     justifyContent: "space-between",
     flexWrap: "wrap",
-    rowGap: SPACE.md,
+    gap: 8,
   },
-  sheetBar: {
+  link: {
+    minHeight: 44,
+    borderRadius: 999,
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: SPACE.lg,
-    paddingTop: SPACE.lg,
-    paddingBottom: SPACE.sm,
+    columnGap: 2,
   },
 });

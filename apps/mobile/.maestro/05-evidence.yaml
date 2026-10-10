@@ -1,0 +1,58 @@
+# The evidence sheet (depth 2) and its pushes: Understand → Why we say this →
+# the word → its occurrences → peek → back, one layer at a time, then × to
+# Understand and Back to reading. Never a third sheet (brief §1 rule 2).
+# Not yet run: Maestro is not installed.
+appId: studio.yada.reader
+---
+- launchApp
+- openLink: studio.yada.reader:///read/1CO/14?verse=34&select=1
+- tapOn:
+    id: bar-understand
+- tapOn:
+    id: claim-1CO.14.34.c1
+- assertVisible:
+    id: why
+- tapOn:
+    id: see-the-word
+- assertVisible:
+    id: word
+- tapOn:
+    id: see-occurrences
+- assertVisible:
+    id: occurrences
+- assertVisible: "Here"
+- tapOn:
+    id: occurrence-1CO.14.30
+- assertVisible:
+    id: peek
+- assertVisible: "Read 1 Corinthians 14"
+# ‹ goes back one push inside the sheet, each time.
+- tapOn:
+    id: sheet-back
+- assertVisible:
+    id: occurrences
+- tapOn:
+    id: sheet-back
+- assertVisible:
+    id: word
+- tapOn:
+    id: sheet-back
+- assertVisible:
+    id: why
+# × closes the evidence sheet to Understand, not to the reader.
+- tapOn:
+    id: sheet-close
+- assertVisible:
+    id: understand
+# Disputed claims compare their readings with no winner.
+- tapOn:
+    id: readings-1CO.14.34.c7
+- assertVisible: "Who the instruction addresses"
+- assertVisible: "Women in the assembly generally"
+- assertVisible: "Wives specifically"
+- tapOn:
+    id: back-to-reading
+- assertVisible:
+    id: verse-34
+- assertVisible:
+    id: action-bar

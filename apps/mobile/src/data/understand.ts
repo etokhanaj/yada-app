@@ -2,12 +2,14 @@
  * Understand content from the per-book bundles, parsed and checked.
  */
 
-import { type BookCode, type PericopeEntry, PericopeEntrySchema, type VerseEntry, VerseEntrySchema } from "@yada/schema";
+import { BOOK_CODES, type BookCode, type PericopeEntry, PericopeEntrySchema, type VerseEntry, VerseEntrySchema } from "@yada/schema";
 
-import type { EntryRow, PericopeRow } from "../lib/pericopes";
+import { formatRange } from "../lib/chapters";
+import { type CoverWord, pickCoverWord } from "../lib/cover";
+import { type EntryRow, pericopeForVerse, type PericopeRow } from "../lib/pericopes";
 import { asDb } from "./AppData";
 import { openBook } from "./bundles";
-import { getEntriesInRange, getEntryRow, getPericopes } from "./queries";
+import { type Db, entryOrdsInRange, getEntriesInRange, getEntryRow, getPericopes, getTokens } from "./queries";
 
 /**
  * Anything a human has not approved says so on screen (John's decision 2).
@@ -66,4 +68,35 @@ export async function loadPericopes(book: BookCode): Promise<PericopeRow[]> {
 export async function loadEntriesInRange(book: BookCode, lo: number, hi: number): Promise<EntryRow[]> {
   const db = await openBook(book);
   return db === null ? [] : getEntriesInRange(asDb(db), lo, hi);
+}
+
+/** Which verses of a chapter have an entry: the reader's explanation markers (amendment 10). */
+export async function loadEntryOrds(book: BookCode, lo: number, hi: number): Promise<Set<number>> {
+  const db = await openBook(book);
+  return db === null ? new Set() : entryOrdsInRange(asDb(db), lo, hi);
+}
+
+export interface PassageCover {
+  readonly title: string;
+  /** "1:1–18" */
+  readonly range: string;
+  readonly script: "greek" | "hebrew";
+  readonly word: CoverWord | null;
+}
+
+/** The cover of the passage holding `ord` (Depth, brief §8.14); null when the book has no passages. */
+export async function loadPassageCover(core: Db, book: BookCode, ord: number): Promise<PassageCover | null> {
+  const pericope = pericopeForVerse(await loadPericopes(book), ord);
+  if (pericope === null) return null;
+  const first = (await loadEntriesInRange(book, pericope.start_ord, pericope.end_ord))[0];
+  const entry = first === undefined ? null : parseEntry(first);
+  const word =
+    entry === null || first === undefined ? null : pickCoverWord(entry.entry.key_words, (await getTokens(core, first.ord)).words);
+  return {
+    title: pericope.label,
+    // A psalm's passage starts at its title (verse 0); readers count from verse 1.
+    range: formatRange(pericope.pericope_id).replace(`${BOOK_CODES[book].name} `, "").replace(/(\d+), title/u, "$1:1"),
+    script: BOOK_CODES[book].testament === "NT" ? "greek" : "hebrew",
+    word,
+  };
 }

@@ -1,37 +1,53 @@
-# Type settings (text size, dark), compare, bookmark, recently explored, library.
+# Text and appearance (text size, dark), compare, bookmark and remove it with Edit, Sources.
 appId: studio.yada.reader
 ---
 - launchApp
 - openLink: studio.yada.reader:///read/1CO/14?verse=34&select=1
 - tapOn:
     id: reader-type
+- assertVisible: "Text and appearance"
+# The stepper is one adjustable element to VoiceOver, so its buttons are tapped by position.
 - tapOn:
-    id: text-larger
+    id: text-size
+    point: "95%,50%"
+- assertVisible: "4 of 6"
 - tapOn:
     id: appearance-dark
-- swipe:
-    direction: DOWN
 - tapOn:
-    id: pill-compare
+    id: type-close
+- tapOn:
+    id: bar-compare
 - assertVisible:
     id: compare-WEB
 - tapOn:
     id: back-to-reading
 - tapOn:
-    id: pill-more
+    id: bar-more
 - tapOn: "Bookmark"
 - tapOn:
     id: reader-back
 - tapOn:
     id: home-bookmarks
 - assertVisible:
-    id: verse-row-1CO.14.34
+    id: bookmark-1CO.14.34
+- tapOn:
+    id: bookmarks-edit
+# The remove control sits at the row's trailing edge.
+- tapOn:
+    id: bookmark-1CO.14.34
+    point: "94%,50%"
+- assertVisible: "No bookmarks yet."
 - tapOn:
     id: page-back
 - tapOn:
     id: home-more
-- tapOn: "Sources & licences"
-- assertVisible: ".*SBLGNT EULA.*"
+- tapOn: "Sources"
+- assertVisible: "All of it is on your iPhone. Nothing needs a connection."
+- assertVisible: "Explained so far.*"
+- scrollUntilVisible:
+    element: "SBLGNT · Own licence"
+    direction: DOWN
+- assertNotVisible: ".*EULA.*"
 # Leave the simulator as it was found.
 - tapOn:
     id: page-back
@@ -39,6 +55,7 @@ appId: studio.yada.reader
 - tapOn:
     id: reader-type
 - tapOn:
-    id: text-smaller
+    id: text-size
+    point: "5%,50%"
 - tapOn:
     id: appearance-system

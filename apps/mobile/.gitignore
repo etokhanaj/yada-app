@@ -7,3 +7,7 @@ android/
 # Built by `pnpm --filter @yada/mobile bundles` from content/bundles. Regenerable,
 # ~85MB, and must never be committed.
 assets/bundles/
+
+# Untitled UI icon shapes, generated from node_modules by scripts/sync-icons.mjs.
+# Their licence forbids redistributing the icons, so they are never committed.
+src/components/icons.generated.ts

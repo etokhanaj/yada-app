@@ -1,48 +1,21 @@
 /**
- * Design tokens, starting values from the design brief. Not final — these exist
- * so the spike and Figma can be compared against the same numbers.
+ * Design tokens, v2: the hooks screens use. The values live in palette.ts and
+ * type.ts (pure, tested); this file binds them to the reader's settings, the
+ * system appearance, Dynamic Type and Increase Contrast.
  *
- * Five colour tokens and no more. Claim categories are deliberately NOT
- * colour-coded: colour-coding text against debated reads as grading theology.
+ * Claim categories are deliberately NOT colour-coded: colour-coding text
+ * against debated reads as grading theology.
  */
 
-import { useColorScheme } from "react-native";
+import { useColorScheme, useWindowDimensions } from "react-native";
 
+import { useAccessibility } from "../state/accessibility";
 import { useSettings } from "../state/settings";
+import { type Palette, paletteFor } from "./palette";
+import { axLevel, type ScaledType, scaledType, type TypeStep } from "./type";
 
-export const FONTS = {
-  scripture: "Literata",
-  greek: "GentiumPlus",
-  hebrew: "NotoSerifHebrew",
-} as const;
-
-/** Five semantic colour tokens and no more, plus the selection wash. */
-export interface Palette {
-  readonly paper: string;
-  readonly ink: string;
-  readonly mutedInk: string;
-  readonly divider: string;
-  readonly accent: string;
-  readonly selection: string;
-}
-
-const LIGHT: Palette = {
-  paper: "#FBF9F5",
-  ink: "#1A1714",
-  mutedInk: "#6B635A",
-  divider: "#E4DED4",
-  accent: "#1F3A5F",
-  selection: "#ECE6D9",
-};
-
-const DARK: Palette = {
-  paper: "#14120F",
-  ink: "#EDE7DD",
-  mutedInk: "#9A9086",
-  divider: "#2C2823",
-  accent: "#9BB8DE",
-  selection: "#252118",
-};
+export type { Palette } from "./palette";
+export { FONTS, leading, TYPE, type ScaledType, type TypeStep } from "./type";
 
 /**
  * The reader's appearance choice wins over the system's. The root layout also
@@ -57,65 +30,20 @@ export function useIsDark(): boolean {
 }
 
 export function usePalette(): Palette {
-  return useIsDark() ? DARK : LIGHT;
-}
-
-/**
- * Leading is expressed as a ratio of the unscaled font size and nothing else.
- *
- * Measured on RN 0.86 (New Architecture): an explicit `lineHeight` is scaled by
- * Dynamic Type along with `fontSize`, so the old advice to multiply it by
- * `PixelRatio.getFontScale()` yourself double-scales it. At AX5 that produced
- * leading roughly 4.8x the font size — text marooned in whitespace — and, when
- * the setting changed on a mounted screen, a stale scale factor that clipped
- * glyphs instead. Ratio only; let the platform do the scaling.
- */
-export function leading(fontSize: number, ratio: number): number {
-  return Math.round(fontSize * ratio);
-}
-
-/**
- * Tracking is size-specific: large text reads too loose as it grows and wants
- * negative tracking, small text wants a little positive. One fixed value would
- * be wrong somewhere, so every step carries its own.
- */
-export const TYPE = {
-  chapterHead: { size: 14, ratio: 1.3, tracking: 1.8 },
-  scripture: { size: 21, ratio: 1.55, tracking: -0.1 },
-  original: { size: 24, ratio: 1.85, tracking: 0 },
-  headword: { size: 32, ratio: 1.15, tracking: -0.6 },
-  explanation: { size: 17, ratio: 1.5, tracking: -0.05 },
-  claim: { size: 16, ratio: 1.45, tracking: 0 },
-  meta: { size: 12, ratio: 1.3, tracking: 1.1 },
-  /** Small prose — glosses, notes, captions. Untracked: the tracking above is for capitals. */
-  note: { size: 13, ratio: 1.4, tracking: 0 },
-} as const;
-
-export type TypeStep = keyof typeof TYPE;
-
-export interface ScaledType {
-  readonly size: number;
-  readonly lineHeight: number;
-  readonly tracking: number;
-}
-
-/**
- * The reader's own text-size step multiplies the design sizes; Dynamic Type
- * then scales the result natively (PRD §8.8 wants both). Scripture, original
- * language and explanation follow the step; metadata labels and chrome stay
- * put so the page keeps its proportions.
- */
-const FOLLOWS_TEXT_SIZE: ReadonlySet<TypeStep> = new Set(["scripture", "original", "explanation", "claim", "headword"]);
-
-export function scaledType(step: TypeStep, textScale: number): ScaledType {
-  const spec = TYPE[step];
-  const size = FOLLOWS_TEXT_SIZE.has(step) ? Math.round(spec.size * textScale) : spec.size;
-  return { size, lineHeight: leading(size, spec.ratio), tracking: spec.tracking };
+  const dark = useIsDark();
+  const increaseContrast = useAccessibility((s) => s.increaseContrast);
+  return paletteFor(dark, increaseContrast);
 }
 
 export function useType(step: TypeStep): ScaledType {
   const textScale = useSettings((s) => s.textScale);
-  return scaledType(step, textScale);
+  const { fontScale } = useWindowDimensions();
+  return scaledType(step, textScale, fontScale);
+}
+
+/** 0 below the accessibility sizes, 1–5 for AX1–AX5. Layouts switch on this. */
+export function useAXLevel(): number {
+  return axLevel(useWindowDimensions().fontScale);
 }
 
 export const SPACE = {
@@ -125,6 +53,37 @@ export const SPACE = {
   lg: 24,
   xl: 32,
   xxl: 48,
+} as const;
+
+/** Layout tokens from brief §3, values from style-v2.css. Index by `ax ? 1 : 0`. */
+export const LAYOUT = {
+  gutter: [24, 16],
+  sectionGap: [28, 24],
+  /** Action-bar capsules and primary buttons. */
+  pill: [48, 64],
+  /** Round sheet and header controls. */
+  control: [44, 64],
+  backToReading: 52,
+  minTarget: 44,
+} as const;
+
+export function useLayout() {
+  const ax = useAXLevel() >= 1 ? 1 : 0;
+  return {
+    ax: ax === 1,
+    gutter: LAYOUT.gutter[ax],
+    sectionGap: LAYOUT.sectionGap[ax],
+    pill: LAYOUT.pill[ax],
+    control: LAYOUT.control[ax],
+  };
+}
+
+/** Understand's medium detent, as a fraction of the screen (amendment 1: the verse stays visible above it). */
+export const SHEET_MEDIUM = 0.55;
+
+export const RADIUS = {
+  /** Selection wash and Here / Next rows. */
+  wash: 14,
 } as const;
 
 /**
@@ -153,10 +112,3 @@ export const SPRING = {
  * Applied to every Text that can contain an original-language word.
  */
 export const LTR_PROSE = { writingDirection: "ltr" } as const;
-
-/** Tracked-out uppercase, the only styling claim labels ever get. */
-export const METADATA_LABEL = {
-  fontSize: TYPE.meta.size,
-  letterSpacing: TYPE.meta.tracking,
-  textTransform: "uppercase",
-} as const;

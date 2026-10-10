@@ -1,22 +1,25 @@
 /**
- * Search: one field; results under tracked-uppercase section labels, the way
- * Telegram and Alta separate result kinds
- * (https://mobbin.com/screens/9faafc96-77c1-4cb1-8a81-d6bde4047fa2,
- * https://mobbin.com/screens/35a1d0ef-6282-466c-9cef-fd865c8d417a).
+ * Search (canvas S-01…S-04, E-04): a sheet with the field focused and
+ * `Cancel`, as Apple Books' in-book search. Groups under sentence-case labels:
  *
- *   REFERENCE  "jn 3 16", "1 cor 14:34", "Genesis" — the forgiving parser
- *   PASSAGES   FTS5 over the reader's translation, every term quoted
- *   WORDS      Greek/Hebrew forms via word_forms, or English via glosses
+ *   Go to       "jn 3 16", "1 cor 14:34", "Genesis" — the forgiving parser
+ *   Words       Greek/Hebrew forms via word_forms, or English via glosses (5, then Show all)
+ *   Passages    FTS5 over the reader's translation, every term quoted
+ *
+ * Words sit above passages, few and capped, as Telegram puts chats above
+ * messages (https://mobbin.com/screens/9faafc96-77c1-4cb1-8a81-d6bde4047fa2).
  */
 
 import { BOOK_CODES, formatDisplayRef, ordToParts, verseOrd } from "@yada/schema";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
-import { readerHref } from "../components/navigation";
-import { PageHeader } from "../components/PageHeader";
-import { Label, Original, Prose, Scripture } from "../components/Type";
+import { Icon } from "../components/Icon";
+import { useSheetNav } from "../components/navigation";
+import { ListRow } from "../components/Page";
+import { SheetScreen, TextLink } from "../components/Sheet";
+import { Chrome, Label, Original, Prose, Scripture } from "../components/Type";
 import { useCore, useLog, useQuery } from "../data/AppData";
 import {
   countPassages,
@@ -27,7 +30,8 @@ import {
   searchWordsByForm,
   searchWordsByGloss,
 } from "../data/queries";
-import { SPACE, usePalette, useType } from "../design/tokens";
+import { useLayout, usePalette } from "../design/tokens";
+import { excerptOf } from "../lib/reader";
 import { createSearchLogger } from "../lib/searchLog";
 import { planSearch, type SearchPlan, splitSnippet } from "../lib/searchQuery";
 import { useSettings } from "../state/settings";
@@ -36,10 +40,10 @@ const WORDS_SHOWN = 5;
 
 export default function SearchScreen() {
   const palette = usePalette();
+  const { ax } = useLayout();
   const core = useCore();
   const log = useLog();
   const translation = useSettings((s) => s.translation);
-  const field = useType("explanation");
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
   const [allWords, setAllWords] = useState(false);
@@ -84,19 +88,25 @@ export default function SearchScreen() {
     searchLog.typed(query, searchDetail(planSearch(query)));
   }, [searchLog, query]);
 
+  const { jumpTo } = useSheetNav();
   const open = (href: Parameters<typeof router.push>[0]) => {
     searchLog.settle();
     router.push(href);
+  };
+  /** A verse or chapter: Search closes and the reader opens, never inside the sheet. */
+  const read = (target: Parameters<typeof jumpTo>[0]) => {
+    searchLog.settle();
+    jumpTo(target);
   };
 
   const empty =
     query.length >= 2 &&
     data !== undefined && data !== null && data.reference === null && data.passages.length === 0 && data.words.length === 0;
 
-  return (
-    <View style={{ flex: 1, backgroundColor: palette.paper }}>
-      <PageHeader title="Search" />
-      <View style={{ paddingHorizontal: SPACE.lg }}>
+  const field = (
+    <View style={styles.searchRow}>
+      <View style={[styles.field, { backgroundColor: palette.fill, height: ax ? 64 : 44 }]}>
+        <Icon name="search" size={16} tone="muted" />
         <TextInput
           value={input}
           onChangeText={setInput}
@@ -111,121 +121,117 @@ export default function SearchScreen() {
             searchLog.typed(submitted, searchDetail(planSearch(submitted)));
             searchLog.settle();
           }}
-          placeholder="Jn 3:16, love, λόγος"
+          placeholder="Search the Bible"
           placeholderTextColor={palette.mutedInk}
-          style={[
-            styles.field,
-            { color: palette.ink, borderBottomColor: palette.divider, fontSize: field.size, writingDirection: "ltr" },
-          ]}
+          maxFontSizeMultiplier={2}
+          // Direction follows the first strong character, so Hebrew types right to left (brief §5).
+          style={{ flex: 1, color: palette.ink, fontSize: 17, textAlign: "auto" }}
           accessibilityLabel="Search the Bible"
           testID="search-field"
         />
       </View>
-      <ScrollView keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" contentContainerStyle={styles.results}>
-        {data?.reference !== null && data?.reference !== undefined ? (
-          <View>
-            <Label style={styles.section}>Reference</Label>
-            <ResultRow
-              testID="result-reference"
-              onPress={() =>
-                open(
-                  readerHref({
-                    book: data.reference!.ref.book,
-                    chapter: data.reference!.ref.chapter,
-                    verse: data.reference!.ref.verse,
-                    select: data.reference!.ref.verse !== undefined,
-                  }),
-                )
-              }
-            >
-              <Label tone="ink" accessibilityRole="text">
-                {data.reference.ref.verse === undefined
-                  ? `${BOOK_CODES[data.reference.ref.book].name} ${data.reference.ref.chapter}`
-                  : formatDisplayRef({ ...data.reference.ref, verse: data.reference.ref.verse })}
-              </Label>
-              <Scripture step="explanation" numberOfLines={3} style={{ marginTop: SPACE.xs }}>
-                {data.reference.text}
-              </Scripture>
-            </ResultRow>
-          </View>
-        ) : null}
+      <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.cancel} testID="search-cancel">
+        <Chrome tone="ink" style={{ fontWeight: "500" }}>
+          Cancel
+        </Chrome>
+      </Pressable>
+    </View>
+  );
 
-        {data !== undefined && data !== null && data.words.length > 0 ? (
-          <View>
-            {/* Words sit above passages, few and capped, as Telegram puts chats above
-                messages: a long passage list would otherwise bury them. */}
-            <Label style={styles.section}>Words</Label>
-            {(allWords ? data.words : data.words.slice(0, WORDS_SHOWN)).map((lexeme) => (
-              <ResultRow
-                key={lexeme.occurrenceKey}
-                testID={`result-word-${lexeme.occurrenceKey}`}
-                onPress={() => open({ pathname: "/occurrences", params: { key: lexeme.occurrenceKey, via: "search" } })}
-              >
-                <View style={styles.wordLine}>
-                  <Original script={lexeme.script} step="explanation">
-                    {lexeme.lemma}
-                  </Original>
+  const ref = data?.reference ?? null;
+  return (
+    <SheetScreen title="Search" header={field} backLabel={null} footer={false} keyboard testID="search">
+      {ref !== null ? (
+        <View>
+          <Label style={styles.section}>Go to</Label>
+          <ListRow
+            first
+            testID="result-reference"
+            onPress={() =>
+              read({ book: ref.ref.book, chapter: ref.ref.chapter, verse: ref.ref.verse, select: ref.ref.verse !== undefined })
+            }
+            title={
+              ref.ref.verse === undefined
+                ? `${BOOK_CODES[ref.ref.book].name} ${ref.ref.chapter}`
+                : formatDisplayRef({ ...ref.ref, verse: ref.ref.verse })
+            }
+          >
+            <Scripture step="claim" tone="muted" numberOfLines={ax ? 3 : 1} style={{ fontFamily: "Literata" }}>
+              {excerptOf(ref.text)}
+            </Scripture>
+          </ListRow>
+        </View>
+      ) : null}
+
+      {data !== undefined && data !== null && data.words.length > 0 ? (
+        <View>
+          <Label style={styles.section}>Words</Label>
+          {(allWords ? data.words : data.words.slice(0, WORDS_SHOWN)).map((lexeme, i) => (
+            <ListRow
+              key={lexeme.occurrenceKey}
+              first={i === 0}
+              testID={`result-word-${lexeme.occurrenceKey}`}
+              label={`${lexeme.translit}, ${lexeme.gloss ?? ""}. ${lexeme.script === "greek" ? "Greek" : "Hebrew"}, ${lexeme.total} times`}
+              onPress={() => open({ pathname: "/evidence/in-bible", params: { key: lexeme.occurrenceKey, via: "search" } })}
+            >
+              {/* Headword in its own Text: nested inside English, a Hebrew span set the whole line right to left. */}
+              <View style={styles.wordLine}>
+                <Original script={lexeme.script} step="claim" style={{ fontSize: 22, lineHeight: 30 }}>
+                  {lexeme.lemma}
+                </Original>
+                <Prose step="claim">
                   <Prose step="claim" tone="muted">
                     {lexeme.translit}
-                    {lexeme.gloss === null ? "" : ` · “${lexeme.gloss}”`}
                   </Prose>
-                </View>
-                <Prose step="note" tone="muted">
-                  {lexeme.strongs === null ? "" : `${lexeme.strongs} · `}
-                  {lexeme.total} {lexeme.total === 1 ? "occurrence" : "occurrences"} ·{" "}
-                  {lexeme.script === "greek" ? "Greek" : "Hebrew"}
+                  {lexeme.gloss === null ? "" : ` “${lexeme.gloss}”`}
                 </Prose>
-              </ResultRow>
-            ))}
-            {!allWords && data.words.length > WORDS_SHOWN ? (
-              <Pressable onPress={() => setAllWords(true)} style={{ paddingVertical: SPACE.sm }} accessibilityRole="button">
-                <Prose step="claim" tone="accent">
-                  Show all {data.words.length} words
-                </Prose>
-              </Pressable>
-            ) : null}
-          </View>
-        ) : null}
+              </View>
+              <Chrome step="note" tone="muted">
+                {lexeme.script === "greek" ? "Greek" : "Hebrew"} · {lexeme.total} {lexeme.total === 1 ? "time" : "times"}
+              </Chrome>
+            </ListRow>
+          ))}
+          {!allWords && data.words.length > WORDS_SHOWN ? (
+            <TextLink label={`Show all ${data.words.length} words`} onPress={() => setAllWords(true)} testID="show-all-words" />
+          ) : null}
+        </View>
+      ) : null}
 
-        {data !== undefined && data !== null && data.passages.length > 0 ? (
-          <View>
-            <Label style={styles.section}>
-              Passages · {data.total} in {translation}
-              {data.total > data.passages.length ? `, first ${data.passages.length} shown` : ""}
-            </Label>
-            {data.passages.map((hit) => {
-              const parts = ordToParts(hit.ord);
-              return (
-                <ResultRow
-                  key={hit.ord}
-                  testID={`result-passage-${hit.ord}`}
-                  onPress={() =>
-                    open(readerHref({ book: parts.book, chapter: parts.chapter, verse: parts.verse, select: true }))
-                  }
-                >
-                  <Label tone="ink" accessibilityRole="text">
-                    {formatDisplayRef(parts)}
-                  </Label>
-                  <Scripture step="explanation" style={{ marginTop: SPACE.xs }}>
-                    {splitSnippet(hit.snippet).map((piece, i) => (
-                      <Scripture key={i} step="explanation" style={piece.hit ? { fontWeight: "700" } : null}>
-                        {piece.text}
-                      </Scripture>
-                    ))}
-                  </Scripture>
-                </ResultRow>
-              );
-            })}
-          </View>
-        ) : null}
+      {data !== undefined && data !== null && data.passages.length > 0 ? (
+        <View>
+          <Label style={styles.section}>Passages · {data.total}</Label>
+          {data.passages.map((hit, i) => {
+            const parts = ordToParts(hit.ord);
+            return (
+              <ListRow
+                key={hit.ord}
+                first={i === 0}
+                testID={`result-passage-${hit.ord}`}
+                overline={formatDisplayRef(parts)}
+                onPress={() => read({ book: parts.book, chapter: parts.chapter, verse: parts.verse, select: true })}
+              >
+                <Scripture step="claim" numberOfLines={ax ? 3 : 2} style={{ fontFamily: "Literata" }}>
+                  {splitSnippet(hit.snippet).map((piece, j) => (
+                    <Scripture key={j} step="claim" style={[{ fontFamily: "Literata" }, piece.hit ? { fontWeight: "600" } : null]}>
+                      {piece.text}
+                    </Scripture>
+                  ))}
+                </Scripture>
+              </ListRow>
+            );
+          })}
+        </View>
+      ) : null}
 
-        {empty ? (
-          <Prose tone="muted" style={{ marginTop: SPACE.lg }}>
-            Nothing found for “{query}”.
+      {empty ? (
+        <View style={{ marginTop: 20 }} testID="search-empty">
+          <Prose step="explanation">No results for “{query}”.</Prose>
+          <Prose step="note" tone="muted" style={{ marginTop: 6 }}>
+            Search takes references, English words, and Greek or Hebrew.
           </Prose>
-        ) : null}
-      </ScrollView>
-    </View>
+        </View>
+      ) : null}
+    </SheetScreen>
   );
 }
 
@@ -233,43 +239,34 @@ function searchDetail(plan: SearchPlan): string {
   return plan.reference !== null ? "reference" : plan.script;
 }
 
-function ResultRow({ children, onPress, testID }: { children: React.ReactNode; onPress: () => void; testID?: string }) {
-  const palette = usePalette();
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, { borderTopColor: palette.divider }, pressed ? { backgroundColor: palette.selection } : null]}
-      accessibilityRole="link"
-      testID={testID}
-    >
-      {children}
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 10,
+    paddingTop: 6,
+  },
   field: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    paddingVertical: SPACE.sm,
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
   },
-  results: {
-    paddingHorizontal: SPACE.lg,
-    paddingBottom: SPACE.xxl,
-  },
-  section: {
-    marginTop: SPACE.lg,
-    marginBottom: SPACE.xs,
-  },
-  row: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingVertical: SPACE.md,
-    marginHorizontal: -SPACE.sm,
-    paddingHorizontal: SPACE.sm,
+  cancel: {
+    minHeight: 44,
+    justifyContent: "center",
   },
   wordLine: {
     flexDirection: "row",
-    alignItems: "baseline",
     flexWrap: "wrap",
-    columnGap: SPACE.sm,
+    alignItems: "baseline",
+    columnGap: 6,
+  },
+  section: {
+    marginTop: 18,
+    marginBottom: 4,
   },
 });

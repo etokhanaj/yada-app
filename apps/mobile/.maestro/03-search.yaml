@@ -1,28 +1,54 @@
-# One field: a forgiving reference, an English word, a Greek word.
+# Search is a sheet with the field focused (S-01…S-04, E-04): a forgiving
+# reference, an English word, a Greek word across the Bible, no results, and
+# Contents from the reader title (C-01, C-02). Not yet run: Maestro is not installed.
 appId: studio.yada.reader
 ---
 - launchApp
 - tapOn:
     id: home-search
+- assertVisible:
+    id: search
 - inputText: "jn 3 16"
-- assertVisible: "REFERENCE"
+- assertVisible: "Go to"
 - assertVisible:
     id: result-reference
 - tapOn:
     id: search-field
 - eraseText: 20
 - inputText: "love"
-- assertVisible: "WORDS"
+- assertVisible: "Words"
 - assertVisible: "ἀγαπάω"
-- assertVisible: "PASSAGES.*"
+- assertVisible: "Show all 25 words"
+- assertVisible: "Passages · 331"
 - tapOn:
     id: search-field
 - eraseText: 20
 - inputText: "λόγος"
 - tapOn:
     id: result-word-λογοσ
-- assertVisible: "OCCURRENCES IN THE BIBLE"
+- assertVisible: "λόγος in the Bible"
+- assertVisible: "330 times in 318 verses"
 - tapOn:
     id: back-to-reading
 - assertVisible:
     id: search-field
+- eraseText: 20
+- inputText: "Melchizedekk"
+- assertVisible:
+    id: search-empty
+- tapOn:
+    id: search-cancel
+- assertVisible:
+    id: home
+
+- openLink: studio.yada.reader:///read/1CO/14
+- tapOn:
+    id: reader-contents
+- assertVisible:
+    id: contents
+- assertVisible: "Reading"
+- tapOn:
+    id: contents-1CO
+- tapOn:
+    id: chapter-1CO-15
+- assertVisible: "1 Corinthians 15"

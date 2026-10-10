@@ -13,7 +13,7 @@ import { SOURCE_GAPS } from "../lib/omissions";
 import { buildFtsQuery, planSearch, splitSnippet } from "../lib/searchQuery";
 import { resolvePassage } from "../lib/pericopes";
 import {
-  countInBook, getChapter, getEntriesInRange, getEntryRow, getLexeme, getOccurrences, getPericopes, getSources,
+  countInBook, countsByBook, countVerses, getChapter, getEntriesInRange, getEntryRow, getLexeme, getOccurrences, getPericopes, getSources,
   getTexts, getTokens, searchPassages, searchWordsByForm, searchWordsByGloss, type Db,
 } from "./queries";
 
@@ -100,6 +100,21 @@ describe.skipIf(!haveBundles)("queries against the core bundle", { timeout: 30_0
     const love = await searchWordsByGloss(core, "love");
     expect(love.map((l) => l.lemma)).toContain("ἀγαπάω");
     expect(love.some((l) => l.script === "hebrew")).toBe(true);
+  });
+
+  it("counts λόγος by book and by verse (canvas S-04)", async () => {
+    const [lexeme] = await searchWordsByForm(core, "λογοσ");
+    expect(lexeme?.total).toBe(330);
+    expect(await countVerses(core, lexeme?.occurrenceKey ?? "")).toBe(318);
+    const books = await countsByBook(core, lexeme?.occurrenceKey ?? "");
+    expect(books.slice(0, 4)).toEqual([
+      { book: "MAT", count: 33 },
+      { book: "MRK", count: 24 },
+      { book: "LUK", count: 33 },
+      { book: "JHN", count: 40 },
+    ]);
+    expect(books.at(-1)).toEqual({ book: "REV", count: 18 });
+    expect(books.reduce((n, b) => n + b.count, 0)).toBe(330);
   });
 
   it("lists sources with encumbrances", async () => {

@@ -14,12 +14,26 @@
       "supportsTablet": false,
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "icon": {
+        "light": "./assets/brand/icon.png",
+        "dark": "./assets/brand/icon-dark.png",
+        "tinted": "./assets/brand/icon-tinted.png"
       }
     },
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/splash-symbol-dark.png",
+          "imageWidth": 125,
+          "resizeMode": "contain",
+          "backgroundColor": "#0E1814"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false

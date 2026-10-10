@@ -1,138 +1,283 @@
 /**
- * The frame every layer under the reading surface shares: one scrolling
- * column of paper, and a persistent "‹ Back to reading" naming the exact
- * place the reader left. Everything is reversible (design brief).
+ * The frame every sheet shares (canvas J01-03…J01-13): the system's inset
+ * sheet and grabber, a pinned header that names what it is and which verse it
+ * belongs to (brief §1 rule 3), round `‹` and `×` controls, and a
+ * `Back to reading` capsule naming where it returns (rule 4). Fable's
+ * dictionary sheet (https://mobbin.com/screens/cc28b946-d3a3-4804-b5b9-c7ec5e07c051):
+ * centred title, round close, quiet rows.
+ *
+ * At accessibility sizes the controls take one row and the title sits beneath
+ * it, left-aligned: squeezed between two 64 pt buttons it broke into three
+ * lines (v2-review U4).
  */
 
-import type { ReactNode } from "react";
-import { Pressable, ScrollView, type ScrollViewProps, StyleSheet, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useLog } from "../data/AppData";
-import { SPACE, usePalette } from "../design/tokens";
+import { LAYOUT, useLayout, usePalette } from "../design/tokens";
+import { Icon } from "./Icon";
 import { useSheetNav } from "./navigation";
-import { Chrome, Label } from "./Type";
+import { Chrome, Label, Prose } from "./Type";
+
+/** Whether the sheet stands at its large detent: Understand shows more there (amendment 1). */
+const SheetSize = createContext<{ large: boolean; headerHeight: number }>({ large: false, headerHeight: 0 });
+export const useSheetSize = () => useContext(SheetSize);
+
+const UNREVIEWED = "A reviewer hasn't checked this explanation yet.";
 
 export function SheetScreen({
   children,
+  title,
+  subtitle,
+  unreviewed = false,
   backLabel,
   verseId,
-  scrollRef,
-  contentStyle,
   backText,
-  partHeight = false,
+  scrollRef,
+  testID,
+  closeLabel = "Close",
+  footer = true,
+  header,
+  keyboard = false,
 }: {
   children: ReactNode;
-  /** Replaces "Back to reading" when the sheet was opened from somewhere else, e.g. Search. */
-  backText?: string;
+  /** Back to reading. Contents and Search have none: picking is the way out. */
+  footer?: boolean;
+  /** Replaces the title row: Search puts its field there. */
+  header?: ReactNode;
+  /** Search: results scroll under a focused field and dismiss the keyboard on drag. */
+  keyboard?: boolean;
+  /** What `×` returns to, for VoiceOver: "Close" on Understand, "Back to Understand" on evidence. */
+  closeLabel?: string;
+  /** What this layer is: "1 Corinthians 14:34", "Why we say this", "Word". */
+  title: string;
+  /** The verse it belongs to, when the title does not already say it. */
+  subtitle?: string;
+  /** `Unreviewed` under the title, with its one-line popover (brief §2). */
+  unreviewed?: boolean;
   /** "1 Corinthians 14:34": where Back to reading returns. */
   backLabel: string | null;
   verseId?: string;
+  /** Replaces "Back to reading" when the sheet was opened from somewhere else, e.g. Search. */
+  backText?: string;
   scrollRef?: React.Ref<ScrollView>;
-  contentStyle?: ScrollViewProps["contentContainerStyle"];
-  /** Presented as a formSheet with detents; see the layout note below. */
-  partHeight?: boolean;
+  testID?: string;
 }) {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
-  const { backToReading } = useSheetNav();
+  const window = useWindowDimensions();
+  const { ax, control } = useLayout();
+  const { backToReading, closeSheet, back, escape } = useSheetNav();
   const log = useLog();
+  const [scrolled, setScrolled] = useState(false);
+  const [popover, setPopover] = useState(false);
+  const [large, setLarge] = useState(false);
+  const [chrome, setChrome] = useState({ header: 90, footer: 74 });
+  // A rigid tick when the sheet settles at a new detent (motion note); not on first layout.
+  const settled = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (settled.current !== null && settled.current !== large) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
+    settled.current = large;
+  }, [large]);
 
-  const backBar = (
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => setScrolled(e.nativeEvent.contentOffset.y > 2);
+
+  const round = (icon: "back" | "close", label: string, onPress: () => void, id: string) => (
     <Pressable
-      onPress={() => {
-        if (backText === undefined) log("return_to_reading", verseId);
-        backToReading();
-      }}
-      collapsable={false}
-      style={({ pressed }) => [
-        styles.backBar,
-        partHeight
-          ? { borderBottomWidth: StyleSheet.hairlineWidth, paddingTop: SPACE.lg, paddingBottom: SPACE.md }
-          : { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: SPACE.md, paddingBottom: Math.max(insets.bottom, SPACE.md) },
-        { borderColor: palette.divider, backgroundColor: pressed ? palette.selection : palette.paper },
-      ]}
+      onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={backText ?? (backLabel === null ? "Back to reading" : `Back to reading, ${backLabel}`)}
-      testID="back-to-reading"
+      accessibilityLabel={label}
+      testID={id}
+      style={({ pressed }) => [
+        styles.round,
+        { width: control, height: control, backgroundColor: palette.fill, opacity: pressed ? 0.6 : 1 },
+      ]}
     >
-      {/* Chrome may cap its growth (scripture never does): at AX5 an uncapped
-          back bar would take a third of the sheet. */}
-      <Chrome size={16} numberOfLines={2} maxFontSizeMultiplier={1.8} style={{ textAlign: "center" }}>
-        {backText !== undefined ? `‹ ${backText}` : `‹ Back to reading${backLabel === null ? "" : ` — ${backLabel}`}`}
-      </Chrome>
+      <Icon name={icon} size={icon === "close" ? 18 : 20} strokeWidth={2.2} />
     </Pressable>
   );
 
-  if (partHeight) {
-    // react-native-screens 4.26 lays a formSheet's content out with no bottom
-    // edge, so a flex: 1 column collapses to nothing (the empty word card).
-    // Its native side sizes the sheet's ScrollView to each detent itself, but
-    // only when the ScrollView is the first or second direct child, after at
-    // most one header (RNSScreenContentWrapper.mm). So the bar leads, and
-    // there is no wrapping View.
-    return (
-      <>
-        {backBar}
+  const titleBlock = (
+    <View style={[styles.title, ax ? styles.titleAx : null]}>
+      <Chrome step="sheetTitle" tone="ink" accessibilityRole="header" style={{ textAlign: ax ? "left" : "center" }}>
+        {title}
+      </Chrome>
+      {subtitle !== undefined ? (
+        <Chrome step="note" tone="muted" style={{ textAlign: ax ? "left" : "center", marginTop: 1 }}>
+          {subtitle}
+        </Chrome>
+      ) : null}
+      {unreviewed ? (
+        <Pressable
+          onPress={() => {
+            if (!popover) AccessibilityInfo.announceForAccessibility(UNREVIEWED);
+            setPopover((v) => !v);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Unreviewed"
+          accessibilityHint="Explains what unreviewed means"
+          hitSlop={{ top: 10, bottom: 10, left: 12, right: 12 }}
+          style={styles.unreviewed}
+          testID="unreviewed"
+        >
+          <Chrome
+            step="note"
+            tone="muted"
+            style={{ fontWeight: "500", textDecorationLine: "underline", textDecorationStyle: "dotted" }}
+          >
+            Unreviewed
+          </Chrome>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+
+  const side = <View style={{ width: control }} />;
+  const backButton = back === null ? side : round("back", "Back", back, "sheet-back");
+  // × names its destination to VoiceOver: one layer up, never further (v2-review X7).
+  const closeButton = round("close", closeLabel, closeSheet, "sheet-close");
+
+  return (
+    <SheetSize.Provider value={{ large, headerHeight: chrome.header }}>
+      <View
+        style={{ flex: 1, backgroundColor: palette.sheet }}
+        onLayout={(e) => setLarge(e.nativeEvent.layout.height > window.height * 0.75)}
+        // A sheet is its own screen to VoiceOver, and two-finger Z goes back one depth (rule 6).
+        accessibilityViewIsModal
+        onAccessibilityEscape={escape}
+        testID={testID}
+      >
+        {/*
+          react-native-screens sizes a sheet's ScrollView itself, so its frame
+          ignores siblings above it (at AX5 the body started under the header).
+          The ScrollView fills the sheet; header and footer overlay it, and
+          their measured heights become the content's padding.
+        */}
         <ScrollView
           ref={scrollRef}
-          contentContainerStyle={[styles.body, { paddingBottom: SPACE.xxl + insets.bottom }, contentStyle]}
+          style={StyleSheet.absoluteFill}
+          contentContainerStyle={[styles.body, { paddingTop: chrome.header + 6, paddingBottom: (footer ? chrome.footer : insets.bottom) + 24 }]}
+          keyboardDismissMode={keyboard ? "on-drag" : undefined}
+          keyboardShouldPersistTaps={keyboard ? "handled" : undefined}
+          scrollIndicatorInsets={{ top: chrome.header, bottom: chrome.footer }}
           showsVerticalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={32}
         >
           {children}
         </ScrollView>
-      </>
-    );
-  }
 
-  return (
-    // A sheet is its own screen to VoiceOver (design brief, accessibility),
-    // back bar included.
-    <View style={{ flex: 1, backgroundColor: palette.paper }} accessibilityViewIsModal>
-      <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={[styles.body, contentStyle]}
-        showsVerticalScrollIndicator={false}
-      >
-        {children}
-      </ScrollView>
-      {backBar}
-    </View>
+        <View
+          onLayout={(e) => {
+            const header = Math.round(e.nativeEvent.layout.height);
+            setChrome((c) => (c.header === header ? c : { ...c, header }));
+          }}
+          style={[styles.header, { backgroundColor: palette.sheet }, scrolled ? { boxShadow: `0 1px 0 ${palette.divider}` } : null]}
+        >
+          {header !== undefined ? (
+            header
+          ) : ax ? (
+            <>
+              <View style={styles.axControls}>
+                {backButton}
+                {closeButton}
+              </View>
+              {titleBlock}
+            </>
+          ) : (
+            <View style={styles.row}>
+              {backButton}
+              {titleBlock}
+              {closeButton}
+            </View>
+          )}
+          {popover ? (
+            <Pressable onPress={() => setPopover(false)} style={[styles.popover, { backgroundColor: palette.ink }]} accessibilityRole="text">
+              <Prose step="note" tone="paper">
+                {UNREVIEWED}
+              </Prose>
+            </Pressable>
+          ) : null}
+        </View>
+
+        {footer ? (
+        <View
+          onLayout={(e) => {
+            const height = Math.round(e.nativeEvent.layout.height);
+            setChrome((c) => (c.footer === height ? c : { ...c, footer: height }));
+          }}
+          style={[styles.footer, { backgroundColor: palette.sheet, paddingBottom: Math.max(insets.bottom - 20, 14) }]}
+        >
+          <Pressable
+            onPress={() => {
+              // "Back to search" closes only this sheet: Search is a sheet too, beneath it.
+              if (backText !== undefined) return closeSheet();
+              log("return_to_reading", verseId);
+              backToReading();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={backText ?? (backLabel === null ? "Back to reading" : `Back to reading, ${backLabel}`)}
+            testID="back-to-reading"
+            style={({ pressed }) => [styles.backToReading, { backgroundColor: palette.fill, opacity: pressed ? 0.7 : 1 }]}
+          >
+            {/* Chrome caps at 2×: one line even at AX5 (brief §3). */}
+            <Chrome tone="ink" numberOfLines={1} style={{ fontWeight: "600" }}>
+              {backText ?? "Back to reading"}
+            </Chrome>
+          </Pressable>
+        </View>
+        ) : null}
+      </View>
+    </SheetSize.Provider>
   );
 }
 
-/** "Draft · not yet reviewed": quiet, tracked, never hidden (John's decision 2). */
-export function DraftLabel() {
+/** A section: sentence-case label, then its content (canvas `.sec`). */
+export function Section({ title, children, first = false, hint }: { title: string; children: ReactNode; first?: boolean; hint?: string }) {
+  const { sectionGap } = useLayout();
   return (
-    <Label style={{ marginTop: SPACE.xs }} accessibilityRole="text" testID="draft-label">
-      Draft · not yet reviewed
-    </Label>
-  );
-}
-
-export function Hairline({ spacing = SPACE.lg }: { spacing?: number }) {
-  const palette = usePalette();
-  return <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: palette.divider, marginVertical: spacing }} />;
-}
-
-export function Section({ title, children, first = false }: { title: string; children: ReactNode; first?: boolean }) {
-  return (
-    <View style={{ marginTop: first ? 0 : SPACE.xl }}>
-      <Label style={{ marginBottom: SPACE.sm }}>{title}</Label>
+    <View style={{ marginTop: first ? 0 : sectionGap }}>
+      <Label style={{ marginBottom: 6 }}>{title}</Label>
+      {hint !== undefined ? (
+        <Prose step="note" tone="muted" style={{ marginBottom: 4 }}>
+          {hint}
+        </Prose>
+      ) : null}
       {children}
     </View>
   );
 }
 
-/** A quiet tappable line: "See occurrences ›". Text, not a button shape. */
-export function LinkRow({
-  label,
+/**
+ * A row: the whole row is the target, one quiet separator between neighbours
+ * and a trailing chevron (canvas `.row`). Not a card.
+ */
+export function Row({
+  children,
   onPress,
+  first = false,
+  chevron = true,
+  label,
   hint,
   testID,
 }: {
-  label: string;
-  onPress: () => void;
+  children: ReactNode;
+  onPress?: () => void;
+  first?: boolean;
+  chevron?: boolean;
+  label?: string;
   hint?: string;
   testID?: string;
 }) {
@@ -140,29 +285,149 @@ export function LinkRow({
   return (
     <Pressable
       onPress={onPress}
-      accessibilityRole="link"
+      disabled={onPress === undefined}
+      unstable_pressDelay={60}
+      accessibilityRole={onPress === undefined ? undefined : "button"}
+      accessibilityLabel={label}
       accessibilityHint={hint}
       testID={testID}
-      style={({ pressed }) => [styles.link, pressed ? { backgroundColor: palette.selection } : null]}
+      style={({ pressed }) => [
+        styles.rowItem,
+        first ? null : { boxShadow: `0 -1px 0 ${palette.divider}` },
+        pressed ? { backgroundColor: palette.fill } : null,
+      ]}
     >
-      <Chrome size={16}>{label}</Chrome>
+      <View style={{ flex: 1, minWidth: 0, rowGap: 4 }}>{children}</View>
+      {chevron && onPress !== undefined ? <Icon name="forward" size={18} tone="muted" /> : null}
+    </Pressable>
+  );
+}
+
+/** An accent text link with a 44 pt target: `More`, `Show all 7`, `Compare the 2 readings`. */
+export function TextLink({ label, onPress, testID, a11yLabel }: { label: string; onPress: () => void; testID?: string; a11yLabel?: string }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel ?? label}
+      testID={testID}
+      style={({ pressed }) => [styles.textLink, pressed ? { opacity: 0.6 } : null]}
+    >
+      <Chrome tone="accent" size={15} style={{ fontWeight: "600" }}>
+        {label}
+      </Chrome>
+    </Pressable>
+  );
+}
+
+/** A capsule link to another verse: evidence chips (canvas `.elink`). */
+export function Chip({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
+  const palette = usePalette();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="link"
+      testID={testID}
+      style={({ pressed }) => [styles.chip, { backgroundColor: palette.fill, opacity: pressed ? 0.7 : 1 }]}
+    >
+      <Chrome tone="ink" size={14} style={{ fontWeight: "500" }}>
+        {label}
+      </Chrome>
+      <Icon name="forward" size={16} tone="muted" />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  body: {
-    padding: SPACE.lg,
-    paddingBottom: SPACE.xxl,
+  header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 14,
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+    zIndex: 1,
   },
-  backBar: {
-    paddingHorizontal: SPACE.lg,
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 8,
+    minHeight: 56,
+  },
+  axControls: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
-  link: {
-    paddingVertical: SPACE.sm,
-    marginHorizontal: -SPACE.xs,
-    paddingHorizontal: SPACE.xs,
-    borderRadius: 5,
+  title: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "center",
+  },
+  titleAx: {
+    flex: 0,
+    alignItems: "flex-start",
+    paddingHorizontal: 8,
+    paddingTop: 6,
+  },
+  unreviewed: {
+    minHeight: 24,
+    justifyContent: "center",
+  },
+  round: {
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  popover: {
+    position: "absolute",
+    top: "100%",
+    alignSelf: "center",
+    maxWidth: 300,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  body: {
+    paddingHorizontal: 22,
+  },
+  footer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+    paddingHorizontal: 14,
+    paddingTop: 8,
+  },
+  backToReading: {
+    minHeight: LAYOUT.backToReading,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  rowItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 12,
+    minHeight: 44,
+    paddingVertical: 12,
+  },
+  textLink: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
+    alignSelf: "flex-start",
+  },
+  chip: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 2,
+    paddingLeft: 14,
+    paddingRight: 10,
+    borderRadius: 999,
   },
 });

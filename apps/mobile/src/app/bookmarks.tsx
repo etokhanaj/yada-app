@@ -1,45 +1,132 @@
 /**
- * Bookmarks: the verses the reader kept, newest first. Long press to remove —
- * a quiet action for a quiet list, and nothing destructive on a plain tap.
+ * Bookmarks (canvas B-01, B-02): the verses the reader kept, newest first, as
+ * Medium's reading-list rows (https://mobbin.com/screens/d029d138-2f1e-4517-be89-1e6a85390df6).
+ *
+ * Removal is `Edit` in the header, as iOS lists do, plus a VoiceOver custom
+ * action on each row (brief §5 Gestures): a hidden long press had no visible
+ * or spoken equivalent.
  */
 
-import { useFocusEffect } from "expo-router";
+import { parseVerseId, type VerseRef, verseOrd } from "@yada/schema";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActionSheetIOS, ScrollView, View } from "react-native";
+import { type AccessibilityActionEvent, Pressable, StyleSheet, View } from "react-native";
 
-import { PageHeader } from "../components/PageHeader";
-import { VerseList } from "../components/VerseList";
-import { useAppData } from "../data/AppData";
+import { Icon } from "../components/Icon";
+import { readerHref } from "../components/navigation";
+import { GlassText, ListRow, PageScreen } from "../components/Page";
+import { Chrome, Scripture } from "../components/Type";
+import { DivineText } from "../components/Verse";
+import { useAppData, useCore, useQuery } from "../data/AppData";
+import { getTextsForOrds } from "../data/queries";
 import { listBookmarks, removeBookmark } from "../data/user";
-import { SPACE, usePalette } from "../design/tokens";
+import { useLayout, usePalette } from "../design/tokens";
+import { excerptOf } from "../lib/reader";
+import { verseLabel } from "../lib/saved";
+import { useSettings } from "../state/settings";
 
 export default function BookmarksScreen() {
   const palette = usePalette();
+  const core = useCore();
   const { user } = useAppData();
-  const [ids, setIds] = useState<string[]>([]);
+  const { ax, control } = useLayout();
+  const translation = useSettings((s) => s.translation);
+  const [ids, setIds] = useState<string[] | null>(null);
+  const [editing, setEditing] = useState(false);
 
   const reload = useCallback(() => {
     void listBookmarks(user).then((rows) => setIds(rows.map((r) => r.verse_id)));
   }, [user]);
   useFocusEffect(reload);
 
+  const refs = (ids ?? []).flatMap((id) => {
+    const ref = parseVerseId(id);
+    return ref === null ? [] : [{ id, ref, ord: verseOrd(ref.book, ref.chapter, ref.verse) }];
+  });
+  const ords = refs.map((r) => r.ord);
+  const { data: texts } = useQuery(() => getTextsForOrds(core, ords, translation), [ords.join(","), translation]);
+
+  const remove = (id: string) => {
+    void removeBookmark(user, id).then(reload);
+  };
+  const open = (ref: VerseRef) => router.push(readerHref({ book: ref.book, chapter: ref.chapter, verse: ref.verse, select: true }));
+  const empty = ids !== null && refs.length === 0;
+
   return (
-    <View style={{ flex: 1, backgroundColor: palette.paper }}>
-      <PageHeader title="Bookmarks" />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: SPACE.lg, paddingBottom: SPACE.xxl }}>
-        <VerseList
-          items={ids.map((verseId) => ({ verseId }))}
-          empty="Nothing bookmarked yet. Select a verse while reading, then ⋯ › Bookmark."
-          onLongPress={(verseId) =>
-            ActionSheetIOS.showActionSheetWithOptions(
-              { options: ["Remove bookmark", "Cancel"], destructiveButtonIndex: 0, cancelButtonIndex: 1 },
-              (index) => {
-                if (index === 0) void removeBookmark(user, verseId).then(reload);
-              },
-            )
-          }
-        />
-      </ScrollView>
-    </View>
+    <PageScreen
+      title="Bookmarks"
+      testID="bookmarks"
+      right={
+        empty || ids === null ? null : (
+          <GlassText label={editing ? "Done" : "Edit"} onPress={() => setEditing((e) => !e)} testID="bookmarks-edit" />
+        )
+      }
+    >
+      {empty ? (
+        <View>
+          <Chrome tone="ink" style={styles.empty} maxFontSizeMultiplier={2.2}>
+            No bookmarks yet.
+          </Chrome>
+          <Chrome step="note" tone="muted">
+            Tap a verse, then ⋯ › Bookmark.
+          </Chrome>
+        </View>
+      ) : null}
+      {refs.map(({ id, ref, ord }, i) => {
+        const label = verseLabel(ref);
+        const excerpt = excerptOf(texts?.get(ord) ?? "");
+        return (
+          // One element to VoiceOver with the remove action on it; touches still reach the row and its control.
+          <View
+            key={id}
+            // Maestro sees this element, not the row inside it.
+            testID={`bookmark-${id}`}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel={`${label}. ${excerpt}`}
+            accessibilityActions={[{ name: "activate" }, { name: "remove", label: "Remove bookmark" }]}
+            onAccessibilityAction={(e: AccessibilityActionEvent) => (e.nativeEvent.actionName === "remove" ? remove(id) : open(ref))}
+          >
+            <ListRow
+              first={i === 0}
+              overline={label}
+              onPress={editing ? undefined : () => open(ref)}
+              chevron={false}
+              right={
+                editing ? (
+                  <Pressable
+                    onPress={() => remove(id)}
+                    style={({ pressed }) => [
+                      styles.remove,
+                      { width: control, height: control, backgroundColor: pressed ? palette.selection : palette.fill },
+                    ]}
+                  >
+                    <Icon name="close" size={16} />
+                  </Pressable>
+                ) : undefined
+              }
+            >
+              <Scripture step="claim" numberOfLines={ax ? 3 : 2} style={{ fontFamily: "Literata" }}>
+                <DivineText text={excerpt} />
+              </Scripture>
+            </ListRow>
+          </View>
+        );
+      })}
+    </PageScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  empty: {
+    fontFamily: "Literata",
+    fontSize: 22,
+    lineHeight: 29,
+    marginBottom: 6,
+  },
+  remove: {
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

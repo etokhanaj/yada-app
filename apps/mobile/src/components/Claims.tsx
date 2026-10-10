@@ -1,69 +1,65 @@
 /**
- * Claim rows: scholarly marginalia, never cards.
- *
- * Quiet rows separated by hairlines, a tiny tracked-uppercase label, the claim
- * in prose. The label is the evidence strength the reader is meant to see —
- * never the internal confidence, and never the four-category taxonomy, which
- * the reader meets only as the two neutral groups (claims.ts, displayGroup).
+ * Claim rows: the claim, a label only for the exceptions (Supported,
+ * Background; decision 4), a trailing chevron, the whole row the target.
+ * Disputed rows offer their readings side by side instead of a label.
  * Debate has no winner: positions are counted, not ranked.
  */
 
 import type { Claim } from "@yada/schema";
-import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { View } from "react-native";
 
-import { SPACE, usePalette } from "../design/tokens";
-import { Chrome, Label, Prose } from "./Type";
+import { claimLabel } from "../lib/evidence";
+import { Row, TextLink } from "./Sheet";
+import { Chrome, Prose } from "./Type";
 
-export function ClaimGroup({
-  title,
+export function ClaimRows({
   claims,
   cap,
-  verseId,
+  onOpen,
+  onReadings,
 }: {
-  title: string;
   claims: readonly Claim[];
+  /** First-screen cap from the brief: 3 things we can see, 2 places readings differ. */
   cap: number;
-  verseId: string;
+  onOpen: (claim: Claim) => void;
+  onReadings: (claim: Claim) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const palette = usePalette();
   if (claims.length === 0) return null;
   const visible = expanded ? claims : claims.slice(0, cap);
 
   return (
-    <View style={{ marginTop: SPACE.xl }}>
-      <Label style={{ marginBottom: SPACE.sm }}>{title}</Label>
-      {visible.map((claim) => (
-        <Pressable
-          key={claim.id}
-          onPress={() => router.push({ pathname: "/why", params: { verse: verseId, claim: claim.id } })}
-          style={({ pressed }) => [
-            styles.row,
-            { borderTopColor: palette.divider },
-            // Feedback on press-in; waiting for release feels dead.
-            pressed ? { backgroundColor: palette.selection } : null,
-          ]}
-          accessibilityRole="button"
-          accessibilityHint="Opens why we say that"
-          testID={`claim-${claim.id}`}
-        >
-          <Label accessibilityRole="text">{claim.evidence_strength}</Label>
-          <Prose step="claim" style={{ marginTop: SPACE.xs }}>
-            {claim.claim}
-          </Prose>
-          {claim.positions !== undefined ? (
-            <Chrome size={13} style={{ marginTop: SPACE.xs }}>
-              Compare {claim.positions.length} positions
-            </Chrome>
-          ) : null}
-        </Pressable>
-      ))}
-      {claims.length > cap ? (
-        <Pressable onPress={() => setExpanded((v) => !v)} style={{ paddingTop: SPACE.md }} accessibilityRole="button">
-          <Chrome size={16}>{expanded ? "Show fewer" : `Show all ${claims.length}`}</Chrome>
-        </Pressable>
+    <View>
+      {visible.map((claim, index) => {
+        const label = claimLabel(claim);
+        return (
+          <Row
+            key={claim.id}
+            first={index === 0}
+            onPress={() => onOpen(claim)}
+            label={`${claim.claim}${label === null ? "" : `, ${label}`}`}
+            hint="Shows why we say this"
+            testID={`claim-${claim.id}`}
+          >
+            <Prose step="claim">{claim.claim}</Prose>
+            {label !== null ? (
+              <Chrome step="note" tone="muted" style={{ fontWeight: "500", marginTop: 2 }}>
+                {label}
+              </Chrome>
+            ) : null}
+            {claim.positions !== undefined ? (
+              <TextLink
+                label={`Compare the ${claim.positions.length} readings`}
+                onPress={() => onReadings(claim)}
+                testID={`readings-${claim.id}`}
+              />
+            ) : null}
+          </Row>
+        );
+      })}
+      {claims.length > cap && !expanded ? (
+        <TextLink label={`Show all ${claims.length}`} onPress={() => setExpanded(true)} testID="show-all" />
       ) : null}
     </View>
   );
@@ -77,12 +73,3 @@ export function groupClaims(claims: readonly Claim[]): { seen: Claim[]; differs:
     differs: claims.filter((c) => c.category === "interpretation" || c.category === "debated").sort(byRank),
   };
 }
-
-const styles = StyleSheet.create({
-  row: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingVertical: SPACE.md,
-    marginHorizontal: -SPACE.sm,
-    paddingHorizontal: SPACE.sm,
-  },
-});

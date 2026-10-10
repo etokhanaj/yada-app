@@ -25,10 +25,19 @@ interface SettingsState {
   appearance: Appearance;
   textScale: number;
   translation: Translation;
+  /** First launch has opened John 1 (decision 1, JN-01). */
+  launched: boolean;
+  /** The reader's hint line has been seen and dismissed by a first tap. */
+  hintSeen: boolean;
+  /** Understand's one-time "Tap a line to see the evidence." has been shown. */
+  evidenceHintSeen: boolean;
   hydrated: boolean;
   setAppearance: (value: Appearance) => void;
   setTextScale: (value: number) => void;
   setTranslation: (value: Translation) => void;
+  markLaunched: () => void;
+  markHintSeen: () => void;
+  markEvidenceHintSeen: () => void;
   hydrate: (stored: Record<string, string>) => void;
 }
 
@@ -36,10 +45,16 @@ export const useSettings = create<SettingsState>((set) => ({
   appearance: "system",
   textScale: 1,
   translation: "BSB",
+  launched: false,
+  hintSeen: false,
+  evidenceHintSeen: false,
   hydrated: false,
   setAppearance: (appearance) => set({ appearance }),
   setTextScale: (textScale) => set({ textScale }),
   setTranslation: (translation) => set({ translation }),
+  markLaunched: () => set({ launched: true }),
+  markHintSeen: () => set({ hintSeen: true }),
+  markEvidenceHintSeen: () => set({ evidenceHintSeen: true }),
   hydrate: (stored) =>
     set({
       appearance: isAppearance(stored["appearance"]) ? stored["appearance"] : "system",
@@ -47,6 +62,9 @@ export const useSettings = create<SettingsState>((set) => ({
         ? Number(stored["textScale"])
         : 1,
       translation: isTranslation(stored["translation"]) ? stored["translation"] : "BSB",
+      launched: stored["launched"] === "1",
+      hintSeen: stored["hintSeen"] === "1",
+      evidenceHintSeen: stored["evidenceHintSeen"] === "1",
       hydrated: true,
     }),
 }));

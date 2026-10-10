@@ -143,9 +143,10 @@ export async function saveThreadStep(db: SQLiteDatabase, thread: string, step: n
 export async function recentlyExplored(
   db: SQLiteDatabase,
   limit = 40,
-): Promise<Array<{ verse_id: string; name: EventName; at: string }>> {
+): Promise<Array<{ verse_id: string; name: EventName; detail: string | null; at: string }>> {
+  // SQLite returns the bare columns from the row that holds MAX(at): the latest event per verse.
   return db.getAllAsync(
-    `SELECT verse_id, name, MAX(at) AS at FROM events
+    `SELECT verse_id, name, detail, MAX(at) AS at FROM events
      WHERE verse_id IS NOT NULL AND name IN ('understand_open', 'passage_open', 'word_open', 'claim_open')
      GROUP BY verse_id ORDER BY at DESC LIMIT ?`,
     [limit],

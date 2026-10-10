@@ -7,10 +7,13 @@ describe("verses with nothing underneath", () => {
     expect(missingOriginalNote("JHN.1.1", "greek", true)).toBeNull();
   });
 
-  it("names the manuscript omission for John 7:53–8:11", () => {
+  it("names the manuscript omission for John 7:53–8:11, once for the passage (N-01)", () => {
     for (const id of ["JHN.7.53", "JHN.8.1", "JHN.8.11"]) {
-      expect(missingOriginalNote(id, "greek", false)).toMatch(/earliest manuscripts omit it/);
+      expect(missingOriginalNote(id, "greek", false)).toBe(
+        "John 7:53–8:11 is not in the earliest manuscripts, so Yada’s Greek text has none of it.",
+      );
     }
+    expect(missingOriginalNote("ACT.8.37", "greek", false)).toMatch(/earliest manuscripts omit it/);
     expect([...MANUSCRIPT_OMISSIONS].filter((id) => id.startsWith("JHN.8") || id === "JHN.7.53")).toHaveLength(12);
   });
 

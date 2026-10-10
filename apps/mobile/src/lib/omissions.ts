@@ -44,12 +44,21 @@ export function isNewTestament(book: BookCode, testamentOf: (b: BookCode) => "OT
   return testamentOf(book) === "NT";
 }
 
+/** John 7:53–8:11: one passage, so one sentence for all twelve verses (canvas N-01). */
+const PERICOPE_ADULTERAE = new Set([
+  "JHN.7.53", "JHN.8.1", "JHN.8.2", "JHN.8.3", "JHN.8.4", "JHN.8.5", "JHN.8.6",
+  "JHN.8.7", "JHN.8.8", "JHN.8.9", "JHN.8.10", "JHN.8.11",
+]);
+
 /**
  * The note for a verse with no tokens, or null when the verse has tokens.
  * `script` is the book's original language.
  */
 export function missingOriginalNote(verseId: string, script: "greek" | "hebrew", hasTokens: boolean): string | null {
   if (hasTokens) return null;
+  if (PERICOPE_ADULTERAE.has(verseId)) {
+    return "John 7:53–8:11 is not in the earliest manuscripts, so Yada’s Greek text has none of it.";
+  }
   if (script === "hebrew") {
     return "There is no Hebrew for this verse. The Westminster Leningrad Codex, the Hebrew text Yada uses, has no words at this verse number.";
   }

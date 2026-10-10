@@ -223,6 +223,23 @@ export async function countInBook(db: Db, book: BookCode, occurrenceKey: string)
   return row?.count ?? 0;
 }
 
+/** How often a lexeme occurs in each book, in canonical order (canvas S-04). */
+export async function countsByBook(db: Db, occurrenceKey: string): Promise<Array<{ book: BookCode; count: number }>> {
+  const rows = await db.getAllAsync<{ book: BookCode; count: number }>(
+    "SELECT o.book, o.count FROM occurrences o JOIN books b ON b.code = o.book WHERE o.occurrence_key = ? ORDER BY b.ord",
+    [occurrenceKey],
+  );
+  return rows;
+}
+
+/** In how many verses a lexeme occurs: "330 times in 318 verses". */
+export async function countVerses(db: Db, occurrenceKey: string): Promise<number> {
+  const row = await db.getFirstAsync<{ n: number }>("SELECT COUNT(DISTINCT ord) AS n FROM tokens WHERE occurrence_key = ?", [
+    occurrenceKey,
+  ]);
+  return row?.n ?? 0;
+}
+
 export interface Occurrence {
   readonly ord: number;
   /** The forms of the word in this verse, in order. */
