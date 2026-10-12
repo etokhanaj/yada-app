@@ -7,7 +7,6 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
  * `extra` is embedded in the app binary, so the key is extractable from any
  * build that carries it: internal dev builds only (docs/licensed-translations.md).
  */
-// newArchEnabled is no longer in SDK 57's ExpoConfig type; kept from app.json unchanged.
 const build = require("./build.json") as { buildNumber: string };
 
 /**
@@ -33,6 +32,7 @@ export function apiBibleExtra(env: Readonly<Record<string, string | undefined>>)
   };
 }
 
+// newArchEnabled is no longer in SDK 57's ExpoConfig type; kept from app.json unchanged.
 export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boolean } => {
   return {
     ...config,
@@ -52,6 +52,15 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
       supportsTablet: false,
       config: {
         usesNonExemptEncryption: false,
+      },
+      // iCloud key-value storage (modules/yada-cloud): bookmarks, reading place and settings
+      // kept in the reader's own iCloud. The App ID needs the iCloud capability to match.
+      entitlements: {
+        "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)",
+      },
+      // Audio read-along keeps reading with the screen locked (AU-02; modules/yada-speech).
+      infoPlist: {
+        UIBackgroundModes: ["audio"],
       },
       icon: {
         light: "./assets/brand/icon.png",

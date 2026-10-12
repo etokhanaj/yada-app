@@ -21,6 +21,7 @@ import { z } from "zod";
 
 import { LicenseSchema } from "./manifest.js";
 import { BOOK_ORDER, type BookCode, BookCodeSchema, VerseIdSchema } from "./refs.js";
+import { StudyInfoSchema } from "./study.js";
 
 /** Bumped when a table or column changes in a way an older app cannot read. */
 export const BUNDLE_FORMAT = 2;
@@ -327,5 +328,7 @@ export const BundleManifestSchema = z.object({
    * and understand still reads a manifest that offers downloads.
    */
   translations: z.array(TranslationInfoSchema).optional(),
+  /** Per-book study bundles (study.ts), downloaded on demand; optional for the same reason. */
+  study: z.array(StudyInfoSchema).optional(),
 });
 export type BundleManifest = z.infer<typeof BundleManifestSchema>;

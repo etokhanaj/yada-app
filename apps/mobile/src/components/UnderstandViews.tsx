@@ -22,7 +22,8 @@ import { useEffect, useRef, useState } from "react";
 import { Pressable, type ScrollView, StyleSheet, View } from "react-native";
 
 import { useCore, useLog, useQuery } from "../data/AppData";
-import { getTexts, getTextsInRange, getTokens, isDownloaded, scriptOf } from "../data/queries";
+import { BUILT_IN, getTexts, getTextsInRange, getTokens, isDownloaded, scriptOf } from "../data/queries";
+import { useTranslations } from "../data/translations";
 import {
   isUnreviewed,
   loadEntriesInRange,
@@ -32,18 +33,31 @@ import {
   parsePericopePayload,
 } from "../data/understand";
 import { useAXLevel, useLayout, usePalette } from "../design/tokens";
-import { formatRange, resolveRef } from "../lib/chapters";
-import { RELATIONSHIP_LABEL } from "../lib/evidence";
+import { formatRange, formatRangeInBook, resolveRef } from "../lib/chapters";
+import { compareSelection } from "../lib/compare";
+import { compareLine, originalLine, passageLine } from "../lib/goFurther";
+import { mergeSeeAlso, OPENBIBLE_LINE } from "../lib/study";
 import { missingOriginalNote } from "../lib/omissions";
 import { pericopeForVerse, resolvePassage } from "../lib/pericopes";
 import { spokenText } from "../lib/supplied";
-import { BSB_BASIS, bsbStandsIn, notInLine, verseTextIn } from "../lib/translations";
+import { BSB_BASIS, bsbStandsIn, notInLine, onPhoneOrder, verseTextIn } from "../lib/translations";
 import { useSettings } from "../state/settings";
 import { useSheets } from "../state/sheets";
 import { ClaimRows, groupClaims } from "./Claims";
 import { Icon } from "./Icon";
 import { glossCaption, OriginalWords } from "./OriginalWords";
-import { Row, Section, SheetScreen, type SheetSizeValue, TextLink } from "./Sheet";
+import { Row, RowNote, Section, SheetScreen, type SheetSizeValue, TextLink, UNDERSTAND_EXIT } from "./Sheet";
+import {
+  hasStatusLine,
+  useShownSeeAlso,
+  PeopleRows,
+  SeeAlsoRow,
+  SeeAlsoSection,
+  StudyNotesInline,
+  StudyRows,
+  StudyStatus,
+  useVerseStudy,
+} from "./StudyLayer";
 import { Chrome, Label, Prose, Scripture } from "./Type";
 
 const FIRST_SCREEN_SEEN = 3;
@@ -53,11 +67,6 @@ export type UnderstandSection = "original" | "compare";
 
 const verseIdOf = (ord: number): string => formatVerseId(ordToParts(ord));
 
-/** A range in the sheet's own terms: "14:26–40" (the book is in the title). */
-function shortRange(ref: string, book: BookCode): string {
-  return formatRange(ref).replace(`${BOOK_CODES[book].name} `, "");
-}
-
 /** Pushes the whole pericope onto the same sheet (brief §1 rule 1: one sheet, never a new destination). */
 function openPassage(pericope: { start_ord: number; end_ord: number }): void {
   const p = ordToParts(pericope.start_ord);
@@ -65,14 +74,50 @@ function openPassage(pericope: { start_ord: number; end_ord: number }): void {
   router.push({ pathname: "/understand/passage", params: { ref: `${p.book}.${p.chapter}.${p.verse}-${q.chapter}.${q.verse}` } });
 }
 
-export function UnderstandRoute({ refText, section }: { refText: string; section?: UnderstandSection }) {
+/**
+ * `subtitle`: a verse pushed inside its passage guide names the passage under its own title (PG-04).
+ * `onPassage`: what its passage row does there. Inside the guide the passage is the screen
+ * underneath, so the row goes back to it rather than opening a second passage sheet (package F).
+ */
+export function UnderstandRoute({
+  refText,
+  section,
+  subtitle,
+  onPassage,
+  inGuide = false,
+}: {
+  refText: string;
+  section?: UnderstandSection;
+  subtitle?: string;
+  onPassage?: () => void;
+  /**
+   * Pushed inside the passage guide (PG-04): the guide already shows the passage, so no verse line,
+   * no first-time hint and no Supported / Background labels (John, 11 Oct 2026: "Background"
+   * meant nothing to a reader).
+   */
+  inGuide?: boolean;
+}) {
   const span = resolveRef(refText);
   if (span === null) return null;
-  if (span.startOrd === span.endOrd) return <VerseUnderstand book={span.book} ord={span.startOrd} section={section} />;
+  if (span.startOrd === span.endOrd) return <VerseUnderstand book={span.book} ord={span.startOrd} section={section} subtitle={subtitle} onPassage={onPassage} inGuide={inGuide} />;
   return <PassageUnderstand book={span.book} startOrd={span.startOrd} endOrd={span.endOrd} refText={refText} />;
 }
 
-function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; section?: UnderstandSection }) {
+function VerseUnderstand({
+  book,
+  ord,
+  section,
+  subtitle,
+  onPassage,
+  inGuide,
+}: {
+  book: BookCode;
+  ord: number;
+  section?: UnderstandSection;
+  subtitle?: string;
+  onPassage?: () => void;
+  inGuide: boolean;
+}) {
   const core = useCore();
   const log = useLog();
   const palette = usePalette();
@@ -82,6 +127,8 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
   // here, and it read the defaults (header 0, never large) and landed sections under the header.
   const [{ large, headerHeight }, setSize] = useState<SheetSizeValue>({ large: false, headerHeight: 0 });
   const translation = useSettings((s) => s.translation);
+  const compareWith = useSettings((s) => s.compareWith);
+  const installedCodes = useTranslations((s) => s.installed).map((t) => t.code);
   const evidenceHintSeen = useSettings((s) => s.evidenceHintSeen);
   const markEvidenceHintSeen = useSettings((s) => s.markEvidenceHintSeen);
   const openWord = useSheets((s) => s.openWord);
@@ -105,15 +152,24 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
   const [explanationOpen, setExplanationOpen] = useState(false);
   const [verseOpen, setVerseOpen] = useState(false);
   // The first-time evidence hint shows on this sheet and never again (brief §2).
-  const [showHint] = useState(!evidenceHintSeen);
+  // Not inside the guide, so the hint is still there the first time Understand opens on its own.
+  const [showHint] = useState(!evidenceHintSeen && !inGuide);
   useEffect(() => {
-    if (!evidenceHintSeen) markEvidenceHintSeen();
-  }, [evidenceHintSeen, markEvidenceHintSeen]);
+    if (showHint) markEvidenceHintSeen();
+  }, [showHint, markEvidenceHintSeen]);
   useEffect(() => log("understand_open", verseId), [log, verseId]);
-  // A verse with no entry has nothing above the Original to read, so it opens (amendment 3, N-01).
+  const study = useVerseStudy(book, ord, data?.texts["BSB"]);
+  // Before the early return below: a hook, and See also's count must not jump once texts arrive.
+  const shownSeeAlso = useShownSeeAlso(
+    mergeSeeAlso(relatedSpans(data?.loaded?.entry.related_passages ?? []), study.kind === "ready" ? study.study.xrefs : []),
+  );
+  // A verse with no entry has nothing above the Original to read, so it opens (amendment 3, N-01),
+  // unless Study notes now lead (canvas SN-03): then there is something to read first.
+  const studyLeads = study.kind === "ready" && study.study.notes.length > 0;
+  const studySettled = study.kind !== "loading" && study.kind !== "fetching";
   useEffect(() => {
-    if (data !== undefined && data.loaded === null) setOriginalOpen(true);
-  }, [data]);
+    if (data !== undefined && data.loaded === null && studySettled && !studyLeads) setOriginalOpen(true);
+  }, [data, studySettled, studyLeads]);
 
   const scroll = useRef<ScrollView>(null);
   // The section moves while the sheet settles (What's happening clamps once the detent is
@@ -128,7 +184,7 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
     requestAnimationFrame(() => scroll.current?.scrollTo({ y: Math.max(0, y - headerHeight - 8), animated: false }));
   };
 
-  if (data === undefined) return <SheetScreen title={display} backLabel={display}>{null}</SheetScreen>;
+  if (data === undefined) return <SheetScreen title={display} subtitle={subtitle} backLabel={display} {...UNDERSTAND_EXIT}>{null}</SheetScreen>;
   const { texts, tokens, loaded, pericope } = data;
   const entry = loaded?.entry ?? null;
   const groups = entry === null ? null : groupClaims(entry.claims);
@@ -141,7 +197,8 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
   const unreviewed = loaded !== null && isUnreviewed(loaded.reviewStatus);
   // Medium detent, default sizes: four lines and More. Large or AX: in full.
   const clamp = !large && !ax && !explanationOpen;
-  const notes = grammar.length === 0 ? null : `${grammar.length} ${grammar.length === 1 ? "note" : "notes"}`;
+  const originalSecond = omission !== null ? "Why no words are shown" : originalLine(tokens.words.length, grammar.length);
+  const compareOrder = [translation, ...compareSelection(translation, onPhoneOrder(BUILT_IN, installedCodes), compareWith)];
   const related = entry?.related_passages ?? [];
 
   const openClaim = (claim: Claim) =>
@@ -156,21 +213,22 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
         accessibilityRole="button"
         // The state is spoken in the label ("Original Greek, 3 notes, collapsed", brief §8.19):
         // the count is hidden on screen at AX sizes, so VoiceOver must carry it regardless.
-        accessibilityLabel={[`Original ${language}`, notes, originalOpen ? "expanded" : "collapsed"].filter((s) => s !== null).join(", ")}
+        accessibilityLabel={[`Original ${language}`, originalSecond, originalOpen ? "expanded" : "collapsed"].join(", ")}
         testID="toggle-original"
-        style={styles.disclosure}
+        style={({ pressed }) => [styles.disclosure, pressed ? { backgroundColor: palette.fill } : null]}
       >
-        <Chrome tone="ink" style={{ fontWeight: "600", flexShrink: 1 }}>
-          Original {language}
-        </Chrome>
-        <View style={styles.trailing}>
-          {/* At AX sizes the count crowds the title onto several lines; the label still says it. */}
-          {notes !== null && !ax ? <Chrome step="note" tone="muted">{notes}</Chrome> : null}
-          {/* Swaps rather than rotates, so Reduce Motion needs no branch (brief §5). */}
-          <View style={[styles.disc, { backgroundColor: palette.fill }]}>
-            <Icon name={originalOpen ? "up" : "down"} size={16} />
-          </View>
+        {/* Canvas SN-09: the same object as every Go further row, name and one muted line, with
+            a bare chevron that turns down to up when open. It still expands in place. */}
+        <View style={{ flex: 1, minWidth: 0, rowGap: 4 }}>
+          <Chrome tone="ink" style={{ fontWeight: "500" }}>
+            Original {language}
+          </Chrome>
+          <RowNote>
+            {originalSecond}
+          </RowNote>
         </View>
+        {/* Swaps rather than rotates, so Reduce Motion needs no branch (brief §5). */}
+        <Icon name={originalOpen ? "up" : "down"} size={18} tone="muted" />
       </Pressable>
       {originalOpen ? (
         <View style={{ paddingTop: 8, paddingBottom: 8 }}>
@@ -199,7 +257,7 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
           {grammar.length > 0 ? (
             <View style={{ marginTop: sectionGap }}>
               <Label style={{ marginBottom: 6 }}>In the {language}</Label>
-              <ClaimRows claims={grammar} cap={grammar.length} onOpen={openClaim} onReadings={openReadings} />
+              <ClaimRows claims={grammar} cap={grammar.length} onOpen={openClaim} onReadings={openReadings} labels={!inGuide} />
             </View>
           ) : null}
           {entry !== null ? (
@@ -216,9 +274,23 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
     </>
   );
 
+  // Study notes after the UX pass (canvas SN-01, SN-03): with a Yada entry, People, Study notes
+  // and See also are rows in Go further and Understand keeps its shape; without one, they lead,
+  // inline. Related passages are See also's first rows, not a row of their own.
+  const ready = study.kind === "ready" ? study.study : null;
+  const people = ready?.people ?? [];
+
   const further = (
     <>
       {original}
+      {/* Canvas SN-01: Study notes and See also sit straight after Original, before Compare;
+          People come first of the three, as they lead without an entry (TD-01). */}
+      {entry !== null ? (
+        <>
+          <PeopleRows people={people} book={book} from={verseId} first={false} />
+          <StudyRows study={ready} seeAlso={shownSeeAlso.length} from={verseId} />
+        </>
+      ) : null}
       <View
         onLayout={(e) => {
           offsets.current.compare = e.nativeEvent.layout.y;
@@ -227,47 +299,60 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
       >
         <Row
           onPress={() => router.push({ pathname: "/evidence/translations", params: { ref: verseId } })}
-          label="Compare translations"
+          label={`Compare translations, ${compareLine(compareOrder)}`}
           testID="open-compare"
         >
           <Chrome tone="ink" style={{ fontWeight: "500" }}>
             Compare translations
           </Chrome>
+          <RowNote>
+            {compareLine(compareOrder)}
+          </RowNote>
         </Row>
       </View>
       {pericope !== null ? (
-        <Row onPress={() => openPassage(pericope)} testID="open-passage">
-          <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            {pericope.label} · {shortRange(pericope.pericope_id, book)}
-          </Chrome>
-        </Row>
-      ) : null}
-      {related.length > 0 ? (
         <Row
-          onPress={() => router.push({ pathname: "/understand/related", params: { ref: verseId } })}
-          label={`Related passages, ${countOf(related.length, "passage")}`}
-          testID="open-related"
+          onPress={onPassage ?? (() => openPassage(pericope))}
+          label={`${pericope.label}, ${passageLine(formatRangeInBook(pericope.pericope_id))}`}
+          testID="open-passage"
         >
-          <View style={styles.inline}>
-            <Chrome tone="ink" style={{ fontWeight: "500", flexShrink: 1 }}>
-              Related passages
-            </Chrome>
-            {ax ? null : <Chrome step="note" tone="muted">{countOf(related.length, "passage")}</Chrome>}
-          </View>
+          <Chrome tone="ink" style={{ fontWeight: "500" }}>
+            {pericope.label}
+          </Chrome>
+          <RowNote>
+            {passageLine(formatRangeInBook(pericope.pericope_id))}
+          </RowNote>
         </Row>
       ) : null}
     </>
   );
 
+  const status = hasStatusLine(study);
+  const notesLead = ready !== null && ready.notes.length > 0;
+  const leads =
+    entry === null ? (
+      <>
+        {people.length > 0 ? (
+          <Section title="People" first>
+            <PeopleRows people={people} book={book} from={verseId} first />
+          </Section>
+        ) : null}
+        {status ? <StudyStatus book={book} state={study} first={people.length === 0} /> : null}
+        {ready !== null ? <StudyNotesInline study={ready} ord={ord} from={verseId} first={people.length === 0} /> : null}
+        <SeeAlsoSection items={shownSeeAlso} from={verseId} ax={ax} first={people.length === 0 && !status && !notesLead} />
+      </>
+    ) : null;
+  const led = entry === null && (people.length > 0 || status || notesLead || shownSeeAlso.length > 0);
+
   return (
-    <SheetScreen title={display} unreviewed={unreviewed} backLabel={display} verseId={verseId} scrollRef={scroll} onSize={setSize} testID="understand">
+    <SheetScreen title={display} subtitle={subtitle} unreviewed={unreviewed} backLabel={display} verseId={verseId} scrollRef={scroll} onSize={setSize} testID="understand" {...UNDERSTAND_EXIT}>
       {fromBsb ? (
         <Chrome step="note" tone="muted" style={{ marginBottom: 12 }} testID="bsb-basis">
           {BSB_BASIS}
         </Chrome>
       ) : null}
       {/* Large detent: the verse is no longer visible above the sheet, so one line of it here. */}
-      {large && entry !== null ? (
+      {large && entry !== null && !inGuide ? (
         ax ? (
           <Pressable
             onPress={() => setVerseOpen((v) => !v)}
@@ -294,7 +379,7 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
           </Pressable>
         )
       ) : null}
-      {large && ax && verseOpen ? (
+      {large && ax && verseOpen && !inGuide ? (
         <Scripture step="explanation" tone="muted" style={{ marginBottom: 16 }}>
           {verseText}
         </Scripture>
@@ -312,15 +397,21 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
       {/* Reading claims only: Show all counts these, not the grammar notes under Original (§8.19). */}
       {groups !== null && groups.seen.length > 0 ? (
         <Section title="What we can see" hint={showHint ? "Tap a line to see the evidence." : undefined}>
-          <ClaimRows claims={groups.seen} cap={FIRST_SCREEN_SEEN} onOpen={openClaim} onReadings={openReadings} />
+          <ClaimRows claims={groups.seen} cap={FIRST_SCREEN_SEEN} onOpen={openClaim} onReadings={openReadings} labels={!inGuide} />
         </Section>
       ) : null}
 
       {groups !== null && groups.differs.length > 0 ? (
         <Section title="Where readers differ">
-          <ClaimRows claims={groups.differs} cap={FIRST_SCREEN_DIFFERS} onOpen={openClaim} onReadings={openReadings} />
+          <ClaimRows claims={groups.differs} cap={FIRST_SCREEN_DIFFERS} onOpen={openClaim} onReadings={openReadings} labels={!inGuide} />
         </Section>
       ) : null}
+
+      {leads}
+
+      {/* Canvas SN-04–06: the one line has its own place straight above Go further, never under
+          the last row where the sheet's foot hides it. */}
+      {entry !== null && status ? <StudyStatus book={book} state={study} /> : null}
 
       <View
         onLayout={(e) => {
@@ -328,63 +419,54 @@ function VerseUnderstand({ book, ord, section }: { book: BookCode; ord: number; 
           land();
         }}
       >
-        {/* A verse with no entry has nothing to go further from: Original and Compare stand alone (amendment 3). */}
-        {entry !== null ? <Section title="Go further">{further}</Section> : further}
+        {/* A verse with neither an entry nor study notes has nothing to go further from: Original
+            and Compare stand alone (amendment 3). */}
+        {entry !== null || led ? <Section title="Go further">{further}</Section> : further}
       </View>
     </SheetScreen>
   );
 }
 
-const countOf = (n: number, noun: string): string => `${n} ${noun}${n === 1 ? "" : "s"}`;
-
-/**
- * Related passages (brief §8.19): the Go deeper list, pushed inside the
- * Understand sheet so Understand itself stays three parts and one group.
- */
-export function RelatedRoute({ refText }: { refText: string }) {
-  const span = resolveRef(refText);
-  if (span === null) return null;
-  return <RelatedPassages book={span.book} ord={span.startOrd} />;
+/** Yada's related passages as spans for See also; one whose ref cannot be read is left out. */
+function relatedSpans(related: ReadonlyArray<{ ref: string; note?: string | undefined }>) {
+  return related.flatMap((r) => {
+    const span = resolveRef(r.ref);
+    return span === null ? [] : [{ ref: r.ref, note: r.note ?? null, start: span.startOrd, end: span.endOrd }];
+  });
 }
 
-function RelatedPassages({ book, ord }: { book: BookCode; ord: number }) {
+/**
+ * See also, all of it (canvas SN-08): Yada's related passages, then OpenBible's, pushed inside the
+ * Understand sheet; ‹ goes back. Unreviewed only when Yada's own rows are here and unreviewed.
+ */
+export function SeeAlsoRoute({ refText }: { refText: string }) {
+  const span = resolveRef(refText);
+  if (span === null) return null;
+  return <SeeAlsoPage book={span.book} ord={span.startOrd} />;
+}
+
+function SeeAlsoPage({ book, ord }: { book: BookCode; ord: number }) {
+  const core = useCore();
+  const ax = useAXLevel() >= 1;
   const verseId = verseIdOf(ord);
   const display = formatDisplayRef(ordToParts(ord));
-  const { data } = useQuery(() => loadEntry(book, verseId), [book, verseId]);
-  const loaded = data ?? null;
-  const unreviewed = loaded !== null && isUnreviewed(loaded.reviewStatus);
+  const { data } = useQuery(async () => ({ loaded: await loadEntry(book, verseId), texts: await getTexts(core, ord) }), [book, verseId]);
+  const study = useVerseStudy(book, ord, data?.texts["BSB"]);
+  const loaded = data?.loaded ?? null;
+  const related = relatedSpans(loaded?.entry.related_passages ?? []);
+  const items = useShownSeeAlso(mergeSeeAlso(related, study.kind === "ready" ? study.study.xrefs : []));
+  const unreviewed = loaded !== null && related.length > 0 && isUnreviewed(loaded.reviewStatus);
 
   return (
-    <SheetScreen title="Related passages" subtitle={display} unreviewed={unreviewed} backLabel={display} verseId={verseId} testID="related">
-      {(loaded?.entry.related_passages ?? []).map((related, index) => (
-        <Row
-          key={related.ref}
-          first={index === 0}
-          onPress={() =>
-            router.push({
-              pathname: "/evidence/peek",
-              params: {
-                ref: related.ref,
-                from: verseId,
-                relationship: related.relationship ?? "",
-                note: related.note ?? "",
-                unreviewed: unreviewed ? "1" : "",
-              },
-            })
-          }
-          testID={`deeper-${related.ref}`}
-        >
-          <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            {formatRange(related.ref)}
-            {related.relationship === undefined ? "" : ` — ${RELATIONSHIP_LABEL[related.relationship]}`}
-          </Chrome>
-          {related.note !== undefined ? (
-            <Prose step="note" tone="muted">
-              {related.note}
-            </Prose>
-          ) : null}
-        </Row>
+    <SheetScreen title="See also" subtitle={display} unreviewed={unreviewed} backLabel={display} verseId={verseId} testID="see-also" {...UNDERSTAND_EXIT}>
+      {items.map((item, i) => (
+        <SeeAlsoRow key={`${item.source}-${item.start}-${item.end}`} item={item} from={verseId} first={i === 0} ax={ax} />
       ))}
+      {items.some((item) => item.source === "openbible") ? (
+        <Chrome step="note" tone="muted" style={{ marginTop: 8 }} testID="openbible-source">
+          {OPENBIBLE_LINE}
+        </Chrome>
+      ) : null}
     </SheetScreen>
   );
 }
@@ -413,7 +495,7 @@ function PassageUnderstand({ book, startOrd, endOrd, refText }: { book: BookCode
 
   useEffect(() => log("passage_open", firstId, refText), [log, firstId, refText]);
 
-  if (data === undefined) return <SheetScreen title={display} backLabel={display}>{null}</SheetScreen>;
+  if (data === undefined) return <SheetScreen title={display} backLabel={display} {...UNDERSTAND_EXIT}>{null}</SheetScreen>;
   const { resolution } = data;
   const rows = [...resolution.pericopes.flatMap((p) => p.entries), ...resolution.loose];
   const anyUnreviewed =
@@ -421,7 +503,7 @@ function PassageUnderstand({ book, startOrd, endOrd, refText }: { book: BookCode
     resolution.pericopes.some(({ pericope }) => parsePericopePayload(pericope) !== null && isUnreviewed(pericope.review_status));
 
   return (
-    <SheetScreen title={display} unreviewed={anyUnreviewed} backLabel={display} verseId={firstId} testID="passage-understand">
+    <SheetScreen title={display} unreviewed={anyUnreviewed} backLabel={display} verseId={firstId} testID="passage-understand" {...UNDERSTAND_EXIT}>
       {resolution.pericopes.length === 0 && resolution.loose.length === 0 ? (
         <Prose step="claim" tone="muted" testID="no-entry">
           No verse in this selection has an explanation yet.
@@ -430,7 +512,7 @@ function PassageUnderstand({ book, startOrd, endOrd, refText }: { book: BookCode
 
       {resolution.pericopes.map(({ pericope, entries }, i) => {
         const payload = parsePericopePayload(pericope);
-        const label = `${pericope.label} · ${shortRange(pericope.pericope_id, book)}`;
+        const label = `${pericope.label} · ${formatRangeInBook(pericope.pericope_id)}`;
         // J01-12: a selection inside a passage offers the whole of it; once the selection is the
         // passage there is nowhere further to go, so the label stays plain text.
         const whole = startOrd === pericope.start_ord && endOrd === pericope.end_ord;
@@ -457,7 +539,7 @@ function PassageUnderstand({ book, startOrd, endOrd, refText }: { book: BookCode
                     {payload.movement.map((step) => (
                       <View key={step.range} style={styles.movement}>
                         <Prose step="note" tone="muted" style={{ minWidth: 64 }}>
-                          {shortRange(step.range, book)}
+                          {formatRangeInBook(step.range)}
                         </Prose>
                         <Prose step="claim" style={{ flex: 1 }}>
                           {step.label}
@@ -533,25 +615,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     columnGap: 12,
-    minHeight: 52,
-  },
-  trailing: {
-    flexDirection: "row",
-    alignItems: "center",
-    columnGap: 10,
-  },
-  inline: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    columnGap: 12,
-  },
-  disc: {
-    width: 32,
-    height: 32,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
+    minHeight: 44,
+    paddingVertical: 12,
   },
   movement: {
     flexDirection: "row",

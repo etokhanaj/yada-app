@@ -1,63 +1,78 @@
 /**
- * Home (canvas H-01, H-02): a serif `Yada`, three glass icons, then one lead
- * row — `Start with John` on first launch, `Continue` once there is a place to
- * return to — and the books. Apple Books Home, cut down
- * (https://mobbin.com/screens/ef25171d-f4a6-43ed-a0a2-375e835230f8).
+ * Home (canvas ON-01, ON-05, ON-07, ON-06): a serif `yada`, three glass
+ * icons, one lead, then the books. No onboarding screens: Home is the start
+ * (John asked why we had them, 11 Oct 2026).
  *
- * Start here stays under Continue until the thread is started (brief §4).
- * Books carry no chapter counts (audit); Contents shows the chapters.
+ * One lead at a time (lib/startHere.ts homeLead):
+ * - first launch: `Start here · The Gospel of John · One passage at a time,
+ *   explained.`, which opens John 1:1–18's guide (Deepstash's one featured
+ *   first read, https://mobbin.com/screens/ae4112fa-00aa-4415-ab8f-7d1ec5c49692);
+ * - a passage in progress: `Continue · John 1:39`, the passage as the title
+ *   and the verse as the excerpt (Apple Books' Continue first,
+ *   https://mobbin.com/screens/38f5b90d-0d5b-467f-9e2d-7155ba17a3ea);
+ * - the last passage finished: `Next · John 1:19–34`.
+ * Continue and a Next row together were two calls to action for one reader
+ * (UX pass, 11 Oct 2026), so there is never a Next row beside Continue in
+ * John. Then `N of 46 passages read`, no streak, no dates, and `All passages
+ * in John`. Books carry no chapter counts (audit); Contents shows them.
+ *
+ * VoiceOver order follows the eye (ON-06): Search, Bookmarks, More, the
+ * wordmark, the lead, the books.
  */
 
-import { BOOK_CODES, BOOK_ORDER, parseVerseId, verseOrd } from "@yada/schema";
+import { BOOK_CODES, BOOK_ORDER, type BookCode, ordToParts, parseVerseId, verseOrd } from "@yada/schema";
 import { MenuView } from "@react-native-menu/menu";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Image, StyleSheet, useWindowDimensions, View } from "react-native";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { GlassButton } from "../components/Glass";
 import { useLaunch } from "../components/LaunchOverlay";
 import { Icon } from "../components/Icon";
 import { readerHref } from "../components/navigation";
 import { GlassIcon, ListRow, PageScreen } from "../components/Page";
-import { Cover, coverLabel } from "../components/Cover";
 import { Chrome, Label, Scripture } from "../components/Type";
-import { useAppData, useCore, useQuery } from "../data/AppData";
+import { DivineText } from "../components/Verse";
+import { useAppData, useCore } from "../data/AppData";
 import { getTexts } from "../data/queries";
-import { loadPassageCover, loadPericopes, type PassageCover } from "../data/understand";
-import { loadPosition, loadThreadStep } from "../data/user";
-import { useIsDark, useLayout, usePalette } from "../design/tokens";
+import { loadProgress } from "../data/startHere";
+import { loadPericopes } from "../data/understand";
+import { loadPosition } from "../data/user";
+import { FONTS, useIsDark, useLayout, usePalette } from "../design/tokens";
+import { pericopeForVerse, type PericopeRow } from "../lib/pericopes";
 import { excerptOf } from "../lib/reader";
-import { verseLabel } from "../lib/saved";
+import { rangeInBook, verseLabel } from "../lib/saved";
+import { homeLead, type HomeLead, progressLabel, progressLine } from "../lib/startHere";
 import { useSettings } from "../state/settings";
 
-interface ContinueState {
-  readonly verseId: string;
-  readonly label: string;
+interface LeadState {
+  readonly lead: HomeLead;
+  readonly passages: readonly PericopeRow[];
+  readonly readCount: number;
+  /** Continue's place. */
+  readonly place: { readonly book: BookCode; readonly chapter: number; readonly verse: number; readonly label: string } | null;
+  /** The passage holding the place, in its own book, when that book has passages. */
+  readonly placePassage: string | null;
   readonly excerpt: string;
-  readonly cover: PassageCover | null;
 }
+
+const spokenRange = (range: string) => range.replace("–", " to ");
 
 export default function Home() {
   const core = useCore();
   const palette = usePalette();
   const { user } = useAppData();
-  const { ax } = useLayout();
   const translation = useSettings((s) => s.translation);
   const launched = useSettings((s) => s.launched);
   // Read once at mount: the effect below marks the first launch before its position loads.
   const returning = useRef(launched).current;
-  const [continueAt, setContinueAt] = useState<ContinueState | null>(null);
-  const [threadStep, setThreadStep] = useState(0);
-  const { data: johnPassages } = useQuery(async () => (await loadPericopes("JHN")).length, []);
-  // Depth (§8.14): John's first passage is Start with John's cover.
-  const { data: johnCover } = useQuery(() => loadPassageCover(core, "JHN", verseOrd("JHN", 1, 1)), []);
+  const [state, setState] = useState<LeadState | null>(null);
 
-  // A cold launch opens the reader, never Home (Home stays beneath it, so the
-  // reader's `‹ Home` is the way here). With a saved position it opens at that
-  // verse (brief §8.18, decided by John 10 Oct); with none, John 1 (decision 1,
-  // JN-01). Once per process: Home can remount (Page's back falls back to
-  // `replace("/")`), and that must not throw the reader forward again. A warm
-  // resume never remounts anything, so it keeps whatever was on screen.
+  // A cold launch with a saved position opens the reader there (brief §8.18, decided by John
+  // 10 Oct), Home beneath it. With none, Home is the first screen: it is the start (ON-01),
+  // replacing the old first launch into John 1 (decision 1, JN-01). Once per process: Home can
+  // remount (Page's back falls back to `replace("/")`), and that must not throw the reader
+  // forward again. A warm resume never remounts anything, so it keeps whatever was on screen.
   useEffect(() => {
     if (useLaunch.getState().routed) return;
     useLaunch.getState().markRouted();
@@ -68,30 +83,50 @@ export default function Home() {
         // Someone who read before this build skips the first-visit hint.
         if (!returning) useSettings.getState().markHintSeen();
         router.push(readerHref({ book: position.book, chapter: position.chapter, verse: position.verse, resume: true }));
-      } else if (!returning) {
-        router.push(readerHref({ book: "JHN", chapter: 1 }));
       } else {
-        // Launched before but nothing read: Home is the first screen, so it lifts the launch overlay (§8.17).
+        // Home is the first screen, so it lifts the launch overlay (§8.17).
         useLaunch.getState().markReady();
       }
     });
   }, [returning, user]);
 
+  // Read on every focus, never cached: a guide just closed, or progress synced from another
+  // device, shows at once (edge case 8).
   useFocusEffect(
     useCallback(() => {
       let live = true;
       void (async () => {
-        const id = await loadPosition(user);
+        const [id, progress] = await Promise.all([loadPosition(user), loadProgress(user)]);
         const ref = id === null ? null : parseVerseId(id);
-        if (ref === null || id === null) {
-          if (live) setContinueAt(null);
-        } else {
-          const ord = verseOrd(ref.book, ref.chapter, ref.verse);
-          const [texts, cover] = await Promise.all([getTexts(core, ord), loadPassageCover(core, ref.book, ord)]);
-          if (live) setContinueAt({ verseId: id, label: verseLabel(ref), excerpt: excerptOf(texts[translation] ?? ""), cover });
+        const ord = ref === null ? null : verseOrd(ref.book, ref.chapter, ref.verse);
+        const lead = homeLead({
+          passages: progress.passages,
+          read: progress.read,
+          lastFinished: progress.lastFinished,
+          place: ref === null || ord === null ? null : { book: ref.book, ord },
+        });
+        let excerpt = "";
+        let placePassage: string | null = null;
+        if (lead.kind === "continue" && ref !== null && ord !== null) {
+          const [texts, own] = await Promise.all([getTexts(core, ord), loadPericopes(ref.book)]);
+          excerpt = excerptOf(texts[translation] ?? texts["BSB"] ?? "");
+          placePassage = pericopeForVerse(own, ord)?.label ?? null;
+        } else if (lead.kind === "next") {
+          const p = progress.passages[lead.passage];
+          if (p !== undefined) {
+            const texts = await getTexts(core, p.start_ord);
+            excerpt = excerptOf(texts[translation] ?? texts["BSB"] ?? "");
+          }
         }
-        const step = await loadThreadStep(user, "start-here-john");
-        if (live) setThreadStep(step);
+        if (!live) return;
+        setState({
+          lead,
+          passages: progress.passages,
+          readCount: progress.read.size,
+          place: ref === null ? null : { ...ref, label: verseLabel(ref) },
+          placePassage,
+          excerpt,
+        });
       })();
       return () => {
         live = false;
@@ -99,36 +134,17 @@ export default function Home() {
     }, [user, core, translation]),
   );
 
-  const resume = continueAt === null ? null : parseVerseId(continueAt.verseId);
   const ot = BOOK_ORDER.filter((b) => BOOK_CODES[b].testament === "OT");
   const nt = BOOK_ORDER.filter((b) => BOOK_CODES[b].testament === "NT");
-  const passages = johnPassages ?? 0;
 
-  const startWithJohn = (first: boolean) =>
-    johnCover !== undefined && johnCover !== null && first ? (
-      <ListRow
-        first
-        onPress={() => router.push("/thread")}
-        // Title, then the word, as DP-01 reads; the passage count is not on this row.
-        label={`Start with John. ${coverLabel(johnCover)}`}
-        testID="home-start-here"
-      >
-        <Cover cover={johnCover} label={<Label accessibilityRole="text">Start with John</Label>} />
-      </ListRow>
-    ) : (
-      <ListRow
-        first={first}
-        onPress={() => router.push("/thread")}
-        label={`Start with John, ${passages} passages, in order`}
-        testID="home-start-here"
-        title={
-          <Chrome tone="ink" style={styles.leadTitle} maxFontSizeMultiplier={2.2}>
-            Start with John
-          </Chrome>
-        }
-        subtitle={`${passages} passages, in order`}
-      />
-    );
+  /**
+   * Opens a passage's text with its guide over it (ON-02). Landed as a resumed place, so its
+   * first verse is at the top and the reading place saved is this passage's, not the last one's.
+   */
+  const openGuided = (p: PericopeRow) => {
+    const start = ordToParts(p.start_ord);
+    router.push(readerHref({ book: start.book, chapter: start.chapter, verse: start.verse, resume: true, guide: p.pericope_id }));
+  };
 
   const right = (
     <>
@@ -155,55 +171,97 @@ export default function Home() {
     </>
   );
 
-  return (
-    <PageScreen title="Yada" titleNode={<Wordmark />} back={null} right={right} testID="home">
-      <View style={styles.lead}>
-        {continueAt !== null && resume !== null ? (
+  const lead = (): ReactNode => {
+    if (state === null) return null;
+    const { lead: l, passages } = state;
+    const total = passages.length;
+    const first = passages[0];
+    if (l.kind === "start") {
+      return first === undefined ? null : (
+        <Lead
+          overline="Start here"
+          title="The Gospel of John"
+          excerpt="One passage at a time, explained."
+          label="Start here. The Gospel of John, one passage at a time, explained. Opens the first passage"
+          onPress={() => openGuided(first)}
+          testID="home-start-here"
+        />
+      );
+    }
+    const all = (
+      <ListRow
+        first
+        onPress={() => router.push("/thread")}
+        // ON-05/ON-07 set this row in medium (`.valrow`): it is a way in, not a book.
+        title={<Chrome tone="ink" style={{ fontWeight: "500" }}>All passages in John</Chrome>}
+        label="All passages in John"
+        testID="home-all-passages"
+      />
+    );
+    if (l.kind === "next") {
+      const p = passages[l.passage];
+      if (p === undefined) return null;
+      const range = rangeInBook(p.pericope_id);
+      return (
+        <>
+          <Lead
+            overline={`Next · John ${range}`}
+            title={p.label}
+            excerpt={state.excerpt}
+            label={`Next, ${p.label}, John ${spokenRange(range)}. Opens its guide`}
+            onPress={() => openGuided(p)}
+            testID="home-next"
+          />
+          <Chrome step="note" tone="muted" style={styles.progress} accessibilityLabel={progressLabel(state.readCount, total)} testID="home-progress">
+            {progressLine(state.readCount, total)}
+          </Chrome>
+          {all}
+        </>
+      );
+    }
+    const place = state.place;
+    if (place === null) return null;
+    const johnNext = l.johnNext === null ? null : passages[l.johnNext];
+    return (
+      <>
+        <Lead
+          overline={`Continue · ${place.label}`}
+          title={state.placePassage ?? place.label}
+          excerpt={state.excerpt}
+          // One element to VoiceOver: "Continue reading, The first disciples, John 1:39. “Come and see,”…" (brief §5).
+          label={`Continue reading, ${state.placePassage === null ? "" : `${state.placePassage}, `}${place.label}. ${state.excerpt}`}
+          onPress={() =>
+            // Lands as a cold launch does (brief §8.18): the verse just below the header.
+            router.push(readerHref({ book: place.book, chapter: place.chapter, verse: place.verse, resume: true }))
+          }
+          testID="home-continue"
+        />
+        {johnNext !== null && johnNext !== undefined ? (
+          // Edge case 1: reading outside John, the thread waits as one quiet row, not a second lead.
           <ListRow
             first
-            // Lands as a cold launch does (brief §8.18): the verse just below the header, where it was being read.
-            onPress={() => router.push(readerHref({ book: resume.book, chapter: resume.chapter, verse: resume.verse, resume: true }))}
-            // One element to VoiceOver: "Continue reading, John 8:2. Early in the morning…" (brief §5).
-            label={`Continue reading, ${continueAt.label}. ${continueAt.cover === null ? "" : `${coverLabel(continueAt.cover)}. `}${continueAt.excerpt}`}
-            testID="home-continue"
-          >
-            {continueAt.cover !== null ? (
-              <>
-                <Cover cover={continueAt.cover} label={<Label accessibilityRole="text">Continue · {continueAt.label}</Label>} />
-                {continueAt.cover.word === null && continueAt.excerpt !== "" ? (
-                  <Scripture step="claim" tone="muted" numberOfLines={ax ? 3 : 1} style={{ fontFamily: "Literata" }}>
-                    {continueAt.excerpt}
-                  </Scripture>
-                ) : null}
-              </>
-            ) : (
-              <>
-                <Label accessibilityRole="text">Continue</Label>
-                <Chrome
-                  tone="ink"
-                  style={styles.leadTitle}
-                  maxFontSizeMultiplier={2.2}
-                  // At AX5 "1 Corinthians 14:1" broke mid-word ("Corinthian / s"); shrink a little
-                  // into two lines instead, as Contents' book rows do (Page.tsx ListRow).
-                  numberOfLines={ax ? 2 : undefined}
-                  adjustsFontSizeToFit={ax}
-                  minimumFontScale={0.7}
-                >
-                  {continueAt.label}
-                </Chrome>
-                {continueAt.excerpt !== "" ? (
-                  <Scripture step="claim" tone="muted" numberOfLines={ax ? 3 : 1} style={{ fontFamily: "Literata" }}>
-                    {continueAt.excerpt}
-                  </Scripture>
-                ) : null}
-              </>
-            )}
-          </ListRow>
-        ) : (
-          startWithJohn(true)
-        )}
-        {continueAt !== null && threadStep === 0 ? startWithJohn(false) : null}
-      </View>
+            onPress={() => openGuided(johnNext)}
+            overline={`Next in John · ${rangeInBook(johnNext.pericope_id)}`}
+            title={johnNext.label}
+            label={`Next in John, ${johnNext.label}, John ${spokenRange(rangeInBook(johnNext.pericope_id))}. Opens its guide`}
+            testID="home-john-next"
+          />
+        ) : null}
+        {l.passage !== null || state.readCount > 0 ? (
+          <Chrome step="note" tone="muted" style={styles.progress} accessibilityLabel={progressLabel(state.readCount, total)} testID="home-progress">
+            {progressLine(state.readCount, total)}
+          </Chrome>
+        ) : null}
+        {all}
+      </>
+    );
+  };
+
+  return (
+    <PageScreen title="Yada" titleNode={<Wordmark />} back={null} right={right} testID="home">
+      {/* No padding under the lead: the books' label sits 28 pt below its hairline, as ON-01/05/07
+          space it (canvas `.lbl` margin-top); 12 more opened a gap the frames don't have (QA). */}
+      <View>{lead()}</View>
 
       {[
         { title: "Old Testament", books: ot },
@@ -234,6 +292,56 @@ export default function Home() {
 }
 
 /**
+ * The lead (canvas `.lead.coverlead`): a small overline that says what it is,
+ * the title in Literata semibold, one muted line of excerpt, a chevron. One
+ * element to VoiceOver whose label names where it goes (WCAG 2.4.4).
+ */
+function Lead({
+  overline,
+  title,
+  excerpt,
+  label,
+  onPress,
+  testID,
+}: {
+  overline: string;
+  title: string;
+  excerpt: string;
+  label: string;
+  onPress: () => void;
+  testID: string;
+}) {
+  const palette = usePalette();
+  const { ax } = useLayout();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      testID={testID}
+      style={({ pressed }) => [
+        styles.leadRow,
+        { boxShadow: `0 1px 0 ${palette.divider}` },
+        pressed ? { backgroundColor: palette.fill } : null,
+      ]}
+    >
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Label accessibilityRole="text">{overline}</Label>
+        <Chrome tone="ink" style={styles.leadTitle} maxFontSizeMultiplier={2}>
+          <DivineText text={title} />
+        </Chrome>
+        {excerpt !== "" ? (
+          <Scripture step="claim" tone="muted" numberOfLines={ax ? 3 : 1} style={{ fontFamily: FONTS.scripture }}>
+            {excerpt}
+          </Scripture>
+        ) : null}
+      </View>
+      <Icon name="forward" size={18} tone="muted" />
+    </Pressable>
+  );
+}
+
+/**
  * The outlined wordmark as Home's title (brief §8.15): forest on chalk, chalk
  * in dark. 44 pt tall, growing with Dynamic Type to 72 at AX5 (canvas
  * .wordmark). Rasters from the high-resolution export, sized for 72 pt at 3x.
@@ -255,14 +363,25 @@ function Wordmark() {
 }
 
 const styles = StyleSheet.create({
-  lead: {
-    paddingBottom: 12,
+  leadRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    columnGap: 12,
+    paddingTop: 14,
+    paddingBottom: 22,
+    marginBottom: 6,
   },
   leadTitle: {
-    fontFamily: "Literata",
-    fontSize: 26,
-    lineHeight: 31,
+    fontFamily: FONTS.scripture,
+    fontSize: 30,
+    lineHeight: 36,
     fontWeight: "600",
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  progress: {
+    marginTop: 4,
+    marginBottom: 2,
   },
 });

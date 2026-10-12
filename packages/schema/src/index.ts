@@ -11,3 +11,6 @@ export * from "./validate.js";
 export * from "./search.js";
 export * from "./bundle.js";
 export * from "./morph.js";
+export * from "./study.js";
+export * from "./syntax.js";
+export * from "./speakers.js";

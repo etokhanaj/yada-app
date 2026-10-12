@@ -96,6 +96,14 @@ fi
 if [ ! -d ios/Yada.xcworkspace ]; then
   npx expo prebuild --platform ios
 fi
+# iCloud sync (Oct 2026) added an entitlement and a native module, and an ios/ generated before
+# them archives without either: sync silently off. Prebuild only runs when ios/ is missing, so
+# the project is checked instead of trusted.
+if ! /usr/libexec/PlistBuddy -c "Print :com.apple.developer.ubiquity-kvstore-identifier" ios/Yada/Yada.entitlements >/dev/null 2>&1 \
+  || ! grep -q "YadaCloud" ios/Podfile.lock; then
+  echo "ios/ predates iCloud sync. Regenerate it: npx expo prebuild --platform ios --clean" >&2
+  exit 1
+fi
 
 build="$(node -e '
   const fs = require("fs");

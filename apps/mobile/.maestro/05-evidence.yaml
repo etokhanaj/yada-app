@@ -11,10 +11,16 @@ appId: studio.yada.reader
     id: bar-understand
 - waitForAnimationToEnd
 # c1 is a grammar claim: it opens from Original's "In the Greek" (brief §8.19).
-# Not centred: at the large detent Original sits near the end, where nothing can scroll it to the middle.
 - scrollUntilVisible:
     element:
       id: toggle-original
+# Left at the sheet's foot it can sit under Back to reading, which took the tap and closed the
+# sheet (simulator, 11 Oct 2026); a short drag lifts it clear. Not centred: at the large detent
+# Original sits near the end, where nothing can scroll it to the middle.
+- swipe:
+    start: "50%,75%"
+    end: "50%,55%"
+- waitForAnimationToEnd
 - tapOn:
     id: toggle-original
 - waitForAnimationToEnd

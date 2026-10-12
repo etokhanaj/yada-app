@@ -1,0 +1,994 @@
+{
+  "study": [
+    {
+      "book": "GEN",
+      "version": 1,
+      "file": "study-gen.v1.db",
+      "sha256": "9a816ef6bc945ade284aa9f7b148aa0ffc9903dd079386e3fc8c7c14eb8298e5",
+      "bytes": 581632,
+      "download_bytes": 209095,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 807,
+      "xrefs": 6001
+    },
+    {
+      "book": "EXO",
+      "version": 1,
+      "file": "study-exo.v1.db",
+      "sha256": "3782a669b644fb19d6e55201bc91743cd4c7895e83b3846f7b98a6bb545f2274",
+      "bytes": 389120,
+      "download_bytes": 136329,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 481,
+      "xrefs": 4625
+    },
+    {
+      "book": "LEV",
+      "version": 1,
+      "file": "study-lev.v1.db",
+      "sha256": "761c0ca2ccbe21f051fbeef71583daf52bcac030275aac067cbdf424764d3454",
+      "bytes": 307200,
+      "download_bytes": 103405,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 366,
+      "xrefs": 3194
+    },
+    {
+      "book": "NUM",
+      "version": 1,
+      "file": "study-num.v1.db",
+      "sha256": "46db94433430680ae190f4e0090f727e798f04814fdbcdd36147e1b4bbe4ff29",
+      "bytes": 327680,
+      "download_bytes": 116711,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 445,
+      "xrefs": 4092
+    },
+    {
+      "book": "DEU",
+      "version": 1,
+      "file": "study-deu.v1.db",
+      "sha256": "442d59139b48c40b32936fe8be72129302675fd64961c839969f46370529e631",
+      "bytes": 327680,
+      "download_bytes": 118659,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 481,
+      "xrefs": 4101
+    },
+    {
+      "book": "JOS",
+      "version": 1,
+      "file": "study-jos.v1.db",
+      "sha256": "454404db37c24c91f16f6b64e12b16074f8cb5ab15c99566626b6f66f9c05a2e",
+      "bytes": 245760,
+      "download_bytes": 81686,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 362,
+      "xrefs": 2476
+    },
+    {
+      "book": "JDG",
+      "version": 1,
+      "file": "study-jdg.v1.db",
+      "sha256": "b41fa88f0bb4e0b311012fc7d21b9ceaae20b6edc24d160c0e178b0322a1be9a",
+      "bytes": 241664,
+      "download_bytes": 82585,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 323,
+      "xrefs": 2255
+    },
+    {
+      "book": "RUT",
+      "version": 1,
+      "file": "study-rut.v1.db",
+      "sha256": "3d479850b386c6c0410237af57a614236541d53b21849f6d3717c0b53f4f4f94",
+      "bytes": 94208,
+      "download_bytes": 21181,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 53,
+      "xrefs": 322
+    },
+    {
+      "book": "1SA",
+      "version": 1,
+      "file": "study-1sa.v1.db",
+      "sha256": "6c465ef64e4584d22170d9affb3263e1d892cb5498555693091bafbd582af5a0",
+      "bytes": 303104,
+      "download_bytes": 104750,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 461,
+      "xrefs": 3200
+    },
+    {
+      "book": "2SA",
+      "version": 1,
+      "file": "study-2sa.v1.db",
+      "sha256": "009bb1ad5aa4c5c1906e3654e110782da447103e264af9ce9668b645ae576f7d",
+      "bytes": 278528,
+      "download_bytes": 93379,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 387,
+      "xrefs": 2757
+    },
+    {
+      "book": "1KI",
+      "version": 1,
+      "file": "study-1ki.v1.db",
+      "sha256": "d53ce425a30c965500b632bf106b98187bfd08195b1e4de6cc9a40cc8820ff23",
+      "bytes": 331776,
+      "download_bytes": 108712,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 357,
+      "xrefs": 3302
+    },
+    {
+      "book": "2KI",
+      "version": 1,
+      "file": "study-2ki.v1.db",
+      "sha256": "3374f8596a58c61d7647dd2208d0e8453f431cf29b4744403b623e22c62d5337",
+      "bytes": 303104,
+      "download_bytes": 98776,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 359,
+      "xrefs": 3078
+    },
+    {
+      "book": "1CH",
+      "version": 1,
+      "file": "study-1ch.v1.db",
+      "sha256": "7b6e581292ef29fe5a84e4cdba23a31ebdc052dc12fc10d8b5b4b28c6a24371e",
+      "bytes": 200704,
+      "download_bytes": 63724,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 183,
+      "xrefs": 2909
+    },
+    {
+      "book": "2CH",
+      "version": 1,
+      "file": "study-2ch.v1.db",
+      "sha256": "35a3105238ada6f1fc124ec232fc16f96d02e080c52731ca148e2764232d3204",
+      "bytes": 278528,
+      "download_bytes": 90903,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 284,
+      "xrefs": 3473
+    },
+    {
+      "book": "EZR",
+      "version": 1,
+      "file": "study-ezr.v1.db",
+      "sha256": "ea7abcb1e08c1978f2333e7d61b89d33a81a3a485a57ebd3a4c2254fcc423948",
+      "bytes": 151552,
+      "download_bytes": 42098,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 130,
+      "xrefs": 974
+    },
+    {
+      "book": "NEH",
+      "version": 1,
+      "file": "study-neh.v1.db",
+      "sha256": "1a2e165e187026ad3e1ea962b2288397c227b023f2edae911c5b367924cfbd86",
+      "bytes": 172032,
+      "download_bytes": 49297,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 183,
+      "xrefs": 1459
+    },
+    {
+      "book": "EST",
+      "version": 1,
+      "file": "study-est.v1.db",
+      "sha256": "e4441bdd5922c9b08351f7a611b08a8afb2b60f2feb0711e7d24a6e6d7c8340a",
+      "bytes": 122880,
+      "download_bytes": 30221,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 102,
+      "xrefs": 651
+    },
+    {
+      "book": "JOB",
+      "version": 1,
+      "file": "study-job.v1.db",
+      "sha256": "a60b7d625a677d44ce621c595cc0ea703dde671f7f536f153c7fa2f5dbbcea99",
+      "bytes": 311296,
+      "download_bytes": 105689,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 408,
+      "xrefs": 4741
+    },
+    {
+      "book": "PSA",
+      "version": 1,
+      "file": "study-psa.v1.db",
+      "sha256": "b59c52438d9a6e8fc26365e6f4229b65ce118a809167898e092cfa0750514307",
+      "bytes": 729088,
+      "download_bytes": 263023,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 1540,
+      "xrefs": 11952
+    },
+    {
+      "book": "PRO",
+      "version": 1,
+      "file": "study-pro.v1.db",
+      "sha256": "01f0198486e0ff25236a962a6285389c259ec95cae4dc8ad2b848b68a38c645b",
+      "bytes": 278528,
+      "download_bytes": 93371,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 497,
+      "xrefs": 4269
+    },
+    {
+      "book": "ECC",
+      "version": 1,
+      "file": "study-ecc.v1.db",
+      "sha256": "c4f1457970000d1e8e2490e518c75b152309da3bd7bd401323c1e4bd674f9534",
+      "bytes": 131072,
+      "download_bytes": 33789,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 147,
+      "xrefs": 1042
+    },
+    {
+      "book": "SNG",
+      "version": 1,
+      "file": "study-sng.v1.db",
+      "sha256": "1bdfd1e1c15427e35405febd3020a3d738882419a84ffa7b400302af9a7db0ba",
+      "bytes": 126976,
+      "download_bytes": 33043,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 99,
+      "xrefs": 556
+    },
+    {
+      "book": "ISA",
+      "version": 1,
+      "file": "study-isa.v1.db",
+      "sha256": "0a5b7e822d534da5322663338351bd7b8c4e37314ccbb10546d58c8286ae6fc7",
+      "bytes": 536576,
+      "download_bytes": 186441,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 995,
+      "xrefs": 6266
+    },
+    {
+      "book": "JER",
+      "version": 1,
+      "file": "study-jer.v1.db",
+      "sha256": "659f47803d880031e820b998c536f05b3e1bd7bb294e3692d7e33a05068d6933",
+      "bytes": 507904,
+      "download_bytes": 174160,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 878,
+      "xrefs": 6372
+    },
+    {
+      "book": "LAM",
+      "version": 1,
+      "file": "study-lam.v1.db",
+      "sha256": "40ca5d119bfb3bce3c2fdc06e719de9e4e5c3d8a388d69f3eaa5a0accb40861e",
+      "bytes": 98304,
+      "download_bytes": 23120,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 67,
+      "xrefs": 736
+    },
+    {
+      "book": "EZK",
+      "version": 1,
+      "file": "study-ezk.v1.db",
+      "sha256": "0be543fb0f64eb8c2b05d301bac73deb1da1eb5750dfaa397bf378492ccbfd5d",
+      "bytes": 446464,
+      "download_bytes": 146108,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 499,
+      "xrefs": 5444
+    },
+    {
+      "book": "DAN",
+      "version": 1,
+      "file": "study-dan.v1.db",
+      "sha256": "e285cf0f45ace68cd2b5eec8a1c1498f96cdd64bbf3c7c4b0ed2eab9fe23315f",
+      "bytes": 253952,
+      "download_bytes": 75479,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 273,
+      "xrefs": 1600
+    },
+    {
+      "book": "HOS",
+      "version": 1,
+      "file": "study-hos.v1.db",
+      "sha256": "9c429a512f7b10e4979070a5024fc490e680e710b522ec1f182dde88efd76e85",
+      "bytes": 135168,
+      "download_bytes": 37910,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 147,
+      "xrefs": 964
+    },
+    {
+      "book": "JOL",
+      "version": 1,
+      "file": "study-jol.v1.db",
+      "sha256": "45d21d35b9993e79387dbcee11ef30529c8a9b62d36e5308329ae477b55b8619",
+      "bytes": 94208,
+      "download_bytes": 21679,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 62,
+      "xrefs": 350
+    },
+    {
+      "book": "AMO",
+      "version": 1,
+      "file": "study-amo.v1.db",
+      "sha256": "63d070a99a01256e4756bb2d7a1461c08dc65a74c6df1f956c0aa349a92de619",
+      "bytes": 143360,
+      "download_bytes": 39323,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 140,
+      "xrefs": 711
+    },
+    {
+      "book": "OBA",
+      "version": 1,
+      "file": "study-oba.v1.db",
+      "sha256": "0e04e5c5b59704c7234adfba1df97136e0346b21f9519b572c50155db7a9342c",
+      "bytes": 73728,
+      "download_bytes": 12157,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 21,
+      "xrefs": 105
+    },
+    {
+      "book": "JON",
+      "version": 1,
+      "file": "study-jon.v1.db",
+      "sha256": "7cf81a257a7f184100c40625b7ce390b472e7712349ac16af7abb28b62bc8353",
+      "bytes": 90112,
+      "download_bytes": 17720,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 35,
+      "xrefs": 223
+    },
+    {
+      "book": "MIC",
+      "version": 1,
+      "file": "study-mic.v1.db",
+      "sha256": "5a89ce4ea1b28e59f8ec2ac5f7beab4292df1a6175e14a1de822fbcca2a29ea2",
+      "bytes": 114688,
+      "download_bytes": 30111,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 91,
+      "xrefs": 517
+    },
+    {
+      "book": "NAM",
+      "version": 1,
+      "file": "study-nam.v1.db",
+      "sha256": "3608d34897915adcce66e2c34d252f2dc01d9a7db5332ff9ec54473fa35be025",
+      "bytes": 90112,
+      "download_bytes": 18768,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 41,
+      "xrefs": 224
+    },
+    {
+      "book": "HAB",
+      "version": 1,
+      "file": "study-hab.v1.db",
+      "sha256": "957efb6d0886454793ece04802071205197a01033d89d05ebda195bdda7c2c54",
+      "bytes": 94208,
+      "download_bytes": 20329,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 49,
+      "xrefs": 267
+    },
+    {
+      "book": "ZEP",
+      "version": 1,
+      "file": "study-zep.v1.db",
+      "sha256": "cf19ae18e49610af861f26e2d6609d23fefa99b0162431e06cf2070bb498786e",
+      "bytes": 90112,
+      "download_bytes": 19078,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 51,
+      "xrefs": 264
+    },
+    {
+      "book": "HAG",
+      "version": 1,
+      "file": "study-hag.v1.db",
+      "sha256": "ec82e54442bc1721e1010f018f402b7bb8b1cadc7ad7b5e775b470956940b157",
+      "bytes": 86016,
+      "download_bytes": 16403,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 37,
+      "xrefs": 177
+    },
+    {
+      "book": "ZEC",
+      "version": 1,
+      "file": "study-zec.v1.db",
+      "sha256": "fac0633b3631709325ef7b3a3b110d213a81ea71a5abcd41bc5fb1c660646d98",
+      "bytes": 167936,
+      "download_bytes": 48898,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 183,
+      "xrefs": 987
+    },
+    {
+      "book": "MAL",
+      "version": 1,
+      "file": "study-mal.v1.db",
+      "sha256": "ae40f8802e12a67928aaa23b7cf1e5b026c14a2a3e25389e0ae4d49358dc396e",
+      "bytes": 102400,
+      "download_bytes": 21845,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 48,
+      "xrefs": 274
+    },
+    {
+      "book": "MAT",
+      "version": 1,
+      "file": "study-mat.v1.db",
+      "sha256": "a6dcb01b352b80aee6eb8f794d76ec432b5f13fd480a121e610f31343f211dbe",
+      "bytes": 450560,
+      "download_bytes": 157727,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 677,
+      "xrefs": 4895
+    },
+    {
+      "book": "MRK",
+      "version": 1,
+      "file": "study-mrk.v1.db",
+      "sha256": "0ac785e02eeaa5691caadb279f5f3170cf06e6aab72f9b1d0898c6cd6715c22b",
+      "bytes": 385024,
+      "download_bytes": 127206,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 466,
+      "xrefs": 2934
+    },
+    {
+      "book": "LUK",
+      "version": 1,
+      "file": "study-luk.v1.db",
+      "sha256": "5411cec244af73cfe259041859e25791f44f21691d470dd2c5a7624f160b0294",
+      "bytes": 442368,
+      "download_bytes": 151747,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 736,
+      "xrefs": 5106
+    },
+    {
+      "book": "JHN",
+      "version": 1,
+      "file": "study-jhn.v1.db",
+      "sha256": "1fc3e1bd0e68315671c754f3b2feca243c0fabbfa640bc9e1271fa53b8a3a2c1",
+      "bytes": 372736,
+      "download_bytes": 124600,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 514,
+      "xrefs": 3998
+    },
+    {
+      "book": "ACT",
+      "version": 1,
+      "file": "study-act.v1.db",
+      "sha256": "a4e3d286b9f607c786e818ca85c2c4616b5f6114f1cf502796e64782979b9d15",
+      "bytes": 409600,
+      "download_bytes": 133784,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 419,
+      "xrefs": 4542
+    },
+    {
+      "book": "ROM",
+      "version": 1,
+      "file": "study-rom.v1.db",
+      "sha256": "65fedc52a8437dbb7804ae03e768b3532623e95a9dafb298ff0863e50edbb9fb",
+      "bytes": 274432,
+      "download_bytes": 85041,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 268,
+      "xrefs": 2080
+    },
+    {
+      "book": "1CO",
+      "version": 1,
+      "file": "study-1co.v1.db",
+      "sha256": "e18c29894f6cbe54e10e2afd5901ae5b1082b9fce48f252c533038f1828e4416",
+      "bytes": 237568,
+      "download_bytes": 73212,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 317,
+      "xrefs": 2003
+    },
+    {
+      "book": "2CO",
+      "version": 1,
+      "file": "study-2co.v1.db",
+      "sha256": "cc2ba240239a178859c30124d78b19d54e8331b3159051b56d2d0dbdb01d5ed1",
+      "bytes": 167936,
+      "download_bytes": 49277,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 153,
+      "xrefs": 1222
+    },
+    {
+      "book": "GAL",
+      "version": 1,
+      "file": "study-gal.v1.db",
+      "sha256": "78b6152e1e0872e41f4aa5e6de2a82e5ca5492e08753f687cf51d4d76e4e7c69",
+      "bytes": 167936,
+      "download_bytes": 47115,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 173,
+      "xrefs": 723
+    },
+    {
+      "book": "EPH",
+      "version": 1,
+      "file": "study-eph.v1.db",
+      "sha256": "bd022f74e19473c485db8ed67b792b0e98cadef64e978965914943f51797f370",
+      "bytes": 143360,
+      "download_bytes": 40221,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 147,
+      "xrefs": 770
+    },
+    {
+      "book": "PHP",
+      "version": 1,
+      "file": "study-php.v1.db",
+      "sha256": "679d4eb058fd122f5c9148fdb2902a64f0aaae29406020a30d868e2f8123553c",
+      "bytes": 114688,
+      "download_bytes": 27138,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 96,
+      "xrefs": 505
+    },
+    {
+      "book": "COL",
+      "version": 1,
+      "file": "study-col.v1.db",
+      "sha256": "90614f8fd74756bbb0749e1444d8ff183671e7175fa8037a303c8a42445fe000",
+      "bytes": 106496,
+      "download_bytes": 25539,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 75,
+      "xrefs": 463
+    },
+    {
+      "book": "1TH",
+      "version": 1,
+      "file": "study-1th.v1.db",
+      "sha256": "dee24a49ded0456c206544c7958520bdd661e481af99d18a99670fa79ce97c8e",
+      "bytes": 110592,
+      "download_bytes": 25609,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 83,
+      "xrefs": 438
+    },
+    {
+      "book": "2TH",
+      "version": 1,
+      "file": "study-2th.v1.db",
+      "sha256": "2d79dda6b5155d9ba72dda673cb5fb1772a7125f78784581cd4768c5a3f13cb0",
+      "bytes": 94208,
+      "download_bytes": 18535,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 49,
+      "xrefs": 224
+    },
+    {
+      "book": "1TI",
+      "version": 1,
+      "file": "study-1ti.v1.db",
+      "sha256": "47cde1f541edb810d24d8e565ee1a8b1c3608c6cbf47861a841e2f5befc4cdf7",
+      "bytes": 122880,
+      "download_bytes": 31788,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 93,
+      "xrefs": 550
+    },
+    {
+      "book": "2TI",
+      "version": 1,
+      "file": "study-2ti.v1.db",
+      "sha256": "79f32ba3d8024b153b0a999a842de397b9467f10f43a4ec3c5871b37c2b85192",
+      "bytes": 102400,
+      "download_bytes": 23626,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 68,
+      "xrefs": 402
+    },
+    {
+      "book": "TIT",
+      "version": 1,
+      "file": "study-tit.v1.db",
+      "sha256": "c6d4ac2fc35fee13ac934e6929d7ed50f34a986cd146f3b9648a419f6cff10ed",
+      "bytes": 98304,
+      "download_bytes": 20095,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 45,
+      "xrefs": 228
+    },
+    {
+      "book": "PHM",
+      "version": 1,
+      "file": "study-phm.v1.db",
+      "sha256": "cc4c56db89944e89c806e316ace66ca7e559b04c0a909f72c51dcfb62b83842b",
+      "bytes": 73728,
+      "download_bytes": 11942,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 24,
+      "xrefs": 116
+    },
+    {
+      "book": "HEB",
+      "version": 1,
+      "file": "study-heb.v1.db",
+      "sha256": "57063dfe3e5fbe9380cbee1753a3e1096cdb1682ae6d953a596cb1d382e56c92",
+      "bytes": 249856,
+      "download_bytes": 74112,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 294,
+      "xrefs": 1450
+    },
+    {
+      "book": "JAS",
+      "version": 1,
+      "file": "study-jas.v1.db",
+      "sha256": "91efa459bf5a769d3fa97a4701c40c7649b6b8dd7ca5af070ed64ef7b0a6b0e9",
+      "bytes": 110592,
+      "download_bytes": 28369,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 86,
+      "xrefs": 520
+    },
+    {
+      "book": "1PE",
+      "version": 1,
+      "file": "study-1pe.v1.db",
+      "sha256": "61656540d126f77b0567b4dbde5ab7c3aad0b9e2728d0c77e63ce2b4792e1d3f",
+      "bytes": 114688,
+      "download_bytes": 28466,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 85,
+      "xrefs": 516
+    },
+    {
+      "book": "2PE",
+      "version": 1,
+      "file": "study-2pe.v1.db",
+      "sha256": "049159476b93279a184a19b276f9902bb5dcc8d234ba2a0928ac6eeca244dd57",
+      "bytes": 90112,
+      "download_bytes": 18884,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 48,
+      "xrefs": 292
+    },
+    {
+      "book": "1JN",
+      "version": 1,
+      "file": "study-1jn.v1.db",
+      "sha256": "673b02598f13186283f782e7c07ede4c0c69a22254a8ee60ded9386f74a0ba41",
+      "bytes": 110592,
+      "download_bytes": 25938,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 63,
+      "xrefs": 520
+    },
+    {
+      "book": "2JN",
+      "version": 1,
+      "file": "study-2jn.v1.db",
+      "sha256": "f89d5638aa91d3bc1da5aca9e753bfe57e831617d2107f19f42b8207f74df9a7",
+      "bytes": 69632,
+      "download_bytes": 8790,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 14,
+      "xrefs": 61
+    },
+    {
+      "book": "3JN",
+      "version": 1,
+      "file": "study-3jn.v1.db",
+      "sha256": "fc3f8732de20cd9cdc2bed44e856c2356938fbabaa03faf166e0ed9eb471cb57",
+      "bytes": 69632,
+      "download_bytes": 9105,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 18,
+      "xrefs": 67
+    },
+    {
+      "book": "JUD",
+      "version": 1,
+      "file": "study-jud.v1.db",
+      "sha256": "b62f8f28dc04e82ed82d6c289d593950387a73f5d2547f32a2ce7a20cd276b9f",
+      "bytes": 73728,
+      "download_bytes": 11920,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 25,
+      "xrefs": 121
+    },
+    {
+      "book": "REV",
+      "version": 1,
+      "file": "study-rev.v1.db",
+      "sha256": "a1e2a13f1c2526f4efe8ae9686a56ea6567484075df54893fcf17c64e9e6a43d",
+      "bytes": 290816,
+      "download_bytes": 93246,
+      "format": 1,
+      "licenses": [
+        "CC-BY-SA-4.0",
+        "CC-BY-4.0"
+      ],
+      "notes": 370,
+      "xrefs": 1904
+    }
+  ]
+}

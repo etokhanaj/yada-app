@@ -53,11 +53,18 @@ export function SheetScreen({
   testID,
   onSize,
   closeLabel = "Close",
+  returns = false,
   footer = true,
   header,
   leading,
   keyboard = false,
+  onScrollY,
 }: {
+  /**
+   * The body's scroll offset and visible height, as it scrolls and when it is laid out:
+   * the passage guide counts a passage read when its Next row comes into view (ON-04).
+   */
+  onScrollY?: (y: number, viewport: number) => void;
   /** A text control where `‹` would be, on a sheet's first screen: Translations' `Choose`. */
   leading?: ReactNode;
   children: ReactNode;
@@ -69,6 +76,8 @@ export function SheetScreen({
   keyboard?: boolean;
   /** What `×` returns to, for VoiceOver: "Close" on Understand, "Back to Understand" on evidence. */
   closeLabel?: string;
+  /** × is this sheet's way back to reading (no footer): it logs the return, as the capsule did. */
+  returns?: boolean;
   /** What this layer is: "1 Corinthians 14:34", "Why we say this", "Word". */
   title: string;
   /** The verse it belongs to, when the title does not already say it. */
@@ -106,7 +115,14 @@ export function SheetScreen({
     settled.current = large;
   }, [large]);
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => setScrolled(e.nativeEvent.contentOffset.y > 2);
+  const scrollY = useRef(0);
+  const viewport = useRef(0);
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setScrolled(e.nativeEvent.contentOffset.y > 2);
+    scrollY.current = e.nativeEvent.contentOffset.y;
+    viewport.current = e.nativeEvent.layoutMeasurement.height;
+    onScrollY?.(scrollY.current, viewport.current - (footer ? chrome.footer : 0));
+  };
 
   const round = (icon: "back" | "close", label: string, onPress: () => void, id: string) => (
     <Pressable
@@ -164,7 +180,12 @@ export function SheetScreen({
     leading === undefined ? child : <View style={{ minWidth: 76, alignItems: end }}>{child}</View>;
   const backButton = slot(leading ?? (back === null ? side : round("back", "Back", back, "sheet-back")), "flex-start");
   // × names its destination to VoiceOver: one layer up, never further (v2-review X7).
-  const closeButton = slot(round("close", closeLabel, closeSheet, "sheet-close"), "flex-end");
+  // A sheet without the Back to reading capsule (Understand, canvas SN-09) counts its × as the return.
+  const close = () => {
+    if (!footer && returns) log("return_to_reading", verseId);
+    closeSheet();
+  };
+  const closeButton = slot(round("close", closeLabel, close, "sheet-close"), "flex-end");
 
   return (
     <SheetSize.Provider value={{ large, headerHeight: chrome.header }}>
@@ -192,6 +213,11 @@ export function SheetScreen({
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={32}
+          onLayout={(e) => {
+            viewport.current = e.nativeEvent.layout.height;
+            onScrollY?.(scrollY.current, viewport.current - (footer ? chrome.footer : 0));
+          }}
+          onContentSizeChange={() => onScrollY?.(scrollY.current, viewport.current - (footer ? chrome.footer : 0))}
         >
           {children}
         </ScrollView>
@@ -261,6 +287,12 @@ export function SheetScreen({
   );
 }
 
+/**
+ * Understand's sheets (canvas SN-09) have no Back to reading capsule: × is the one way out, and
+ * says where it goes. Spread onto SheetScreen.
+ */
+export const UNDERSTAND_EXIT = { footer: false, returns: true, closeLabel: "Close, back to reading" } as const;
+
 /** A section: sentence-case label, then its content (canvas `.sec`). */
 export function Section({ title, children, first = false, hint }: { title: string; children: ReactNode; first?: boolean; hint?: string }) {
   const { sectionGap } = useLayout();
@@ -317,6 +349,19 @@ export function Row({
       <View style={{ flex: 1, minWidth: 0, rowGap: 4 }}>{children}</View>
       {chevron && onPress !== undefined ? <Icon name="forward" size={18} tone="muted" /> : null}
     </Pressable>
+  );
+}
+
+/**
+ * A row's one muted line (canvas SN-09: name, one muted line, a chevron). Capped at 2× like the
+ * row's name: uncapped, the note step reached 40 pt at AX5 and stood larger than the 34 pt name
+ * above it (AX5 screenshot, 11 Oct 2026).
+ */
+export function RowNote({ children }: { children: ReactNode }) {
+  return (
+    <Chrome step="note" tone="muted" maxFontSizeMultiplier={2}>
+      {children}
+    </Chrome>
   );
 }
 

@@ -1,16 +1,34 @@
 # A downloaded translation, end to end (MT-02–05): download YLT, read in it, search it,
 # go back to BSB, remove it with ⋯ → Remove. Leaves the app on BSB without YLT.
 #
-# Needs a local static server on port 8787 serving content/bundles (manifest.json and
-# the translation-*.db files), which a dev build reads by default (DEV_MANIFEST_URL in
-# src/data/translations.ts), for example from the repo root:
+# Needs a local static server serving content/bundles: manifest.json, which lists YLT as
+# translation-ylt.v1.db, and that file. (translation-ylt.v2.db there is a 0-byte leftover the
+# manifest does not name; nothing reads it.) A dev build reads http://localhost:8787 by default
+# (DEV_MANIFEST_URL in src/data/translations.ts), for example from the repo root:
 #   npx serve -p 8787 content/bundles
-# Without it the Download section never lists YLT and the flow stops at the first wait.
+# A Release build has no manifest URL unless one is given when it is bundled, so for a Release
+# simulator build set EXPO_PUBLIC_TRANSLATIONS_MANIFEST_URL=http://localhost:<port>/manifest.json
+# in the environment of xcodebuild, and serve on that port. Never for an archive meant to ship.
+# Without a server the Download section never lists YLT and the flow stops at the first wait.
 appId: studio.yada.reader
 ---
 - launchApp
 - openLink: studio.yada.reader:///read/JHN/1
 - waitForAnimationToEnd
+# A link sent while the app is still launching can be dropped, and Translations then opens on
+# an empty stack, where picking a version has no reader to go back to (11 Oct 2026). The
+# reader must be there first.
+- runFlow:
+    when:
+      notVisible:
+        id: reader-back
+    commands:
+      - openLink: studio.yada.reader:///read/JHN/1
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: reader-back
+    timeout: 10000
 - openLink: studio.yada.reader:///translations
 - waitForAnimationToEnd
 - assertVisible:
@@ -38,6 +56,20 @@ appId: studio.yada.reader
 - launchApp
 - openLink: studio.yada.reader:///read/JHN/1
 - waitForAnimationToEnd
+# A link sent while the app is still launching can be dropped, and Translations then opens on
+# an empty stack, where picking a version has no reader to go back to (11 Oct 2026). The
+# reader must be there first.
+- runFlow:
+    when:
+      notVisible:
+        id: reader-back
+    commands:
+      - openLink: studio.yada.reader:///read/JHN/1
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: reader-back
+    timeout: 10000
 - openLink: studio.yada.reader:///translations
 - waitForAnimationToEnd
 # Download rows appear once the manifest answers, below the On your iPhone rows.
@@ -106,6 +138,20 @@ appId: studio.yada.reader
 - launchApp
 - openLink: studio.yada.reader:///read/JHN/1
 - waitForAnimationToEnd
+# A link sent while the app is still launching can be dropped, and Translations then opens on
+# an empty stack, where picking a version has no reader to go back to (11 Oct 2026). The
+# reader must be there first.
+- runFlow:
+    when:
+      notVisible:
+        id: reader-back
+    commands:
+      - openLink: studio.yada.reader:///read/JHN/1
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: reader-back
+    timeout: 10000
 - openLink: studio.yada.reader:///translations
 - waitForAnimationToEnd
 - assertVisible: "Young.s Literal Translation, selected, downloaded, .*"
@@ -122,6 +168,20 @@ appId: studio.yada.reader
 - launchApp
 - openLink: studio.yada.reader:///read/JHN/1
 - waitForAnimationToEnd
+# A link sent while the app is still launching can be dropped, and Translations then opens on
+# an empty stack, where picking a version has no reader to go back to (11 Oct 2026). The
+# reader must be there first.
+- runFlow:
+    when:
+      notVisible:
+        id: reader-back
+    commands:
+      - openLink: studio.yada.reader:///read/JHN/1
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: reader-back
+    timeout: 10000
 - openLink: studio.yada.reader:///translations
 - waitForAnimationToEnd
 - assertVisible: "Young.s Literal Translation, downloaded, .*"

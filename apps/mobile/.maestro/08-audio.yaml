@@ -1,0 +1,82 @@
+# Audio read-along (AU-01–04): Listen at rest, pause, next and previous verse in the mini player,
+# Play from a selected verse, the full player and back. Steps that move by verse run paused, so
+# the voice reaching the next verse on its own never races an assertion.
+appId: studio.yada.reader
+---
+- launchApp
+- openLink: studio.yada.reader:///read/JHN/1
+- waitForAnimationToEnd
+- assertVisible:
+    id: rest-bar
+- tapOn:
+    id: listen
+- waitForAnimationToEnd
+- assertVisible:
+    id: mini-player
+- assertVisible: "Pause"
+- tapOn:
+    id: mini-toggle
+- assertVisible: "Play"
+- tapOn:
+    id: mini-next
+- assertVisible: ".*John 1:2, Berean Standard Bible.*"
+- tapOn:
+    id: mini-previous
+- assertVisible: ".*John 1:1, Berean Standard Bible.*"
+- tapOn:
+    id: mini-toggle
+- assertVisible: "Pause"
+# While audio plays, a verse tap still selects, and the bar offers Play from (AU-03).
+- tapOn:
+    id: verse-6
+- waitForAnimationToEnd
+- assertVisible:
+    id: bar-play-from
+- assertVisible:
+    id: bar-compare
+- tapOn:
+    id: bar-play-from
+# No waitForAnimationToEnd while a verse plays: the moving pill keeps the screen from settling, so
+# it waits its full 15 s and the voice has read on to 1:9 (audio-voice, 11 Oct 2026).
+- assertVisible:
+    id: mini-player
+- tapOn:
+    id: mini-toggle
+- assertVisible: ".*John 1:(6|7), Berean Standard Bible.*"
+# The full player (AU-04): a line plays from there; next moves a verse; the chevron closes it.
+- tapOn:
+    id: mini-open
+- waitForAnimationToEnd
+- assertVisible:
+    id: player
+- assertVisible:
+    id: player-progress
+- tapOn:
+    id: player-next
+- tapOn:
+    id: player-toggle
+- assertVisible: "Pause"
+# Speed and voice share one native menu. The Simulator has only compact voices and no Personal
+# Voice ("unsupported"), so its row never shows here; Get a clearer voice shows the AU-07 line.
+- tapOn:
+    id: player-speed
+- assertVisible: "Speed"
+- assertVisible: "Voice"
+- assertVisible: "Get a clearer voice"
+- assertNotVisible: "Your Personal Voice"
+- tapOn: "1.25×"
+- assertVisible: ".*Speed, 1.25 times.*"
+- tapOn:
+    id: player-speed
+- tapOn: "Get a clearer voice"
+- assertVisible: ".*Settings › Accessibility › Spoken Content › Voices.*"
+# Back to 1×: the speed persists per device, and the other flows expect the default.
+- tapOn:
+    id: player-speed
+- tapOn: "1×"
+- assertVisible: ".*Speed, 1 times.*"
+- tapOn:
+    id: player-close
+- waitForAnimationToEnd
+- assertVisible:
+    id: mini-player

@@ -16,8 +16,12 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { LaunchStage } from "../components/LaunchOverlay";
 import { type AppData, AppDataProvider } from "../data/AppData";
+import { initAudio } from "../data/audio";
 import { installBundles, openCore, openUser } from "../data/bundles";
-import { openInstalledTranslations } from "../data/translations";
+import { startCloudSync } from "../data/cloud";
+import { registerPassageNoteSource } from "../data/passageNote";
+import { openInstalledStudy, passageNoteSource } from "../data/study";
+import { openInstalledTranslations, useTranslations } from "../data/translations";
 import { pruneLicensedCache } from "../data/licensed";
 import { licensedEnabled, registerLicensedProvider } from "../data/useLicensedChapter";
 import { loadSettings, saveSetting } from "../data/user";
@@ -36,13 +40,30 @@ async function start(): Promise<AppData> {
   const core = await openCore();
   // Downloads attach before settings hydrate, so a reader of YLT reopens in YLT.
   const installed = await openInstalledTranslations(core, user).catch(() => []);
+  // Study notes are an extra: a launch whose study pass fails still reads.
+  await openInstalledStudy(user).catch(() => undefined);
+  // Every John passage without a reviewed Yada entry opens its guide on Tyndale's note (build plan,
+  // "Content the guide can show before the John batch").
+  registerPassageNoteSource(passageNoteSource);
   // A licensed version is readable only in a build that carries the API.Bible flag, so only
   // then does a saved NIV survive hydrate; anywhere else it falls back to BSB.
   const licensed = registerLicensedProvider();
   // API.Bible §11 and §18.8: nothing past 30 days, and nothing at all in a build without the flag.
   await pruneLicensedCache(user, licensedEnabled());
-  useSettings.getState().hydrate(await loadSettings(user), [...installed, ...licensed]);
+  // Merged with iCloud before settings hydrate and Home reads the reading place, so a
+  // second device opens where the first left off. It never fails the launch.
+  await startCloudSync(user, () => void followCloudSettings(user, licensed)).catch(() => undefined);
+  const stored = await loadSettings(user);
+  useSettings.getState().hydrate(stored, [...installed, ...licensed]);
+  // After hydrate, so the restored translation is not taken for a switch made while playing.
+  initAudio(core, user, stored);
   return { core, user };
+}
+
+/** A setting changed on another device: the store follows user.db, keeping a translation not installed here. */
+async function followCloudSettings(user: AppData["user"], licensed: readonly string[]): Promise<void> {
+  const installed = useTranslations.getState().installed.map((t) => t.code);
+  useSettings.getState().hydrate(await loadSettings(user), [...installed, ...licensed], useSettings.getState().translation);
 }
 
 export default function RootLayout() {
@@ -156,7 +177,14 @@ export default function RootLayout() {
           <Stack.Screen name="recent" />
           <Stack.Screen name="sources" />
           <Stack.Screen name="thread" />
+          {/* The full player (AU-04) covers the reader; closed by its down chevron, so no swipe to lose. */}
+          <Stack.Screen
+            name="player"
+            options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }}
+          />
           <Stack.Screen name="understand" options={sheet} />
+          {/* The passage guide: medium and large, as Understand (PG-02, PG-03). */}
+          <Stack.Screen name="guide" options={sheet} />
           <Stack.Screen name="evidence" options={sheet} />
           {/* Contents and Search open large: lists to scan, not notes beside the text. */}
           <Stack.Screen name="contents" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />

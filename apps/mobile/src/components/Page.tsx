@@ -10,6 +10,7 @@
 import { router } from "expo-router";
 import { type ReactNode, useState } from "react";
 import {
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   Pressable,
@@ -94,6 +95,17 @@ export function PageScreen({
   const [barHeight, setBarHeight] = useState(insets.top + 60);
   const [titleBottom, setTitleBottom] = useState(120);
   const [scrolled, setScrolled] = useState(false);
+  // The bar's title sits centred clear of the wider side. Fixed 100 pt insets let it run under
+  // `‹ Home` and the glass buttons once they grew at AX5 (Bookmarks and Home, 11 Oct 2026).
+  // Widths are read before setSides: the layout event is gone by the time an updater runs
+  // ("Cannot read property 'layout' of null", simulator, 11 Oct 2026).
+  const [sides, setSides] = useState({ left: 0, right: 0, row: 0 });
+  const inset = Math.max(sides.left, sides.right) + 8;
+  const titleFits = sides.row - 2 * inset >= 80;
+  const measure = (side: keyof typeof sides) => (e: LayoutChangeEvent) => {
+    const width = e.nativeEvent.layout.width;
+    setSides((v) => ({ ...v, [side]: width }));
+  };
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     // The title moves into the bar once the large one has scrolled under it (SO-02).
@@ -102,6 +114,39 @@ export function PageScreen({
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.paper }} testID={testID}>
+      {/* Drawn first so VoiceOver meets the controls before the page, as the eye does (ON-06);
+          zIndex keeps it above the scrolling content. */}
+      <View pointerEvents="box-none" style={styles.bar} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height - 22)}>
+        <View style={{ paddingTop: insets.top + 4, paddingHorizontal: 12, paddingBottom: 6, backgroundColor: palette.paper }}>
+          <View style={styles.row} onLayout={measure("row")}>
+            <View onLayout={measure("left")}>
+              {back !== null ? (
+                <GlassButton
+                  shape="capsule"
+                  onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+                  accessibilityLabel={back}
+                  testID="page-back"
+                >
+                  <Icon name="back" size={18} tone="muted" />
+                  <Chrome tone="ink" size={16} style={{ fontWeight: "500", marginRight: 2 }}>
+                    {back}
+                  </Chrome>
+                </GlassButton>
+              ) : null}
+            </View>
+            {scrolled && titleFits ? (
+              <Chrome step="sheetTitle" tone="ink" numberOfLines={1} style={[styles.inline, { left: inset, right: inset }]} accessibilityElementsHidden>
+                {title}
+              </Chrome>
+            ) : null}
+            <View style={styles.right} onLayout={measure("right")}>
+              {right}
+            </View>
+          </View>
+        </View>
+        <View style={{ height: 22, experimental_backgroundImage: `linear-gradient(${palette.paper}, ${transparent(palette.paper)})` }} />
+      </View>
+
       <ScrollView
         onScroll={onScroll}
         scrollEventThrottle={32}
@@ -120,35 +165,6 @@ export function PageScreen({
         </View>
         <View style={{ marginTop: 18 }}>{children}</View>
       </ScrollView>
-
-      <View pointerEvents="box-none" style={styles.bar} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height - 22)}>
-        <View style={{ paddingTop: insets.top + 4, paddingHorizontal: 12, paddingBottom: 6, backgroundColor: palette.paper }}>
-          <View style={styles.row}>
-            {back !== null ? (
-              <GlassButton
-                shape="capsule"
-                onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-                accessibilityLabel={back}
-                testID="page-back"
-              >
-                <Icon name="back" size={18} tone="muted" />
-                <Chrome tone="ink" size={16} style={{ fontWeight: "500", marginRight: 2 }}>
-                  {back}
-                </Chrome>
-              </GlassButton>
-            ) : (
-              <View />
-            )}
-            {scrolled ? (
-              <Chrome step="sheetTitle" tone="ink" numberOfLines={1} style={styles.inline} accessibilityElementsHidden>
-                {title}
-              </Chrome>
-            ) : null}
-            <View style={styles.right}>{right}</View>
-          </View>
-        </View>
-        <View style={{ height: 22, experimental_backgroundImage: `linear-gradient(${palette.paper}, ${transparent(palette.paper)})` }} />
-      </View>
     </View>
   );
 }
@@ -264,6 +280,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
+    zIndex: 1,
   },
   row: {
     minHeight: 52,
@@ -278,8 +295,6 @@ const styles = StyleSheet.create({
   },
   inline: {
     position: "absolute",
-    left: 100,
-    right: 100,
     textAlign: "center",
   },
   listRow: {

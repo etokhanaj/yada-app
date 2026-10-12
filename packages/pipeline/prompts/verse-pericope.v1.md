@@ -1,6 +1,6 @@
 # Yada generation prompt — pericope + verse entries
 
-`prompt_version: pericope@1.2.0`
+`prompt_version: pericope@1.4.0`
 
 You are producing corpus entries for Yada, a Bible reader whose content is
 AI-built, human-reviewed, and shipped as static data. Users never see a model at
@@ -34,7 +34,7 @@ status and the word-for-word gloss are filled in by the pipeline.
   not only inside its positions.
 - At most 8 claims per verse. Prefer fewer, sharper claims; the reader sees three.
 - Never restate a claim's category in its text ("…is disputed", "it is clear that").
-- `key_words` notes say what the word is; they do not repeat a claim.
+- `key_words` notes give the word's sense in this verse; they do not repeat a claim.
 - Each word in the supplied data carries its gloss. Use it; do not re-gloss from memory.
 - Leave `dataset` as ""; the pipeline records it.
 - `confidence`: `high`, `medium` or `low`. Internal only, never shown.
@@ -99,6 +99,50 @@ sense depends on it.
 
 **`whats_happening` is the 30-second answer** — two to four sentences, what is
 going on, in the register of a good study Bible note rather than a commentary.
+
+**Plain words for a lay reader.** These apply to every field a reader sees:
+`whats_happening`, `key_words` notes, `translation_note`, claim text and
+position cases.
+
+- **No grammar labels unless defined in the same sentence.** Do not write
+  "article", "articular", "accusative", "aorist", "imperfect" or "predicate
+  noun" bare. Say what the grammar does: "the Greek has no 'the' before 'God'",
+  not "θεός is anarthrous". The parse stays in the lexical evidence you cite.
+- **A dispute names its question in plain words.** Write "Readers disagree about
+  what it means that there is no 'the' before 'God'", never "What the missing
+  article signals is disputed". A bare "X is disputed" tells the reader nothing
+  about what is in question.
+- **One idea per sentence, about 25 words at most.** Do not stack clauses to fit a
+  qualifier in; give the qualifier its own sentence. Shorter is not looser: every
+  qualifier the evidence carries ("usually", "in some manuscripts") stays.
+- **Word notes give the sense in this verse.** "Here πρός means 'with'", not the
+  word's range across Greek literature.
+- **Lexical range and history belong in the evidence layer**, not in reader-facing
+  notes. The note says what the word does here.
+- **The top layer takes no side.** Every sentence in `whats_happening`, `key_words`
+  notes and `translation_note` must hold under every position of every debated
+  claim. If a debated claim asks whether "a number of a man" means one person, the
+  top layer may not say "without saying which man".
+- **No field contradicts another.** Counts, verse numbers, and "only", "the one" or
+  "the same words" statements must agree across every field. If a related passage
+  is "the other place" that does something, `whats_happening` may not call this
+  verse "the only place". If two claims are debated, no field may speak of "the
+  one" open question.
+- **Every position argues for its own reading**, with the same parts as the other
+  positions: what in the text supports it, and what follows. A position never
+  rebuts a view no listed position holds, and is never a bare fact ("some
+  manuscripts read X") with no case for the reading.
+- **Name sources and specialist terms in plain words on first use**: "the SBL Greek
+  New Testament (SBLGNT)", "the vowel marks added by Jewish scribes (the
+  Masoretes)", "the ancient Near East (the lands around Israel)", "the early Greek
+  translation of the Old Testament". The same goes for book genres.
+- **No word notes about how many parts a word is built from, and no etymology.** A
+  note like "one written word carrying three morphemes" or "built on the word for a
+  pebble" does not change the reading. A word note gives the sense in this verse,
+  or the note is left out.
+- **Scope a text claim to its edition when manuscripts differ.** Write "the Greek
+  text here writes it as three words", not "the Greek does not", when some
+  manuscripts read otherwise.
 
 **`close_rendering` is composed, not derived.** It may be close to the source; it
 is never labelled literal. The mechanical word-for-word gloss is supplied to you

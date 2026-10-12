@@ -15,12 +15,12 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { type License, type SourceManifestEntry } from "@yada/schema";
 
-import { ensureDirs, MANIFEST, RAW } from "./paths.js";
+import { ensureDirs, MANIFEST, PIPELINE_DATA, RAW } from "./paths.js";
 
 export interface SourceFile {
   /** Local filename under content/raw. */
@@ -59,8 +59,8 @@ export interface SourceDef {
    */
   pinnedByDigest?: boolean;
   /**
-   * Shipped as its own download (`package translation`), so core's attribution table leaves it
-   * out and core's bytes do not change when one is added.
+   * Shipped as its own download (`package translation`, `package study`), so core's attribution
+   * table leaves it out and core's bytes do not change when one is added.
    */
   downloadable?: boolean;
 }
@@ -90,6 +90,69 @@ const ebible = (id: string, sha256: string): SourceFile => ({
   sha256,
   licenseIn: { zipMember: `${id}_about.htm`, mustContain: "Public Domain" },
 });
+
+const TOSN_ZIP = "https://tyndaleopenresources.com/wp-content/themes/tyndale-openresources/files/tyndale_open-studynotes.zip";
+const TOSN_SHA256 = "7b4d5ae088449d5a6925170c4b89b978acee2f78f73dc6b8a278fa948a7e8498";
+/** The archive members Yada reads. `_README.txt` is the licence; the rest are the notes. */
+export const TOSN_FILES = ["_README.txt", "StudyNotes.xml", "BookIntros.xml", "BookIntroSummaries.xml", "Profiles.xml", "ThemeNotes.xml"];
+
+/** One member of the Tyndale zip, pinned by the digest of the zip as downloaded on 11 Oct 2026. */
+const tosn = (name: string): SourceFile => ({
+  file: `tosn-${name.replace(/^_/, "")}`,
+  url: TOSN_ZIP,
+  zipMember: `Tyndale Open Study Notes/${name}`,
+  sha256: TOSN_SHA256,
+  licenseIn: {
+    zipMember: "Tyndale Open Study Notes/_README.txt",
+    mustContain: "Creative Commons Attribution-ShareAlike 4.0 International License",
+  },
+});
+
+// MACULA release tags, resolved to their commits on 11 Oct 2026. A tag can be moved; a commit
+// cannot, so the URLs use the commit and every file is also pinned by digest.
+export const MACULA_GREEK_COMMIT = "b5b7ecec0882a3e9a609ecac99e157391e5d9b46"; // release 24.06.17
+export const MACULA_HEBREW_COMMIT = "09f8ea9e25025841ec45e2b6e7fc01595a080568"; // release 26.04.13
+
+/**
+ * The files Yada reads from one MACULA repository, from `packages/pipeline/data/macula-*.sha256`
+ * (`shasum -a 256 -c` format, repository paths). 929 Hebrew chapter files are too many to list
+ * here by hand, and the digests are what pin them.
+ */
+function maculaFiles(lang: "greek" | "hebrew", commit: string): SourceFile[] {
+  const list = readFileSync(path.join(PIPELINE_DATA, `macula-${lang}.sha256`), "utf8");
+  return list
+    .split("\n")
+    .filter((line) => line.trim() !== "")
+    .map((line) => {
+      const [sha256 = "", repoPath = ""] = line.split(/\s+/);
+      return {
+        file: `macula-${lang}-${path.basename(repoPath)}`,
+        url: `https://raw.githubusercontent.com/Clear-Bible/macula-${lang}/${commit}/${repoPath}`,
+        sha256,
+      };
+    });
+}
+
+/** sillsdev/Glyssen master on 11 Oct 2026. */
+export const GLYSSEN_COMMIT = "e912d2097dffc625778782c18043e21d8820c414";
+
+/**
+ * The Glyssen files, from `packages/pipeline/data/glyssen.sha256` (repository paths), each kept as
+ * content/raw/glyssen/<basename>. LICENSE and the .csproj are pinned too: they are the licence.
+ */
+function glyssenFiles(): SourceFile[] {
+  return readFileSync(path.join(PIPELINE_DATA, "glyssen.sha256"), "utf8")
+    .split("\n")
+    .filter((line) => line.trim() !== "")
+    .map((line) => {
+      const [sha256 = "", repoPath = ""] = line.split(/\s+/);
+      return {
+        file: `glyssen/${path.basename(repoPath)}`,
+        url: `https://raw.githubusercontent.com/sillsdev/Glyssen/${GLYSSEN_COMMIT}/${repoPath}`,
+        sha256,
+      };
+    });
+}
 
 export const SOURCES: SourceDef[] = [
   {
@@ -249,11 +312,14 @@ export const SOURCES: SourceDef[] = [
     key: "lsv",
     source: "eBible.org / Covenant Press",
     dataset: "Literal Standard Version (englsv)",
-    // Read from https://ebible.org/englsv/copyright.htm (10 Oct 2026): "This translation is made
-    // available to you under the terms of the Creative Commons Attribution Share-Alike license 4.0."
+    // Read from englsv_about.htm inside englsv_vpl.zip (rule 3, checked 11 Oct 2026): "copyright
+    // © 2020 Covenant Press", then "made available to you under the terms of the Creative Commons
+    // Attribution Share-Alike license 4.0", on condition "You include the above copyright and
+    // source information". So the credit is that copyright line and eBible.org, word for word;
+    // it had named the Covenant Christian Coalition too, from a later paragraph.
     license: "CC-BY-SA-4.0",
     attribution_text:
-      "Literal Standard Version (LSV). Copyright © 2020 Covenant Press and the Covenant Christian Coalition. Licensed under CC BY-SA 4.0.",
+      "Literal Standard Version. Copyright © 2020 Covenant Press. Licensed under CC BY-SA 4.0. From eBible.org.",
     homepage: "https://ebible.org/englsv/",
     commit: "unversioned",
     pinnedByDigest: true,
@@ -262,6 +328,10 @@ export const SOURCES: SourceDef[] = [
         file: "englsv_vpl.txt",
         url: "https://ebible.org/Scriptures/englsv_vpl.zip",
         zipMember: "englsv_vpl.txt",
+        // The zip as ingested on 11 Oct 2026, and its licence re-read on every ingest (rule 3,
+        // gate review): ShareAlike terms that changed would otherwise go unnoticed.
+        sha256: "bf986dff02339488af494920593dc5fc0ef959307e5c0c90c3b569f1d10971bf",
+        licenseIn: { zipMember: "englsv_about.htm", mustContain: "Creative Commons Attribution Share-Alike license 4.0" },
       },
     ],
     // ShareAlike binds adaptations: any change beyond whitespace must be recorded here and the
@@ -376,6 +446,139 @@ export const SOURCES: SourceDef[] = [
       "Only words carried by the SBL edition are used, aligned to MorphGNT tokens by accent-stripped surface within each verse. Only the English gloss column is used.",
     encumbered: "STEPBible asks that the data not be redistributed directly; bundling it needs their confirmation — PRD 0E.",
   },
+  // ---------------------------------------------------------------------------
+  // Study layer (`package study`): third-party notes and cross-references, shown verbatim with
+  // attribution in their own file. Read straight from content/raw into study.vN.db, never into
+  // staging.db, so they cannot reach a prompt, the adversary or regression as Yada content.
+  // Licences read from the downloaded files on 11 Oct 2026 and re-read on every ingest.
+  // ---------------------------------------------------------------------------
+  {
+    key: "tosn",
+    source: "Tyndale House Publishers",
+    dataset: "Tyndale Open Study Notes (release 1.25)",
+    // _README.txt: "This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
+    // International License." Converting the markup is a modification, so the README's wording for
+    // a derivative work applies.
+    license: "CC-BY-SA-4.0",
+    attribution_text:
+      "Tyndale Open Study Notes, copyright © 2022 by Tyndale House Publishers. Adapted from Tyndale Open Study Notes. The original work by Tyndale House Publishers is available for free at http://www.tyndaleopenresources.com. Licensed under CC BY-SA 4.0.",
+    homepage: "https://tyndaleopenresources.com/",
+    commit: "unversioned",
+    pinnedByDigest: true,
+    downloadable: true,
+    files: TOSN_FILES.map(tosn),
+    // Shown on the app's Sources page as CC BY-SA's "indicate changes", so it speaks to readers.
+    // Not said here but binding: the excerpts quote the NLT, so these notes never enter an AI call
+    // (CLAUDE.md rule 9; pipeline ai-boundary.test.ts).
+    modifications:
+      "Converted from Tyndale's XML: paragraphs, headings, quoted Bible words, italics, bold and small caps kept; reference links replaced by their own text. In the app, each note's opening verse reference is left off, since the screen already names the verse. Words unchanged. The converted notes are released under CC BY-SA 4.0 with this notice.",
+  },
+  {
+    key: "openbible-xrefs",
+    source: "OpenBible.info",
+    dataset: "OpenBible.info cross-references",
+    // The data file's own header: "#www.openbible.info CC-BY 2026-10-05". It names no version; the
+    // licence link on the homepage is creativecommons.org/licenses/by/4.0/.
+    license: "CC-BY-4.0",
+    attribution_text: "Cross-references from OpenBible.info (www.openbible.info), licensed CC BY 4.0.",
+    homepage: "https://www.openbible.info/labs/cross-references/",
+    commit: "unversioned",
+    pinnedByDigest: true,
+    downloadable: true,
+    files: [
+      {
+        file: "openbible-cross_references.txt",
+        url: "https://a.openbible.info/data/cross-references.zip",
+        zipMember: "cross_references.txt",
+        // OpenBible rebuilds this zip as votes change (this one is dated 2026-10-05), so a later
+        // download will not match the pin: that is a migration, accepted by changing it.
+        sha256: "19aafdf923275142d0849fb02c7d9965a8d1a9dafc691e9abbe146fa31895c73",
+        licenseIn: { zipMember: "cross_references.txt", mustContain: "www.openbible.info CC-BY" },
+      },
+    ],
+    modifications: "References mapped to Yada verse ords; rows with negative votes left out.",
+  },
+  // ---------------------------------------------------------------------------
+  // Syntax layer (`package syntax`): MACULA's clause and phrase trees, read from the lowfat XML
+  // straight into syntax.vN.db. Evidence only — no explanation is written from it, and nothing
+  // from it enters staging.db or a prompt. Licences read from each repository's LICENSE.md at the
+  // pinned commit on 11 Oct 2026 and re-read by `package syntax` on every build. Both files carve
+  // out attributes that are "Used with permission" rather than CC BY; those are never read.
+  // ---------------------------------------------------------------------------
+  {
+    key: "macula-greek",
+    source: "Clear Bible / Biblica",
+    dataset: "MACULA Greek Linguistic Datasets — SBLGNT syntax trees (release 24.06.17)",
+    // LICENSE.md: "MACULA Greek Linguistic Datasets © 2022-2024 by Biblica, Inc is licensed under
+    // CC BY 4.0", and the attribution it asks for, word for word. The English glosses are Cherith's,
+    // which the same file and SBLGNT/README.md state are CC BY 4.0.
+    license: "CC-BY-4.0",
+    attribution_text:
+      "MACULA Greek Linguistic Datasets, available at https://github.com/Clear-Bible/macula-greek/. © 2022-2024 by Biblica, Inc. Licensed under CC BY 4.0. " +
+      "English glosses from Cherith Glosses for the Greek New Testament, by Andi Wu, Copyright (C) 2023 by Cherith Analytics, licensed under CC BY 4.0.",
+    homepage: "https://github.com/Clear-Bible/macula-greek",
+    commit: MACULA_GREEK_COMMIT,
+    downloadable: true,
+    files: maculaFiles("greek", MACULA_GREEK_COMMIT),
+    modifications:
+      "Read from SBLGNT/lowfat: word groups (clause and phrase boundaries, class, role, rule, clause type), each word's role and class, " +
+      "semantic frames, referents and subject referents, and the Cherith English gloss (@english). Words joined to Yada's MorphGNT tokens by " +
+      "verse and accent-stripped surface. Not read: @ln and @domain (UBS MARBLE, 'Used with permission', not CC BY), the Berean @gloss, " +
+      "Strong's numbers, lemmas and morphology (core already has them from MorphGNT and TBESG).",
+  },
+  {
+    key: "macula-hebrew",
+    source: "Clear Bible / Biblica",
+    dataset: "MACULA Hebrew Linguistic Datasets — WLC syntax trees (release 26.04.13)",
+    // LICENSE.md: "MACULA Hebrew Linguistic Datasets © 2022-2024 by Biblica, Inc is licensed under
+    // CC BY 4.0", with its own attribution wording. The trees combine the Westminster Hebrew Syntax
+    // (Groves Center, CC BY 4.0) with OSHB morphology (CC BY 4.0); the glosses are Cherith's (CC BY 4.0).
+    license: "CC-BY-4.0",
+    attribution_text:
+      "MACULA Hebrew Linguistic Datasets, available at https://github.com/Clear-Bible/macula-hebrew/. © 2022-2024 by Biblica, Inc. Licensed under CC BY 4.0. " +
+      "Includes the Westminster Hebrew Syntax, Copyright (C) 1991-2018 by The J. Alan Groves Center for Advanced Biblical Research, licensed under CC BY 4.0, " +
+      "and English glosses from Cherith Glosses for the Hebrew Old Testament, by Andi Wu, Copyright (C) 2022 by Cherith Analytics, licensed under CC BY 4.0.",
+    homepage: "https://github.com/Clear-Bible/macula-hebrew",
+    commit: MACULA_HEBREW_COMMIT,
+    downloadable: true,
+    files: maculaFiles("hebrew", MACULA_HEBREW_COMMIT),
+    modifications:
+      "Read from WLC/lowfat: word groups (clause and phrase boundaries, class, role, rule, clause type), each morph's role and class, " +
+      "semantic frames, subject and participant referents, and the Cherith English gloss (@english). Morphs joined to Yada's OSHB tokens by " +
+      "Hebrew verse and consonantal surface. Not read: @sdbh, @lexdomain, @coredomain, @contextualdomain (UBS Semantic Dictionary of Biblical " +
+      "Hebrew, 'Used with permission', not CC BY), @gloss (its source is not named in LICENSE.md), Greek equivalents, Strong's numbers, " +
+      "lemmas and morphology (core already has them from OSHB).",
+  },
+  // ---------------------------------------------------------------------------
+  // Speakers layer (`package speakers`): Glyssen's character-per-verse control files, read
+  // straight into speakers.vN.db. Evidence only, like the syntax layer: no explanation is written
+  // from it and nothing from it enters staging.db or a prompt. Licence read on 11 Oct 2026 from
+  // the repository's LICENSE and from GlyssenCharacters.csproj, which ships these files as
+  // Content of the MIT-licensed package; `package speakers` re-reads both on every build.
+  // ---------------------------------------------------------------------------
+  {
+    key: "glyssen",
+    source: "SIL International / Faith Comes By Hearing",
+    dataset: "Glyssen character data — CharacterVerse.txt and CharacterDetail.txt (control file version 171)",
+    // LICENSE: "The MIT License (MIT)", "Copyright (c) 2014-2020 SIL LSDev and Faith Comes By
+    // Hearing". GlyssenCharacters.csproj: <PackageLicenseExpression>MIT</PackageLicenseExpression>,
+    // <Copyright>Copyright © 2014-2023 Faith Comes By Hearing and SIL International</Copyright>.
+    // MIT asks that the copyright notice and permission notice travel with copies, so the bundle
+    // carries LICENSE whole.
+    license: "MIT",
+    attribution_text:
+      "Character data from Glyssen, https://github.com/sillsdev/Glyssen. Copyright (c) 2014-2020 SIL LSDev and Faith Comes By Hearing; " +
+      "Copyright © 2014-2023 Faith Comes By Hearing and SIL International. Licensed under the MIT License.",
+    homepage: "https://github.com/sillsdev/Glyssen",
+    commit: GLYSSEN_COMMIT,
+    downloadable: true,
+    files: glyssenFiles(),
+    modifications:
+      "CharacterVerse.txt rows read as written, a verse range expanded to one row per verse, references mapped to Yada verse ords " +
+      "(Glyssen's English versification); Glyssen's quote type kept and sorted into speaks / uncertain / reported; the delivery note kept " +
+      "as written, with the X of an explicit 'to X' copied beside it. CharacterDetail.txt read as written, empty fields left empty; " +
+      "its Status column is not read (Glyssen's own loader ignores it). '#' comment lines, NarratorOverrides.xml and RelatedCharacters.xml are pinned but not read.",
+  },
 ];
 
 /**
@@ -392,16 +595,29 @@ export const SOURCES: SourceDef[] = [
  */
 const RETIRED_DATASETS = new Set(["morphhb — WLC text with lemma and morphology"]);
 
+// Several files can be members of one archive (the Tyndale zip); it is downloaded once per run.
+const downloaded = new Map<string, Buffer>();
+
+async function download(url: string): Promise<Buffer> {
+  const seen = downloaded.get(url);
+  if (seen !== undefined) return seen;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`${response.status} ${response.statusText} for ${url}`);
+  const body = Buffer.from(await response.arrayBuffer());
+  downloaded.set(url, body);
+  return body;
+}
+
 async function fetchTo(file: SourceFile, dest: string): Promise<{ bytes: number; cached: boolean }> {
   const pinned = file.zipMember === undefined ? dest : `${dest}.zip`;
   if (existsSync(dest) && statSync(dest).size > 0) {
     if (file.sha256 !== undefined) checkPin(file, readFileSync(pinned));
     return { bytes: statSync(dest).size, cached: true };
   }
-  const response = await fetch(file.url);
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText} for ${file.url}`);
-  const body = Buffer.from(await response.arrayBuffer());
+  const body = await download(file.url);
   if (file.sha256 !== undefined) checkPin(file, body);
+  // Glyssen's files keep their own names ("LICENSE") in a directory of their own.
+  mkdirSync(path.dirname(dest), { recursive: true });
 
   if (file.zipMember === undefined) {
     writeFileSync(dest, body);
@@ -442,7 +658,11 @@ export function checkLicense(file: SourceFile, statement: string): void {
 
 function readLicense(file: SourceFile, dest: string): void {
   if (file.licenseIn === undefined) return;
-  const statement = execFileSync("unzip", ["-p", `${dest}.zip`, file.licenseIn.zipMember], { encoding: "utf8" });
+  // OpenBible states its licence inside the 8 MB data file itself.
+  const statement = execFileSync("unzip", ["-p", `${dest}.zip`, file.licenseIn.zipMember], {
+    encoding: "utf8",
+    maxBuffer: 256 * 1024 * 1024,
+  });
   checkLicense(file, statement);
 }
 

@@ -3,10 +3,10 @@
  * Start here. Pure, so the wording is tested once.
  */
 
-import { BOOK_CODES, type BookCode } from "@yada/schema";
+import type { BookCode } from "@yada/schema";
 
 import type { EventName } from "../data/user";
-import { formatRange } from "./chapters";
+import { formatRangeInBook } from "./chapters";
 import { chapterTitle } from "./reader";
 
 /** "Psalm 23:1", "1 Corinthians 14:34": a single psalm is a Psalm (canvas SO-01). */
@@ -22,16 +22,5 @@ export function recentTag(name: EventName, word: string | null): string {
 
 /** "1:35–51": the page already names the book (canvas ST-01). */
 export function rangeInBook(pericopeId: string): string {
-  const full = formatRange(pericopeId);
-  const book = pericopeId.split(".")[0] as BookCode;
-  const name = BOOK_CODES[book]?.name;
-  return name !== undefined && full.startsWith(`${name} `) ? full.slice(name.length + 1) : full;
-}
-
-export type ThreadMark = "done" | "next" | "todo";
-
-/** `step` is the index of the next passage: everything before it has been read. */
-export function threadMark(index: number, step: number): ThreadMark {
-  if (index < step) return "done";
-  return index === step ? "next" : "todo";
+  return formatRangeInBook(pericopeId);
 }

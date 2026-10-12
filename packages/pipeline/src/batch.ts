@@ -566,8 +566,8 @@ export async function collectBatch(
       custom_id: item.custom_id,
       stage: "generate",
     });
-    const part = Number(row["part"] ?? 1);
-    const parts = Number(row["parts"] ?? 1);
+    const part = Number(row["part"]);
+    const parts = Number(row["parts"]);
     // Named as the synchronous path names it, so ingest cannot tell the two apart.
     const key = {
       custom_id: partId(pericopeId, part, parts),

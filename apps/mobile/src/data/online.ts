@@ -2,10 +2,10 @@
  * The Translations sheet's Online group (canvas MT-02): licensed versions read
  * through API.Bible, display-only (CLAUDE.md rule 9, docs/licensed-translations.md).
  *
- * This file is the hook point only. The fetch layer is built separately and
- * registers itself with registerOnlineProvider(); until it does, the group
- * shows placeholder rows, and only behind the dev flag. Nothing here talks to
- * a network, and nothing from these versions may reach the content pipeline.
+ * This file is the hook point only: data/useLicensedChapter.ts registers the
+ * provider when licensedEnabled(); until then the group shows placeholder
+ * rows, and only behind the dev flag. Nothing here talks to a network, and
+ * nothing from these versions may reach the content pipeline.
  */
 
 import { create } from "zustand";

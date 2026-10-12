@@ -10,6 +10,7 @@ import {
   headerOnScroll,
   type HeaderScroll,
   excerptOf,
+  markSegments,
   moreActions,
   splitSuperscription,
   scrollToClearBar,
@@ -58,11 +59,11 @@ describe("titles", () => {
 });
 
 describe("barItems", () => {
-  it("leads with Understand when the verse has an entry", () => {
-    expect(barItems(true, false)).toEqual(["understand", "original", "compare", "more"]);
+  it("leads with Understand, then Compare and More; Original leaves the bar (IA-05)", () => {
+    expect(barItems(true, false)).toEqual(["understand", "compare", "more"]);
   });
 
-  it("drops Understand, with no placeholder, when it has none (J01-15)", () => {
+  it("keeps Original when there is no Understand, as the only way to the Greek (J01-15)", () => {
     expect(barItems(false, false)).toEqual(["original", "compare", "more"]);
   });
 
@@ -71,10 +72,28 @@ describe("barItems", () => {
     expect(barItems(false, true)).toEqual(["original", "more"]);
   });
 
-  it("moves the dropped actions into More at AX sizes", () => {
-    expect(moreActions(true, true, false)).toEqual(["Original", "Compare", "Copy", "Share", "Bookmark"]);
+  it("moves Compare into More at AX sizes, and never Original", () => {
+    expect(moreActions(true, true, false)).toEqual(["Compare", "Copy", "Share", "Bookmark"]);
     expect(moreActions(false, true, true)).toEqual(["Compare", "Copy", "Share", "Remove bookmark"]);
     expect(moreActions(true, false, false)).toEqual(["Copy", "Share", "Bookmark"]);
+  });
+});
+
+describe("markSegments", () => {
+  it("flags the marked ranges and keeps the text whole", () => {
+    const text = "In the beginning was the Word, and the Word was with God, and the Word was God.";
+    const at = [...text.matchAll(/\bwas\b/g)].map((m) => [m.index, m.index + 3] as const);
+    const out = markSegments([{ text, smallCaps: false }], at);
+    expect(out.map((s) => s.text).join("")).toBe(text);
+    expect(out.filter((s) => s.marked === true).map((s) => s.text)).toEqual(["was", "was", "was"]);
+  });
+
+  it("splits across a small-capitals segment", () => {
+    const out = markSegments(splitDivineName("The LORD is my shepherd"), [[4, 11]]);
+    expect(out.filter((s) => s.marked === true)).toEqual([
+      { text: "LORD", smallCaps: true, marked: true },
+      { text: " is", smallCaps: false, marked: true },
+    ]);
   });
 });
 

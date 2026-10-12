@@ -116,38 +116,38 @@
     }
   ],
   "close_rendering": "In the beginning God created the heavens and the earth.",
-  "whats_happening": "The Hebrew Bible opens with seven words that name a beginning, an act, an actor, and two objects, and says nothing about method, material, or duration. The sentence is built so simply that almost every question a modern reader brings to it is left unanswered on purpose. The one genuine grammatical question is whether the first word starts a complete sentence or introduces a clause that waits for its main verb.",
+  "whats_happening": "The Bible opens with seven Hebrew words naming a beginning, an act, the one acting and two objects. They do not say how, from what, or how long. The sentence is so simple that it leaves most of a modern reader's questions unanswered, on purpose. One open question is about the first word. Does it start a full sentence ('In the beginning God created') or a 'when' phrase ('When God began to create')?",
   "key_words": [
     {
       "surface": "בְּרֵאשִׁ֖ית",
       "lemma": "רֵאשִׁית",
       "gloss": "beginning",
-      "note": "A noun meaning first or chief part, prefixed with the preposition bə-. Whether it stands alone or is bound to what follows is the central question of the verse.",
+      "note": "A noun meaning first or chief part, with bə- ('in') joined to the front. The verse's central question is whether it stands alone or links to the words after it.",
       "strongs": "H7225"
     },
     {
       "surface": "בָּרָ֣א",
       "lemma": "בָּרָא",
       "gloss": "he created",
-      "note": "A Qal perfect. The verb is used in the Hebrew Bible with God as its subject and never takes a stated material.",
+      "note": "In this form, the Hebrew Bible uses the verb with God as its subject. It never says what the thing was made from.",
       "strongs": "H1254a"
     },
     {
       "surface": "אֱלֹהִ֑ים",
       "lemma": "אֱלֹהִים",
       "gloss": "God",
-      "note": "Plural in form. Here it governs a singular verb, which is the ordinary pattern when the word refers to the God of Israel.",
+      "note": "Plural in form, but here it takes a singular verb ('he created'). That is the usual pattern when it means the God of Israel.",
       "strongs": "H0430"
     },
     {
       "surface": "אֵ֥ת",
       "lemma": "אֵת",
       "gloss": "[direct object]",
-      "note": "An untranslatable particle marking a definite direct object. Its presence twice shows both nouns are objects of the one verb.",
+      "note": "A small word with no English equivalent that marks the specific thing a verb acts on. It appears twice, so 'the heavens' and 'the earth' are both what God created.",
       "strongs": "H0853"
     }
   ],
-  "translation_note": "English needs a tense the Hebrew does not have. The perfect בָּרָא marks completed action, not a past tense, so In the beginning God created and When God began to create are both defensible renderings of the same consonants.",
+  "translation_note": "Hebrew verbs show whether an action is complete, not whether it is past, so English must pick a tense. Both readings of the opening words fit the written letters, which had no vowels.",
   "claims": [
     {
       "id": "GEN.1.1.c1",
@@ -247,7 +247,7 @@
     },
     {
       "id": "GEN.1.1.c5",
-      "claim": "The Masoretic pointing of the Westminster Leningrad Codex parses רֵאשִׁית here as an absolute noun rather than a construct.",
+      "claim": "In the Westminster Leningrad Codex, the vowel marks added by Jewish scribes (the Masoretes) read רֵאשִׁית as standing alone, not linked to the next word.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -315,7 +315,7 @@
     },
     {
       "id": "GEN.1.1.c8",
-      "claim": "Other creation accounts from the ancient Near East characteristically open with a temporal clause of the form when such and such was not yet.",
+      "claim": "Other creation stories from the ancient Near East (the lands around Israel) usually open with a 'when' clause, such as 'when X did not yet exist'.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "medium",
@@ -326,7 +326,7 @@
     },
     {
       "id": "GEN.1.1.c9",
-      "claim": "Whether the first word opens an independent sentence or a temporal clause is disputed.",
+      "claim": "Readers disagree whether the first word starts a full sentence or a 'when' clause.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "high",
@@ -346,8 +346,8 @@
       "sources": [],
       "positions": [
         {
-          "label": "Absolute: In the beginning God created",
-          "case": "The Masoretic pointing and the accent supplied by the tradition read the noun as absolute, which makes verse 1 a complete sentence and a summary statement standing over the account that follows.",
+          "label": "Stands alone: In the beginning God created",
+          "case": "The vowel and accent marks added by the Masoretes read the noun as standing alone. That makes verse 1 a complete sentence, summing up the account that follows.",
           "evidence": [
             {
               "type": "verse",
@@ -363,8 +363,8 @@
           ]
         },
         {
-          "label": "Construct: When God began to create",
-          "case": "רֵאשִׁית elsewhere characteristically stands in construct with what follows, and the unpointed consonants allow verse 1 to be a temporal clause whose main verb arrives in verse 3, which matches how comparable ancient creation accounts open.",
+          "label": "Linked: When God began to create",
+          "case": "Elsewhere רֵאשִׁית usually links to the word after it. The letters alone, without vowel marks, allow verse 1 to be a 'when' clause completed in verse 3. Comparable ancient creation stories open this way.",
           "evidence": [
             {
               "type": "verse",
@@ -381,7 +381,7 @@
     },
     {
       "id": "GEN.1.1.c10",
-      "claim": "What the plural form of אֱלֹהִים with a singular verb signals is disputed.",
+      "claim": "Readers disagree about what it means that the plural word אֱלֹהִים takes a singular verb.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "medium",
@@ -401,8 +401,8 @@
       "sources": [],
       "positions": [
         {
-          "label": "Plural of majesty",
-          "case": "Hebrew uses plural forms for intensity or honour with singular referents, and the singular verb shows the writer treats the word as singular throughout.",
+          "label": "A plural of honour",
+          "case": "Hebrew can use a plural form for one thing, to show intensity or honour. The singular verb shows the writer treats the word as singular throughout.",
           "evidence": [
             {
               "type": "verse",
@@ -411,8 +411,8 @@
           ]
         },
         {
-          "label": "Inherited divine title",
-          "case": "The plural is a frozen form carried over from wider Semitic usage for deity, so it signals nothing about number and the singular verb is simply the grammar catching up with the meaning.",
+          "label": "An inherited title",
+          "case": "The plural is a fixed form, inherited from related languages' word for a god. So it says nothing about number, and the singular verb simply matches the meaning.",
           "evidence": [
             {
               "type": "verse",
@@ -433,12 +433,12 @@
     {
       "ref": "JHN.1.1",
       "relationship": "allusion",
-      "note": "John's Gospel opens with the same two words and places the Word before the beginning."
+      "note": "John's Gospel opens with the same words, 'In the beginning', and says the Word already was."
     },
     {
       "ref": "PSA.33.6",
       "relationship": "thematic",
-      "note": "Creation by speech, stated as poetry rather than narrative."
+      "note": "Creation by speech, told as a poem rather than a story."
     },
     {
       "ref": "ISA.45.18",

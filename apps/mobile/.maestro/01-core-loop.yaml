@@ -19,7 +19,8 @@ appId: studio.yada.reader
 - waitForAnimationToEnd
 - assertVisible:
     id: action-bar
-- assertVisible:
+# IA-05: Understand, Compare, More; Original has left the bar (it lives in Understand).
+- assertNotVisible:
     id: bar-original
 - assertVisible:
     id: bar-compare
@@ -29,7 +30,8 @@ appId: studio.yada.reader
 - assertVisible:
     id: understand
 - assertVisible: "1 Corinthians 14:34"
-- assertVisible:
+# The bundled 1 Cor 14:34 entry is human_reviewed (bundles since bc92b9a), so no Unreviewed label.
+- assertNotVisible:
     id: unreviewed
 - assertVisible: "What we can see"
 # c1 states a parse, so it sits under Original as "In the Greek", not in What we can see (brief §8.19).
@@ -39,10 +41,16 @@ appId: studio.yada.reader
     element:
       text: "Where readers differ"
     centerElement: true
-# Not centred: at the large detent Original sits near the end, where nothing can scroll it to the middle.
 - scrollUntilVisible:
     element:
       id: toggle-original
+# Left at the sheet's foot it can sit under Back to reading, which took the tap and closed the
+# sheet (simulator, 11 Oct 2026); a short drag lifts it clear. Not centred: at the large detent
+# Original sits near the end, where nothing can scroll it to the middle.
+- swipe:
+    start: "50%,75%"
+    end: "50%,55%"
+- waitForAnimationToEnd
 - assertVisible: "Go further"
 - tapOn:
     id: toggle-original
@@ -87,10 +95,16 @@ appId: studio.yada.reader
 - tapOn:
     id: bar-understand
 - waitForAnimationToEnd
-# Not centred: at the large detent Original sits near the end, where nothing can scroll it to the middle.
 - scrollUntilVisible:
     element:
       id: toggle-original
+# Left at the sheet's foot it can sit under Back to reading, which took the tap and closed the
+# sheet (simulator, 11 Oct 2026); a short drag lifts it clear. Not centred: at the large detent
+# Original sits near the end, where nothing can scroll it to the middle.
+- swipe:
+    start: "50%,75%"
+    end: "50%,55%"
+- waitForAnimationToEnd
 - tapOn:
     id: toggle-original
 - waitForAnimationToEnd
@@ -123,13 +137,20 @@ appId: studio.yada.reader
     id: verse-34
 - assertVisible:
     id: action-bar
-# A verse with no explanation offers no Understand (J01-15).
+# A verse with no explanation offers no Understand (J01-15), only Original. Once 1 Timothy's study
+# bundle is on the device (it downloads the first time the book opens online), a verse with a
+# note, cross-reference or person offers Understand for those (SN-01), so which capsule shows
+# depends on the network. What always holds: the bar is 2:11's, and without Understand it offers
+# Original. Labels, not ids: with modal flags ignored, the 1 Corinthians reader beneath (bar up on
+# 14:34) is still in the snapshot.
 - openLink: studio.yada.reader:///read/1TI/2?verse=11
 - waitForAnimationToEnd
 - tapOn:
     id: verse-11
 - waitForAnimationToEnd
-- assertVisible:
-    id: bar-original
-# By label: with modal flags ignored, the 1 Corinthians reader beneath is still in the snapshot.
-- assertNotVisible: "Understand verse 11"
+- assertVisible: "Compare translations of 2:11"
+- runFlow:
+    when:
+      notVisible: "Understand verse 11"
+    commands:
+      - assertVisible: "Original Greek"

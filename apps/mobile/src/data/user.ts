@@ -3,13 +3,16 @@
  * progress, and the local event log.
  *
  * Kept in a separate database from the content bundles (build plan §6) so a
- * bundle update can never touch anything the reader made. Nothing here leaves
- * the device: no accounts, no sync, no analytics SDK. The event log is the
- * PRD §14 instrument, read only by this app.
+ * bundle update can never touch anything the reader made. No accounts and no
+ * analytics SDK. Bookmarks, the reading place, thread progress and the reading
+ * settings are also kept in the reader's own iCloud (data/cloud.ts), which
+ * Yada never sees; this database stays what every screen reads. The event log
+ * is the PRD §14 instrument, read only by this app, and never leaves the phone.
  */
 
 import type { SQLiteDatabase } from "expo-sqlite";
 
+import { isSyncedSetting, nextStamp } from "../lib/cloudSync";
 import { LICENSED_DDL } from "./licensed";
 
 export const USER_DB = "user.db";
@@ -35,6 +38,20 @@ CREATE TABLE IF NOT EXISTS thread_progress (
   thread     TEXT PRIMARY KEY,
   step       INTEGER NOT NULL,
   updated_at TEXT NOT NULL
+);
+
+-- iCloud sync (lib/cloudSync.ts): a removed bookmark is remembered, so the
+-- removal can beat the same bookmark still present on another device.
+CREATE TABLE IF NOT EXISTS bookmark_removals (
+  verse_id   TEXT PRIMARY KEY,
+  removed_at TEXT NOT NULL
+);
+
+-- iCloud sync: when each setting last changed, for last-writer-wins. A setting
+-- saved before sync existed has no row and loses to any synced value.
+CREATE TABLE IF NOT EXISTS setting_stamps (
+  key TEXT PRIMARY KEY,
+  at  TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS events (
@@ -70,6 +87,19 @@ CREATE TABLE IF NOT EXISTS installed_translations (
   removed    INTEGER NOT NULL DEFAULT 0,
   saved_at   TEXT NOT NULL
 );
+
+-- Downloaded study bundles, one per book (data/study.ts): verified files in the documents
+-- directory's study folder, opened lazily as their own connection. Kept apart from
+-- installed_bundles, whose launch pass deletes every file the shipped manifest does not list.
+CREATE TABLE IF NOT EXISTS installed_study (
+  book       TEXT PRIMARY KEY,
+  version    INTEGER NOT NULL,
+  file       TEXT NOT NULL,
+  sha256     TEXT NOT NULL,
+  bytes      INTEGER NOT NULL,
+  removed    INTEGER NOT NULL DEFAULT 0,
+  saved_at   TEXT NOT NULL
+);
 ${LICENSED_DDL}`;
 
 /**
@@ -86,7 +116,33 @@ export type EventName =
   | "thread_step"
   | "search";
 
+let onChange: () => void = () => undefined;
+
+/** Called after every write of a synced value, so data/cloud.ts can send it to iCloud. */
+export function setUserDataListener(listener: () => void): void {
+  onChange = listener;
+}
+
+let writes: Promise<unknown> = Promise.resolve();
+
+/**
+ * Runs `task` alone among synced writes and iCloud merges. Gate review, 11 Oct 2026: a bookmark
+ * made while a sync sat between reading user.db and writing the merge was deleted by an older
+ * removal from iCloud (data/cloud.test.ts).
+ */
+export function exclusiveWrite<T>(task: () => Promise<T>): Promise<T> {
+  const run = writes.then(task, task);
+  writes = run.catch(() => undefined);
+  return run;
+}
+
 const now = (): string => new Date().toISOString();
+
+/** An ISO stamp for a write that replaces `previous`: never earlier than it (lib/cloudSync.ts, clock skew). */
+function stampAfter(previous: string | null | undefined): string {
+  const before = previous === null || previous === undefined ? Number.NaN : Date.parse(previous);
+  return new Date(nextStamp(Date.now(), Number.isNaN(before) ? undefined : before)).toISOString();
+}
 
 export async function logEvent(db: SQLiteDatabase, name: EventName, verseId?: string, detail?: string): Promise<void> {
   await db.runAsync("INSERT INTO events (name, verse_id, detail, at) VALUES (?, ?, ?, ?)", [
@@ -97,11 +153,17 @@ export async function logEvent(db: SQLiteDatabase, name: EventName, verseId?: st
   ]);
 }
 
-export async function savePosition(db: SQLiteDatabase, verseId: string): Promise<void> {
-  await db.runAsync(
-    "INSERT INTO position (id, verse_id, updated_at) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET verse_id = excluded.verse_id, updated_at = excluded.updated_at",
-    [verseId, now()],
-  );
+export function savePosition(db: SQLiteDatabase, verseId: string): Promise<void> {
+  return exclusiveWrite(async () => {
+    const old = await db.getFirstAsync<{ verse_id: string; updated_at: string }>("SELECT verse_id, updated_at FROM position WHERE id = 1");
+    // The reader settles on the same verse often; an unchanged place is not a new write to sync.
+    if (old?.verse_id === verseId) return;
+    await db.runAsync(
+      "INSERT INTO position (id, verse_id, updated_at) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET verse_id = excluded.verse_id, updated_at = excluded.updated_at",
+      [verseId, stampAfter(old?.updated_at)],
+    );
+    onChange();
+  });
 }
 
 export async function loadPosition(db: SQLiteDatabase): Promise<string | null> {
@@ -114,21 +176,37 @@ export async function isBookmarked(db: SQLiteDatabase, verseId: string): Promise
 }
 
 /** Returns whether the verse is bookmarked after the toggle. */
-export async function toggleBookmark(db: SQLiteDatabase, verseId: string): Promise<boolean> {
-  if (await isBookmarked(db, verseId)) {
-    await db.runAsync("DELETE FROM bookmarks WHERE verse_id = ?", [verseId]);
-    return false;
-  }
-  await db.runAsync("INSERT INTO bookmarks (verse_id, created_at) VALUES (?, ?)", [verseId, now()]);
-  return true;
+export function toggleBookmark(db: SQLiteDatabase, verseId: string): Promise<boolean> {
+  return exclusiveWrite(async () => {
+    if (await isBookmarked(db, verseId)) {
+      await unbookmark(db, verseId);
+      return false;
+    }
+    const removal = await db.getFirstAsync<{ removed_at: string }>("SELECT removed_at FROM bookmark_removals WHERE verse_id = ?", [verseId]);
+    await db.runAsync("DELETE FROM bookmark_removals WHERE verse_id = ?", [verseId]);
+    await db.runAsync("INSERT INTO bookmarks (verse_id, created_at) VALUES (?, ?)", [verseId, stampAfter(removal?.removed_at)]);
+    onChange();
+    return true;
+  });
 }
 
 export async function listBookmarks(db: SQLiteDatabase): Promise<Array<{ verse_id: string; created_at: string }>> {
   return db.getAllAsync("SELECT verse_id, created_at FROM bookmarks ORDER BY created_at DESC");
 }
 
-export async function removeBookmark(db: SQLiteDatabase, verseId: string): Promise<void> {
+export function removeBookmark(db: SQLiteDatabase, verseId: string): Promise<void> {
+  return exclusiveWrite(() => unbookmark(db, verseId));
+}
+
+async function unbookmark(db: SQLiteDatabase, verseId: string): Promise<void> {
+  const row = await db.getFirstAsync<{ created_at: string }>("SELECT created_at FROM bookmarks WHERE verse_id = ?", [verseId]);
+  if (row === null) return;
   await db.runAsync("DELETE FROM bookmarks WHERE verse_id = ?", [verseId]);
+  await db.runAsync(
+    "INSERT INTO bookmark_removals (verse_id, removed_at) VALUES (?, ?) ON CONFLICT(verse_id) DO UPDATE SET removed_at = excluded.removed_at",
+    [verseId, stampAfter(row.created_at)],
+  );
+  onChange();
 }
 
 export async function loadSettings(db: SQLiteDatabase): Promise<Record<string, string>> {
@@ -136,11 +214,24 @@ export async function loadSettings(db: SQLiteDatabase): Promise<Record<string, s
   return Object.fromEntries(rows.map((r) => [r.key, r.value]));
 }
 
-export async function saveSetting(db: SQLiteDatabase, key: string, value: string): Promise<void> {
-  await db.runAsync(
-    "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-    [key, value],
-  );
+export function saveSetting(db: SQLiteDatabase, key: string, value: string): Promise<void> {
+  return exclusiveWrite(async () => {
+    const old = await db.getFirstAsync<{ value: string }>("SELECT value FROM settings WHERE key = ?", [key]);
+    // Applying a value that came from iCloud re-saves it through the settings store; an
+    // unchanged value must not gain a newer stamp, or the two devices would trade it back and forth.
+    if (old?.value === value) return;
+    await db.runAsync(
+      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+      [key, value],
+    );
+    if (!isSyncedSetting(key)) return;
+    const stamp = await db.getFirstAsync<{ at: string }>("SELECT at FROM setting_stamps WHERE key = ?", [key]);
+    await db.runAsync(
+      "INSERT INTO setting_stamps (key, at) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET at = excluded.at",
+      [key, stampAfter(stamp?.at)],
+    );
+    onChange();
+  });
 }
 
 export async function loadThreadStep(db: SQLiteDatabase, thread: string): Promise<number> {
@@ -148,11 +239,57 @@ export async function loadThreadStep(db: SQLiteDatabase, thread: string): Promis
   return row?.step ?? 0;
 }
 
-export async function saveThreadStep(db: SQLiteDatabase, thread: string, step: number): Promise<void> {
-  await db.runAsync(
-    "INSERT INTO thread_progress (thread, step, updated_at) VALUES (?, ?, ?) ON CONFLICT(thread) DO UPDATE SET step = excluded.step, updated_at = excluded.updated_at",
-    [thread, step, now()],
-  );
+export function saveThreadStep(db: SQLiteDatabase, thread: string, step: number): Promise<void> {
+  return exclusiveWrite(async () => {
+    const old = await db.getFirstAsync<{ updated_at: string }>("SELECT updated_at FROM thread_progress WHERE thread = ?", [thread]);
+    await db.runAsync(
+      "INSERT INTO thread_progress (thread, step, updated_at) VALUES (?, ?, ?) ON CONFLICT(thread) DO UPDATE SET step = excluded.step, updated_at = excluded.updated_at",
+      [thread, step, stampAfter(old?.updated_at)],
+    );
+    onChange();
+  });
+}
+
+/**
+ * Start here's finished passages (lib/startHere.ts): one row per passage,
+ * keyed `start-here-john/read/<pericope id>`, beside the thread's own step.
+ */
+export async function loadReadPassages(db: SQLiteDatabase, prefix: string): Promise<string[]> {
+  const rows = await db.getAllAsync<{ thread: string }>("SELECT thread FROM thread_progress WHERE thread LIKE ? || '%'", [prefix]);
+  return rows.map((r) => r.thread.slice(prefix.length));
+}
+
+/**
+ * Marks a passage finished and makes the one after it next, in one
+ * transaction so the count and the next passage never disagree. Idempotent:
+ * reaching the Next row again changes nothing but the time.
+ *
+ * Each finished passage is its own thread_progress row, so iCloud sync
+ * (lib/cloudSync.ts) carries it as its own last-writer-wins register: two
+ * devices that finished different passages keep both, as bookmarks do. The
+ * value is always 1 and nothing removes a row, so the merged set is the union.
+ * Stamped after the row it replaces, as every synced write is (clock skew).
+ */
+export function markPassageRead(db: SQLiteDatabase, thread: string, readKey: string, nextStep: number): Promise<void> {
+  return exclusiveWrite(async () => {
+    await db.withTransactionAsync(async () => {
+      const old = await db.getAllAsync<{ thread: string; updated_at: string }>(
+        "SELECT thread, updated_at FROM thread_progress WHERE thread IN (?, ?)",
+        [readKey, thread],
+      );
+      const stamp = (key: string) => stampAfter(old.find((r) => r.thread === key)?.updated_at);
+      await db.runAsync(
+        "INSERT INTO thread_progress (thread, step, updated_at) VALUES (?, 1, ?) ON CONFLICT(thread) DO UPDATE SET updated_at = excluded.updated_at",
+        [readKey, stamp(readKey)],
+      );
+      await db.runAsync(
+        "INSERT INTO thread_progress (thread, step, updated_at) VALUES (?, ?, ?) ON CONFLICT(thread) DO UPDATE SET step = excluded.step, updated_at = excluded.updated_at",
+        [thread, nextStep, stamp(thread)],
+      );
+    });
+    // Without this a finished passage reached iCloud only with the next unrelated write.
+    onChange();
+  });
 }
 
 /**

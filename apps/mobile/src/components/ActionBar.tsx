@@ -1,33 +1,46 @@
 /**
- * The selection's actions, docked to the bottom (decision 2; canvas J01-02,
- * J01-15, E-02, M-01). Replaces the floating SelectionPill, which covered the
- * verse it acted on (0A).
+ * The reader's bar, docked to the bottom (decision 2; canvas IA-04, IA-05,
+ * J01-15). Replaces the floating SelectionPill, which covered the verse it
+ * acted on (0A).
  *
- * `Understand 14:34` in ink on its own row — Mobbin's reading apps fill the
- * primary action with ink, not a brand colour (Deepstash,
- * https://mobbin.com/screens/780e563b-579c-4bf4-a941-4c4a550e3628) — then
- * `α Original` · `Compare` · `⋯` as equal capsules. `⋯` is the native iOS
- * menu (Apple Books, https://mobbin.com/screens/fda02365-2264-4eff-a55e-7850616e58bf).
- * At AX sizes, two rows only, so the bar never covers the verse (amendment 4).
+ * At rest (IA-04, RestBar): `Understand 1:1–18`, the passage, is the primary
+ * action. On a selected verse (IA-05, ActionBar): one row, `Understand 1:1`
+ * in ink, then Compare and `⋯`. Original leaves the bar (lib/reader.ts
+ * barItems). Mobbin's reading apps fill the primary action with ink, not a
+ * brand colour (Deepstash,
+ * https://mobbin.com/screens/780e563b-579c-4bf4-a941-4c4a550e3628; Crouton's
+ * docked pill, https://mobbin.com/screens/bfb5df79-f490-45d3-b573-35d72f6ff3c8).
+ * `⋯` is the native iOS menu (Apple Books,
+ * https://mobbin.com/screens/fda02365-2264-4eff-a55e-7850616e58bf). At AX sizes
+ * the actions stack as a list of two, so the bar never covers the verse
+ * (amendment 4).
+ *
+ * Audio (package E): at rest Listen sits in RestBar's `audio` slot (AU-01).
+ * When the chapter can be read aloud, `playFrom` is set and the selection bar
+ * adds `▶ 1:6` as a secondary capsule before Understand, or `Play from 1:6`
+ * second in the AX list (AU-03). A tap in the reader still means "select", so
+ * jumping the audio is one tap from there (John, 11 Oct 2026). Original stays
+ * out of the bar and out of `⋯` while playing too: IA-05 drops it for good, and
+ * Understand opens it in place.
  *
  * Paper ground, hairline top, no shadow. To VoiceOver it comes after the
  * verses and appearing does not move focus (brief §5).
  */
 
 import { MenuView } from "@react-native-menu/menu";
-import { useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FONTS, SPRING, useLayout, usePalette } from "../design/tokens";
 import { useReduceMotion } from "../lib/motion";
 import { type BarItem, barItems, moreActions } from "../lib/reader";
+import { MediaIcon } from "./audio/MediaIcon";
 import { Icon } from "./Icon";
 import { Chrome } from "./Type";
 
 /** Native menu glyphs are SF Symbols: UIMenu takes system images only. */
 const MENU_IMAGES: Readonly<Record<string, string>> = {
-  Original: "character",
   Compare: "rectangle.split.2x1",
   Copy: "doc.on.doc",
   Share: "square.and.arrow.up",
@@ -45,6 +58,7 @@ export function ActionBar({
   onCompare,
   onMenu,
   onHeight,
+  playFrom = null,
 }: {
   /** "14:34" or "14:34–35". */
   verseLabel: string;
@@ -52,26 +66,33 @@ export function ActionBar({
   bookmarked: boolean;
   script: "greek" | "hebrew";
   onUnderstand: () => void;
+  /** Only offered when the verse has no Understand (lib/reader.ts barItems). */
   onOriginal: () => void;
   onCompare: () => void;
-  /** Copy, Share, Bookmark / Remove bookmark (and Original, Compare at AX sizes). */
+  /** Copy, Share, Bookmark / Remove bookmark (and Compare at AX sizes). */
   onMenu: (action: string) => void;
   onHeight: (height: number) => void;
+  /** The chapter can be read aloud: offer Play from the selection's first verse, first in the row, second in the AX list (AU-03). */
+  playFrom?: (() => void) | null;
 }) {
   const palette = usePalette();
-  const insets = useSafeAreaInsets();
   const { ax, pill } = useLayout();
-  const reduceMotion = useReduceMotion();
   const items = barItems(hasEntry, ax);
   const menu = moreActions(hasEntry, ax, bookmarked);
-
-  const enter = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
-  useEffect(() => {
-    // Critically damped: overshoot on something that merely appeared reads as decoration.
-    if (!reduceMotion) Animated.spring(enter, { toValue: 1, ...SPRING.standard, useNativeDriver: true }).start();
-  }, [enter, reduceMotion]);
+  const firstVerse = verseLabel.split(/[–-]/)[0] ?? verseLabel;
 
   const originalName = script === "hebrew" ? "Original Hebrew" : "Original Greek";
+
+  const audio =
+    playFrom === null ? null : (
+      <Capsule key="play" auto height={pill} onPress={playFrom} label={`Play from verse ${firstVerse.split(":")[1] ?? firstVerse}`} testID="bar-play-from">
+        {ax ? null : <MediaIcon name="play" size={18} maxScale={1} />}
+        <Chrome tone="ink" style={{ fontWeight: "500", flex: ax ? 1 : undefined }}>
+          {ax ? `Play from ${firstVerse}` : firstVerse}
+        </Chrome>
+        {ax ? <MediaIcon name="play" size={30} maxScale={1} /> : null}
+      </Capsule>
+    );
 
   const button = (item: BarItem) => {
     if (item === "understand") {
@@ -79,13 +100,13 @@ export function ActionBar({
         <Capsule
           key={item}
           primary
-          wide
+          grow
           height={pill}
           onPress={onUnderstand}
           label={`Understand verse ${verseLabel.split(":")[1] ?? verseLabel}`}
           testID="bar-understand"
         >
-          <Chrome tone="paper" style={{ fontWeight: "600" }}>
+          <Chrome tone="paper" numberOfLines={1} style={{ fontWeight: "600" }}>
             Understand {verseLabel}
           </Chrome>
         </Capsule>
@@ -93,7 +114,7 @@ export function ActionBar({
     }
     if (item === "original") {
       return (
-        <Capsule key={item} wide={ax} height={pill} onPress={onOriginal} label={originalName} testID="bar-original">
+        <Capsule key={item} grow height={pill} onPress={onOriginal} label={originalName} testID="bar-original">
           {ax ? null : (
             <Chrome
               tone="ink"
@@ -110,19 +131,23 @@ export function ActionBar({
       );
     }
     if (item === "compare") {
+      // IA-05: beside Understand, Compare is its glyph alone; it keeps its word when Original
+      // shares the row (no Understand), as J01-15 drew it.
       return (
-        <Capsule key={item} height={pill} onPress={onCompare} label="Compare translations" testID="bar-compare">
-          <Icon name="compare" size={16} />
-          <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            Compare
-          </Chrome>
+        <Capsule key={item} grow={!hasEntry} square={hasEntry} height={pill} onPress={onCompare} label={`Compare translations of ${verseLabel}`} testID="bar-compare">
+          <Icon name="compare" size={hasEntry ? 18 : 16} />
+          {hasEntry ? null : (
+            <Chrome tone="ink" style={{ fontWeight: "500" }}>
+              Compare
+            </Chrome>
+          )}
         </Capsule>
       );
     }
     return (
       <MenuView
         key={item}
-        style={ax ? styles.wide : styles.cell}
+        style={ax ? styles.wide : hasEntry || playFrom !== null ? { width: pill } : styles.cell}
         shouldOpenOnLongPress={false}
         actions={menu.map((title) => ({ id: title.toLowerCase(), title, image: MENU_IMAGES[title] }))}
         onPressAction={({ nativeEvent }) => onMenu(nativeEvent.event)}
@@ -148,7 +173,80 @@ export function ActionBar({
     );
   };
 
-  const [first, ...rest] = items;
+  const [first, ...rest] = items.map(button);
+  return (
+    <BarFrame onHeight={onHeight} testID="action-bar">
+      {ax ? (
+        <View style={{ rowGap: 8 }}>
+          {first}
+          {audio}
+          {rest}
+        </View>
+      ) : (
+        <View style={styles.row}>
+          {audio}
+          {first}
+          {rest}
+        </View>
+      )}
+    </BarFrame>
+  );
+}
+
+/**
+ * The bar at rest (IA-04): the passage on screen, named by its range, opens
+ * its guide. `audio` is package E's Listen (AU-01), beside it; in a book with
+ * no passages Listen is the bar alone.
+ */
+export function RestBar({
+  passage,
+  onHeight,
+  audio,
+}: {
+  passage: {
+    /** "1:1–18" */
+    range: string;
+    /** "The Word became flesh, John 1:1 to 18": what VoiceOver hears after "Understand the passage". */
+    label: string;
+    onUnderstand: () => void;
+  } | null;
+  onHeight: (height: number) => void;
+  audio?: ReactNode;
+}) {
+  const { ax, pill } = useLayout();
+  return (
+    <BarFrame onHeight={onHeight} testID="rest-bar">
+      <View style={ax ? { rowGap: 8 } : styles.row}>
+        {passage === null ? null : (
+          <Capsule
+            primary
+            grow
+            height={pill}
+            onPress={passage.onUnderstand}
+            label={`Understand the passage, ${passage.label}`}
+            hint="Opens the passage guide"
+            testID="rest-understand"
+          >
+            <Chrome tone="paper" numberOfLines={1} style={{ fontWeight: "600" }}>
+              Understand {passage.range}
+            </Chrome>
+          </Capsule>
+        )}
+        {audio}
+      </View>
+    </BarFrame>
+  );
+}
+
+function BarFrame({ children, onHeight, testID }: { children: ReactNode; onHeight: (height: number) => void; testID: string }) {
+  const palette = usePalette();
+  const insets = useSafeAreaInsets();
+  const reduceMotion = useReduceMotion();
+  const enter = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
+  useEffect(() => {
+    // Critically damped: overshoot on something that merely appeared reads as decoration.
+    if (!reduceMotion) Animated.spring(enter, { toValue: 1, ...SPRING.standard, useNativeDriver: true }).start();
+  }, [enter, reduceMotion]);
   return (
     <Animated.View
       onLayout={(e) => onHeight(e.nativeEvent.layout.height)}
@@ -162,37 +260,36 @@ export function ActionBar({
           transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
         },
       ]}
-      testID="action-bar"
+      testID={testID}
     >
-      {ax ? (
-        <View style={{ rowGap: 8 }}>{items.map(button)}</View>
-      ) : hasEntry && first !== undefined ? (
-        <View style={{ rowGap: 8 }}>
-          {button(first)}
-          <View style={styles.row}>{rest.map(button)}</View>
-        </View>
-      ) : (
-        <View style={styles.row}>{items.map(button)}</View>
-      )}
+      {children}
     </Animated.View>
   );
 }
 
-function Capsule({
+/** A bar capsule: `grow` shares the row, `square` is a glyph-only control as wide as it is tall. */
+export function Capsule({
   children,
   primary = false,
-  wide = false,
+  grow = false,
+  square = false,
+  auto = false,
   height,
   onPress,
   label,
+  hint,
   testID,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   primary?: boolean;
-  wide?: boolean;
+  grow?: boolean;
+  square?: boolean;
+  /** As wide as its content, at least round: the playing bar's `▶ 1:6`. */
+  auto?: boolean;
   height: number;
   onPress: () => void;
   label: string;
+  hint?: string;
   testID: string;
 }) {
   const palette = usePalette();
@@ -202,10 +299,11 @@ function Capsule({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityHint={hint}
       testID={testID}
       style={({ pressed }) => [
         styles.capsule,
-        wide ? styles.wide : styles.cell,
+        ax ? styles.wide : square ? { width: height } : grow ? styles.cell : auto ? { minWidth: height, paddingHorizontal: 14 } : null,
         ax ? styles.list : { height },
         { minHeight: height, backgroundColor: primary ? palette.ink : palette.fill },
         pressed ? { opacity: 0.72 } : null,
@@ -243,6 +341,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     columnGap: 6,
+    paddingHorizontal: 12,
   },
   list: {
     justifyContent: "flex-start",

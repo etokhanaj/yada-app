@@ -69,11 +69,16 @@ const ORDER = Object.keys(ROLE);
 const SHOWS_ATTRIBUTION: ReadonlySet<string> = new Set(["CC-BY-SA-4.0"]);
 
 /**
- * The LSV's notice, used only if its sources row ever arrives without one: a
+ * The LSV's notice as its licence asks for it: "the above copyright and source
+ * information", read from englsv_about.htm in the eBible download (rule 3,
+ * 11 Oct 2026). It is shown in place of the row's text because core v5 was
+ * packaged with an earlier wording that also named the Covenant Christian
+ * Coalition; once core is packaged again from packages/pipeline/src/sources.ts
+ * the two are the same. Also what shows if the row ever arrives without one: a
  * share-alike text is never shown without its attribution.
  */
 const LSV_ATTRIBUTION =
-  "Literal Standard Version (LSV). Copyright © 2020 Covenant Press and the Covenant Christian Coalition. Licensed under CC BY-SA 4.0.";
+  "Literal Standard Version. Copyright © 2020 Covenant Press. Licensed under CC BY-SA 4.0. From eBible.org.";
 
 /** A sources row, with the version's code and name when it came from a downloaded translation. */
 export type SourceInput = Pick<SourceRow, "dataset" | "license" | "url"> &
@@ -98,8 +103,13 @@ export function sourceItems(rows: readonly SourceInput[]): SourceItem[] {
           ? { group: "Bible text" as const, title: row.translation.name, name: `English · ${row.translation.code}` }
           : (ROLE[row.dataset] ?? { group: "Word data" as const, title: row.dataset, name: row.dataset });
       const given = row.attribution?.trim() ?? "";
-      const fallback = row.dataset === "Literal Standard Version (englsv)" ? LSV_ATTRIBUTION : null;
-      const attribution = SHOWS_ATTRIBUTION.has(row.license) ? (given !== "" ? given : fallback) : null;
+      const attribution = !SHOWS_ATTRIBUTION.has(row.license)
+        ? null
+        : row.dataset === "Literal Standard Version (englsv)"
+          ? LSV_ATTRIBUTION
+          : given !== ""
+            ? given
+            : null;
       return [
         {
           dataset: row.dataset,
@@ -120,4 +130,39 @@ function rank(item: SourceItem): number {
   const at = ORDER.indexOf(item.dataset);
   if (at !== -1) return at;
   return item.group === "Bible text" ? ORDER.indexOf("morphgnt/sblgnt (morphological annotations)") - 0.5 : -1;
+}
+
+/**
+ * Share-alike (edge case 8): Yada's adapted copy of the notes goes out under the same licence,
+ * and says so with the licence's own address, which CC BY-SA 4.0 §3(a)(1) accepts in place of
+ * the full text. Yada's words, not the source's: the one line on this page that is.
+ */
+export const ADAPTED_COPY =
+  "Yada’s adapted copy of these notes is shared under the same licence, Creative Commons Attribution-ShareAlike 4.0 International: https://creativecommons.org/licenses/by-sa/4.0/";
+
+/** A row of a downloaded study file's `sources` table (data/studyQueries.ts StudySource). */
+export interface StudySourceInput {
+  readonly key: string;
+  readonly name: string;
+  readonly license: string;
+  readonly license_notice: string;
+  readonly attribution: string;
+  readonly modifications: string;
+}
+
+/**
+ * Sources' Study notes group: each source's attribution, its licence statement as the package
+ * printed it, and, for Tyndale's share-alike notes, what was changed (CC BY-SA asks for both).
+ * Every word comes from the file's own row (rule 3); only the role title is Yada's.
+ */
+export function studySourceItem(row: StudySourceInput): { title: string; subtitle: string; lines: string[]; label: string } {
+  const tyndale = row.key === "tosn";
+  const title = tyndale ? "Study notes" : "Cross-references";
+  const subtitle = `${row.name} · ${licenceLabel(row.license)}`;
+  const lines = [
+    row.attribution,
+    row.license_notice,
+    ...(tyndale ? [`Changes: ${row.modifications}`, ADAPTED_COPY] : []),
+  ].filter((l) => l.trim() !== "");
+  return { title, subtitle, lines, label: `${title}, ${row.name}, ${licenceLabel(row.license)}. ${lines.join(" ")}, opens the source` };
 }

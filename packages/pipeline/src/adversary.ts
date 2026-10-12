@@ -47,7 +47,17 @@ export const ADVERSARY_PROMPT = "adversary.v1.md";
 export const ADVERSARY_RESPONSES = path.join(CONTENT, "adversary");
 export const ADVERSARY_REQUESTS = path.join(CONTENT, "requests", "adversary");
 
-export const VERDICTS = ["upheld", "unsupported", "miscategorised", "compound", "overclaimed"] as const;
+// `omitted_qualifier` covers what the other verdicts miss: simplified wording
+// that drops a qualifier or an agreed fact (FactPICO, via the explanations
+// report and docs/redesign/writing-audit-jhn-1-1.md).
+export const VERDICTS = [
+  "upheld",
+  "unsupported",
+  "miscategorised",
+  "compound",
+  "overclaimed",
+  "omitted_qualifier",
+] as const;
 export type Verdict = (typeof VERDICTS)[number];
 export const SEVERITIES = ["critical", "minor", "none"] as const;
 export type Severity = (typeof SEVERITIES)[number];

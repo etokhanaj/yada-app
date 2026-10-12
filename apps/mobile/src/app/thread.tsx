@@ -1,12 +1,15 @@
 /**
- * Start here (canvas ST-01): John, passage by passage, in order.
+ * Start here (canvas PG-06): John, passage by passage, in order. Each row
+ * opens its passage with the guide over it.
  *
- * Built only from the pericope labels in the John bundle: no invented
- * introductions, no prose Yada has not reviewed. Speak's lesson outline marks
- * the current lesson (https://mobbin.com/screens/9e4fb95e-0e88-4662-8089-86da1f6cc31a);
- * here the next passage is marked in type: its number and `Next` in the accent,
- * its title semibold. Not the wash and bar, which mean a selected verse only.
- * Finished passages take a check, muted.
+ * Built from the pericope labels in the John bundle: no invented
+ * introductions. Speak's lesson outline marks the current lesson
+ * (https://mobbin.com/screens/9e4fb95e-0e88-4662-8089-86da1f6cc31a); here the
+ * next passage is marked in type: `Next · 1:1–18` above its title, its number
+ * in the accent, its title semibold, and its Where we are shown whole beneath
+ * (never cut before its point). Not the wash and bar, which mean a selected
+ * verse only (John, 10 Oct 2026). Finished passages take a check, muted; with
+ * all 46 finished there is no Next and nothing celebrates (edge case 2).
  */
 
 import { ordToParts, verseOrd } from "@yada/schema";
@@ -18,30 +21,42 @@ import { CoverWordLine } from "../components/Cover";
 import { Icon } from "../components/Icon";
 import { readerHref } from "../components/navigation";
 import { ListRow, PageScreen } from "../components/Page";
-import { Chrome } from "../components/Type";
+import { Chrome, Prose } from "../components/Type";
 import { useAppData, useCore, useLog, useQuery } from "../data/AppData";
-import { loadPassageCover, loadPericopes } from "../data/understand";
-import { loadThreadStep, saveThreadStep } from "../data/user";
-import { useLayout } from "../design/tokens";
-import { rangeInBook, threadMark } from "../lib/saved";
-
-const THREAD = "start-here-john";
+import { loadOrientation } from "../data/guide";
+import { loadProgress, type Progress } from "../data/startHere";
+import { loadPassageCover } from "../data/understand";
+import { FONTS, useLayout } from "../design/tokens";
+import { rangeInBook } from "../lib/saved";
+import { listMark, nextPassage } from "../lib/startHere";
 
 export default function ThreadScreen() {
   const { user } = useAppData();
   const { ax } = useLayout();
   const log = useLog();
   const core = useCore();
-  const { data: pericopes } = useQuery(() => loadPericopes("JHN"), []);
   // DP-03: the Gospel's opening word heads the thread.
   const { data: cover } = useQuery(() => loadPassageCover(core, "JHN", verseOrd("JHN", 1, 1)), []);
-  const [step, setStep] = useState(0);
+  const [progress, setProgress] = useState<(Progress & { orientation: string | null }) | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      void loadThreadStep(user, THREAD).then(setStep);
+      let live = true;
+      void (async () => {
+        const p = await loadProgress(user);
+        const next = nextPassage(p.passages.length, p.read, p.lastFinished);
+        const nextRow = next === null ? undefined : p.passages[next];
+        const orientation = nextRow === undefined ? null : await loadOrientation(nextRow);
+        if (live) setProgress({ ...p, orientation });
+      })();
+      return () => {
+        live = false;
+      };
     }, [user]),
   );
+
+  const passages = progress?.passages ?? [];
+  const next = progress === null ? null : nextPassage(passages.length, progress.read, progress.lastFinished);
 
   return (
     <PageScreen
@@ -49,44 +64,45 @@ export default function ThreadScreen() {
       // DP-03: the large title, then the Gospel's opening word on one line ending in the count.
       // Not one accessible element: the word keeps its own view so VoiceOver reads it in Greek.
       subtitle={
-        pericopes === undefined ? undefined : cover !== undefined && cover !== null && cover.word !== null ? (
-          <CoverWordLine cover={cover} after={`${pericopes.length} passages, in order`} />
+        progress === null ? undefined : cover !== undefined && cover !== null && cover.word !== null ? (
+          <CoverWordLine cover={cover} after={`${passages.length} passages, in order`} />
         ) : (
-          `${pericopes.length} passages`
+          `${passages.length} passages`
         )
       }
       testID="thread"
     >
-      {(pericopes ?? []).map((pericope, index) => {
-        const mark = threadMark(index, step);
+      {passages.map((pericope, index) => {
+        const mark = listMark(index, progress?.read ?? new Set(), next);
         const range = rangeInBook(pericope.pericope_id);
         const start = ordToParts(pericope.start_ord);
+        const orientation = mark === "next" ? (progress?.orientation ?? null) : null;
         return (
           <ListRow
             key={pericope.pericope_id}
-            first={index === 0}
+            // PG-06 rules the list off from the title block: a hairline above the first row too.
+            first={false}
             here={mark === "next"}
             done={mark === "done"}
             chevron={mark === "next"}
-            label={`${pericope.label}, ${range}${mark === "done" ? ", read" : mark === "next" ? ", next" : ""}`}
+            label={
+              mark === "next"
+                ? `Next, passage ${index + 1}, ${pericope.label}, John ${range.replace("–", " to ")}.${orientation === null ? "" : ` ${orientation}`} Opens the passage guide`
+                : `${index + 1}, ${pericope.label}, ${range}${mark === "done" ? ", read" : ""}`
+            }
             testID={`thread-${index + 1}`}
             onPress={() => {
-              // Tapping a passage makes the one after it next, so the thread
-              // follows the reader rather than grading them.
-              void saveThreadStep(user, THREAD, index + 1);
               log("thread_step", `${start.book}.${start.chapter}.${start.verse}`, String(index + 1));
-              router.push(readerHref({ book: start.book, chapter: start.chapter, verse: start.verse }));
+              router.push(readerHref({ book: start.book, chapter: start.chapter, verse: start.verse, resume: true, guide: pericope.pericope_id }));
             }}
-            right={
-              mark === "done" ? (
-                <Icon name="check" size={20} tone="accent" />
-              ) : mark === "next" ? (
-                <Chrome step="note" tone="accent" style={{ fontWeight: "700" }}>
-                  Next
-                </Chrome>
-              ) : undefined
-            }
+            right={mark === "done" ? <Icon name="check" size={20} tone="accent" /> : undefined}
           >
+            {mark === "next" ? (
+              // "Next · range" above the title, so the mark is read before the title (PG-06).
+              <Chrome step="note" tone="accent" style={{ fontWeight: "600", paddingLeft: ax ? 0 : 34 }}>
+                Next · {range}
+              </Chrome>
+            ) : null}
             {/* Numbered in Literata old-style figures, the range indented under the title (DP-03). */}
             <View style={styles.numbered}>
               <Chrome
@@ -100,9 +116,17 @@ export default function ThreadScreen() {
                 {pericope.label}
               </Chrome>
             </View>
-            <Chrome step="note" tone="muted" style={{ paddingLeft: ax ? 0 : 34 }}>
-              {range}
-            </Chrome>
+            {mark === "next" ? (
+              orientation !== null ? (
+                <Prose step="claim" tone="muted" style={{ paddingLeft: ax ? 0 : 34, marginTop: 4, fontFamily: FONTS.scripture }}>
+                  {orientation}
+                </Prose>
+              ) : null
+            ) : (
+              <Chrome step="note" tone="muted" style={{ paddingLeft: ax ? 0 : 34 }}>
+                {range}
+              </Chrome>
+            )}
           </ListRow>
         );
       })}

@@ -217,7 +217,8 @@ export const VerseIdSchema = z.custom<VerseId>((value) => isVerseId(value), {
 
 /** Human-readable form for display and share text: `1 Corinthians 14:34`. */
 export function formatDisplayRef(ref: VerseRef): string {
-  const book = BOOK_CODES[ref.book].name;
+  // One verse is in one psalm: "Psalm 23:1", as every frame writes it (canvas P-02, IC-01).
+  const book = ref.book === "PSA" ? "Psalm" : BOOK_CODES[ref.book].name;
   if (isTitleVerse(ref)) return `${book} ${ref.chapter}, title`;
   return `${book} ${ref.chapter}:${ref.verse}`;
 }

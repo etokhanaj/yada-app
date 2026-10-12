@@ -69,7 +69,7 @@ describe("SourceManifestEntrySchema", () => {
   });
 
   it("rejects an unknown license", () => {
-    expect(SourceManifestEntrySchema.safeParse({ ...sblgnt, license: "MIT" }).success).toBe(false);
+    expect(SourceManifestEntrySchema.safeParse({ ...sblgnt, license: "WTFPL" }).success).toBe(false);
   });
 
   it("reports which datasets must not reach a commercial build", () => {

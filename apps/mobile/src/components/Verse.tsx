@@ -13,14 +13,20 @@
  * - LORD in small capitals, the BSB's convention (amendment 12).
  * - The LSV's supplied words, [in brackets], in mutedInk with their brackets;
  *   VoiceOver reads them without (lib/supplied.ts). The text is never altered.
+ * - While audio reads this chapter (AU-02): verses still to come in mutedInk, the
+ *   playing verse with its spoken word in the ink pill (audio/Spoken.tsx), and
+ *   its number in ink; VoiceOver hears "Verse 5, playing" (AU-06).
  */
 
 import { type ReactNode, useState } from "react";
-import { Pressable, StyleSheet, Text, type TextLayoutLine, View } from "react-native";
+import { Pressable, StyleSheet, Text, type TextLayoutLine, useWindowDimensions, View } from "react-native";
 
 import { FONTS, RADIUS, useAXLevel, usePalette, useType } from "../design/tokens";
-import { splitSuperscription, type TextSegment } from "../lib/reader";
+import type { VerseMark } from "../lib/audio/text";
+import { useReduceMotion } from "../lib/motion";
+import { markSegments, splitSuperscription, type TextSegment } from "../lib/reader";
 import { scriptureSegments, spokenText } from "../lib/supplied";
+import { type SpokenFace, SpokenSegments } from "./audio/Spoken";
 import { Icon } from "./Icon";
 import { Scripture } from "./Type";
 
@@ -41,19 +47,33 @@ const GAP = 14;
 /** Word joiner: keeps an inline glyph on the same line as the word before it. */
 const JOIN = "⁠";
 
-function DivineName({ segments }: { segments: readonly TextSegment[] }) {
+/** Read-along state for a drawn part of the verse: the mark, the face, and the part's display offset. */
+interface Spoken {
+  readonly mark: VerseMark;
+  readonly face: SpokenFace;
+  readonly offset: number;
+}
+
+function DivineName({ segments, spoken }: { segments: readonly TextSegment[]; spoken?: Spoken | null }) {
   const palette = usePalette();
+  if (spoken != null) return <SpokenSegments segments={segments} mark={spoken.mark} offset={spoken.offset} face={spoken.face} />;
   return (
     <>
       {segments.map((s, i) => {
         const muted = s.supplied === true ? { color: palette.mutedInk } : null;
+        // PG-10's evidence mark: ink weight and a dotted accent underline, distinct from the
+        // selection wash, the comparison wash and the spoken-word mark (shape, not colour alone).
+        const mark =
+          s.marked === true
+            ? ({ fontWeight: "600", textDecorationLine: "underline", textDecorationStyle: "dotted", textDecorationColor: palette.accent } as const)
+            : null;
         return s.smallCaps ? (
           // Drawn as "Lord" in the font's small capitals; read as "Lord".
-          <Text key={i} style={[{ fontVariant: ["small-caps"], letterSpacing: 0.6 }, muted]}>
+          <Text key={i} style={[{ fontVariant: ["small-caps"], letterSpacing: 0.6 }, muted, mark]}>
             {s.text.charAt(0) + s.text.slice(1).toLowerCase()}
           </Text>
-        ) : muted !== null ? (
-          <Text key={i} style={muted}>
+        ) : muted !== null || mark !== null ? (
+          <Text key={i} style={[muted, mark]}>
             {s.text}
           </Text>
         ) : (
@@ -88,6 +108,10 @@ export function Verse({
   hasEntry,
   onPress,
   onAction,
+  mark = null,
+  marks,
+  hint,
+  actions: withActions = true,
   testID,
 }: {
   verse: number;
@@ -102,17 +126,42 @@ export function Verse({
   hasEntry: boolean;
   onPress: () => void;
   onAction: (action: VerseAction) => void;
+  /** Audio is reading this chapter and has not yet passed this verse. */
+  mark?: VerseMark | null;
+  /** Character ranges of `text` to mark as a guide's evidence (PG-10). */
+  marks?: ReadonlyArray<readonly [number, number]>;
+  /** Replaces the reader's selection hint: in a guide a tap opens the verse. */
+  hint?: string;
+  /** The reader's VoiceOver actions; a guide's verse has one action, its tap. */
+  actions?: boolean;
   testID?: string;
 }) {
   const palette = usePalette();
   const ax = useAXLevel() >= 1;
   const scripture = useType("scripture");
   const number = useType("verseNumber");
+  const reduceMotion = useReduceMotion();
+  const { fontScale } = useWindowDimensions();
+  const playing = mark?.kind === "current";
+  // AU-05: under Reduce Motion the playing verse is followed by weight, not by the moving pill.
+  const weight = playing && reduceMotion ? ({ fontWeight: "600" } as const) : null;
+  const face: SpokenFace = {
+    fontFamily: FONTS.scripture,
+    fontSize: scripture.size * Math.min(fontScale, scripture.maxFontSizeMultiplier),
+    letterSpacing: scripture.tracking,
+  };
   const selected = place !== "none";
   const opensBlock = place === "only" || place === "first";
   const closesBlock = place === "only" || place === "last";
   const { title: superscription, body } = verse === 1 ? splitSuperscription(text) : { title: null, body: text };
-  const segments = scriptureSegments(body, translation);
+  // Offsets are into the whole verse text, where the spoken word's range and a guide's evidence
+  // marks point; a psalm's title is cut from the front of it.
+  const bodyOffset = text.length - body.length;
+  const segments = markSegments(
+    scriptureSegments(body, translation),
+    (marks ?? []).map(([a, b]) => [a - bodyOffset, b - bodyOffset] as const).filter(([, b]) => b > 0),
+  );
+  const spokenAt = (offset: number): Spoken | null => (mark === null ? null : { mark, face, offset });
   const small = scripture.size * 0.85;
 
   const marker = hasEntry ? (
@@ -131,7 +180,7 @@ export function Verse({
         fontFamily: "System",
         fontSize: number.size,
         fontWeight: "600",
-        color: palette.mutedInk,
+        color: playing ? palette.ink : palette.mutedInk,
         fontVariant: ["tabular-nums"],
         letterSpacing: 0,
       }}
@@ -155,6 +204,7 @@ export function Verse({
       : verse === 1
         ? `Chapter ${chapter}, verse 1`
         : `Verse ${verse}`,
+    playing ? "playing" : null,
     bookmarked ? "bookmarked" : null,
     hasEntry ? "has an explanation" : null,
   ]
@@ -178,8 +228,8 @@ export function Verse({
       accessibilityRole="button"
       accessibilityState={{ selected }}
       accessibilityLabel={`${label}. ${spokenText(text, translation)}`}
-      accessibilityHint={selected ? "Tap another verse to extend the selection" : "Selects this verse"}
-      accessibilityActions={actions}
+      accessibilityHint={hint ?? (selected ? "Tap another verse to extend the selection" : "Selects this verse")}
+      accessibilityActions={withActions ? actions : undefined}
       onAccessibilityAction={(e) => onAction(e.nativeEvent.actionName as VerseAction)}
       testID={testID}
       style={({ pressed }) => [
@@ -208,21 +258,37 @@ export function Verse({
       ) : null}
       {superscription !== null ? (
         // Canvas `.sup`: the drawn Literata Italic, not a slanted upright.
-        <Scripture tone="muted" style={{ fontFamily: FONTS.scriptureItalic, fontSize: Math.round(small), lineHeight: Math.round(small * 1.5), marginBottom: 10 }}>
-          {superscription}
+        <Scripture tone="muted" style={[{ fontFamily: FONTS.scriptureItalic, fontSize: Math.round(small), lineHeight: Math.round(small * 1.5), marginBottom: 10 }, weight]}>
+          {mark === null ? (
+            superscription
+          ) : (
+            <SpokenSegments
+              segments={[{ text: superscription, smallCaps: false }]}
+              mark={mark}
+              face={{ ...face, fontFamily: FONTS.scriptureItalic, fontSize: Math.round(small) * Math.min(fontScale, scripture.maxFontSizeMultiplier) }}
+            />
+          )}
         </Scripture>
       ) : null}
       {verse === 1 ? (
-        <ChapterOpening chapter={chapter} segments={segments} ax={ax} lineHeight={scripture.lineHeight} size={scripture.size}>
+        <ChapterOpening
+          chapter={chapter}
+          segments={segments}
+          ax={ax}
+          lineHeight={scripture.lineHeight}
+          size={scripture.size}
+          spokenAt={(offset) => spokenAt(bodyOffset + offset)}
+          weight={weight}
+        >
           {bookmark}
           {marker}
         </ChapterOpening>
       ) : (
-        <Scripture>
+        <Scripture style={weight}>
           {numberLabel}
           {bookmark}
           {" "}
-          <DivineName segments={segments} />
+          <DivineName segments={segments} spoken={spokenAt(bodyOffset)} />
           {marker}
         </Scripture>
       )}
@@ -241,6 +307,8 @@ function ChapterOpening({
   ax,
   size,
   lineHeight,
+  spokenAt,
+  weight,
   children,
 }: {
   chapter: number;
@@ -248,6 +316,9 @@ function ChapterOpening({
   ax: boolean;
   size: number;
   lineHeight: number;
+  /** The read-along mark for a part starting `offset` characters into the verse body. */
+  spokenAt: (offset: number) => Spoken | null;
+  weight: { fontWeight: "600" } | null;
   children: ReactNode;
 }) {
   const palette = usePalette();
@@ -288,8 +359,8 @@ function ChapterOpening({
     return (
       <View>
         {numeral}
-        <Scripture>
-          <DivineName segments={segments} />
+        <Scripture style={weight}>
+          <DivineName segments={segments} spoken={spokenAt(0)} />
           {children}
         </Scripture>
       </View>
@@ -302,7 +373,9 @@ function ChapterOpening({
   };
 
   const first = split === null ? segments : sliceSegments(segments, 0, split);
-  const rest = split === null ? [] : sliceSegments(segments, split, total);
+  const restRaw = split === null ? [] : sliceSegments(segments, split, total);
+  const lead = restRaw[0]?.text.match(/^\s+/)?.[0].length ?? 0;
+  const rest = restRaw.map((s, i) => (i === 0 ? { ...s, text: s.text.slice(lead) } : s));
 
   return (
     <View
@@ -329,14 +402,14 @@ function ChapterOpening({
       ) : null}
       <View style={styles.opening}>
         {numeral}
-        <Scripture style={{ flex: 1 }}>
-          <DivineName segments={first} />
+        <Scripture style={[{ flex: 1 }, weight]}>
+          <DivineName segments={first} spoken={spokenAt(0)} />
           {rest.length === 0 ? children : null}
         </Scripture>
       </View>
       {rest.length > 0 ? (
-        <Scripture>
-          <DivineName segments={rest.map((s, i) => (i === 0 ? { ...s, text: s.text.replace(/^\s+/, "") } : s))} />
+        <Scripture style={weight}>
+          <DivineName segments={rest} spoken={spokenAt((split ?? 0) + lead)} />
           {children}
         </Scripture>
       ) : null}

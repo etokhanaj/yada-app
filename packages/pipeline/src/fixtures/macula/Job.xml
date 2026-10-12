@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Excerpt of the Open Scriptures Hebrew Bible (morphhb, commit 3d15126fb1ef74867fc1434be1942e837932691f, wlc/Job.xml): Job 38:12, copied unmodified for tests. Westminster Leningrad Codex text, public domain; lemma and morphology data from the Open Scriptures Hebrew Bible, licensed CC BY 4.0. -->
+        <verse osisID="Job.38.12">
+          <w lemma="i/m/3117" n="1.0" morph="HTi/R/Ncmpc/Sp2ms" id="18Sau">הְֽ֭/מִ/יָּמֶי/ךָ</w>
+          <note n="1">BHS has been faithful to the Leningrad Codex where there might be a question of the validity of the form and we keep the same form as BHS. </note>
+          <w lemma="6680" morph="HVpp2ms" id="18sbY">צִוִּ֣יתָ</w>
+          <w lemma="1242" n="1" morph="HNcmsa" id="18oxz">בֹּ֑קֶר</w>
+          <w type="x-ketiv" lemma="3045" morph="HVpp2ms" id="18ZpB">ידעתה</w>
+          <w type="x-ketiv" lemma="7837" morph="HNcmsa" id="181bx">שחר</w><note type="variant"><catchWord>ידעתה שחר</catchWord><rdg type="x-qere"><w lemma="3045" morph="HVpp2ms" id="18xRA">יִדַּ֖עְתָּה</w> <w lemma="d/7837" morph="HTd/Ncmsa" id="18CvE">הַ/שַּׁ֣חַר</w></rdg></note>
+          <note n="k">We read one or more consonants in L differently from BHS. </note>
+          <w lemma="4725" n="0" morph="HNcmsc/Sp3ms" id="18Naj">מְקֹמֽ/וֹ</w><seg type="x-sof-pasuq">׃</seg>
+        </verse>

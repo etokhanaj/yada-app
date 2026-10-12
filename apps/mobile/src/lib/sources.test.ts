@@ -41,10 +41,13 @@ describe("sourceItems", () => {
     expect(shown.join(" ")).not.toMatch(/EULA|reviewed/);
   });
 
-  it("shows the LSV's attribution verbatim, from the row when it has one", () => {
-    const lsv = { ...row("Literal Standard Version (englsv)", "CC-BY-SA-4.0"), attribution: "As the row states it." };
-    expect(sourceItems([lsv])[0]?.attribution).toBe("As the row states it.");
-    expect(sourceItems([row("Literal Standard Version (englsv)", "CC-BY-SA-4.0")])[0]?.attribution).toMatch(/^Literal Standard Version \(LSV\)\. Copyright © 2020/);
+  it("shows the LSV's copyright line as its source file gives it, whatever the row says", () => {
+    const file = "Literal Standard Version. Copyright © 2020 Covenant Press. Licensed under CC BY-SA 4.0. From eBible.org.";
+    const lsv = { ...row("Literal Standard Version (englsv)", "CC-BY-SA-4.0"), attribution: "An older wording." };
+    expect(sourceItems([lsv])[0]?.attribution).toBe(file);
+    expect(sourceItems([row("Literal Standard Version (englsv)", "CC-BY-SA-4.0")])[0]?.attribution).toBe(file);
+    const other = { ...row("Some share-alike text", "CC-BY-SA-4.0"), attribution: "As the row states it." };
+    expect(sourceItems([other])[0]?.attribution).toBe("As the row states it.");
     expect(sourceItems([row("Berean Standard Bible (text)", "PUBLIC_DOMAIN")])[0]?.attribution).toBeNull();
   });
 
@@ -87,7 +90,7 @@ describe.skipIf(!existsSync(corePath))("sourceItems against the core bundle", ()
     expect(lsv?.subtitle).toBe("English · LSV · CC BY-SA 4.0");
     expect(lsv?.url).toBe("https://ebible.org/englsv/");
     expect(lsv?.attribution).toBe(
-      "Literal Standard Version (LSV). Copyright © 2020 Covenant Press and the Covenant Christian Coalition. Licensed under CC BY-SA 4.0.",
+      "Literal Standard Version. Copyright © 2020 Covenant Press. Licensed under CC BY-SA 4.0. From eBible.org.",
     );
     expect(items.filter((i) => i.attribution !== null).map((i) => i.title)).toEqual(["Literal Standard Version"]);
     const unmapped = rows.filter((r) => !items.some((i) => i.dataset === r.dataset)).map((r) => r.dataset);

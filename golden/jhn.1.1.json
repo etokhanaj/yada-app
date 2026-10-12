@@ -108,38 +108,38 @@
     }
   ],
   "close_rendering": "In the beginning was the Word, and the Word was with God, and the Word was God.",
-  "whats_happening": "John opens his Gospel not with a birth or a genealogy but before the world exists, using the same first words as the opening of Genesis. Three short clauses each use the same verb: the Word already was, the Word was with God, and the Word was God. The third clause is where the Greek repays close attention, because of what it does and does not put the article on.",
+  "whats_happening": "John opens his Gospel (his account of Jesus' life) not with a birth or a family tree but before the world exists, using the same first words as the opening of Genesis. Three short parts each use the same verb: the Word already was, the Word was with God, and the Word was God. In the third part of the verse, the Greek has no 'the' before 'God', and readers disagree about what that means.",
   "key_words": [
     {
       "surface": "λόγος",
       "lemma": "λόγος",
       "gloss": "word",
-      "note": "A common Greek noun for a spoken word, an account, or a reasoned principle. It carried weight in both Greek philosophy and Jewish wisdom writing before John used it.",
+      "note": "A common Greek noun for a spoken word, an account, or a reason or principle behind things. Greek philosophers and Jewish writings about wisdom had both used it before John.",
       "strongs": "G3056"
     },
     {
       "surface": "ἦν",
       "lemma": "εἰμί",
       "gloss": "was",
-      "note": "Imperfect: continuous existing state rather than a point of origin. Verse 3 switches to the aorist ἐγένετο for things that came into being.",
+      "note": "'Was' describes something already going on, not something that began. Verse 3 uses a different verb for created things: they 'came into being'.",
       "strongs": "G1510"
     },
     {
       "surface": "πρὸς",
       "lemma": "πρός",
       "gloss": "with",
-      "note": "With the accusative this preposition normally carries motion or orientation toward something, not static position beside it.",
+      "note": "Here πρός means 'with', in the sense of being toward someone.",
       "strongs": "G4314"
     },
     {
       "surface": "θεός",
       "lemma": "θεός",
       "gloss": "God",
-      "note": "Appears twice in the verse: articular in the second clause, without the article in the third.",
+      "note": "Appears twice: with 'the' in the second part, without it in the third.",
       "strongs": "G2316"
     }
   ],
-  "translation_note": "The third clause reads θεὸς ἦν ὁ λόγος in Greek, putting θεός first. English word order cannot show this, so every English translation makes a choice the Greek does not force.",
+  "translation_note": "The third part reads θεὸς ἦν ὁ λόγος in Greek, putting θεός first. English word order cannot show this, so every English translation makes a choice the Greek does not force.",
   "claims": [
     {
       "id": "JHN.1.1.c1",
@@ -166,7 +166,7 @@
     },
     {
       "id": "JHN.1.1.c2",
-      "claim": "All three clauses of the verse use the same verb form, ἦν.",
+      "claim": "All three parts of the verse use the same verb form, ἦν.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -189,7 +189,7 @@
     },
     {
       "id": "JHN.1.1.c3",
-      "claim": "In the third clause θεός stands without the article while ὁ λόγος carries it.",
+      "claim": "In the third part of the verse, 'the' comes before 'Word' but not before 'God'.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -212,7 +212,7 @@
     },
     {
       "id": "JHN.1.1.c4",
-      "claim": "In the third clause the predicate noun θεός stands before the verb.",
+      "claim": "In the third part of the verse, 'God' comes first, before 'was'.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -228,7 +228,7 @@
     },
     {
       "id": "JHN.1.1.c5",
-      "claim": "In the second clause θεόν is accusative and articular, governed by πρός.",
+      "claim": "In the second part of the verse θεόν is accusative and articular, governed by πρός.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -274,7 +274,7 @@
     },
     {
       "id": "JHN.1.1.c7",
-      "claim": "Two verses later the same writer switches to the aorist ἐγένετο for things that came into being.",
+      "claim": "Two verses later John uses a different verb for created things: they 'came into being'.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -297,7 +297,7 @@
     },
     {
       "id": "JHN.1.1.c8",
-      "claim": "The verse opens a prologue running to John 1:18, before the Gospel's narrative begins.",
+      "claim": "The verse begins the opening section (verses 1–18), before the Gospel's narrative begins.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "high",
@@ -313,7 +313,7 @@
     },
     {
       "id": "JHN.1.1.c9",
-      "claim": "The Greek Old Testament opens Genesis with the same two-word phrase, Ἐν ἀρχῇ.",
+      "claim": "The early Greek translation of the Old Testament opens Genesis with the same two-word phrase, Ἐν ἀρχῇ.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "medium",
@@ -324,7 +324,7 @@
     },
     {
       "id": "JHN.1.1.c10",
-      "claim": "λόγος carried established senses in both Greek philosophical usage and Jewish wisdom writing before this Gospel was composed.",
+      "claim": "Before John wrote, 'logos' already meant something to Greek philosophers and in Jewish writings about wisdom.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "medium",
@@ -335,7 +335,7 @@
     },
     {
       "id": "JHN.1.1.c11",
-      "claim": "What the missing article on θεός in the third clause signals is disputed.",
+      "claim": "Readers disagree about what it means that there is no 'the' before 'God' in the third part of the verse.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "high",
@@ -355,8 +355,8 @@
       "sources": [],
       "positions": [
         {
-          "label": "Qualitative",
-          "case": "A predicate noun placed before the verb regularly drops the article in Greek, and doing so describes what something is by nature rather than identifying it with the person just named, so the clause says the Word shares God's nature without saying the Word is the Father.",
+          "label": "God's nature",
+          "case": "In Greek, a describing word placed before the verb usually drops 'the'. Read this way, this part says what the Word is: the Word shares God's nature, without being the Father.",
           "evidence": [
             {
               "type": "verse",
@@ -365,8 +365,8 @@
           ]
         },
         {
-          "label": "Definite",
-          "case": "The absence of the article carries no independent weight in this position, because pre-verbal predicate nouns commonly lack it, so θεός is as definite as the articular τὸν θεόν of the previous clause.",
+          "label": "The same God",
+          "case": "Words in this position often lack 'the' anyway, so its absence tells us nothing. 'God' here is as definite as 'the God' in the part before.",
           "evidence": [
             {
               "type": "verse",
@@ -375,8 +375,8 @@
           ]
         },
         {
-          "label": "Indefinite",
-          "case": "Read as an ordinary indefinite noun the clause says the Word was a god, a rendering adopted by the New World Translation and defended on the grounds that the writer distinguishes the articular θεόν from the anarthrous θεός deliberately.",
+          "label": "A god",
+          "case": "Read as an ordinary noun without 'the', this part says 'the Word was a god'. The New World Translation takes this view, arguing John contrasts 'the God' with 'god' on purpose.",
           "evidence": [
             {
               "type": "verse",
@@ -389,7 +389,7 @@
     },
     {
       "id": "JHN.1.1.c12",
-      "claim": "Whether ὁ λόγος denotes a personal figure from the first verse or becomes personal only at verse 14 is disputed.",
+      "claim": "Readers disagree whether 'the Word' is a person from verse 1, or only becomes one at verse 14.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "medium",
@@ -408,7 +408,7 @@
       "positions": [
         {
           "label": "Personal from verse 1",
-          "case": "The Word is said to be with God using a preposition of orientation toward a person, and the same subject continues unbroken into verse 14, so the personal reference is present from the opening clause.",
+          "case": "The Word is said to be with God using a word meaning 'toward', used of a person, and the same subject continues unbroken into verse 14, so the personal reference is present from the opening part.",
           "evidence": [
             {
               "type": "verse",
@@ -421,8 +421,8 @@
           ]
         },
         {
-          "label": "Personified expression first",
-          "case": "The prologue draws on wisdom language in which a divine attribute is spoken of as though it acted, and the decisive shift to a person occurs at verse 14 where the Word becomes flesh.",
+          "label": "Spoken of as a person, at first",
+          "case": "The opening section draws on Jewish writings about wisdom, in which a quality of God is spoken of as though it acted, and the decisive shift to a person occurs at verse 14 where the Word becomes flesh.",
           "evidence": [
             {
               "type": "verse",
@@ -448,12 +448,12 @@
     {
       "ref": "JHN.1.14",
       "relationship": "development",
-      "note": "Where the Word of the prologue becomes flesh."
+      "note": "Where the Word of the opening section becomes flesh."
     },
     {
       "ref": "JHN.20.28",
       "relationship": "thematic",
-      "note": "The Gospel closes with Thomas addressing Jesus in the same terms the prologue opens with."
+      "note": "The Gospel closes with Thomas addressing Jesus in the same terms the opening section begins with."
     }
   ],
   "review": {

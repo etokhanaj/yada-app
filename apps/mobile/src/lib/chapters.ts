@@ -55,14 +55,23 @@ export function resolveRef(ref: string): OrdSpan | null {
   };
 }
 
-/** "1 Corinthians 14:26–40", "John 7:53–8:11", "Psalms 23:1". */
+/** "1 Corinthians 14:26–40", "John 7:53–8:11", "Psalm 23:1". */
 export function formatRange(ref: string): string {
   const range = parseVerseRef(ref);
   if (range === null) return ref;
-  const name = BOOK_CODES[range.book].name;
+  const { start, end } = range;
+  // Inside one psalm it is a Psalm (canvas P-02); across psalms the book's name stays plural.
+  const name = range.book === "PSA" && start.chapter === end.chapter ? "Psalm" : BOOK_CODES[range.book].name;
+  return `${name} ${formatRangeInBook(ref)}`;
+}
+
+/** "14:26–40", "23, title–6": formatRange without the book, for a screen that already names it. */
+export function formatRangeInBook(ref: string): string {
+  const range = parseVerseRef(ref);
+  if (range === null) return ref;
   const { start, end } = range;
   const startText = start.verse === 0 ? `${start.chapter}, title` : `${start.chapter}:${start.verse}`;
-  if (start.chapter === end.chapter && start.verse === end.verse) return `${name} ${startText}`;
-  if (start.chapter === end.chapter) return `${name} ${startText}–${end.verse}`;
-  return `${name} ${startText}–${end.chapter}:${end.verse}`;
+  if (start.chapter === end.chapter && start.verse === end.verse) return startText;
+  if (start.chapter === end.chapter) return `${startText}–${end.verse}`;
+  return `${startText}–${end.chapter}:${end.verse}`;
 }

@@ -4,11 +4,19 @@
 appId: studio.yada.reader
 ---
 - launchApp
-# A cold launch resumes in the reader (brief §8.18); Home is one step back.
-- runFlow:
-    when:
-      visible:
-        id: reader-back
+# A cold launch resumes in the reader (brief §8.18) once there is a saved place, else opens on
+# Home (ON-01); wait for either before choosing.
+- extendedWaitUntil:
+    visible:
+      id: "reader-back|home-search"
+    timeout: 20000
+# Home may sit under more than one reader: the cold launch resumes one at the saved place and
+# a deep link pushes another, so ‹ Home can take more than one tap (simulator, 11 Oct 2026).
+- repeat:
+    times: 3
+    while:
+      notVisible:
+        id: home-search
     commands:
       - tapOn:
           id: reader-back

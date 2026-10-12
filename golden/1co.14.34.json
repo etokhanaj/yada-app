@@ -114,13 +114,13 @@
     }
   ],
   "close_rendering": "Let the women be silent in the assemblies, for it is not permitted for them to speak; rather, let them submit, just as the law also says.",
-  "whats_happening": "Paul is closing a long section on how the Corinthian assembly should conduct its gatherings, where prophets and tongue-speakers have been talking over one another. He has already told tongue-speakers and prophets to stop speaking under certain conditions, using the same verb he uses here. This verse applies that same instruction to a third group, and the disagreement is over exactly which speech, and which women, are in view.",
+  "whats_happening": "Paul is closing a long section on how the church in Corinth should run its meetings, where prophets and people speaking in tongues have been talking over one another. He has already told tongue-speakers and prophets to stop speaking under certain conditions, using the same verb he uses here. This verse gives the same instruction to a third group. Readers disagree about which speech, and which women, are meant.",
   "key_words": [
     {
       "surface": "σιγάτωσαν",
       "lemma": "σιγάω",
       "gloss": "let them be silent",
-      "note": "The same verb is used of tongue-speakers in v. 28 and prophets in v. 30, in both cases as a situational instruction rather than a permanent ban.",
+      "note": "Paul uses the same verb for those speaking in tongues in verse 28 and prophets in verse 30. Both times it means 'be quiet in this situation', not 'never speak'.",
       "strongs": "G4601"
     },
     {
@@ -144,7 +144,7 @@
       "strongs": "G3551"
     }
   ],
-  "translation_note": "BSB, WEB, and KJV agree closely here; the divergence between English versions in this passage is mainly punctuation and paragraphing, which affects where the sentence is felt to begin and end.",
+  "translation_note": "The BSB, WEB and KJV translations agree closely here. English versions differ mainly in punctuation and paragraph breaks, which change where the sentence seems to begin and end.",
   "claims": [
     {
       "id": "1CO.14.34.c1",
@@ -222,7 +222,7 @@
     },
     {
       "id": "1CO.14.34.c4",
-      "claim": "The verse sits inside a block of instructions about order in the gathered assembly (1 Cor 14:26-40).",
+      "claim": "The verse sits inside a block of instructions about order in church meetings (1 Cor 14:26-40).",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "high",
@@ -254,7 +254,7 @@
     },
     {
       "id": "1CO.14.34.c6",
-      "claim": "Formal rhetorical and scriptural education was generally less available to women than to men in first-century Greco-Roman cities.",
+      "claim": "In first-century Greek and Roman cities, women generally had less access than men to formal training in public speaking and the scriptures.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "medium",
@@ -265,7 +265,7 @@
     },
     {
       "id": "1CO.14.34.c7",
-      "claim": "Who the instruction addresses is disputed.",
+      "claim": "Readers disagree whether this means women in general or wives in particular.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "high",
@@ -287,7 +287,7 @@
       "positions": [
         {
           "label": "Women in the assembly generally",
-          "case": "The plural αἱ γυναῖκες is unqualified in v. 34, and the appeal to the law and to the churches is stated in general terms rather than about a household relationship.",
+          "case": "In verse 34, 'the women' (αἱ γυναῖκες) is not narrowed down, and the appeal to the law and to the churches is general, not about a household relationship.",
           "evidence": [
             {
               "type": "verse",
@@ -301,7 +301,7 @@
         },
         {
           "label": "Wives specifically",
-          "case": "Verse 35 tells them to ask their own husbands at home, and γυνή is the ordinary word for wife, so the following verse supplies the domestic frame the noun leaves open.",
+          "case": "Verse 35 tells them to ask their own husbands at home. γυνή is the ordinary word for wife, so verse 35 gives the household setting the noun leaves open.",
           "evidence": [
             {
               "type": "verse",
@@ -321,7 +321,7 @@
     },
     {
       "id": "1CO.14.34.c8",
-      "claim": "SBLGNT marks three points of textual variation inside this verse.",
+      "claim": "The SBL Greek New Testament (SBLGNT) marks three places in this verse where manuscripts differ.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -343,7 +343,7 @@
     },
     {
       "id": "1CO.14.34.c9",
-      "claim": "Where verses 34 and 35 stood in the earliest text is disputed.",
+      "claim": "Manuscripts place verses 34 and 35 in two different spots, and readers disagree about where they first stood.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "medium",
@@ -359,7 +359,7 @@
       "positions": [
         {
           "label": "Here, after verse 33",
-          "case": "This is the placement printed by the standard editions and carried by the bulk of the manuscript tradition.",
+          "case": "Standard editions print the verses here, and most manuscripts have them here.",
           "evidence": [
             {
               "type": "verse",
@@ -369,7 +369,7 @@
         },
         {
           "label": "After verse 40",
-          "case": "Part of the tradition places the two verses at the end of the chapter, which has been taken to bear on whether they were part of Paul's own argument at this point.",
+          "case": "Some manuscripts put the two verses at the end of the chapter. Readers have used this to ask whether they were part of Paul's own argument here.",
           "evidence": [
             {
               "type": "verse",
@@ -395,7 +395,7 @@
     {
       "ref": "1TI.2.11-12",
       "relationship": "thematic",
-      "note": "The other passage in the Pauline letters on women, teaching, and quietness."
+      "note": "The other passage in the letters under Paul's name on women, teaching and quietness."
     }
   ],
   "review": {

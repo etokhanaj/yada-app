@@ -222,27 +222,27 @@
     }
   ],
   "close_rendering": "And he was pierced from our transgressions, crushed from our iniquities. The chastisement of our peace was upon him, and by his wound there was healing for us.",
-  "whats_happening": "A group speaking as we describe what happened to a single figure, and the whole verse turns on the contrast between the two. Every noun of wrongdoing carries an our, and every verb of suffering is attached to a him. The Hebrew joins the two with a preposition that can mean either because of or away from, and that one preposition carries much of the weight of how the verse has been read.",
+  "whats_happening": "A group speaking as 'we' describes what happened to someone they call 'him'. The whole verse rests on the contrast between them. Every wrongdoing is 'ours', and every suffering is 'his'. The Hebrew links them with one small word, מִן, which can mean 'because of' or 'away from'. Much of how the verse has been read depends on that word.",
   "key_words": [
     {
       "surface": "מְחֹלָ֣ל",
       "lemma": "חָלַל",
       "gloss": "pierced",
-      "note": "A passive participle. The root covers piercing and being fatally wounded.",
+      "note": "Describes something done to him. The word covers both piercing and being fatally wounded.",
       "strongs": "H2490a"
     },
     {
       "surface": "מִפְּשָׁעֵ֔נוּ",
       "lemma": "פֶּשַׁע",
       "gloss": "from our transgressions",
-      "note": "The prefixed מִן can mark cause, source, or separation, and the choice between them changes what the line asserts.",
+      "note": "מִן, joined to the front, can mean 'because of', 'coming from' or 'away from'. Which one is meant changes what the line says.",
       "strongs": "H6588"
     },
     {
       "surface": "נִרְפָּא",
       "lemma": "רָפָא",
       "gloss": "it was healed",
-      "note": "A Niphal perfect, third person masculine singular, with the healing stated impersonally rather than of a named subject.",
+      "note": "Literally 'it was healed': the healing is stated without naming who is healed.",
       "strongs": "H7495"
     },
     {
@@ -253,7 +253,7 @@
       "strongs": "H2250"
     }
   ],
-  "translation_note": "English versions differ on the preposition מִן: for our transgressions, because of our transgressions, and from our transgressions are all defensible renderings of the same consonants, and they do not assert the same thing.",
+  "translation_note": "English versions translate מִן differently: 'for', 'because of' or 'from' our transgressions. Each is a fair reading of the Hebrew, but they do not say the same thing.",
   "claims": [
     {
       "id": "ISA.53.5.c1",
@@ -305,7 +305,7 @@
     },
     {
       "id": "ISA.53.5.c3",
-      "claim": "וּבַחֲבֻרָתוֹ is one written word carrying four morphemes.",
+      "claim": "וּבַחֲבֻרָתוֹ is one written word made of four parts.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -329,7 +329,7 @@
     },
     {
       "id": "ISA.53.5.c4",
-      "claim": "The preposition מִן is prefixed to both פְּשָׁעֵנוּ and עֲוֺנֹתֵינוּ.",
+      "claim": "The small word מִן is joined to the front of both פְּשָׁעֵנוּ ('our transgressions') and עֲוֺנֹתֵינוּ ('our iniquities').",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -353,7 +353,7 @@
     },
     {
       "id": "ISA.53.5.c5",
-      "claim": "Every noun of wrongdoing in the verse carries a first person plural suffix while every reference to the sufferer is third person masculine singular.",
+      "claim": "Every word for wrongdoing in the verse has 'our' attached, while every reference to the sufferer is 'he' or 'him'.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -413,7 +413,7 @@
     },
     {
       "id": "ISA.53.5.c8",
-      "claim": "This passage has been read both collectively and individually since antiquity.",
+      "claim": "Since ancient times, this passage has been read both as about a people and as about one person.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "medium",
@@ -424,7 +424,7 @@
     },
     {
       "id": "ISA.53.5.c9",
-      "claim": "Who the sufferer of this passage is is disputed.",
+      "claim": "Readers disagree about who the sufferer in this passage is.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "high",
@@ -442,8 +442,8 @@
       "sources": [],
       "positions": [
         {
-          "label": "Israel collectively",
-          "case": "Isaiah names Israel as the servant explicitly in the surrounding chapters, and reading the sufferer as the people among the nations keeps the term consistent across the book, with the speaking we understood as the nations looking on.",
+          "label": "Israel as a people",
+          "case": "In the surrounding chapters, Isaiah names Israel as the servant. Reading the sufferer as Israel among the nations keeps that term consistent across the book. The 'we' are then the nations looking on.",
           "evidence": [
             {
               "type": "verse",
@@ -456,8 +456,8 @@
           ]
         },
         {
-          "label": "An individual distinct from the people",
-          "case": "The sufferer is set over against the speaking we throughout the passage, bearing what belongs to them, which is difficult to sustain if the sufferer and the speakers are the same body.",
+          "label": "One person, distinct from the people",
+          "case": "Throughout the passage, the sufferer is set apart from the 'we' who speak, and bears what belongs to them. That is hard to explain if the sufferer and the speakers are the same group.",
           "evidence": [
             {
               "type": "verse",
@@ -470,7 +470,7 @@
     },
     {
       "id": "ISA.53.5.c10",
-      "claim": "What relation the preposition מִן marks between the suffering and the transgressions is disputed.",
+      "claim": "Readers disagree about how מִן links the suffering to the transgressions.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "medium",
@@ -502,7 +502,7 @@
         },
         {
           "label": "Separation",
-          "case": "מִן also marks movement away from something, giving a sense in which the suffering removes the speakers from their transgressions rather than being caused by them.",
+          "case": "מִן can also mean 'away from'. Read that way, the suffering takes the speakers away from their transgressions, rather than being caused by them.",
           "evidence": [
             {
               "type": "verse",
@@ -528,7 +528,7 @@
     {
       "ref": "ACT.8.32-8.33",
       "relationship": "quotation",
-      "note": "The passage read and asked about in Acts, with the identity question raised in the text itself."
+      "note": "In Acts, someone reading this passage asks who it is about."
     },
     {
       "ref": "1PE.2.24",

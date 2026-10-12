@@ -16,6 +16,34 @@ export interface TextSegment {
   readonly smallCaps: boolean;
   /** A word the LSV's translators supplied, drawn muted (lib/supplied.ts). */
   readonly supplied?: boolean;
+  /** A passage guide's evidence mark (PG-10): semibold, dotted accent underline. */
+  readonly marked?: boolean;
+}
+
+/**
+ * Splits segments at character ranges [start, end) of their joined text and
+ * flags the parts inside one. Display only: the text itself never changes.
+ */
+export function markSegments(segments: readonly TextSegment[], ranges: ReadonlyArray<readonly [number, number]>): TextSegment[] {
+  if (ranges.length === 0) return [...segments];
+  const cuts = new Set<number>();
+  for (const [a, b] of ranges) {
+    cuts.add(a);
+    cuts.add(b);
+  }
+  const inside = (at: number) => ranges.some(([a, b]) => at >= a && at < b);
+  const out: TextSegment[] = [];
+  let at = 0;
+  for (const s of segments) {
+    let from = 0;
+    const points = [...cuts].filter((c) => c > at && c < at + s.text.length).sort((x, y) => x - y).map((c) => c - at);
+    for (const to of [...points, s.text.length]) {
+      if (to > from) out.push({ ...s, text: s.text.slice(from, to), ...(inside(at + from) ? { marked: true } : {}) });
+      from = to;
+    }
+    at += s.text.length;
+  }
+  return out;
 }
 
 /**
@@ -88,22 +116,24 @@ export function shortRef(ref: { book: BookCode; chapter: number; verse: number }
 export type BarItem = "understand" | "original" | "compare" | "more";
 
 /**
- * Brief §4 and §8: Understand dominant on its own row, then Original · Compare
- * · ⋯. No Understand (and no placeholder) when the verse has no entry
- * (amendment 3). At AX sizes only Understand and More, so the list never
- * covers the verse it acts on (amendment 4; Esther 8:9, v2-review X1) — and
- * with no entry, Original takes Understand's place.
+ * IA-05: on a selected verse, one row: Understand (primary) · Compare · ⋯.
+ * Original leaves the bar: the Greek is evidence inside Understand ("Closer
+ * to the Greek", Go further › Original), not a destination. No Understand
+ * (and no placeholder) when the verse has no entry (amendment 3); then
+ * Original stays, as the only way to the verse's Greek, until every verse's
+ * Understand has something in it (package A's study notes). At AX sizes
+ * only the first action and More, so the list never covers the verse it
+ * acts on (amendment 4; Esther 8:9, v2-review X1).
  */
 export function barItems(hasEntry: boolean, ax: boolean): BarItem[] {
   if (ax) return hasEntry ? ["understand", "more"] : ["original", "more"];
-  return hasEntry ? ["understand", "original", "compare", "more"] : ["original", "compare", "more"];
+  return hasEntry ? ["understand", "compare", "more"] : ["original", "compare", "more"];
 }
 
-/** What `More` holds: at AX sizes it also carries the actions the list dropped. */
+/** What `More` holds: at AX sizes it also carries Compare, which the list dropped. */
 export function moreActions(hasEntry: boolean, ax: boolean, bookmarked: boolean): string[] {
   const shared = ["Copy", "Share", bookmarked ? "Remove bookmark" : "Bookmark"];
-  if (!ax) return shared;
-  return hasEntry ? ["Original", "Compare", ...shared] : ["Compare", ...shared];
+  return ax ? ["Compare", ...shared] : shared;
 }
 
 /**

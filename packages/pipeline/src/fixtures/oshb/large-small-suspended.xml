@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Verbatim <verse> elements from the Open Scriptures Hebrew Bible (morphhb, commit 3d15126):
+     WLC text public domain; lemma and morphology CC BY 4.0. Not edited: these are the
+     test of how the parser reads OSHB, so a change here would test the fixture, not the source. -->
+<osis>
+        <verse osisID="Num.27.5">
+          <w lemma="c/7126" morph="HC/Vhw3ms" id="04XkU">וַ/יַּקְרֵ֥ב</w>
+          <w lemma="4872" n="0.0.0" morph="HNp" id="04ga6">מֹשֶׁ֛ה</w>
+          <w lemma="853" morph="HTo" id="041sG">אֶת</w><seg type="x-maqqef">־</seg><w lemma="4941" n="0.0" morph="HNcmsc/Sp3fp" id="04DbS">מִשְׁפָּטָ֖/<seg type="x-large">ן</seg></w>
+          <note n="5">Large letter(s). Shown as large letters without a superscript note number. </note>
+          <w lemma="l/6440" morph="HR/Ncbpc" id="04EX3">לִ/פְנֵ֥י</w>
+          <w lemma="3068" n="0" morph="HNp" id="04vV1">יְהוָֽה</w><seg type="x-sof-pasuq">׃</seg>
+          <seg type="x-samekh">ס</seg>
+        </verse>
+        <verse osisID="Deut.6.4">
+          <w lemma="8085" n="1.0" morph="HVqv2ms" id="05WH5">שְׁמַ֖<seg type="x-large">ע</seg></w>
+          <note n="5">Large letter(s). Shown as large letters without a superscript note number. </note>
+          <w lemma="3478" n="1" morph="HNp" id="05Wu9">יִשְׂרָאֵ֑ל</w>
+          <w lemma="3068" morph="HNp" id="05Wfj">יְהוָ֥ה</w>
+          <w lemma="430" n="0.0" morph="HNcmpc/Sp1cp" id="05MRr">אֱלֹהֵ֖י/נוּ</w>
+          <w lemma="3068" morph="HNp" id="05d46">יְהוָ֥ה</w>
+          <seg type="x-paseq">׀</seg>
+          <w lemma="259" n="0" morph="HAcmsa" id="05vGY">אֶחָֽ<seg type="x-large">ד</seg></w><seg type="x-sof-pasuq">׃</seg>
+          <note n="5">Large letter(s). Shown as large letters without a superscript note number. </note>
+        </verse>
+        <verse osisID="Judg.18.30">
+          <w lemma="c/6965 b" morph="HC/Vhw3mp" id="07kbD">וַ/יָּקִ֧ימוּ</w>
+          <w lemma="l" n="1.0.0" morph="HR/Sp3mp" id="078qD">לָ/הֶ֛ם</w>
+          <w lemma="1121 a" morph="HNcmpc" id="07Zxt">בְּנֵי</w><seg type="x-maqqef">־</seg><w lemma="1835" n="1.0" morph="HNp" id="07uHA">דָ֖ן</w>
+          <w lemma="853" morph="HTo" id="072kF">אֶת</w><seg type="x-maqqef">־</seg><w lemma="d/6459" n="1" morph="HTd/Ncmsa" id="07mSY">הַ/פָּ֑סֶל</w>
+          <w lemma="c/3129" n="0.1.1.1" morph="HC/Np" id="072Fo">וִ֠/יהוֹנָתָן</w>
+          <w lemma="1121 a" morph="HNcmsc" id="07ac8">בֶּן</w><seg type="x-maqqef">־</seg><w lemma="1647" morph="HNp" id="0752Z">גֵּרְשֹׁ֨ם</w>
+          <w lemma="1121 a" morph="HNcmsc" id="07UX4">בֶּן</w><seg type="x-maqqef">־</seg><w lemma="4519" n="0.1.1.0" morph="HNp" id="07EnX">מְ<seg type="x-suspended">נַ</seg>שֶּׁ֜ה</w>
+          <note n="7">Suspended letter(s). Shown as suspended letters without a superscript note number. </note>
+          <w lemma="1931" morph="HPp3ms" id="07NXR">ה֣וּא</w>
+          <w lemma="c/1121 a" n="0.1.1" morph="HC/Ncmpc/Sp3ms" id="0725M">וּ/בָנָ֗י/ו</w>
+          <w lemma="1961" morph="HVqp3cp" id="07YtX">הָי֤וּ</w>
+          <w lemma="3548" n="0.1.0" morph="HNcmpa" id="07DG3">כֹהֲנִים֙</w>
+          <w lemma="l/7626" morph="HR/Ncmsc" id="07cWY">לְ/שֵׁ֣בֶט</w>
+          <w lemma="d/1839" n="0.1" morph="HTd/Ngmsa" id="07yj6">הַ/דָּנִ֔י</w>
+          <w lemma="5704" morph="HR" id="07hqz">עַד</w><seg type="x-maqqef">־</seg><w lemma="3117" n="0.0" morph="HNcmsc" id="07x8M">י֖וֹם</w>
+          <w lemma="1540" morph="HVqc" id="07Vk7">גְּל֥וֹת</w>
+          <w lemma="d/776" n="0" morph="HTd/Ncbsa" id="07JRg">הָ/אָֽרֶץ</w><seg type="x-sof-pasuq">׃</seg>
+        </verse>
+</osis>

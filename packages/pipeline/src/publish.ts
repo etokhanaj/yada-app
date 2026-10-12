@@ -21,7 +21,7 @@
  *   - a translation whose gzipped size disagrees with the manifest's `download_bytes`, the size
  *     every Download row shows.
  *
- * Translation files upload gzip-compressed with Content-Encoding gzip (about 7.2 MB to 3.3 MB).
+ * Translation and study files upload gzip-compressed with Content-Encoding gzip (about 7.2 MB to 3.3 MB).
  * NSURLSession, which expo-file-system downloads through, decodes it before writing the file, so
  * `sha256` and `bytes` describe the decompressed file and the app verifies that. Core and book
  * bundles upload as they are.
@@ -36,7 +36,7 @@ import path from "node:path";
 
 import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-import { BundleManifestSchema, type BundleInfo, type BundleManifest, type TranslationInfo } from "@yada/schema";
+import { BundleManifestSchema, type BundleInfo, type BundleManifest, type StudyInfo, type TranslationInfo } from "@yada/schema";
 
 import { BUNDLES } from "./package.js";
 import { gzipTranslation } from "./translations.js";
@@ -49,9 +49,9 @@ export class PublishRefused extends Error {}
 export type ObjectStore = Pick<S3Client, "send">;
 
 export interface PlannedBundle {
-  info: BundleInfo | TranslationInfo;
+  info: BundleInfo | TranslationInfo | StudyInfo;
   file: string;
-  /** Translations only: uploaded as gzipped bytes with Content-Encoding gzip. */
+  /** Translations and study bundles: uploaded as gzipped bytes with Content-Encoding gzip. */
   gzip: boolean;
 }
 
@@ -67,13 +67,14 @@ function sha256(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-function isTranslation(info: BundleInfo | TranslationInfo): info is TranslationInfo {
-  return "code" in info;
+/** A file the app downloads on demand (a translation or a book's study notes), served gzipped. */
+function isDownload(info: BundleInfo | TranslationInfo | StudyInfo): info is TranslationInfo | StudyInfo {
+  return "code" in info || "licenses" in info;
 }
 
 /** The size the manifest promises for the download, when it promises one. */
-function downloadSizeProblem(info: BundleInfo | TranslationInfo, gzipped: Uint8Array): string | null {
-  if (!isTranslation(info) || info.download_bytes === undefined || gzipped.length === info.download_bytes) return null;
+function downloadSizeProblem(info: BundleInfo | TranslationInfo | StudyInfo, gzipped: Uint8Array): string | null {
+  if (!isDownload(info) || info.download_bytes === undefined || gzipped.length === info.download_bytes) return null;
   return `${info.file} gzips to ${gzipped.length} bytes, manifest says ${info.download_bytes}`;
 }
 
@@ -104,9 +105,9 @@ export function planPublish(dir: string = BUNDLES): PublishPlan {
 
   const problems: string[] = [];
   const bundles: PlannedBundle[] = [];
-  // Translations upload with the bundles, before the manifest: a manifest offering a download
-  // that is not yet in the bucket is a broken row on every phone.
-  for (const info of [...manifest.bundles, ...(manifest.translations ?? [])]) {
+  // Translations and study bundles upload with the bundles, before the manifest: a manifest
+  // offering a download that is not yet in the bucket is a broken row on every phone.
+  for (const info of [...manifest.bundles, ...(manifest.translations ?? []), ...(manifest.study ?? [])]) {
     const file = path.join(dir, info.file);
     if (!existsSync(file)) {
       problems.push(`${info.file} is listed in the manifest but not on disk`);
@@ -116,7 +117,7 @@ export function planPublish(dir: string = BUNDLES): PublishPlan {
     const actual = sha256(bytes);
     if (actual !== info.sha256) problems.push(`${info.file} sha256 ${actual} does not match the manifest's ${info.sha256}`);
     if (bytes.length !== info.bytes) problems.push(`${info.file} is ${bytes.length} bytes, manifest says ${info.bytes}`);
-    const gzip = isTranslation(info);
+    const gzip = isDownload(info);
     const sizeProblem = gzip ? downloadSizeProblem(info, gzipTranslation(bytes)) : null;
     if (sizeProblem !== null) problems.push(sizeProblem);
     bundles.push({ info, file, gzip });

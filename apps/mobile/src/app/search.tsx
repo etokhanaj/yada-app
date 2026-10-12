@@ -10,7 +10,7 @@
  * messages (https://mobbin.com/screens/9faafc96-77c1-4cb1-8a81-d6bde4047fa2).
  */
 
-import { BOOK_CODES, formatDisplayRef, ordToParts, verseOrd } from "@yada/schema";
+import { BOOK_CODES, formatDisplayRef, formatVerseId, ordToParts, verseOrd } from "@yada/schema";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
@@ -30,11 +30,13 @@ import {
   searchWordsByForm,
   searchWordsByGloss,
 } from "../data/queries";
+import { searchProfiles } from "../data/study";
 import { useLayout, usePalette } from "../design/tokens";
 import { fieldDirection } from "../lib/fieldDirection";
 import { excerptOf } from "../lib/reader";
 import { createSearchLogger } from "../lib/searchLog";
 import { planSearch, type SearchPlan, splitSnippet } from "../lib/searchQuery";
+import { whoLine } from "../lib/study";
 import { useSettings } from "../state/settings";
 
 const WORDS_SHOWN = 5;
@@ -71,7 +73,9 @@ export default function SearchScreen() {
                 translation
               ] ?? "",
           };
-    const [passages, total, words] = await Promise.all([
+    const [people, passages, total, words] = await Promise.all([
+      // Tyndale's profiles in the books whose study notes are downloaded (canvas TD-03).
+      plan.reference === null ? searchProfiles(query) : Promise.resolve([]),
       plan.fts === null ? Promise.resolve([] as PassageHit[]) : searchPassages(core, plan.fts, translation, 100),
       plan.fts === null ? Promise.resolve(0) : countPassages(core, plan.fts, translation),
       plan.wordKey !== null
@@ -80,7 +84,7 @@ export default function SearchScreen() {
           ? searchWordsByGloss(core, plan.glossWord)
           : Promise.resolve([] as Lexeme[]),
     ]);
-    return { plan, reference, passages, total, words };
+    return { plan, reference, people, passages, total, words };
   }, [query, translation]);
 
   const searchLog = useMemo(() => createSearchLogger((detail) => log("search", undefined, detail)), [log]);
@@ -105,7 +109,12 @@ export default function SearchScreen() {
 
   const empty =
     query.length >= 2 &&
-    data !== undefined && data !== null && data.reference === null && data.passages.length === 0 && data.words.length === 0;
+    data !== undefined &&
+    data !== null &&
+    data.reference === null &&
+    data.people.length === 0 &&
+    data.passages.length === 0 &&
+    data.words.length === 0;
 
   const field = (
     <View style={styles.searchRow}>
@@ -172,6 +181,36 @@ export default function SearchScreen() {
               {excerptOf(ref.text)}
             </Scripture>
           </ListRow>
+        </View>
+      ) : null}
+
+      {/* A name finds the person first, then the verses that name them (canvas TD-03). */}
+      {data !== undefined && data !== null && data.people.length > 0 ? (
+        <View>
+          <Label style={styles.section}>People</Label>
+          {data.people.map((person, i) => {
+            const who = whoLine(person.title ?? "", person.text);
+            const line = who === null ? "Tyndale" : `${who} · Tyndale`;
+            return (
+              <ListRow
+                key={`${person.book}-${person.id}`}
+                first={i === 0}
+                testID={`result-person-${person.id}`}
+                title={person.title ?? ""}
+                label={`${person.title ?? ""}, ${line.replace(" · ", ", from ")}`}
+                onPress={() =>
+                  open({
+                    pathname: "/understand/person",
+                    params: { book: person.book, id: String(person.id), from: formatVerseId(ordToParts(person.ord_start)), via: "search" },
+                  })
+                }
+              >
+                <Chrome step="note" tone="muted">
+                  {line}
+                </Chrome>
+              </ListRow>
+            );
+          })}
         </View>
       ) : null}
 

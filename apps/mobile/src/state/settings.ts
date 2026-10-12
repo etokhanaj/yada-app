@@ -39,8 +39,13 @@ interface SettingsState {
   markLaunched: () => void;
   markHintSeen: () => void;
   markEvidenceHintSeen: () => void;
-  /** `installed`: downloads attached this launch, so a saved choice of one survives. */
-  hydrate: (stored: Record<string, string>, installed?: readonly string[]) => void;
+  /**
+   * `installed`: downloads attached this launch, so a saved choice of one survives.
+   * `fallback`: the translation kept when the saved one cannot be read here. BSB at
+   * launch; the current one when iCloud brings a download this device lacks, so
+   * the reader's text does not change under them (data/cloud.ts).
+   */
+  hydrate: (stored: Record<string, string>, installed?: readonly string[], fallback?: TranslationCode) => void;
 }
 
 export const useSettings = create<SettingsState>((set) => ({
@@ -59,7 +64,7 @@ export const useSettings = create<SettingsState>((set) => ({
   markLaunched: () => set({ launched: true }),
   markHintSeen: () => set({ hintSeen: true }),
   markEvidenceHintSeen: () => set({ evidenceHintSeen: true }),
-  hydrate: (stored, installed = []) => {
+  hydrate: (stored, installed = [], fallback = "BSB") => {
     const translation = stored["translation"];
     set({
       appearance: isAppearance(stored["appearance"]) ? stored["appearance"] : "system",
@@ -67,7 +72,7 @@ export const useSettings = create<SettingsState>((set) => ({
         ? Number(stored["textScale"])
         : 1,
       // A download that failed to attach (or was removed) falls back to BSB, as Remove does.
-      translation: isTranslation(translation) || (translation !== undefined && installed.includes(translation)) ? translation : "BSB",
+      translation: isTranslation(translation) || (translation !== undefined && installed.includes(translation)) ? translation : fallback,
       compareWith: parseCompareChoice(stored["compareWith"]),
       launched: stored["launched"] === "1",
       hintSeen: stored["hintSeen"] === "1",

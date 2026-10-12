@@ -20,7 +20,7 @@
 import { type BookCode, type BundleInfo } from "@yada/schema";
 import { deleteDatabaseAsync, importDatabaseFromAssetAsync, openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 
-import { BUNDLED_ASSETS, BUNDLED_MANIFEST } from "./bundled.generated";
+import { BUNDLED_ASSETS, BUNDLED_MANIFEST, BUNDLED_STUDY } from "./bundled.generated";
 import { USER_DB, USER_DDL } from "./user";
 
 export const CORE_BUNDLE: BundleInfo | undefined = BUNDLED_MANIFEST.bundles.find((b) => b.kind === "core");
@@ -50,7 +50,9 @@ export async function installBundles(user: SQLiteDatabase): Promise<void> {
       r.sha256,
     ]),
   );
-  const wanted = new Set(BUNDLED_MANIFEST.bundles.map((b) => b.file));
+  // John's study bundle ships too (decision for build 3, 11 Oct): copied and refreshed like the rest.
+  const shipped = [...BUNDLED_MANIFEST.bundles, ...BUNDLED_STUDY];
+  const wanted = new Set(shipped.map((b) => b.file));
 
   for (const [file] of installed) {
     if (wanted.has(file)) continue;
@@ -60,7 +62,7 @@ export async function installBundles(user: SQLiteDatabase): Promise<void> {
     await user.runAsync("DELETE FROM installed_bundles WHERE file = ?", [file]);
   }
 
-  for (const bundle of BUNDLED_MANIFEST.bundles) {
+  for (const bundle of shipped) {
     if (installed.get(bundle.file) === bundle.sha256) continue;
     const assetId = BUNDLED_ASSETS[bundle.file];
     if (assetId === undefined) throw new Error(`${bundle.file} is in the manifest but not bundled as an asset`);

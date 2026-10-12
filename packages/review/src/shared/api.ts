@@ -39,6 +39,7 @@ export const ADVERSARY_VERDICTS = [
   "miscategorised",
   "compound",
   "overclaimed",
+  "omitted_qualifier",
 ] as const;
 export type AdversaryVerdict = (typeof ADVERSARY_VERDICTS)[number];
 

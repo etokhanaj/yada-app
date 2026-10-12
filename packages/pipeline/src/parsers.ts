@@ -65,7 +65,7 @@ const GREEK_PUNCT = /[.,;·:!?]+$/u;
  * reader. File order already puts Rev 12:18 before 13:1 and 3 John 15 after
  * 14, so folding the id is enough — positions continue in reading order.
  */
-const SBLGNT_TO_ENGLISH: Readonly<Record<string, string>> = {
+export const SBLGNT_TO_ENGLISH: Readonly<Record<string, string>> = {
   "3JN.1.15": "3JN.1.14",
   "REV.12.18": "REV.13.1",
 };
@@ -92,12 +92,21 @@ export function parseMorphGnt(file: string): Token[] {
   return parseMorphGntWithCoverage(file).tokens;
 }
 
-export function parseMorphGntWithCoverage(file: string): {
+export function parseMorphGntWithCoverage(
+  file: string,
+  rawDir: string = RAW,
+): {
   tokens: Token[];
   coverage: GreekLexiconCoverage;
+  /**
+   * Each token's verse in SBLGNT's own numbering, parallel to `tokens`. MACULA Greek numbers its
+   * words that way, so this is what its words are joined on (macula.ts).
+   */
+  sources: string[];
 } {
-  const text = readFileSync(path.join(RAW, file), "utf8");
+  const text = readFileSync(path.join(rawDir, file), "utf8");
   const tokens: Token[] = [];
+  const sources: string[] = [];
   const routes = new Map<MatchRoute, number>();
   const unmatched = new Set<string>();
   let currentVerse = "";
@@ -146,8 +155,9 @@ export function parseMorphGntWithCoverage(file: string): {
       morph: `${pos} ${parsing}`,
       variant_marked: marked,
     });
+    sources.push(sourceId);
   }
-  return { tokens, coverage: { routes, unmatched } };
+  return { tokens, coverage: { routes, unmatched }, sources };
 }
 
 // ---------------------------------------------------------------------------
@@ -287,6 +297,7 @@ export interface VersificationReport {
 function renumberChapter(
   verses: OshbVerse[],
   tokens: Token[],
+  sources: string[],
   report: VersificationReport,
 ): void {
   const notesByVerse = verses.map((v) => kjvNotes(v.body, v.chapter, v.osisBook));
@@ -312,14 +323,14 @@ function renumberChapter(
     let cursor = 0;
 
     for (const note of notes) {
-      emit(verse, verse.body.slice(cursor, note.index), target, tokens, report);
+      emit(verse, verse.body.slice(cursor, note.index), target, tokens, sources, report);
       cursor = note.index + note.length;
       // Notes carry a full reference, so a shift across a chapter boundary is
       // followed rather than stranded: Hebrew Gen 32:1 is English Gen 31:55.
       target = { chapter: note.chapter, verse: note.verse };
       english = target;
     }
-    emit(verse, verse.body.slice(cursor), target, tokens, report);
+    emit(verse, verse.body.slice(cursor), target, tokens, sources, report);
 
     // The next verse element continues the English sequence.
     english = english === null ? null : { chapter: target.chapter, verse: target.verse + 1 };
@@ -331,12 +342,14 @@ function emit(
   segment: string,
   target: { chapter: number; verse: number },
   tokens: Token[],
+  sources: string[],
   report: VersificationReport,
 ): void {
   if (segment.trim().length === 0) return;
   const before = tokens.length;
   collectWords(segment, `${verse.book}.${target.chapter}.${target.verse}`, tokens);
   if (tokens.length === before) return;
+  for (let i = before; i < tokens.length; i += 1) sources.push(`${verse.book}.${verse.chapter}.${verse.verse}`);
 
   if (target.chapter !== verse.chapter) {
     report.crossChapter.push(`${verse.book}.${verse.chapter}.${verse.verse} -> ${target.chapter}.${target.verse}`);
@@ -344,9 +357,26 @@ function emit(
   else if (target.verse !== verse.verse) report.renumbered += 1;
 }
 
-export function parseOshb(file: string): { tokens: Token[]; report: VersificationReport } {
-  const xml = readFileSync(path.join(RAW, file), "utf8");
+export function parseOshb(
+  file: string,
+  rawDir: string = RAW,
+): {
+  tokens: Token[];
+  report: VersificationReport;
+  /**
+   * Each token's verse in the Hebrew numbering of the `<verse>` element it was read from, parallel
+   * to `tokens`. MACULA Hebrew numbers its words that way, so this is what its words are joined on
+   * (macula.ts); `verse_id` carries the English number.
+   */
+  sources: string[];
+} {
+  return parseOshbXml(readFileSync(path.join(rawDir, file), "utf8"));
+}
+
+/** `parseOshb` over XML already in hand, so tests can feed verbatim source excerpts. */
+export function parseOshbXml(xml: string): { tokens: Token[]; report: VersificationReport; sources: string[] } {
   const tokens: Token[] = [];
+  const sources: string[] = [];
   const report: VersificationReport = { titles: 0, renumbered: 0, crossChapter: [] };
 
   // Chapter-scoped, because renumbering carries across verse elements.
@@ -354,7 +384,7 @@ export function parseOshb(file: string): { tokens: Token[]; report: Versificatio
   let currentChapter = -1;
 
   const flush = (): void => {
-    if (chapterVerses.length > 0) renumberChapter(chapterVerses, tokens, report);
+    if (chapterVerses.length > 0) renumberChapter(chapterVerses, tokens, sources, report);
     chapterVerses = [];
   };
 
@@ -378,7 +408,7 @@ export function parseOshb(file: string): { tokens: Token[]; report: Versificatio
   }
   flush();
 
-  return { tokens, report };
+  return { tokens, report, sources };
 }
 
 /**
@@ -392,6 +422,20 @@ export function parseOshb(file: string): { tokens: Token[]; report: Versificatio
  */
 const lastPositions = new WeakMap<Token[], Map<string, number>>();
 
+/**
+ * A word's letters with its child markup removed.
+ *
+ * OSHB wraps the scribal large, small and suspended letters in a `<seg>` inside
+ * the `<w>` (Deut 6:4's large ayin: `שְׁמַ֖<seg type="x-large">ע</seg>`). Taking
+ * everything inside `<w>` as the surface shipped that markup as text in eleven
+ * Hebrew words, and the `/` of `</seg>` then broke the morpheme split as well.
+ * Found 11 Oct 2026 by the MACULA join. The letter inside the `<seg>` is part of
+ * the word, so only the tags go; the `/` morpheme breaks stay for the split.
+ */
+export function wordText(inner: string): string {
+  return inner.replace(/<[^>]*>/g, "").trim();
+}
+
 function collectWords(body: string, verseId: string, tokens: Token[]): void {
   const positions = lastPositions.get(tokens) ?? new Map<string, number>();
   lastPositions.set(tokens, positions);
@@ -399,7 +443,8 @@ function collectWords(body: string, verseId: string, tokens: Token[]): void {
   for (const wordMatch of body.matchAll(WORD_RE)) {
     const attrText = wordMatch[1] ?? "";
     const rawSurface = (wordMatch[2] ?? "").trim();
-    if (rawSurface.length === 0) continue;
+    const text = wordText(rawSurface);
+    if (text.length === 0) continue;
     const attrs: Record<string, string> = {};
     for (const attr of attrText.matchAll(ATTR_RE)) attrs[attr[1] ?? ""] = attr[2] ?? "";
 
@@ -407,14 +452,16 @@ function collectWords(body: string, verseId: string, tokens: Token[]): void {
     const morph = attrs["morph"] ?? "";
     position += 1;
 
-    const morphemes = splitMorphemes(rawSurface, lemma, morph);
+    const morphemes = splitMorphemes(text, lemma, morph);
     const stem = morphemes?.find((m) => m.role === "stem");
     const strongs = stem?.strongs ?? toStrongs(lemma);
 
     tokens.push({
       verse_id: verseId,
       position,
-      surface: rawSurface.replace(/\//g, ""),
+      surface: text.replace(/\//g, ""),
+      // Verbatim, markup included: staging keeps the scribal large, small and
+      // suspended letters (`<seg type="x-large">`) that the bundle has no column for.
       raw_surface: rawSurface,
       lemma,
       ...(strongs === undefined ? {} : { strongs }),

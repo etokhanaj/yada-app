@@ -150,6 +150,40 @@ describe("publish", () => {
     expect(gunzipSync(body).equals(content)).toBe(true);
   });
 
+  it("uploads a book's study bundle gzipped, before the manifest, checked like a translation", async () => {
+    const content = Buffer.from("1:1 Echoing Gen 1:1, John's Gospel introduces Jesus Christ. ".repeat(200));
+    writeFileSync(path.join(dir, "study-jhn.v1.db"), content);
+    const study = {
+      book: "JHN",
+      version: 1,
+      file: "study-jhn.v1.db",
+      sha256: createHash("sha256").update(content).digest("hex"),
+      bytes: content.length,
+      download_bytes: gzipTranslation(content).length,
+      format: 1,
+      licenses: ["CC-BY-SA-4.0", "CC-BY-4.0"],
+      notes: 1,
+      xrefs: 0,
+    };
+    const write = (entry: Record<string, unknown>) =>
+      writeFileSync(
+        path.join(dir, "manifest.json"),
+        JSON.stringify({ format: BUNDLE_FORMAT, generated_at: "2026-10-11T00:00:00Z", min_app_version: "1.0.0", schema_versions: [SCHEMA_VERSION], bundles: [bundle("core", "core bytes")], study: [entry] }),
+      );
+    write(study);
+    const { client, sent, puts } = fakeStore();
+    await publish({ confirm: true, dir, client, env: ENV });
+    expect(sent.filter((s) => s.type === "put").map((s) => s.key)).toEqual(["core.v1.db", "study-jhn.v1.db", "manifest.json"]);
+    const put = puts.find((p) => p.Key === "study-jhn.v1.db");
+    expect(put).toMatchObject({ ContentEncoding: "gzip", Metadata: { sha256: study.sha256 } });
+    expect(gunzipSync(put?.Body as Uint8Array).equals(content)).toBe(true);
+
+    write({ ...study, download_bytes: 1 });
+    expect(() => planPublish(dir)).toThrow(/study-jhn\.v1\.db gzips to \d+ bytes, manifest says 1/);
+    write({ ...study, file: "../study-jhn.v1.db" });
+    expect(() => planPublish(dir)).toThrow(/does not match the bundle manifest schema/);
+  });
+
   it("refuses the entire publish when a translation's gzipped size is not the manifest's", async () => {
     manifest([bundle("core", "core bytes")], [translation("ylt bytes", { download_bytes: 1 })]);
     const { client, sent } = fakeStore();

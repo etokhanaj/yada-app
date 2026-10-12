@@ -34,6 +34,7 @@ import { BUILT_IN } from "../data/queries";
 import {
   cancelDownload,
   downloadTranslation,
+  MANIFEST_URL,
   refreshCatalogue,
   removeTranslation,
   translationName,
@@ -165,7 +166,9 @@ export default function TranslationsScreen() {
         {onPhoneRows}
       </Section>
 
-      {offered.length > 0 || !connected || needsUpdate ? (
+      {/* A binary built without a manifest URL has nothing to download: "Downloads need a
+          connection" would be untrue when online (gate review, 11 Oct 2026). */}
+      {MANIFEST_URL !== "" && (offered.length > 0 || !connected || needsUpdate) ? (
         <Section title="Download" hint={connected ? undefined : "Downloads need a connection."}>
           {offered.map((entry, i) => {
             const progress = downloading[entry.code];

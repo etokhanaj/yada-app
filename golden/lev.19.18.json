@@ -179,13 +179,13 @@
     }
   ],
   "close_rendering": "You shall not take vengeance and you shall not bear a grudge against the sons of your people, and you shall love your neighbour as yourself. I am the LORD.",
-  "whats_happening": "This is the last item in a run of short commands about how Israelites are to treat one another, and it moves from two prohibitions to a single positive command. The famous second half is grammatically bound to the first: the love commanded here is stated as the opposite of vengeance and grudge-bearing, not as a feeling. The verse ends by naming the speaker rather than giving a reason.",
+  "whats_happening": "This is the last of a run of short commands about how Israelites should treat one another. It moves from two things not to do to one thing to do. In the Hebrew, the famous second half is joined to the first. So the love commanded here is set against revenge and grudges, not described as a feeling. The verse ends by naming the speaker rather than giving a reason.",
   "key_words": [
     {
       "surface": "וְאָֽהַבְתָּ֥",
       "lemma": "אָהַב",
       "gloss": "and you shall love",
-      "note": "A perfect with waw consecutive, which continues the force of the imperfect prohibitions before it rather than starting something new.",
+      "note": "This verb form carries on the two 'you shall not' commands before it, rather than starting something new.",
       "strongs": "H0157"
     },
     {
@@ -202,7 +202,7 @@
       "strongs": "H5358"
     }
   ],
-  "translation_note": "Most English versions render the command as love your neighbour, dropping the preposition. The Hebrew has the verb governing its object with לְ, which is unusual for this verb and is hard to carry into English without sounding odd.",
+  "translation_note": "Most English versions say 'love your neighbour', leaving out a small word. The Hebrew says, in effect, 'love to your neighbour'. That is unusual for this verb, and sounds odd in English.",
   "claims": [
     {
       "id": "LEV.19.18.c1",
@@ -230,7 +230,7 @@
     },
     {
       "id": "LEV.19.18.c2",
-      "claim": "The verb אהב governs its object here with the preposition לְ rather than taking a direct object.",
+      "claim": "Here the verb אהב ('love') puts לְ ('to') before its object, instead of taking the object directly.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -278,7 +278,7 @@
     },
     {
       "id": "LEV.19.18.c4",
-      "claim": "לְרֵעֲךָ is one written word carrying three morphemes.",
+      "claim": "לְרֵעֲךָ is one written word made of three parts.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -302,7 +302,7 @@
     },
     {
       "id": "LEV.19.18.c5",
-      "claim": "The verse ends with אֲנִי יְהוָה, a clause with no verb.",
+      "claim": "The verse ends with אֲנִי יְהוָה, 'I am the LORD', which has no verb in Hebrew.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -326,7 +326,7 @@
     },
     {
       "id": "LEV.19.18.c6",
-      "claim": "The command closes a run of case laws about conduct toward others running from Leviticus 19:11.",
+      "claim": "The command closes a run of laws about how to treat others, starting at Leviticus 19:11.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "high",
@@ -342,7 +342,7 @@
     },
     {
       "id": "LEV.19.18.c7",
-      "claim": "Sixteen verses later the same chapter extends a command of the same form to the resident foreigner.",
+      "claim": "Sixteen verses later, the same chapter gives a command of the same form about the foreigner living among them.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "high",
@@ -358,7 +358,7 @@
     },
     {
       "id": "LEV.19.18.c8",
-      "claim": "Ancient Near Eastern law collections generally state case law without appending a motive clause.",
+      "claim": "Law collections from the ancient Near East (the lands around Israel) usually state laws without giving a reason for them.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "medium",
@@ -369,7 +369,7 @@
     },
     {
       "id": "LEV.19.18.c9",
-      "claim": "How far רֵעֲךָ extends is disputed.",
+      "claim": "Readers disagree about who counts as 'your neighbour' (רֵעֲךָ) here.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "high",
@@ -388,7 +388,7 @@
       "positions": [
         {
           "label": "Fellow Israelite",
-          "case": "The first half of the same verse names בְּנֵי עַמֶּךָ, the sons of your people, which sets the frame for the neighbour in the second half and keeps the command inside the community.",
+          "case": "The first half of the verse names בְּנֵי עַמֶּךָ, 'the sons of your people'. That defines the neighbour in the second half, and keeps the command inside the community.",
           "evidence": [
             {
               "type": "verse",
@@ -398,7 +398,7 @@
         },
         {
           "label": "Any neighbour",
-          "case": "Verse 34 issues the same command in the same words about the resident foreigner, which shows the chapter itself does not treat the boundary of your people as the limit of the obligation.",
+          "case": "Verse 34 gives the same command, in the same form, about the foreigner living among them. So the chapter itself does not limit the command to 'your people'.",
           "evidence": [
             {
               "type": "verse",
@@ -414,7 +414,7 @@
     {
       "ref": "LEV.19.34",
       "relationship": "development",
-      "note": "The same command applied to the resident foreigner."
+      "note": "The same command, about the foreigner living among them."
     },
     {
       "ref": "MAT.22.39",

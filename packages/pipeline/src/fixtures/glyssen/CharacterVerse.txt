@@ -1,0 +1,93 @@
+Control File Version	171
+#	C	V	Character ID	Delivery	Alias	Quote Type	Default Character	Parallel Passage	Quote Position
+# Test fixture: lines copied unmodified from GlyssenCharacters/Resources/CharacterVerse.txt in sillsdev/Glyssen at commit
+# e912d2097dffc625778782c18043e21d8820c414. Copyright (c) 2014-2020 SIL LSDev and Faith Comes By Hearing; Copyright (c) 2014-2023
+# Faith Comes By Hearing and SIL International. MIT License (see LICENSE beside this file).
+GEN	1	3	God		God (Yahweh)	Normal			ContainedWithinVerse
+GEN	1	5	narrator-GEN			Quotation			Unspecified
+#Languages which do not allow indirect speech may have God speak to assign the names of things in vv. 5, 8, and 10.
+GEN	1	5	God			Indirect			
+GEN	1	6	God		God (Yahweh)	Normal			EndOfVerse
+GEN	18	5	God			Alternate			
+GEN	18	5	angels at Sodom, two/God		three men (two angels, plus Yahweh)	Alternate	angels at Sodom, two		
+1SA	27	12	Achish, king of Gath	said to himself		Normal			EndOfVerse
+EZR	9	6-15	narrator-EZR			ImplicitWithPotentialSelfQuote			EntireVerse
+PSA	52	0	Doeg the Edomite			Quotation	narrator-PSA		Unspecified
+PSA	52	0	narrator-PSA			Quotation			Unspecified
+MAT	22	23	Sadducees			Hypothetical			Unspecified
+MAT	27	17	Pilate	to crowd		Dialogue			EndOfVerse
+JHN	1	19	priests/Levites			Indirect			
+JHN	1	20	John the Baptist			Dialogue			Unspecified
+JHN	1	21	John the Baptist			Dialogue			Unspecified
+JHN	1	21	priests/Levites			Dialogue			Unspecified
+JHN	1	22	priests/Levites			Dialogue			Unspecified
+JHN	1	23	John the Baptist			Dialogue			Unspecified
+JHN	1	25	priests/Levites		messengers sent from Pharisees (the Jews)	Dialogue			EndOfVerse
+JHN	1	26	John the Baptist			Dialogue			Unspecified
+JHN	1	27	John the Baptist			Normal			EntireVerse
+JHN	1	29	John the Baptist			Normal			Unspecified
+JHN	1	30	John the Baptist			Normal			Unspecified
+JHN	1	31	John the Baptist			Normal			Unspecified
+JHN	1	32	John the Baptist			Normal			Unspecified
+JHN	1	33	John the Baptist			Normal			Unspecified
+JHN	1	34	John the Baptist			Normal			StartOfVerse
+JHN	2	9	master of the banquet			Rare			
+JHN	2	22	Needs Review			Potential			
+JHN	3	2	Nicodemus			Dialogue			Unspecified
+JHN	3	3	Jesus			Dialogue			Unspecified
+JHN	3	4	Nicodemus			Dialogue			Unspecified
+JHN	3	5	Jesus			Dialogue			Unspecified
+JHN	3	6	Jesus			Normal			EntireVerse
+JHN	3	7	Jesus			Normal			EntireVerse
+JHN	3	8	Jesus			Normal			EntireVerse
+JHN	3	9	Nicodemus			Dialogue			Unspecified
+JHN	3	10	Jesus			Normal			Unspecified
+JHN	3	11	Jesus			Normal			EntireVerse
+JHN	3	12	Jesus			Normal			EntireVerse
+JHN	3	13	Jesus			Normal			Unspecified
+JHN	3	14	Jesus			Potential			
+JHN	3	15	Jesus			Potential			
+JHN	3	16	Jesus			Potential			
+JHN	3	17	Jesus			Potential			
+JHN	3	18	Jesus			Potential			
+JHN	3	19	Jesus			Potential			
+JHN	3	20	Jesus			Potential			
+JHN	3	21	Jesus			Potential			
+JHN	4	1	people			Indirect			
+JHN	4	7	Jesus	requesting		Dialogue			EndOfVerse
+JHN	4	9	woman, Samaritan			Dialogue			Unspecified
+JHN	4	10	Jesus			Dialogue			Unspecified
+JHN	4	11	woman, Samaritan			Dialogue			Unspecified
+JHN	4	12	woman, Samaritan			Normal			EntireVerse
+JHN	4	13	Jesus			Dialogue			Unspecified
+JHN	4	14	Jesus			Normal			EntireVerse
+JHN	4	15	woman, Samaritan			Dialogue			Unspecified
+JHN	4	16	Jesus			Dialogue			Unspecified
+JHN	4	17	Jesus			Dialogue			Unspecified
+JHN	4	17	woman, Samaritan			Dialogue			Unspecified
+JHN	4	18	Jesus			Normal			Unspecified
+JHN	4	19	woman, Samaritan			Dialogue			Unspecified
+JHN	4	20	woman, Samaritan			Normal			EntireVerse
+JHN	4	21	Jesus			Dialogue			Unspecified
+JHN	4	22	Jesus			Normal			EntireVerse
+JHN	4	23	Jesus			Normal			EntireVerse
+JHN	4	24	Jesus			Normal			EntireVerse
+JHN	4	25	woman, Samaritan			Dialogue			Unspecified
+JHN	4	25	interruption-JHN			Interruption			
+JHN	4	25	Needs Review			Potential			
+JHN	4	26	Jesus			Dialogue			Unspecified
+JHN	4	27	narrator-JHN			Quotation			Unspecified
+JHN	4	29	woman, Samaritan			Dialogue			EntireVerse
+JHN	4	31	disciples			Dialogue			EndOfVerse
+JHN	4	32	Jesus			Dialogue			Unspecified
+JHN	4	33	disciples	puzzled		Normal			Unspecified
+JHN	4	34	Jesus			Dialogue			Unspecified
+JHN	4	35	Jesus			Normal			Unspecified
+JHN	4	36	Jesus			Normal			Unspecified
+JHN	4	37	Jesus			Normal			Unspecified
+JHN	4	38	Jesus			Normal			Unspecified
+JHN	4	39	woman, Samaritan			Quotation			Unspecified
+JHN	4	39	narrator-JHN			Quotation			Unspecified
+JHN	4	40	many Samaritans			Indirect			
+JHN	4	42	many Samaritans			Dialogue			Unspecified
+ACT	14	15	Barnabas/Paul	preaching		Dialogue	Paul		EntireVerse

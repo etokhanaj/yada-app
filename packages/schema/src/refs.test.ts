@@ -110,7 +110,7 @@ describe("superscriptions", () => {
   });
 
   it("names a title rather than printing verse zero", () => {
-    expect(formatDisplayRef(parseVerseId("PSA.23.0")!)).toBe("Psalms 23, title");
+    expect(formatDisplayRef(parseVerseId("PSA.23.0")!)).toBe("Psalm 23, title");
   });
 
   it("lets a range start at the title", () => {

@@ -69,6 +69,13 @@ def ic(name, size=20):
         "share": '<path d="M12 15V4M8 7.5 12 4l4 3.5M6 11v7.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V11"></path>',
         "alpha": '<text x="12" y="17.5" text-anchor="middle" font-size="19" font-family="Gentium Plus, serif" fill="currentColor" stroke="none">α</text>',
         "cols": '<rect x="3.5" y="5" width="17" height="14" rx="3"></rect><path d="M12 5v14"></path>',
+        "play": '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"></path>',
+        "pause": '<path d="M8 5v14M16 5v14" stroke-width="3.2"></path>',
+        "prevv": '<path d="M6 5v14"></path><path d="M18.5 5.5v13L9 12z" fill="currentColor"></path>',
+        "nextv": '<path d="M18 5v14"></path><path d="M5.5 5.5v13L15 12z" fill="currentColor"></path>',
+        "stop": '<rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor"></rect>',
+        "speaker": '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"></path><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"></path>',
+        "listen": '<path d="M4 14v-2a8 8 0 0 1 16 0v2"></path><rect x="3.5" y="13.5" width="4.5" height="6.5" rx="2"></rect><rect x="16" y="13.5" width="4.5" height="6.5" rx="2"></rect>',
     }[name]
     return f'<svg class="i" width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{p}</svg>'
 
@@ -187,11 +194,12 @@ def sec(label, inner, first=False, hint=None, cls=""):
     return f'<section class="sec{" first" if first else ""}{" " + cls if cls else ""}">{lb}{h}{inner}</section>'
 
 
-def row(main, label=None, extra=None, chev=True, cls=""):
+def row(main, label=None, extra=None, chev=True, cls="", aria=None):
     l = f'<span class="lbl rl">{E(label)}</span>' if label else ""
     x = f'<span class="rx">{extra}</span>' if extra else ""
     c = f'<span class="chev">{ic("right", 18)}</span>' if chev else ""
-    return f'<button class="row {cls}"><span class="rm"><span class="claim">{main}</span>{l}{x}</span>{c}</button>'
+    al = f' aria-label="{E(aria)}"' if aria else ""
+    return f'<button class="row {cls}"{al}><span class="rm"><span class="claim">{main}</span>{l}{x}</span>{c}</button>'
 
 
 def claim_label(c):
@@ -255,7 +263,7 @@ def understand_body(k, start="top", show_all=False, hint=False, orig=False, larg
     if start in ("top", "see"):
         parts.append(sec("What we can see", rows_ + more, first=(start == "see"), hint="Tap a line to see the evidence." if hint else None))
     if start in ("top", "see"):
-        drows = "".join(row(lang(c["claim"]), extra=f'<span class="link">Compare the {len(c["positions"])} readings</span>') for c in deb)
+        drows = "".join(row(lang(c["claim"]), extra=f'<span class="rd-n">Compare the {len(c["positions"])} readings</span>', aria=f'{c["claim"]} Compare the {len(c["positions"])} readings') for c in deb)
         parts.append(sec("Where interpretation differs", drows))
     if start in ("top", "see", "orig"):
         parts.append(original_section(k, orig, mark, reveal))
@@ -275,7 +283,7 @@ def is_grammar(c):
     return any(ev.get("type") == "apparatus" or (ev.get("type") == "lexical" and ev.get("note")) for ev in c["evidence"])
 
 
-def understand_simple_body(k, start="top", clamp=False, orig=False):
+def understand_simple_body(k, start="top", clamp=False, orig=False, labels=True):
     e = G[k]
     plain_all = sorted([c for c in e["claims"] if c["category"] != "debated"], key=lambda c: c["display_rank"])
     reader_claims = [c for c in plain_all if not is_grammar(c)]
@@ -289,8 +297,9 @@ def understand_simple_body(k, start="top", clamp=False, orig=False):
     if start in ("top",):
         shown = reader_claims[:3]
         more = f'<button class="more">Show all {len(reader_claims)}</button>' if len(reader_claims) > 3 else ""
-        parts.append(sec("What we can see", "".join(row(lang(c["claim"]), claim_label(c)) for c in shown) + more))
-        drows = "".join(row(lang(c["claim"]), extra=f'<span class="link">Compare the {len(c["positions"])} readings</span>') for c in deb)
+        # Inside the passage guide the labels go ("Background" meant nothing to a reader, John 11 Oct 2026).
+        parts.append(sec("What we can see", "".join(row(lang(c["claim"]), claim_label(c) if labels else None) for c in shown) + more))
+        drows = "".join(row(lang(c["claim"]), extra=f'<span class="rd-n">Compare the {len(c["positions"])} readings</span>', aria=f'{c["claim"]} Compare the {len(c["positions"])} readings') for c in deb)
         parts.append(sec("Where readers differ", drows))
     t, r = PASSAGE[k]
     n_rel = len(e["related_passages"])
@@ -320,8 +329,13 @@ FONTS = "https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..7
 
 def doc(fid, title, inner):
     chrome_open, chrome_close = ("", "") if STYLE == "v1" else ('<div class="island" aria-hidden="true"></div>', '<div class="homeind" aria-hidden="true"></div>')
-    steps = inner if isinstance(inner, list) else [(lab, cls, inner) for lab, cls in (("Light", "light"), ("Dark", "dark"), ("AX5", "ax5"))]
-    cols = "".join(
+    if isinstance(inner, dict):
+        # A diagram board (IA-01/02): not a screen, so no phone frame and no AX5 column.
+        steps, cols = [], inner["wide"]
+    else:
+        steps = inner if isinstance(inner, list) else [(lab, cls, inner) for lab, cls in (("Light", "light"), ("Dark", "dark"), ("AX5", "ax5"))]
+        cols = ""
+    cols += "".join(
         f'<div class="col"><div class="cap">{fid} · {lab}</div><div class="ph {cls}">{chrome_open}{html_}{chrome_close}</div></div>'
         for lab, cls, html_ in steps)
     return f'''<!doctype html>
@@ -885,30 +899,732 @@ if STYLE != "v1":
         ("2 · 340 ms · symbol settles", "dark", anim(jn, .5, -8, .95, .5)),
         ("3 · 520 ms · John 1", "dark", jn)], "sp")
 
+# ================= Passage guide and Audio read-along (guide page) =================
+# North Star (John, 10 Oct 2026): the unit is the passage, not the verse. The Greek is evidence inside the
+# explanation. No pericope in any bundle has a payload yet (pericopes.payload is null for all 46 in jhn.v2), so
+# passage-level copy comes from the golden entry of a verse in the passage, quoted verbatim, or is a labelled placeholder.
+if STYLE != "v1":
+    db4 = sqlite3.connect(f"{Y}/content/bundles/core.v4.db")  # current core (v4); the older frames above still read v2
+
+    def t4(book, ch, a, b=None):
+        return db4.execute("select v.verse, t.text from verses v join texts t on t.ord=v.ord where v.book=? and v.chapter=? and v.verse between ? and ? and t.translation='BSB' order by v.ord", (book, ch, a, b or a)).fetchall()
+
+    PERI = {}
+    for _bk in ("jhn", "1co"):
+        for pid, lab, pay in sqlite3.connect(f"{Y}/content/bundles/{_bk}.v2.db").execute("select pericope_id, label, payload from pericopes order by start_ord"):
+            PERI[pid] = (lab, pay)
+    G2 = {k: json.load(open(f"{Y}/golden/{k}.json")) for k in ("jhn.1.1", "1co.14.34")}
+    CL = {k: {c["id"].rsplit(".", 1)[1]: c for c in G2[k]["claims"]} for k in G2}
+    first_sentence = lambda s: s.split(". ")[0] + "."
+    JLAB = PERI["JHN.1.1-1.18"][0]; CLAB = PERI["1CO.14.26-14.40"][0]
+
+    def todo(what):
+        # A visible gap, never invented copy: the pipeline writes this per pericope and John reviews it.
+        return f'<p class="todo">Placeholder · {E(what)}: to be generated and reviewed</p>'
+
+    def plain_ref(ref, ch):
+        # "1:1" in John 1 reads "Verse 1"; a verse outside the chapter keeps its chapter ("Chapter 11, verse 5").
+        out = []
+        for r in ref.replace("–", "-").split(", "):
+            c_, v = r.split(":")
+            out.append(v.replace("-", "–") if c_ == str(ch) else f"chapter {c_}, verse {v}")
+        word = "Verses" if len(out) > 1 or "–" in out[0] else "Verse"
+        if out[0].startswith("chapter"):
+            return out[0][0].upper() + out[0][1:]
+        return f"{word} {', '.join(out)}"
+
+    def notice(c, ref, ev=None, ch=1, shown=False):
+        # "1:1 · Background" meant nothing to a reader (John, 11 Oct 2026): the guide says which verse, in words.
+        meta = f'<span class="note muted">{E(plain_ref(ref, ch))}</span>'
+        if shown:
+            meta += '<span class="note shown"> · Shown in the passage</span>'
+        r = row(lang(c["claim"]), extra=meta)
+        return (r.replace('class="row', 'class="row on', 1) if shown else r) + (ev or "")
+
+    def closer(word, translit, gloss, note, count_row, expanded):
+        # "Closer to the Greek" is one line inside the claim it supports (Matter's inline note, not a mode).
+        head = (f'<button class="evx" aria-expanded="{"true" if expanded else "false"}"><span>Closer to the Greek: '
+                f'<span lang="el" class="gk">{word}</span></span>{ic("up" if expanded else "down", 16)}</button>')
+        if not expanded:
+            return head
+        return (head + f'<div class="evb"><p class="evh"><span lang="el" class="gk">{word}</span> <span class="muted">{E(translit)} · “{E(gloss)}”</span></p>'
+                f'{row(count_row, cls="plain")}<p class="note muted">Gloss: STEPBible TAGNT · Count: SBLGNT</p></div>')
+
+    def differ(c, ref, ch=1):
+        n = len(c["positions"]); where = plain_ref(ref, ch)
+        return row(lang(c["claim"]), extra=f'<span class="rd-n">Compare the {n} readings</span><span class="note muted"> · {E(where)}</span>',
+                   aria=f'{c["claim"]} {where}. Compare the {n} readings')
+
+    def gtext(book, ch, a, b, sel=(), hint=True):
+        h = ""
+        return f'<section class="sec gtext"><h3 class="lbl">The passage</h3>{h}{verses_html(t4(book, ch, a, b), sel=sel, ch=ch, book=book)}</section>'
+
+    kwJ = G2["jhn.1.1"]["key_words"][0]
+    LOGOS_JHN = db4.execute("select count from occurrences where book='JHN' and occurrence_key='λογοσ'").fetchone()[0]
+    def john_guide(start="top", ev=False, sel=(), shown=None):
+        c = CL["jhn.1.1"]
+        parts = []
+        if start == "top":
+            parts.append(sec("Where we are", f'<p class="expl">{lang(first_sentence(G2["jhn.1.1"]["whats_happening"]))}</p>' + todo("Who is speaking to whom"), first=True))
+        if start in ("top", "notice"):
+            ex = closer("λόγος", "logos", kwJ["gloss"], kwJ["note"], f'<span lang="el" class="gk">λόγος</span> in John · {LOGOS_JHN}', ev)
+            parts.append(sec("Three things to notice", notice(c["c9"], "1:1") + notice(c["c2"], "1:1", shown=(shown == "c2")) + notice(c["c10"], "1:1", ex), first=(start == "notice")))
+        if start in ("top", "notice", "differ") and not shown:
+            parts.append(sec("Where readers differ", differ(c["c11"], "1:1") + differ(c["c12"], "1:1"), first=(start == "differ")))
+        txt = gtext("JHN", 1, 1, 18, sel=sel)
+        if shown == "c2":
+            # Tapping a thing to notice marks its evidence in the text: c2's evidence is the three ἦν of 1:1,
+            # rendered "was" three times in the BSB. Its own mark (ink weight, dotted accent underline), distinct
+            # from the selection wash, the difference wash and the spoken-word underline.
+            cut = txt.index("He was with God")
+            txt = re.sub(r"\bwas\b", '<mark class="evm">was</mark>', txt[:cut]) + txt[cut:]
+            # VoiceOver hears what the eye sees: a status message, and the marked words are reachable as one stop.
+            txt = '<p class="sr-only" role="status">"was" marked 3 times in verse 1. Swipe to the passage to hear it.</p>' + txt
+        parts.append(txt)
+        return "".join(parts)
+
+    kwC = G2["1co.14.34"]["key_words"][0]
+    SIG_1CO = db4.execute("select o.count from occurrences o join lexemes l on l.occurrence_key=o.occurrence_key where o.book='1CO' and l.lemma='σιγάω'").fetchone()[0]
+    def cor_guide(start="top", ev=False):
+        c = CL["1co.14.34"]
+        parts = []
+        if start == "top":
+            parts.append(sec("Where we are", f'<p class="expl">{lang(first_sentence(G2["1co.14.34"]["whats_happening"]))}</p>', first=True))
+        if start in ("top",):
+            ex = closer("σιγάω", "sigaō", "be silent", kwC["note"], f'<span lang="el" class="gk">σιγάω</span> in 1 Corinthians · {SIG_1CO}', ev)
+            parts.append(sec("Three things to notice", notice(c["c3"], "14:28, 14:30", ex, ch=14) + notice(c["c5"], "11:5", ch=14) + notice(c["c6"], "14:34", ch=14)))
+        parts.append(sec("Where readers differ", differ(c["c7"], "14:34–35", ch=14) + differ(c["c9"], "14:34–35", ch=14), first=(start == "differ")))
+        parts.append(gtext("1CO", 14, 26, 40))
+        return "".join(parts)
+
+    def guide(pos, title, sub, body, scrolled=False):
+        # At the guide's top level × and "Back to reading" did the same thing, two controls with one meaning to
+        # VoiceOver; × stays, and "Back to reading" appears one level down, where it saves steps.
+        return sheet(pos, title, sub, body, scrolled=scrolled, foot=False).replace('aria-label="Close"', 'aria-label="Close, back to reading"', 1)
+
+    jrows = t4("JHN", 1, 1, 9)
+    opener_btn = (f'<button class="opener olink" aria-label="{E(JLAB)}, John 1:1 to 18. Opens the passage guide">'
+                  f'<span>{E(JLAB)}</span>{ic("right", 14)}</button>')
+    j_reader = reader("JHN", 1, 1, 9, scrolled=False, rows_override=jrows)
+    j_reader = j_reader.replace('<div class="rbody"><div style="margin-top: 0px">', f'<div class="rbody"><div style="margin-top: 0px">{opener_btn}', 1)
+    under_j = reader("JHN", 1, 1, 6, scrolled=False, rows_override=t4("JHN", 1, 1, 6)) + scrim()
+    F("PG-01", "Reader: the passage title opens its guide", j_reader, "pg")
+    F("PG-02", "Passage guide, medium: where we are, three things", under_j + guide("med", JLAB, "John 1:1–18", john_guide()), "pg")
+    F("PG-03", "Guide, large: readers differ, then the text; 1:1 tapped", under_j + guide("lg", JLAB, "John 1:1–18", john_guide(start="differ", sel=(1,)), scrolled=True), "pg")
+    pushed = sheet("lg", "John 1:1", JLAB, understand_simple_body("jhn.1.1", clamp=False, labels=False), back=True)
+    F("PG-04", "1:1 opens its Understand inside the guide", under_j + pushed, "pg")
+    F("PG-05", "Closer to the Greek: λόγος, one line that expands", under_j + guide("lg", JLAB, "John 1:1–18", john_guide(start="notice", ev=True), scrolled=True), "pg")
+
+    # Start here, around the guide. Next is marked in type (number and "Next" in the accent, title semibold), never the
+    # wash and bar: those mean a selected verse only (John, 10 Oct 2026).
+    pers2 = [(pid, lab) for pid, (lab, _) in PERI.items() if pid.startswith("JHN.")][:8]
+    st_rows = ""
+    for i, (pid, lab) in enumerate(pers2):
+        rng = prange(pid)
+        if i == 0:
+            orient = first_sentence(G2["jhn.1.1"]["whats_happening"])
+            # "Next · range" sits above the title, so the mark is read before the title, not floated
+            # beside it; the orientation is shown whole, never cut before its point (house style: ≤ 25 words).
+            st_rows += (f'<button class="lrow numrow nx" aria-label="Next, passage 1, {E(lab)}, John {rng}. {E(orient)} Opens the passage guide">'
+                        f'<span class="rm"><span class="nxo">Next · {rng}</span>'
+                        f'<span class="lmain"><span class="num nxn">{i + 1}</span><span class="nt">{E(lab)}</span></span>'
+                        f'<span class="lsub orlw"><span class="orl">{lang(orient)}</span></span></span>'
+                        f'<span class="chev nxc">{ic("right", 18)}</span></button>')
+        else:
+            st_rows += lrow(f'<span class="num">{i + 1}</span><span class="nt">{E(lab)}</span>', sub=rng, chev=False, cls="numrow")
+    st_cover2 = (f'<div class="cover stcover"><h1 class="ltitle">The Gospel of John</h1>'
+                 f'<span class="cwsm"><span lang="el" class="gk">{kwJ["surface"]}</span> <span class="muted">logos · “{E(kwJ["gloss"])}” · {len([p for p in PERI if p.startswith("JHN.")])} passages, in order</span></span></div>')
+    F("PG-10", "Tap a thing to notice: its evidence is marked in the passage", under_j + guide("lg", JLAB, "John 1:1–18", john_guide(start="notice", shown="c2"), scrolled=True), "pg")
+    F("PG-06", "Start here: Next marked in type, with its orientation line", pg_header(("Home", "Home")) + f'<div class="pg">{st_cover2}{st_rows}</div>', "pg")
+
+    under_c = reader("1CO", 14, 26, 31, offset=-6, rows_override=t4("1CO", 14, 26, 31)) + scrim()
+    F("PG-07", "Second guide: 1 Corinthians 14:26–40, medium", under_c + guide("med", CLAB, "1 Corinthians 14:26–40", cor_guide()), "pg")
+    F("PG-08", "1 Cor guide, large: σιγάω evidence open", under_c + guide("lg", CLAB, "1 Corinthians 14:26–40", cor_guide(ev=True)), "pg")
+    F("PG-09", "1 Cor guide, scrolled: where readers differ, then the text", under_c + guide("lg", CLAB, "1 Corinthians 14:26–40", cor_guide(start="differ"), scrolled=True), "pg")
+
+    # ---------- Audio read-along ----------
+    # The spoken mark is its own: upcoming text muted, the spoken word in ink with a 2.5 pt accent underline, and a
+    # speaker glyph on the verse number (shape, not colour). Selection keeps the wash and bar (Apple Music sing-along;
+    # Speechify's wash was not taken because the wash already means "selected").
+    def au_verses(rows, cur, wi, sel=()):
+        out, grp = [], []
+        for n, t in rows:
+            if n < cur:
+                body, cls = scripture(t), "v pre"
+            elif n > cur:
+                body, cls = scripture(t), "v au-up"
+            else:
+                ws = t.split(" ")
+                body = " ".join(E(w) if i < wi else (f'<span class="au-w">{E(w)}</span>' if i == wi else f'<span class="au-up">{E(w)}</span>') for i, w in enumerate(ws))
+                cls = "v au-cur"
+            if n == 1:
+                num = f'<span class="cn" aria-label="Chapter 1, verse 1">1</span>'
+            elif n == cur:
+                num = f'<span class="vn au-vn" aria-label="Verse {n}, playing">{n}</span>'
+            else:
+                num = f'<span class="vn">{n}</span>'
+            p = f'<p class="{cls}{" v1" if n == 1 else ""}">{num}{"" if n == 1 else " "}{body}</p>'
+            if n in sel:
+                grp.append(p)
+            else:
+                if grp:
+                    out.append('<div class="selg">' + "".join(grp) + "</div>"); grp = []
+                out.append(p)
+        if grp:
+            out.append('<div class="selg">' + "".join(grp) + "</div>")
+        return "".join(out)
+
+    def rest_bar(rng="1:1–18"):
+        # At rest: understand the passage, or listen to it. Compare is a verse action, so it waits for a selection.
+        return (f'<div class="abar rest"><div class="d rest-row"><button class="ab-u" aria-label="Understand the passage, {E(JLAB)}, John {rng}">Understand {rng}</button>'
+                f'<button class="rb play" aria-label="Listen to {E(JLAB)}, John {rng}">{ic("play", 22)}</button></div>'
+                f'<div class="a abar-list"><button class="ab-u">Understand {rng}</button><button class="ab-i">Listen{ic("play", 30)}</button></div></div>')
+
+    def sel_bar(v):
+        # The same one-row bar whether or not audio plays: Play from here, Understand, Compare, more. Original leaves
+        # the bar: the Greek is evidence inside Understand ("Closer to the Greek"), not a destination.
+        return sel_bar_playing(v)
+
+    def mini(verse, playing=True, vo=False):
+        # While playing, the bar is the player: what is playing, back a verse, pause, next. Going back to re-hear a verse is
+        # the commonest move while listening (John, 11 Oct 2026). Speed lives in the full player.
+        b = (lambda n: f'<span class="vo" aria-hidden="true">{n}</span>') if vo else (lambda n: "")
+        pp = ("pause", "Pause") if playing else ("play", "Play")
+        return (f'<div class="mp" role="region" aria-label="Audio player">'
+                f'<div class="mp-row"><button class="mp-lab" aria-label="{E(JLAB)}, John 1:{verse}, Berean Standard Bible. Opens the player">{b(1)}'
+                f'<span class="mp-t">{E(JLAB)}</span><span class="note muted">Verse {verse} · BSB</span></button>'
+                f'<div class="mp-ctl"><button class="mpb" aria-label="Previous verse">{b(2)}{ic("prevv", 20)}</button>'
+                f'<button class="mpb mpp" aria-label="{pp[1]}">{b(3)}{ic(pp[0], 22)}</button>'
+                f'<button class="mpb" aria-label="Next verse">{b(4)}{ic("nextv", 20)}</button></div></div></div>')
+
+    def sel_bar_playing(v):
+        # A selection takes the bar (audio, if playing, keeps going). Its first action is to play from the selected verse:
+        # a tap in the reader still means "select", so jumping the audio is one tap from there (John, 11 Oct 2026).
+        return (f'<div class="abar"><div class="d selp"><button class="mpb mpp pfh" aria-label="Play from verse {v.split(":")[1]}">{ic("play", 18)}<span>{v}</span></button>'
+                f'<button class="ab-u">Understand {v}</button>'
+                f'<button class="ab-i" aria-label="Compare translations of {v}">{ic("cols", 18)}<span>Compare</span></button><button class="ab-m" aria-label="More actions">{ic("more", 22)}</button></div>'
+                f'<div class="a abar-list"><button class="ab-u">Understand {v}</button><button class="ab-i">Play from {v}{ic("play", 30)}</button><button class="ab-i">More{ic("more", 30)}</button></div></div>')
+
+    rows9 = t4("JHN", 1, 1, 9)
+    def au_reader(cur, wi, sel=(), bar=""):
+        return header(("Home", "Home"), "John 1 · BSB") + f'<div class="rbody"><div class="axsel" style="margin-top: 0px">{au_verses(rows9, cur, wi, sel)}</div></div>' + bar
+
+    rest_reader = j_reader + rest_bar()
+    F("AU-01", "Reader at rest: Listen in the bar", rest_reader, "au")
+    F("AU-02", "Playing: the spoken word in an ink pill, upcoming muted; mini player docked", au_reader(5, 4, bar=mini(5)), "au")
+    F("AU-03", "Playing 1:5, 1:6 selected: Play from 1:6 is one tap; the audio keeps going until then", au_reader(5, 4, sel=(6,), bar=sel_bar_playing("1:6")), "au")
+
+    def full(cur, wi, vo=False, rm=False):
+        b = (lambda n: f'<span class="vo" aria-hidden="true">{n}</span>') if vo else (lambda n: "")
+        rows = t4("JHN", 1, max(1, cur - 2), min(18, cur + 4))
+        ly = []
+        for n, t in rows:
+            if n == cur:
+                ws = t.split(" ")
+                body = " ".join(E(w) if i < wi else (f'<span class="au-w">{E(w)}</span>' if i == wi else f'<span class="au-up">{E(w)}</span>') for i, w in enumerate(ws))
+                ly.append(f'<p class="ly cur" aria-current="true"><span class="lyn">{n}</span>{body}</p>')
+            else:
+                ly.append(f'<p class="ly{" past" if n < cur else " up"}"><span class="lyn">{n}</span>{E(t)}</p>')
+        segs = [(18, "1:1–18"), (16, "1:19–34"), (17, "1:35–51")]
+        bar_ = "".join(f'<span class="seg2" style="flex: {w}"><span class="fill" style="width: {min(100, max(0, (cur - s0) / w * 100)):.0f}%"></span></span>'
+                       for (w, _), s0 in zip(segs, (0, 18, 34)))
+        top = (f'<div class="fph"><button class="sh-x fpd" aria-label="Close player">{b(1)}{ic("down", 20)}</button>'
+               f'<div class="stitle"><span class="sttl">{E(JLAB)}</span><span class="ssub">John 1 · BSB</span></div><span></span></div>')
+        scroll_cls = " snap" if rm else ""
+        return (f'<div class="fp">{top}<div class="lyr{scroll_cls}">{b(2)}{"".join(ly)}</div>'
+                f'<div class="fpc"><div class="prog" role="progressbar" aria-label="John 1, verse {cur} of 51" aria-valuenow="{cur}" aria-valuemin="1" aria-valuemax="51">{b(3)}{bar_}</div>'
+                f'<div class="progl note muted"><span>Verse {cur}</span><span>of 51</span></div>'
+                f'<div class="fpr"><button class="mpb mps" aria-label="Speed, 1 times">{b(4)}1×</button>'
+                f'<button class="mpb big" aria-label="Previous verse">{b(5)}{ic("prevv", 26)}</button>'
+                f'<button class="mpb mpp big2" aria-label="Pause">{b(6)}{ic("pause", 30)}</button>'
+                f'<button class="mpb big" aria-label="Next verse">{b(7)}{ic("nextv", 26)}</button>'
+                f'<button class="mpb guideb" aria-label="Open the passage guide, {E(JLAB)}">{b(8)}Guide</button></div></div></div>')
+
+    F("AU-04", "Full player: spoken words fill in ink; tap any verse to jump there", full(5, 4), "au")
+    F("AU-05", "Reduce Motion: no smooth scroll, the next verse snaps into place", [
+        ("Light · 1:5 playing", "light", full(5, 10, rm=True)),
+        ("Dark · 1:6 starts: it snaps, no scroll", "dark", full(6, 0, rm=True)),
+        ("AX5 · 1:6, snapped", "ax5", full(6, 0, rm=True))], "au")
+    F("AU-06", "VoiceOver: player order and labels", [
+        ("Light · full player, order 1–8", "light", full(5, 4, vo=True)),
+        ("Dark · mini player, order 1–5", "dark", au_reader(5, 4, bar=mini(5, vo=True))),
+        ("AX5 · mini player, order 1–5", "ax5", au_reader(5, 4, bar=mini(5, vo=True)))], "au")
+
+    GUIDE_NOTES = {
+        "refs_pg": (
+            "Passage guide · why it looks like this\n\n"
+            "Order: Where we are → Three things to notice → Where readers differ → The passage (verse detail one tap away). "
+            "Labelled sections of plain prose, typography only: Headway 'What's inside?' mobbin.com/screens/3a17e556-460c-43b0-bf46-893f5d49e263 · "
+            "Blinkist 'What's it about?' mobbin.com/screens/b4bd59db-b995-4fc3-ab5a-cae6efeff848 · Google step guide 'What you're solving for / What's given' "
+            "mobbin.com/screens/8d10ee12-c96f-4289-9c80-0544e00c2d08 · Co–Star serif sections stacked, first open mobbin.com/screens/b2f59e7e-d75c-4065-9726-9e3f9be19afc · "
+            "stoic. intro before the walk mobbin.com/screens/15924ee7-16ea-4638-a904-2e35d88ac048\n\n"
+            "Rejected: Duolingo path and XP (mobbin.com/screens/fd077091-e8e9-413f-9aff-bb68984e5b04), Blinkist and Headway covers, read/listen CTAs, "
+            "MasterClass/Udemy curriculum cards. Imprint, BibleProject and Glorify: not indexed on Mobbin (searched).\n\n"
+            "Verse inside the guide: tapping a verse in 'The passage' pushes its Understand inside the same sheet (‹ back to the guide). Still one sheet, so the evidence sheet stays the second."),
+        "gaps_pg": (
+            "Data behind these frames\n\n"
+            "No pericope has a payload: pericopes.payload is null for all 46 John passages (jhn.v2) and for 1CO.14.26-14.40 (1co.v2). "
+            "So every passage-level line is quoted from the one golden entry inside the passage:\n"
+            "• Where we are = first sentence of whats_happening (JHN.1.1, 1CO.14.34).\n"
+            "• Three things = claims c9, c2, c10 (JHN.1.1; c8 left out, it restated the header's range); c3, c5, c6 (1CO.14.34). Their wording is verse-level ('The verse opens…').\n"
+            "• Where readers differ = the entry's debated claims; they are about one verse, not the passage.\n"
+            "• 'Who is speaking to whom' (John) is not in the data: placeholder.\n"
+            "Counts from core.v4: λόγος in John 40; σιγάω in 1 Corinthians 3. Text: BSB, core.v4.\n"
+            "No 'Unreviewed' tag: John approved all seven golden entries (review/decisions.jsonl, 10 Oct; bundles say human_reviewed).\n\n"
+            "Why 1 Corinthians 14 and not a second John passage: John has one entry (JHN.1.1). Any other John guide would be all placeholder. "
+            "1CO.14.34 has 9 claims, 2 of them disputed."),
+        "refs_au": (
+            "Audio read-along · references\n\n"
+            "Spoken word lit, rest dim: Apple Music sing-along mobbin.com/screens/d4df9c1d-7006-4d78-87e2-852058c3ec53 · mobbin.com/screens/d869e223-b0f8-4cec-a965-c1955fe513c6\n"
+            "Lyrics auto-scroll, current line high: Spotify mobbin.com/screens/27859727-f251-4887-8b72-e4776a6d7597 · transcript mobbin.com/screens/6af5c215-bc53-4033-9b8c-40c92051794e\n"
+            "Read-along in the text: ElevenReader mobbin.com/screens/633320e0-b7fc-4791-b65e-c250e82c7b06 · Speechify mobbin.com/screens/c3343a61-2e32-4e5d-a061-39cd80573727 "
+            "(both mark with a wash; not taken, the wash means selected)\n"
+            "Mini player docked: Matter mobbin.com/screens/9f487f5f-2f6c-4cd5-94ab-01616381033a · Audible mobbin.com/screens/3f32bf32-8516-4fd2-a248-4565689b793a\n"
+            "Transcript player: Brink mobbin.com/screens/0c68aed6-765a-4380-a4ff-a88ef011ce6c\n"
+            "YouVersion, Dwell, Kindle Whispersync: not indexed on Mobbin (searched).\n\n"
+            "Marks: spoken word = ink + 2.5 pt accent underline; upcoming = mutedInk (5.6:1 light, 6.0:1 dark); playing verse number carries a speaker glyph. "
+            "Selected verse keeps wash + 3 pt bar. Prev/next go by verse, not ±15 s: scripture is addressed by verse.\n"
+            "Progress = verse of chapter, split at the three passages of John 1. No times shown: there is no audio file yet, so any duration would be invented.\n\n"
+            "Motion: the spoken verse scrolls to 30% from the top (SPRING.standard, 0.4 s) as it starts; only when the reader hasn't scrolled in 4 s. Reduce Motion (AU-05): it snaps, the word mark moves without a fade.\n\n"
+            "VoiceOver (AU-06). Full player: 1 'Close player' → 2 text, each verse 'John 1:5, playing. The Light shines…' (current verse first when focus enters) → "
+            "3 'John 1, verse 5 of 51', adjustable: swipe up/down moves a verse → 4 'Speed, 1 times' → 5 'Previous verse' → 6 'Pause' → 7 'Next verse' → 8 'Stop listening'. "
+            "Mini player: 1 'The Word became flesh, John 1:5, Berean Standard Bible. Opens the player' → 2 'Previous verse' → 3 'Pause' → 4 'Next verse' → 5 'Speed, 1 times'. "
+            "Magic tap (two-finger double tap) plays and pauses. Word tracking is not announced; focus never moves on its own. Reader verse: 'Verse 5, playing'."),
+    }
+
+# ================= App-wide IA after the passage shift (guide page) =================
+if STYLE != "v1":
+    wc = lambda s_: len(re.sub(r"<[^>]+>", "", s_).split())
+
+    def node(name, desc="", depth=None, kids="", cls=""):
+        d = f'<span class="dgd">{E(depth)}</span>' if depth else ""
+        ds = f'<span class="dgs">{desc}</span>' if desc else ""
+        k = f'<ul>{kids}</ul>' if kids else ""
+        return f'<li class="{cls}"><div class="dgn"><span class="dgt">{name}</span>{ds}{d}</div>{k}</li>'
+
+    before = node("Home", "Continue · Start with John · books", "", 
+        node("Start here", "46 passages → opens the reader at the passage")
+        + node("Search", "Go to · Words · Passages (verses) → reader at the verse")
+        + node("Reader · John 1 · BSB", "Contents, Aa", "depth 0",
+            node("Tap a verse → action bar", "Understand 1:1 · Original · Compare · ⋯", kids=
+                node("Understand 1:1", "sheet: What’s happening · What we can see · Where readers differ · Go further (Original Greek, Compare, Passage, Related)", "depth 1",
+                    node("Evidence sheet", "Why we say this · Word → Occurrences · Compare the readings · Translations · Peek", "depth 2"))
+                + node("Original", "→ Understand, scrolled to Original Greek", cls="gone")
+                + node("Compare", "→ Understand, scrolled to Compare"))
+            + node("Select 2+ verses", "Passage Understand: the verse entries stitched under small labels")))
+    after = node("Home", "Continue: where you are in John (passage 3 of 46) · Next passage with its orientation · books", "",
+        node("Start here", "46 passages, Next marked in type with its orientation → <b>Passage guide</b>")
+        + node("Search", "Guides (passage titles) → <b>Passage guide</b> · Verses → reader at the verse")
+        + node("Reader · John 1 · BSB", "Contents, Aa · passage title above verse 1 → <b>Passage guide</b>", "depth 0",
+            node("Bar at rest", "<b>Understand 1:1–18</b> · Listen", kids=
+                node("Passage guide", "sheet: Where we are · How it moves · What’s happening · Three things to notice · Where readers differ · The passage", "depth 1",
+                    node("Verse in the passage", "Understand 1:1, pushed inside the guide (‹ back to the guide)", "depth 1, pushed")
+                    + node("Evidence sheet", "Why we say this · <i>Closer to the Greek</i> → word → occurrences · Compare the readings · Translations · Peek", "depth 2"), cls="new")
+                + node("Listen", "the bar becomes the mini player → full player (read-along)", cls="new"))
+            + node("Tap a verse → bar", "Play from 1:1 · <b>Understand 1:1</b> · Compare · ⋯ (Copy, Share, Bookmark); one row, playing or not")
+            + node("Original", "no longer a bar action or a mode: one line of evidence inside a claim, and Go further › Original Greek in a verse’s Understand", cls="gone")))
+
+    def diagram(cls, title, tree, foot):
+        return f'<div class="dgw {cls}"><p class="dgh">{title}</p><ul class="tree">{tree}</ul><p class="dgf">{foot}</p></div>'
+    F("IA-01", "Sitemap, before and after (light)", {"wide": diagram("light", "Before · the verse is the unit", before, "Three depth-1 doors (Understand, Original, Compare) open one sheet. The passage exists only as a row inside a verse’s Understand.")
+                                                           + diagram("light", "After · the passage is the unit", after, "One depth-1 surface per passage. Verse detail is one level down, inside it. The Greek is evidence, never a destination.")}, "ia")
+    F("IA-02", "Sitemap, before and after (dark)", {"wide": diagram("dark", "Before · the verse is the unit", before, "Three depth-1 doors (Understand, Original, Compare) open one sheet.")
+                                                          + diagram("dark", "After · the passage is the unit", after, "One depth-1 surface per passage; verse detail one level down.")}, "ia")
+
+    # Home: where you are in John. Example reader state (marked on the canvas): passages 1–2 read, reading 1:39.
+    j139 = t4("JHN", 1, 39)[0][1]
+    njohn = len([p for p in PERI if p.startswith("JHN.")])
+    ticks = "".join(f'<span class="tk{" dn" if i < 2 else (" cu" if i == 2 else "")}"></span>' for i in range(njohn))
+    jp = [(pid, lab) for pid, (lab, _) in PERI.items() if pid.startswith("JHN.")]
+    home_cont = (f'<button class="lead coverlead" aria-label="Continue reading, {E(jp[2][1])}, John 1:39. {E(j139)}"><span class="rm cover"><span class="lbl">Continue · John 1:39</span>'
+                 f'<span class="cw lit">{E(jp[2][1])}</span><span class="excerpt">{E(j139)}</span></span><span class="chev">{ic("right", 18)}</span></button>'
+                 f'<div class="prg" role="img" aria-label="2 of {njohn} passages in John read"><div class="tks" aria-hidden="true">{ticks}</div><p class="note muted">2 of {njohn} passages read</p></div>')
+    nxt = (f'<button class="lrow numrow nx" aria-label="Next, passage 4, {E(jp[3][1])}, John {prange(jp[3][0])}. Opens the passage guide">'
+           f'<span class="rm"><span class="lmain"><span class="num nxn">4</span><span class="nt">{E(jp[3][1])}</span></span>'
+           f'<span class="note muted lsub">{prange(jp[3][0])}<span class="a nxw"> · Next</span></span><span class="lsub orlw">{todo("Passage orientation")}</span></span>'
+           f'<span class="lright"><span class="nxw">Next</span></span><span class="chev">{ic("right", 18)}</span></button>')
+    # "All passages", not "All 46": the progress line right above already says 46 (visual pass, 11 Oct 2026).
+    allp = lrow("All passages in John", cls="valrow")
+    F("IA-03", "Home: where you are in John, the next passage oriented", page(None, "Yada", home_cont + sec("Next in John", nxt + allp) + sec("Old Testament", ot), right=HOME_ICONS), "ia")
+    F("IA-04", "Reader at rest: the passage is the primary action", rest_reader, "ia")
+    F("IA-05", "Verse selected: Understand 1:1, Compare, more; no Original", reader("JHN", 1, 1, 9, scrolled=False, rows_override=jrows, sel=(1,)) + sel_bar("1:1"), "ia")
+
+    j114 = t4("JHN", 1, 14)[0][1]
+    guide_hits = [(pid, lab) for pid, lab in jp if "word became flesh" in lab.lower()]
+    sr = sec("Guides", "".join(lrow(f'<span class="nt">{E(lab)}</span>', sub=f"John {prange(pid)}") for pid, lab in guide_hits), first=True)
+    vcount = db4.execute("select count(*) from texts_fts f join texts t on t.rowid=f.rowid where texts_fts match '\"word became flesh\"' and t.translation='BSB'").fetchone()[0]
+    sr += sec(f"Verses · {vcount}", lrow(f'<span class="excerpt2">{bold(j114, "The Word became flesh")}</span>', cls="passage").replace('<span class="lmain">', '<span class="lmain"><span class="pref">John 1:14</span>', 1))
+    F("IA-06", "Search: a passage title finds its guide", home_under + search_sheet("word became flesh", sr), "ia")
+
+    # House style (reports/Simple yet deep…): orientation ≤25 words; 2–5 movement steps; what's happening 2–4 sentences
+    # with a because/so; ≤3 + ≤2 claims; about 150 words before any tap. Budget tags are canvas annotations, not UI.
+    c = CL["jhn.1.1"]
+    o_txt = first_sentence(G2["jhn.1.1"]["whats_happening"])
+    wh = G2["jhn.1.1"]["whats_happening"]
+    see_w = sum(wc(c[k]["claim"]) for k in ("c9", "c2", "c10")); dif_w = sum(wc(c[k]["claim"]) for k in ("c11", "c12"))
+    total = wc(o_txt) + wc(wh) + see_w + dif_w
+    tag = lambda t: f'<span class="wb" aria-hidden="true">{E(t)}</span>'
+    hs = (sec("Where we are", f'<p class="expl">{lang(o_txt)}</p>{tag(f"{wc(o_txt)} words · max 25")}', first=True)
+          + sec("How the passage moves", todo("2–5 steps, each under 10 words") + tag("0 words: no movement in the data"))
+          + sec("What’s happening", f'<p class="expl">{lang(wh)}</p>{tag(f"{wc(wh)} words · 3 sentences · has “because” · 40–80")}')
+          + sec("Three things to notice", notice(c["c9"], "1:1") + notice(c["c2"], "1:1") + notice(c["c10"], "1:1") + tag(f"{see_w} words · 3 of 3"))
+          + sec("Where readers differ", differ(c["c11"], "1:1") + differ(c["c12"], "1:1") + tag(f"{dif_w} words · 2 of 2")))
+    budget = f'<div class="wbt" aria-hidden="true">Before any tap: {total} words · budget about 150</div>'
+    F("IA-07", "House style: the first-screen word budget, medium detent", under_j + guide("med", JLAB, "John 1:1–18", hs).replace('<div class="sbody">', '<div class="sbody">' + budget, 1), "ia")
+
+    # Disagreement, agreed first, each reading with the same three parts, no winner. Manuscript question listed first (tc before tn).
+    cc = CL["1co.14.34"]
+    def position(p_, here):
+        links = "".join(f'<button class="elink">{E(fref(ev["ref"]))}{ic("right", 16)}</button>' for ev in p_["evidence"] if ev.get("type") == "verse" and ev["ref"] != here)
+        links += "".join(f'<p class="note muted">{lang(ev.get("lemma", ""))} · {lang(ev.get("note", ""))}</p>' for ev in p_["evidence"] if ev.get("type") != "verse")
+        return (f'<section class="pos"><h4 class="rlabel">{lang(p_["label"])}</h4>'
+                f'<p class="plbl">What it says</p><p class="claim">{lang(p_["case"])}</p>{tag(str(wc(p_["case"])) + " words")}'
+                f'<p class="plbl">Supporters point to</p><div class="elinks">{links or todo("Evidence")}</div>'
+                f'<p class="plbl">Main difficulty</p>{todo("Main difficulty")}</section>')
+    dis = (sec("Where readers differ",
+               row(lang(cc["c9"]["claim"]), extra=f'<span class="note muted">Manuscripts · </span><span class="rd-n">Compare the {len(cc["c9"]["positions"])} readings</span>', aria=f'{cc["c9"]["claim"]} Manuscripts. Compare the {len(cc["c9"]["positions"])} readings')
+               + f'<div class="dq"><p class="claim dqq">{lang(cc["c7"]["claim"])}</p><p class="plbl">What everyone agrees on</p>{todo("Agreed facts")}'
+               + "".join(position(p_, "1CO.14.34") for p_ in cc["c7"]["positions"]) + "</div>", first=True))
+    F("IA-08", "Where readers differ: agreed first, equal parts, no winner", under_c + guide("lg", CLAB, "1 Corinthians 14:26–40", dis, scrolled=True), "ia")
+
+    GUIDE_NOTES["refs_ia"] = (
+        "App-wide IA · references and decisions\n\n"
+        "Progress without a streak: Deepstash 'Continue Journey · 1 of 6 Read' with a segmented bar and 'Read next' mobbin.com/screens/ce6338b6-717e-41f2-892d-f175aa75dd5f · "
+        "Quizlet 'Jump back in' mobbin.com/screens/15f84fb7-e67c-4483-b5d5-c5650540b051. Rejected: Apple Books daily Reading Goals ring mobbin.com/screens/00643994-7713-4c56-9d46-e81e10a83ba7, "
+        "Fable and timespent streak counters mobbin.com/screens/f76cf0f3-138c-44d3-9f1f-c07cf9aa5d1c · mobbin.com/screens/11c278de-5ff4-427f-9163-255adc2ec7d8 (research: streak guilt is a documented reason readers quit).\n\n"
+        "Bar with one primary action: Crouton docked pill mobbin.com/screens/bfb5df79-f490-45d3-b573-35d72f6ff3c8 · Noom audio bar above tab bar mobbin.com/screens/21f57f4c-71da-4689-8d02-eedb0a533b9b.\n\n"
+        "Home (IA-03) shows an example reader state: passages 1–2 read, reading 1:39. Progress counts passages read, so a missed week loses nothing; no dates, no streak, no reminders. Done = full tick, current = half tick, plus the sentence.\n\n"
+        "Bar (IA-04/05): at rest 'Understand 1:1–18' (the passage, primary), Listen, Compare. On a verse: Understand 1:1, Compare, ⋯. Original leaves the bar. "
+        "The bar steps back with the header while reading (D-05) and returns on scroll up.\n\n"
+        "Entry points to a guide: the passage title above its first verse (PG-01), the bar at rest (IA-04), Start here (PG-06), Home's Next row (IA-03), Search 'Guides' (IA-06).\n\n"
+        f"House style (IA-07): orange tags are canvas annotations. Today's data: orientation {wc(o_txt)} words (max 25, over by {wc(o_txt) - 25}); movement missing; what's happening {wc(wh)} words; "
+        f"claims {see_w} + {dif_w}. Total {total} before any tap against about 150. The passage-level payload must be written to the budget; verse entries can't stand in.\n\n"
+        "Disagreement (IA-08): the manuscript question first (NET's tc before tn), then the interpretive one open: agreed facts, then each reading with the same three parts. "
+        f"Parity: {wc(cc['c7']['positions'][0]['case'])} vs {wc(cc['c7']['positions'][1]['case'])} words (within 20%). 'Agreed' and 'Main difficulty' are not in the schema: placeholders. "
+        "Reading order is the entry's own; a corpus-wide ordering rule is still to be chosen.")
+# ================= New flows (v2, guide page): a clear start, open study notes, people, voice, iCloud =================
+if STYLE != "v1":
+    # Real data only: Tyndale Open Study Notes (CC BY-SA 4.0) and OpenBible.info cross-references (CC BY 4.0) from the
+    # study bundle the pipeline built (packages/pipeline/src/study.ts). Licences read from the files (rule 3).
+    STUDY = os.environ.get("YADA_STUDY_DB", "/Users/johnetokhana/yada/.claude/worktrees/agent-ae8a170e66179a4fa/content/bundles/study.v1.db")
+    sdb = sqlite3.connect(STUDY)
+    # Inline the credit is one line; the NLT sentence moves to the whole-note page, since the leading lemma is already
+    # marked (NLT) where it stands (visual pass 2, 11 Oct 2026: two lines of credit under four lines of note).
+    TOSN_SRC = "Tyndale Open Study Notes, CC BY-SA 4.0"
+    TOSN_FULL = "Tyndale Open Study Notes, CC BY-SA 4.0. Quoted words are the NLT’s."
+    OB_SRC = "Cross-references from OpenBible.info, CC BY 4.0."
+
+    def o_of(b, c, v):
+        return db.execute("select ord from verses where book=? and chapter=? and verse=?", (b, c, v)).fetchone()[0]
+
+    def bcv(o):
+        return db.execute("select book, chapter, verse from verses where ord=?", (o,)).fetchone()
+
+    def oref(o1, o2=None):
+        b, c, v = bcv(o1)
+        s = f"{BOOK[b]} {c}:{v}"
+        if o2 and o2 != o1:
+            b2, c2, v2 = bcv(o2)
+            s += f"–{v2}" if c2 == c else f"–{c2}:{v2}"
+        return s
+
+    def bsb(o):
+        return db.execute("select text from texts where translation='BSB' and ord=?", (o,)).fetchone()[0]
+
+    def note_paras(t):
+        # Shown as published (John: no review, 11 Oct 2026): only the markup changes. The leading "1:1" goes because the
+        # sheet header already names the verse; Tyndale's " • " joins separate notes, so each becomes its own paragraph.
+        t = re.sub(r"^<b>[0-9:\-–]+</b>\s*", "", t.strip())
+        # A note that opens on Tyndale's lemma quotes the NLT, which the reader isn't reading: the lemma says so where it
+        # stands, not only in the source line (the BSB of 1:5 says "overcome", the NLT "extinguish").
+        t = re.sub(r"^<x>([^<]+?):</x>", r'“<x>\1</x>” <span class="nlt">(NLT)</span>:', t)
+        t = (t.replace("<x>", '<q class="nq">').replace("</x>", "</q>").replace("<sc>", '<span class="sc">').replace("</sc>", "</span>"))
+        out = []
+        for line in t.split("\n"):
+            if line.startswith("<h>"):
+                out.append(("h", line[3:].replace("</h>", "")))
+            else:
+                out += [("p", p) for p in line.split(" • ") if p.strip()]
+        return out
+
+    def notes_for(o):
+        own = sdb.execute("select text from notes where kind='note' and ord_start=? and ord_end=?", (o, o)).fetchall()
+        rng = sdb.execute("select ord_start, ord_end, text from notes where kind='note' and ord_start<=? and ord_end>=? and ord_start<ord_end "
+                          "order by ord_end-ord_start", (o, o)).fetchall()
+        return [t for (t,) in own], rng
+
+    def study_page(o):
+        # The whole note is a page pushed inside the sheet (‹ back), the same move as See also and a profile: one
+        # gesture for "more of this" everywhere, and the Understand sheet never grows in place (UX pass, 11 Oct 2026).
+        own, rng = notes_for(o)
+        body = "".join(f'<p class="snote">{p}</p>' for t in own for k_, p in note_paras(t) if k_ == "p")
+        for a, b_, t in rng:
+            body += f'<h3 class="lbl nov">On {oref(a, b_).rsplit(" ", 1)[1]}</h3>' + "".join(f'<p class="snote">{p}</p>' for k_, p in note_paras(t) if k_ == "p")
+        return f'<section class="sec first">{body}<p class="note muted credit">{TOSN_FULL}</p></section>'
+
+    def study_sec(o, first=False):
+        # Collapsed to the first paragraph, four lines at most: the note is evidence one tap away, never the first
+        # screen's weight (house style word budget, IA-07).
+        own, _ = notes_for(o)
+        paras = [p for t in own for p in note_paras(t)]
+        body = f'<p class="snote clamp">{paras[0][1]}</p><button class="more">Read the whole note</button>'
+        return sec("Study notes", body + f'<p class="note muted credit">{TOSN_SRC}</p>', first=first)
+
+    def xrefs(o, n=5):
+        return sdb.execute("select to_ord_start, to_ord_end from xrefs where from_ord=? order by votes desc limit ?", (o, n)).fetchall()
+
+    def xrow(a, b_):
+        # A range shows its first verse whole and no trailing "…": the reference already says 3:19–20, and "evil. …"
+        # read as a typo (last visual pass, 11 Oct 2026).
+        t = bsb(a)
+        return (f'<button class="row xr" aria-label="{E(oref(a, b_))}. {E(t)}"><span class="rm"><span class="claim xref">{E(oref(a, b_))}</span>'
+                f'<span class="xt">{E(t)}</span></span><span class="chev">{ic("right", 18)}</span></button>')
+
+    def see_also(o, k=None, all_=False):
+        # One list, not two: Yada's reviewed related passages come first and say why; OpenBible's fill in after them and
+        # show the verse itself. The second line tells the two apart without a label or a colour.
+        rows, seen = [], set()
+        if k:
+            for rp in G[k]["related_passages"]:
+                b, c, v = rp["ref"].split(".")
+                oo = o_of(b, int(c), int(v)); seen.add(oo)
+                rows.append(("y", f'<button class="row xr"><span class="rm"><span class="claim xref">{E(fref(rp["ref"]))}</span>'
+                                  f'<span class="note muted">{lang(rp["note"])}</span></span><span class="chev">{ic("right", 18)}</span></button>'))
+        for a, b_ in xrefs(o):
+            if a not in seen:
+                rows.append(("o", xrow(a, b_)))
+        shown = rows if all_ else rows[:3]
+        more = "" if all_ or len(rows) <= 3 else f'<button class="more">Show all {len(rows)}</button>'
+        src = f'<p class="note muted credit">{OB_SRC}</p>' if any(s == "o" for s, _ in shown) else ""
+        return sec("See also", "".join(r for _, r in shown) + more + src)
+
+    TRS = [t for (t,) in db4.execute("select distinct translation from texts")]
+    TRS = [t for t in ("BSB", "WEB", "KJV", "LSV") if t in TRS]
+
+    def nrow(main, sub, disclose=None):
+        # Every Go further row is the same object: a name, one muted line saying what is behind it, a bare chevron.
+        # Original still opens in place (its words belong beside the verse), so its chevron points down and turns up
+        # when open; it no longer sits in a filled circle, which made it read as a button among rows (UI pass,
+        # John 11 Oct 2026: "the dropdown style beside it").
+        if disclose is None:
+            attrs, chev = "", ic("right", 18)
+        else:
+            attrs, chev = f' aria-expanded="{"true" if disclose else "false"}"', ic("up" if disclose else "down", 18)
+        return (f'<button class="row nav"{attrs} aria-label="{E(re.sub("<[^>]+>", "", main))}. {E(sub)}"><span class="rm"><span class="claim">{main}</span>'
+                f'<span class="note muted">{E(sub)}</span></span><span class="chev">{chev}</span></button>')
+
+    def go_further(lname, plab, prng, o, grammar=0, study=False, see=0, k=None, open_=False):
+        words = db4.execute("select count(*) from tokens where ord=?", (o,)).fetchone()[0]
+        rows = nrow(f"Original {lname}", f"{words} words" + (f" · {grammar} grammar notes" if grammar else ", each with its English"), disclose=open_)
+        if open_ and k:
+            g_rows = "".join(row(lang(c["claim"]), claim_label(c)) for c in G[k]["claims"] if c["category"] != "debated" and is_grammar(c))
+            rows += (f'<div class="orig">{interlinear(k)}<p class="note muted credit">Glosses: STEPBible (TAGNT, TBESG)</p>'
+                     f'<h3 class="lbl">In the {lname}</h3>{g_rows}</div>')
+        if study:
+            own, rng = notes_for(o)
+            rows += nrow("Study notes", f"Tyndale · {len(own) + len(rng)} notes")
+        if see:
+            rows += nrow("See also", f"{see} passages")
+        rows += nrow("Compare translations", ", ".join(TRS))
+        rows += nrow(E(plab), f"Passage guide · {prng}")
+        return sec("Go further", rows)
+
+    def usheet(pos, title, sub, body, **kw):
+        # × is the one exit and says where it goes; the "Back to reading" pill repeated it and took 60 pt from the
+        # sheet, the same duplicate removed from the guide (accessibility pass, 11 Oct 2026).
+        return sheet(pos, title, sub, body, foot=False, **kw).replace('aria-label="Close"', 'aria-label="Close, back to reading"', 1)
+
+    PROFILES = sdb.execute("select title, text from notes where kind='profile'").fetchall()
+
+    def people(o, first=False):
+        t = bsb(o)
+        hits = [ti for ti, _ in PROFILES if re.search(rf"\b{re.escape(ti)}\b", t)]
+        if not hits:
+            return ""
+        return sec("People", "".join(row(E(h), extra='<span class="note muted">Who he was</span>' if h == "Nicodemus" else None, aria=f"{h}. Who he was") for h in hits), first=first)
+
+    # ---------- A clear way to start ----------
+    # No onboarding screens (John asked why we had them, 11 Oct 2026): Home itself is the start. One lead, named for what
+    # it does, above the books. Deepstash 'Let's start with your first read' mobbin.com/screens/ae4112fa-00aa-4415-ab8f-7d1ec5c49692
+    # (one featured start on Home, no questions); Apple Books 'Continue' first for a returning reader
+    # mobbin.com/screens/38f5b90d-0d5b-467f-9e2d-7155ba17a3ea.
+    def start_lead(vo=False):
+        bd = '<span class="vo" aria-hidden="true">5</span>' if vo else ""
+        return (f'<button class="lead coverlead" style="position:relative" aria-label="Start here. The Gospel of John, one passage at a time, explained. Opens the first passage">{bd}'
+                f'<span class="rm cover"><span class="lbl">Start here</span><span class="cw lit">The Gospel of John</span>'
+                f'<span class="excerpt">One passage at a time, explained.</span></span><span class="chev">{ic("right", 18)}</span></button>')
+
+    def home_first(vo=False):
+        h = page(None, "Yada", start_lead(vo) + sec("Old Testament", ot), right=HOME_ICONS)
+        if vo:
+            for n, lab in ((1, "Search"), (2, "Bookmarks"), (3, "More: Recent, Sources")):
+                h = h.replace(f'<button class="gbtn" aria-label="{lab}">', f'<button class="gbtn" style="position:relative" aria-label="{lab}"><span class="vo" aria-hidden="true">{n}</span>', 1)
+            h = h.replace('<h1 class="wmh">', '<h1 class="wmh" style="position:relative"><span class="vo" aria-hidden="true">4</span>', 1)
+            h = h.replace('<h3 class="lbl">Old Testament</h3>', '<h3 class="lbl" style="position:relative"><span class="vo" aria-hidden="true">6</span>Old Testament</h3>', 1)
+            h = h.replace('<button class="lrow book">', '<button class="lrow book" style="position:relative"><span class="vo" aria-hidden="true" style="left:auto;right:0;top:14px">7</span>', 1)
+        return h
+
+    F("ON-01", "First launch: Home is the start; one lead, the books below", home_first(), "on")
+    F("ON-02", "Start here opens John 1:1–18 in its guide", under_j + guide("med", JLAB, "John 1:1–18", john_guide()), "on")
+    on_reader = reader("JHN", 1, 1, 9, scrolled=False, rows_override=jrows, hint=True)
+    on_reader = on_reader.replace('<p class="hint">', f'{opener_btn}<p class="hint">', 1)
+    F("ON-03", "× closes the guide onto the text; the hint shows once", on_reader, "on")
+    p2 = jp[1]
+    next_row = (f'<button class="lrow numrow nx" aria-label="Next, {E(p2[1])}, John {prange(p2[0])}. Opens its guide">'
+                f'<span class="rm"><span class="nxo">Next · {prange(p2[0])}</span><span class="lmain"><span class="nt">{E(p2[1])}</span></span></span>'
+                f'<span class="chev nxc">{ic("right", 18)}</span></button>')
+    end_body = f'<section class="sec gtext first"><h3 class="lbl">The passage</h3>{verses_html(t4("JHN", 1, 17, 18), ch=1, book="JHN")}</section>' + sec(None, next_row)
+    F("ON-04", "End of the guide: the next passage is one tap", under_j + guide("lg", JLAB, "John 1:1–18", end_body, scrolled=True), "on")
+    # Continue and a Next row together were two calls to action for one reader; mid-passage only Continue shows
+    # (UX pass, 11 Oct 2026). Once a passage is finished, the lead itself becomes Next (ON-07).
+    F("ON-05", "Second launch, mid-passage: Continue is the one lead", page(None, "Yada", home_cont + allp + sec("Old Testament", ot), right=HOME_ICONS), "on")
+    j119 = t4("JHN", 1, 19)[0][1]
+    next_lead = (f'<button class="lead coverlead" aria-label="Next, {E(p2[1])}, John {prange(p2[0])}. Opens its guide"><span class="rm cover"><span class="lbl">Next · John {prange(p2[0])}</span>'
+                 f'<span class="cw lit">{E(p2[1])}</span><span class="excerpt">{E(j119)}</span></span><span class="chev">{ic("right", 18)}</span></button>'
+                 f'<p class="note muted prgl">1 of {njohn} passages read</p>')
+    F("ON-07", "Passage finished: the lead becomes Next", page(None, "Yada", next_lead + allp + sec("Old Testament", ot), right=HOME_ICONS), "on")
+    F("ON-06", "VoiceOver: Home, first launch, order 1–7", [
+        ("Light · order 1–7", "light", home_first(vo=True)),
+        ("Dark · order 1–7", "dark", home_first(vo=True)),
+        ("AX5 · order 1–7", "ax5", home_first(vo=True))], "on")
+
+    # ---------- Study notes and See also ----------
+    O11, O15, O31 = o_of("JHN", 1, 1), o_of("JHN", 1, 5), o_of("JHN", 3, 1)
+    # With a Yada entry, Understand keeps one voice up front: its three parts, then Go further. Tyndale's note and the
+    # See also list are rows there, a tap away. Six sections on one sheet was the overwhelm John asked us to avoid.
+    yada_rel = {o_of(r.split(".")[0], int(r.split(".")[1]), int(r.split(".")[2])) for r in (rp["ref"] for rp in G["jhn.1.1"]["related_passages"])}
+    n_see = len(yada_rel) + len([x for x in xrefs(O11) if x[0] not in yada_rel])
+    n_gram = len([c for c in G["jhn.1.1"]["claims"] if c["category"] != "debated" and is_grammar(c)])
+    gf_11 = go_further("Greek", JLAB, "1:1–18", O11, grammar=n_gram, study=True, see=n_see)
+    body_11 = understand_simple_body("jhn.1.1")
+    body_11 = body_11[body_11.index('<section class="sec"><h3 class="lbl">Where readers differ</h3>'):body_11.index('<section class="sec"><h3 class="lbl">Go further</h3>')].replace('<section class="sec">', '<section class="sec first">', 1) + gf_11
+    F("SN-01", "Understand 1:1 with an entry: Study notes and See also wait in Go further", under_j + usheet("lg", "John 1:1", None, body_11, scrolled=True), "sn")
+    gf_open = go_further("Greek", JLAB, "1:1–18", O11, grammar=n_gram, study=True, see=n_see, k="jhn.1.1", open_=True)
+    F("SN-09", "Original Greek opens in place; its chevron turns up", under_j + usheet("lg", "John 1:1", None, gf_open.replace('<section class="sec">', '<section class="sec first">', 1), scrolled=True), "sn")
+    F("SN-02", "Study notes, pushed: the whole note, then the note on 1:1–18", under_j + sheet("lg", "Study notes", "John 1:1", study_page(O11), back=True, foot=False), "sn")
+    u15 = lambda pre="": study_sec(O15, first=True) + see_also(O15) + go_further("Greek", JLAB, "1:1–18", O15) if not pre else pre + go_further("Greek", JLAB, "1:1–18", O15)
+    under_15 = reader("JHN", 1, 3, 9, sel=(5,), scrolled=False, rows_override=t4("JHN", 1, 3, 9)) + scrim()
+    F("SN-03", "John 1:5 has no Yada entry yet: Study notes leads", under_15 + usheet("med", "John 1:5", None, u15()), "sn")
+    # About 130 KB a book: it downloads by itself the first time a book is opened online, so the happy path asks for
+    # nothing. Only a slow fetch, a failure or no connection says anything, in one line (UX pass, 11 Oct 2026).
+    dl = lambda state: sec(None, {
+        "busy": '<p class="note muted offl" role="status">Getting the study notes for John.</p>',
+        "fail": ('<div class="row dlfail"><span class="rm"><span class="note muted" role="status">The study notes for John didn’t download.</span></span>'
+                 '<button class="tbtn2">Try again</button></div>'),
+        "off": '<p class="note muted offl">Study notes download when you’re online.</p>'}[state], first=True)
+    F("SN-04", "First open of John, still fetching: one line, nothing to tap", under_15 + usheet("med", "John 1:5", None, u15(dl("busy"))), "sn")
+    F("SN-05", "The download failed: one line and Try again", under_15 + usheet("med", "John 1:5", None, u15(dl("fail"))), "sn")
+    F("SN-06", "Offline, not downloaded: one quiet line, no error", under_15 + usheet("med", "John 1:5", None, u15(dl("off"))), "sn")
+    a, b_ = xrefs(O15)[0]
+    ba, bc, bv = bcv(a)
+    F("SN-07", "A See also row opens the verse, with a way back", reader(ba, bc, bv, bv + 4, back=("John 1:5", "Back to John 1:5"), sel=tuple(range(bv, bcv(b_)[2] + 1)), offset=0, abar=f"{bc}:{bv}–{bcv(b_)[2]}"), "sn")
+    F("SN-08", "See also, all of them: pushed inside the sheet", under_j + sheet("lg", "See also", "John 1:1", see_also(O11, "jhn.1.1", all_=True).replace('<h3 class="lbl">See also</h3>', "", 1), back=True, foot=False), "sn")
+
+    # ---------- People (Tyndale profiles) ----------
+    # A dictionary tab was rejected (John asked, 11 Oct 2026): readers look things up at the moment of confusion, so a
+    # person shows as a row on the verse that names them, and Search finds them. Definition pattern: Public 'Earnings'
+    # sheet, term, plain body, source line mobbin.com/screens/93eeef7a-1110-439f-8d05-5d3bbe02747d.
+    under_31 = reader("JHN", 3, 1, 6, sel=(1,), offset=0, scrolled=False) + scrim()
+    F("TD-01", "John 3:1: a person named in the verse gets a row", under_31 + usheet("lg", "John 3:1", None, people(O31, first=True) + study_sec(O31) + see_also(O31) + go_further("Greek", PERI["JHN.3.1-3.21"][0], "3:1–21", O31)), "td")
+    nic = dict(PROFILES)["Nicodemus"]
+    nparas = note_paras(nic)
+    further_i = [i for i, (k_, p) in enumerate(nparas) if k_ == "h" and "Further" in p][0]
+    pbody = "".join(f'<p class="snote">{p}</p>' for k_, p in nparas[1:further_i] if k_ == "p")
+    refs = []
+    book_ = "John"
+    for part in nparas[further_i + 1][1].replace("John ", "").split(";"):
+        part = part.strip()
+        c, vs = part.split(":")
+        v1, v2 = (vs.split("-") + [None])[:2]
+        refs.append(f"John {c}:{v1}" + (f"–{v2}" if v2 else ""))
+    pbody += sec("Read about him", "".join(row(E(r_), cls="plain") for r_ in refs)) + f'<p class="note muted credit">Tyndale Open Study Notes, CC BY-SA 4.0.</p>'
+    F("TD-02", "Nicodemus: the profile pushes inside the sheet; ‹ goes back", under_31 + sheet("lg", "Nicodemus", "John 3:1", pbody, back=True, foot=False), "td")
+    nv = db.execute("select v.verse_id, t.text from verses v join texts t on t.ord=v.ord where t.translation='BSB' and t.text like '%Nicodemus%' order by v.ord").fetchall()
+    srows = sec("People", lrow("Nicodemus", sub="Who he was · Tyndale"), first=True) + sec("Verses", "".join(
+        lrow(f'<span class="excerpt2">{bold(t, "Nicodemus")}</span>', cls="passage").replace('<span class="lmain">', f'<span class="lmain"><span class="pref">{E(fref(r))}</span>', 1) for r, t in nv[:4]))
+    F("TD-03", "Search: a name finds the person first, then the verses", home_under + search_sheet("nicodemus", srows), "td")
+
+    # ---------- Audio voice (Apple's speech, on the phone) ----------
+    vhint = '<p class="note muted vhint">For a clearer voice: Settings&nbsp;› Accessibility&nbsp;› Spoken Content&nbsp;› Voices.</p>'
+    F("AU-07", "First listen on the basic voice: one line, once", full(5, 4).replace('<div class="lyr">', vhint + '<div class="lyr">', 1), "au")
+
+    # ---------- iCloud ----------
+    F("IC-01", "Bookmarks kept in iCloud: one line says so", page(("Home", "Home"), "Bookmarks", bmrows + '<p class="note muted icl">Bookmarks and your reading place are kept in iCloud.</p>', right=EDIT), "ic")
+    F("IC-02", "Not signed in to iCloud: on this iPhone only, and how to change it", page(("Home", "Home"), "Bookmarks", bmrows + '<p class="note muted icl">On this iPhone only. Sign in to iCloud in Settings to keep them.</p>', right=EDIT), "ic")
+
+    GUIDE_NOTES["refs_on"] = (
+        "A clear way to start · decisions\n\n"
+        "No onboarding screens. Home is the start: one lead, 'Start here · The Gospel of John', above the books (ON-01). "
+        "A first-launch question was drafted and dropped: it put a screen between the reader and the Bible, and asked a newcomer to choose before they knew the choices.\n\n"
+        "The path: Start here → John 1:1–18's guide (ON-02) → × lands on the text with the one-time hint (ON-03) → the guide ends on the next passage (ON-04). "
+        "A passage counts as read when the reader reaches that Next row; nothing announces it.\n\n"
+        "Home has one lead at a time: Continue while a passage is open (ON-05), Next once it is finished (ON-07). The earlier Home showed Continue and a Next row together: two calls to action for one reader.\n\n"
+        "References: Deepstash 'Let's start with your first read' mobbin.com/screens/ae4112fa-00aa-4415-ab8f-7d1ec5c49692 · "
+        "Apple Books Continue first mobbin.com/screens/38f5b90d-0d5b-467f-9e2d-7155ba17a3ea. "
+        "Rejected: Fable 'How do you want to get started?' mobbin.com/screens/08bb1ff7-9130-4c7e-91ce-68152c1005d5 and every goals or interests picker.\n\n"
+        "WCAG and COGA: the lead's label names where it goes (2.4.4); VoiceOver order follows the eye, header to lead to books (1.3.2, ON-06); "
+        "no time limits, nothing moves on its own (2.2.1); the hint shows once and never blocks; plain words, one main action per screen (W3C COGA objective 3).")
+    GUIDE_NOTES["refs_sn"] = (
+        "Open study notes · decisions\n\n"
+        "With a Yada entry, Understand keeps one voice up front: What's happening, What we can see, Where readers differ, then Go further, where Study notes and See also are rows (SN-01). "
+        "Six sections on one sheet was too much. With no entry, Study notes leads, then See also (SN-03), so no verse is empty and every verse's bar offers Understand (SN-07).\n\n"
+        "One gesture for more: the whole note, the full See also list and a profile each push a page inside the sheet, ‹ back (SN-02, SN-08, TD-02). Nothing grows in place.\n\n"
+        "Shown as published: only markup changes; the leading '1:1' goes because the header names the verse. A note that opens on Tyndale's lemma marks it (NLT) where it stands, "
+        "because the BSB beside it says something else ('overcome', not 'extinguish'). Never in any AI call (rule 9).\n\n"
+        "See also is one list: Yada's related passages first, each saying why; OpenBible's follow, each showing the verse. Votes rank them and are never shown.\n\n"
+        "Downloads ask nothing: about 130 KB for John (measured from the study bundle), fetched the first time the book opens online. "
+        "Only a slow fetch (SN-04), a failure with Try again (SN-05) or no connection (SN-06) says anything, in one line.\n\n"
+        "References: Public's term sheet with a source line mobbin.com/screens/93eeef7a-1110-439f-8d05-5d3bbe02747d · "
+        "Matter notebook, prose with a quiet source mobbin.com/screens/a855cd68-c4dd-4433-a830-90f54e903ae2.")
+    GUIDE_NOTES["refs_td"] = (
+        "People · decisions\n\n"
+        "No dictionary tab. A person named in the verse gets a row above Study notes, since who someone is comes before what a note says about them (TD-01); the profile pushes inside the same sheet, so there are never more than two sheets (TD-02). "
+        "Rows, not inline links: a whole row is a 44 pt target VoiceOver reaches as one stop; a name inside a paragraph is neither.\n\n"
+        "Today's data: Tyndale's 124 profiles and theme articles. A Bible dictionary (places, terms like 'Pharisee') needs its own licensed source; Theographic is CC BY-SA and waits on John. "
+        "Search finds a person before the verses that name them (TD-03).")
+    GUIDE_NOTES["refs_ic"] = (
+        "iCloud and voice · decisions\n\n"
+        "iCloud needs no switch and no screen: bookmarks, reading place, Start here progress and text settings sync through the user's own iCloud. "
+        "One line on Bookmarks says so (IC-01); signed out, the line says where they are and how to change it (IC-02). On a second device, Home's Continue already shows the place read on the first.\n\n"
+        "Voice (AU-07): Apple's on-device speech, free and offline, with word timings for the ink pill. The basic voice sounds flat; the one line shows on the first listen only, and names the exact Settings path, since iOS can't open that page from an app.")
 # ---------- write files + index ----------
 W, H, GX, GY = 1430, 1026, 80, 120
 names, boards = [], {}
 y = 0
 notes = {}
 GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"), ("hs", "Home, Search, Contents"), ("ss", "Settings and saved"), ("es", "Edge states"), ("so", "Sources"), ("dp", "Depth"), ("sp", "Splash"), ("uv", "Simpler Understand (variant)"), ("mt", "More translations")) if STYLE != "v1" else ())
+# Passage guide and audio live on their own canvas page ("guide"), laid out from y = 0 there.
+if STYLE != "v1":
+    GROUPS += (("pg", "Passage guide"), ("au", "Audio read-along"), ("ia", "App-wide IA after the passage shift"), ("on", "A clear way to start"), ("sn", "Open study notes and See also"), ("td", "People"), ("ic", "iCloud"))
+PAGE_OF = {"pg": "guide", "au": "guide", "ia": "guide", "on": "guide", "sn": "guide", "td": "guide", "ic": "guide"}
+ys = {}
 for gi, (grp, label) in enumerate(GROUPS):
+    pg = PAGE_OF.get(grp, STYLE)
+    y = ys.get(pg, 0)
     fr = [f for f in FRAMES if f[3] == grp]
-    notes[f"t_{grp}" + ("" if STYLE == "v1" else f"_{STYLE}")] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX}
+    notes[f"t_{grp}" + ("" if STYLE == "v1" else f"_{pg}")] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX, **({"page": pg} if pg != STYLE else {})}
+    if grp in ("pg", "au", "ia", "on", "sn", "td", "ic"):
+        for j, key in enumerate([k for k in GUIDE_NOTES if k.endswith(grp)]):
+            notes[key] = {"x": 4 * (W + GX), "y": y + 260 + j * 1180, "w": 560, "maxH": 1120, "size": "m", "page": pg, "fill": "gray", "text": GUIDE_NOTES[key]}
     y += 260
     for i, (fid, title, inner, _) in enumerate(fr):
-        name = ("Main.dc.html" if fid == "J01-01" else f"{fid}.dc.html") if STYLE == "v1" else f"{fid}-{STYLE}.dc.html"
+        name = ("Main.dc.html" if fid == "J01-01" else f"{fid}.dc.html") if STYLE == "v1" else (f"{fid}.dc.html" if pg != STYLE else f"{fid}-{STYLE}.dc.html")
         open(f"{OUT}/{name}", "w").write(doc(fid, title, inner))
-        boards[name] = {"x": (i % 4) * (W + GX), "y": y + (i // 4) * (H + GY), "w": W, "h": H, "title": f"{fid} · {title}"}
+        boards[name] = {"x": (i % 4) * (W + GX), "y": y + (i // 4) * (H + GY), "w": W, "h": H, "title": f"{fid} · {title}", **({"page": pg} if pg != STYLE else {})}
         names.append(name)
     y += ((len(fr) + 3) // 4) * (H + GY) + 200
+    ys[pg] = y
 
 if STYLE != "v1":
     # A restyle lands on its own canvas page; merge this fragment into the live index before publishing.
     for b in boards.values():
-        b["page"] = STYLE
+        b.setdefault("page", STYLE)
     for n in notes.values():
-        n["page"] = STYLE
+        n.setdefault("page", STYLE)
     json.dump({"boards": boards, "order": names, "notes": notes}, open(f"{OUT}/canvas.{STYLE}.json", "w"), ensure_ascii=False, indent=1)
+    gb = {k: v for k, v in boards.items() if v["page"] == "guide"}
+    json.dump({"boards": gb, "order": [n for n in names if n in gb], "notes": {k: v for k, v in notes.items() if v["page"] == "guide"}},
+              open(f"{OUT}/canvas.guide.json", "w"), ensure_ascii=False, indent=1)
     print(len(names), "boards"); sys.exit()
 idx = {"v": 3, "createdOnFiles": {"v": 1, "at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
        "title": "Yada Redesign", "launch": {"view": "canvas"}, "pages": [], "boards": boards, "order": names, "notes": notes, "designSystems": []}

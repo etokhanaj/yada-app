@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { rangeInBook, recentTag, threadMark, verseLabel } from "./saved";
+import { rangeInBook, recentTag, verseLabel } from "./saved";
 
 describe("verseLabel", () => {
   it("names a single psalm a Psalm", () => {
@@ -26,12 +26,5 @@ describe("rangeInBook", () => {
   it("drops the book name the page already shows", () => {
     expect(rangeInBook("JHN.1.35-1.51")).toBe("1:35–51");
     expect(rangeInBook("JHN.7.53-8.11")).toBe("7:53–8:11");
-  });
-});
-
-describe("threadMark", () => {
-  it("marks everything before the step done and the step next", () => {
-    expect([0, 1, 2, 3].map((i) => threadMark(i, 2))).toEqual(["done", "done", "next", "todo"]);
-    expect(threadMark(0, 0)).toBe("next");
   });
 });

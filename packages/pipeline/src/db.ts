@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS texts (
 -- the model as well as the claim because disagreement *between* models is the
 -- signal: a second adversary must add rows, not overwrite the first one's.
 -- The review tool reads this table directly, so its shape is a contract:
---   verdict  upheld | unsupported | miscategorised | compound | overclaimed
+--   verdict  upheld | unsupported | miscategorised | compound | overclaimed | omitted_qualifier
 --   severity critical | minor | none
 CREATE TABLE IF NOT EXISTS adversary_flags (
   verse_id   TEXT NOT NULL,

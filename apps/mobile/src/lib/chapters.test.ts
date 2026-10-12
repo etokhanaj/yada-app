@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { chapterFromParams, formatRange, nextChapter, prevChapter, resolveRef } from "./chapters";
+import { chapterFromParams, formatRange, formatRangeInBook, nextChapter, prevChapter, resolveRef } from "./chapters";
 
 describe("chapter navigation", () => {
   it("moves within a book", () => {
@@ -38,7 +38,13 @@ describe("refs", () => {
   it("formats ranges for display", () => {
     expect(formatRange("1CO.14.26-14.40")).toBe("1 Corinthians 14:26–40");
     expect(formatRange("JHN.7.53-8.11")).toBe("John 7:53–8:11");
-    expect(formatRange("PSA.23.1")).toBe("Psalms 23:1");
-    expect(formatRange("PSA.23.0-23.6")).toBe("Psalms 23, title–6");
+    expect(formatRange("PSA.23.1")).toBe("Psalm 23:1");
+    expect(formatRange("PSA.23.0-23.6")).toBe("Psalm 23, title–6");
+    expect(formatRange("PSA.23.1-24.2")).toBe("Psalms 23:1–24:2");
+  });
+
+  it("formats ranges without the book for a screen that names it", () => {
+    expect(formatRangeInBook("JHN.1.1-1.18")).toBe("1:1–18");
+    expect(formatRangeInBook("PSA.23.0-23.6")).toBe("23, title–6");
   });
 });

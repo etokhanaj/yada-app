@@ -9,7 +9,7 @@
  */
 
 import type { BookCode } from "@yada/schema";
-import { router, useNavigation } from "expo-router";
+import { router, useNavigation, useRoute } from "expo-router";
 import { useCallback } from "react";
 
 import { LEAVE_ROUTES, SHEET_ROUTES, trailingSheets } from "../lib/backToReading";
@@ -23,11 +23,18 @@ export interface ReaderTarget {
   /** Select the target verse on arrival, so its actions are one tap away. */
   readonly select?: boolean;
   /**
+   * With `select`, the last verse of a range in the same chapter: a See also row for John
+   * 3:19–20 arrives with both verses selected (canvas SN-07).
+   */
+  readonly to?: number;
+  /**
    * Resuming a saved position (brief §8.18): the verse sits just below the
    * header, where it was being read, not a fifth of the way down where a jump
    * leaves room above a selection.
    */
   readonly resume?: boolean;
+  /** A pericope id whose guide opens over the text on arrival (Start here, Home's Next; ON-02). */
+  readonly guide?: string;
 }
 
 export function readerHref(target: ReaderTarget) {
@@ -35,12 +42,14 @@ export function readerHref(target: ReaderTarget) {
   if (target.verse !== undefined) params["verse"] = String(target.verse);
   if (target.from !== undefined) params["from"] = target.from;
   if (target.select === true) params["select"] = "1";
+  if (target.select === true && target.to !== undefined && target.to !== target.verse) params["to"] = String(target.to);
   if (target.resume === true) params["resume"] = "1";
+  if (target.guide !== undefined) params["guide"] = target.guide;
   return { pathname: "/read/[book]/[chapter]" as const, params };
 }
 
 interface NavigatorLike {
-  getState(): { key: string; routes?: Array<{ name: string }> } | undefined;
+  getState(): { key: string; routes?: Array<{ name: string; key: string }> } | undefined;
   getParent(): NavigatorLike | undefined;
   canGoBack(): boolean;
   goBack(): void;
@@ -82,10 +91,15 @@ export function useSheetNav(): {
   jumpTo: (target: ReaderTarget) => void;
 } {
   const navigation = useNavigation() as unknown as NavigatorLike;
+  const route = useRoute();
   const routes = () => hostOf(navigation).getState()?.routes?.map((r) => r.name) ?? [];
   // canGoBack() bubbles to the parent navigator, so it is true on a sheet's
   // first screen too; only the sheet stack's own routes say there is a screen behind.
-  const inSheetStack = navigation.getParent() !== undefined && (navigation.getState()?.routes?.length ?? 1) > 1;
+  // This screen's own place in that stack, not the stack's length: the guide re-rendered while a
+  // verse's Understand sat on top of it (a theme change) counted two routes, and kept a ‹ that
+  // led nowhere once that verse was popped (QA, ON-04, 11 Oct 2026).
+  const inSheetStack =
+    navigation.getParent() !== undefined && (navigation.getState()?.routes?.findIndex((r) => r.key === route.key) ?? 0) > 0;
 
   const backToReading = useCallback(() => {
     const count = trailingSheets(routes());

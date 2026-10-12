@@ -49,9 +49,17 @@ appId: studio.yada.reader
       - waitForAnimationToEnd
 - tapOn: "Bookmark"
 - waitForAnimationToEnd
-- tapOn:
-    id: reader-back
-- waitForAnimationToEnd
+# Home may sit under more than one reader: the cold launch resumes one at the saved place and
+# a deep link pushes another, so ‹ Home can take more than one tap (simulator, 11 Oct 2026).
+- repeat:
+    times: 3
+    while:
+      notVisible:
+        id: home-search
+    commands:
+      - tapOn:
+          id: reader-back
+      - waitForAnimationToEnd
 - tapOn:
     id: home-bookmarks
 - waitForAnimationToEnd

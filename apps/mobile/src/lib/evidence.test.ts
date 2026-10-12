@@ -98,7 +98,7 @@ describe("datasetName", () => {
 
 describe("readingsTitle", () => {
   it("asks the question the claim states (J01-09)", () => {
-    expect(readingsTitle(claim(cor, "1CO.14.34.c7").claim)).toBe("Who the instruction addresses");
+    expect(readingsTitle(claim(cor, "1CO.14.34.c7").claim)).toBe("Readers disagree whether this means women in general or wives in particular");
   });
 });
 

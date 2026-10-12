@@ -16,6 +16,7 @@ export const LicenseSchema = z.enum([
   "CC-BY-SA-3.0",
   "CC-BY-SA-4.0",
   "OFL-1.1",
+  "MIT",
   "CC-BY-NC-ND-4.0",
   /**
    * A bespoke publisher licence, not a standard open one. The SBLGNT *text* is

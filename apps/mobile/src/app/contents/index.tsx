@@ -53,6 +53,8 @@ export default function ContentsBooks() {
                   chosen={reading}
                   title={BOOK_CODES[book].name}
                   right={reading ? <Icon name="check" size={22} tone="accent" /> : undefined}
+                  // MT-01: the tick stands in for the chevron, never beside it.
+                  chevron={!reading}
                   label={`${BOOK_CODES[book].name}${reading ? ", reading" : ""}`}
                   onPress={() =>
                     router.push({

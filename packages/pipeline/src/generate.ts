@@ -105,10 +105,10 @@ export const WORST_MEASURED_OUTPUT_PER_VERSE = 6_697;
  */
 export const PLANNING_MARGIN = 1.2;
 
-/** 8,037 output tokens per verse. */
+/** Output tokens to plan for per verse: the worst measured figure with the margin. */
 export const PLANNING_OUTPUT_PER_VERSE = Math.ceil(WORST_MEASURED_OUTPUT_PER_VERSE * PLANNING_MARGIN);
 
-/** 15. A pericope with more verses than this is split into several requests. */
+/** A pericope with more verses than this is split into several requests. */
 export const MAX_VERSES_PER_REQUEST = Math.floor(OUTPUT_TOKEN_CAP / PLANNING_OUTPUT_PER_VERSE);
 
 /**

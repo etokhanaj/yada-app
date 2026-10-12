@@ -29,9 +29,9 @@ import { PALETTES } from "../design/palette";
 import { SPRING } from "../design/tokens";
 
 /**
- * The first screen says when it can draw. A cold launch opens the reader (at a
- * saved position, brief §8.18, or John 1), which reports once its chapter
- * loads; Home reports only in the one case it is left as the first screen.
+ * The first screen says when it can draw. A cold launch with a saved position
+ * opens the reader (brief §8.18), which reports once its chapter loads;
+ * otherwise Home is the first screen and reports.
  * `routed` keeps Home from opening the reader twice in one process: Home can
  * remount, and a Fast Refresh re-runs its module, but this store outlives both.
  */

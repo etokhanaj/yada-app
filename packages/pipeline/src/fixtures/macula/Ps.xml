@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Excerpt of the Open Scriptures Hebrew Bible (morphhb, commit 3d15126fb1ef74867fc1434be1942e837932691f, wlc/Ps.xml): Psalm 3:1-2 (Hebrew numbering), copied unmodified for tests. Westminster Leningrad Codex text, public domain; lemma and morphology data from the Open Scriptures Hebrew Bible, licensed CC BY 4.0. -->
+        <verse osisID="Ps.3.1">
+          <w lemma="4210" morph="HNcmsa" id="19AxB">מִזְמ֥וֹר</w>
+          <w lemma="l/1732" n="1" morph="HR/Np" id="19Ap3">לְ/דָוִ֑ד</w>
+          <w lemma="b/1272" n="0.1" morph="HR/Vqc/Sp3ms" id="19CEu">בְּ֝/בָרְח֗/וֹ</w>
+          <w lemma="m/6440" n="0.0" morph="HR/Ncbpc" id="19zpy">מִ/פְּנֵ֤י</w>
+          <seg type="x-paseq">׀</seg>
+          <w lemma="53" morph="HNp" id="19FiN">אַבְשָׁל֬וֹם</w>
+          <w lemma="1121 a" n="0" morph="HNcmsc/Sp3ms" id="19cLk">בְּנֽ/וֹ</w><seg type="x-sof-pasuq">׃</seg>
+        </verse>
+        <verse osisID="Ps.3.2">
+          <note>KJV:Ps.3.1</note>
+          <w lemma="3068" n="1.0" morph="HNp" id="1992v">יְ֭הוָה</w>
+          <w lemma="4100" morph="HTi" id="19j63">מָֽה</w><seg type="x-maqqef">־</seg><w lemma="7231" morph="HVqp3cp" id="19LFW">רַבּ֣וּ</w>
+          <w lemma="6862 c" n="1" morph="HNcmpc/Sp1cs" id="19FbT">צָרָ֑/י</w>
+          <w lemma="7227 a" n="0.0" morph="HAampa" id="19Bx7">רַ֝בִּ֗ים</w>
+          <w lemma="6965 b" morph="HVqrmpa" id="19btu">קָמִ֥ים</w>
+          <w lemma="5921 a" n="0" morph="HR/Sp1cs" id="19rTK">עָלָֽ/י</w><seg type="x-sof-pasuq">׃</seg>
+        </verse>

@@ -18,12 +18,15 @@ export function ClaimRows({
   cap,
   onOpen,
   onReadings,
+  labels = true,
 }: {
   claims: readonly Claim[];
   /** First-screen cap from the brief: 3 things we can see, 2 places readings differ. */
   cap: number;
   onOpen: (claim: Claim) => void;
   onReadings: (claim: Claim) => void;
+  /** False inside the passage guide (PG-04 draws no Supported / Background). */
+  labels?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   if (claims.length === 0) return null;
@@ -32,15 +35,18 @@ export function ClaimRows({
   return (
     <View>
       {visible.map((claim, index) => {
-        const label = claimLabel(claim);
+        const label = labels ? claimLabel(claim) : null;
+        // A debated claim's whole row opens its readings. A link nested inside the row was a second control
+        // VoiceOver could not reach on its own, about 20 pt tall (WCAG 2.5.8, 4.1.2; accessibility pass, 11 Oct 2026).
+        const readings = claim.positions === undefined ? null : `Compare the ${claim.positions.length} readings`;
         return (
           <Row
             key={claim.id}
             first={index === 0}
-            onPress={() => onOpen(claim)}
-            label={`${claim.claim}${label === null ? "" : `, ${label}`}`}
-            hint="Shows why we say this"
-            testID={`claim-${claim.id}`}
+            onPress={() => (readings === null ? onOpen(claim) : onReadings(claim))}
+            label={[claim.claim, label, readings].filter((part) => part !== null).join(", ")}
+            hint={readings === null ? "Shows why we say this" : "Shows each reading and its evidence"}
+            testID={readings === null ? `claim-${claim.id}` : `readings-${claim.id}`}
           >
             <Prose step="claim">{claim.claim}</Prose>
             {label !== null ? (
@@ -48,12 +54,10 @@ export function ClaimRows({
                 {label}
               </Chrome>
             ) : null}
-            {claim.positions !== undefined ? (
-              <TextLink
-                label={`Compare the ${claim.positions.length} readings`}
-                onPress={() => onReadings(claim)}
-                testID={`readings-${claim.id}`}
-              />
+            {readings !== null ? (
+              <Chrome step="note" tone="accent" style={{ fontWeight: "600", marginTop: 4 }}>
+                {readings}
+              </Chrome>
             ) : null}
           </Row>
         );

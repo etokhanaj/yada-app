@@ -25,7 +25,7 @@ import {
 
 import { deriveVerse, scriptFor, type DerivedWord } from "./derive.js";
 
-export const PROMPT_VERSION = "pericope@1.2.0";
+export const PROMPT_VERSION = "pericope@1.4.0";
 
 // ---------------------------------------------------------------------------
 // The output contract, as JSON Schema for `output_config.format`

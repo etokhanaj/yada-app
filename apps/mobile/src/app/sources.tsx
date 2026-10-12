@@ -26,12 +26,13 @@ import { Chrome, Label, Scripture } from "../components/Type";
 import { useCore, useQuery } from "../data/AppData";
 import { UNDERSTAND_BUNDLES } from "../data/bundles";
 import { bookBounds, getSources, getTextsForOrds, getTranslationSources } from "../data/queries";
+import { loadStudySources, useStudy } from "../data/study";
 import { useTranslations } from "../data/translations";
 import { loadEntriesInRange } from "../data/understand";
 import { useLayout } from "../design/tokens";
 import { excerptOf } from "../lib/reader";
 import { verseLabel } from "../lib/saved";
-import { type SourceGroup, sourceItems } from "../lib/sources";
+import { type SourceGroup, sourceItems, studySourceItem } from "../lib/sources";
 import { useSettings } from "../state/settings";
 
 const GROUPS: readonly SourceGroup[] = ["Bible text", "Word data"];
@@ -53,6 +54,8 @@ export default function SourcesScreen() {
     });
   }, [translation]);
   const items = sourceItems(sources ?? []);
+  const studyBooks = useStudy((s) => Object.keys(s.installed).join(","));
+  const { data: study } = useQuery(() => loadStudySources(), [studyBooks]);
 
   return (
     <PageScreen title="Sources" subtitle="Built-in texts need no connection. Downloaded translations work offline once saved." testID="sources">
@@ -121,6 +124,40 @@ export default function SourcesScreen() {
           </View>
         );
       })}
+
+      {/* Study notes (artifact, "Rules this follows"): both sources with their attribution and the
+          licence statement in full, read from a downloaded study file's own sources table (rule 3),
+          and for Tyndale's share-alike notes, what was changed. */}
+      {study !== undefined && study.length > 0 ? (
+        <View style={{ marginTop: sectionGap }}>
+          <Label style={{ marginBottom: 6 }}>Study notes</Label>
+          {study.map((source, i) => {
+            const item = studySourceItem(source);
+            return (
+              <ListRow
+                key={source.key}
+                first={i === 0}
+                title={item.title}
+                label={item.label}
+                onPress={() => void Linking.openURL(source.homepage)}
+                testID={`source-study-${source.key}`}
+                subtitle={
+                  <>
+                    <Chrome step="note" tone="muted">
+                      {item.subtitle}
+                    </Chrome>
+                    {item.lines.map((line) => (
+                      <Chrome key={line} step="note" tone="muted" style={{ marginTop: 4 }}>
+                        {line}
+                      </Chrome>
+                    ))}
+                  </>
+                }
+              />
+            );
+          })}
+        </View>
+      ) : null}
     </PageScreen>
   );
 }

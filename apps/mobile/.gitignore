@@ -1,7 +1,8 @@
 node_modules/
 .expo/
-ios/
-android/
+# Anchored: prebuild's generated projects only, not modules/*/ios (the local Expo modules' source).
+/ios/
+/android/
 *.log
 
 # Built by `pnpm --filter @yada/mobile bundles` from content/bundles. Regenerable,

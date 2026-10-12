@@ -1,0 +1,38 @@
+# AU-06: accessibility elements in hierarchy order (Maestro hierarchy, iPhone 17 Pro simulator, 11 Oct 2026).
+# testID, label, value. VoiceOver itself cannot run in the simulator; this is the order XCTest reports.
+
+## Reader with the mini player (John 1, paused on verse 6)
+verse-2	Verse 2. He was with God in the beginning.	
+verse-3	Verse 3. Through Him all things were made, and without Him nothing was made that has been made.	
+verse-4	Verse 4. In Him was life, and that life was the light of men.	
+verse-5	Verse 5, playing. The Light shines in the darkness, and the darkness has not overcome it.	
+verse-6	Verse 6. There came a man who was sent from God. His name was John.	
+verse-7	Verse 7. He came as a witness to testify about the Light, so that through him everyone might believe.	
+verse-8	Verse 8. He himself was not the Light, but he came to testify about the Light.	
+verse-9	Verse 9. The true Light, who gives light to everyone, was coming into the world.	
+verse-10	Verse 10. He was in the world, and though the world was made through Him, the world did not recognize Him.	
+verse-11	Verse 11. He came to His own, and His own did not receive Him.	
+mini-open	The Word became flesh, John 1:5, Berean Standard Bible. Opens the player	
+mini-previous	Previous verse	
+mini-toggle	Play	
+mini-next	Next verse	
+
+## Full player (paused on verse 5)
+player-close	Close player	
+line-1	John 1:1. In the beginning was the Word, and the Word was with God, and the Word was God.	
+line-2	John 1:2. He was with God in the beginning.	
+line-3	John 1:3. Through Him all things were made, and without Him nothing was made that has been made.	
+line-4	John 1:4. In Him was life, and that life was the light of men.	
+line-5	John 1:5, playing. The Light shines in the darkness, and the darkness has not overcome it.	
+line-6	John 1:6. There came a man who was sent from God. His name was John.	
+line-7	John 1:7. He came as a witness to testify about the Light, so that through him everyone might believe.	
+line-8	John 1:8. He himself was not the Light, but he came to testify about the Light.	
+line-9	John 1:9. The true Light, who gives light to everyone, was coming into the world.	
+line-10	John 1:10. He was in the world, and though the world was made through Him, the world did not recognize Him.	
+line-11	John 1:11. He came to His own, and His own did not receive Him.	
+player-progress	John 1	verse 5 of 51
+player-speed	Speed, 1 times	
+player-previous	Previous verse	
+player-toggle	Play	
+player-next	Next verse	
+player-guide	Open the passage guide, The Word became flesh	

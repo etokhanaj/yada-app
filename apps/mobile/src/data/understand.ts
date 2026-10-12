@@ -4,7 +4,7 @@
 
 import { BOOK_CODES, type BookCode, type PericopeEntry, PericopeEntrySchema, type VerseEntry, VerseEntrySchema } from "@yada/schema";
 
-import { formatRange } from "../lib/chapters";
+import { formatRangeInBook } from "../lib/chapters";
 import { type CoverWord, pickCoverWord } from "../lib/cover";
 import { type EntryRow, pericopeForVerse, type PericopeRow } from "../lib/pericopes";
 import { asDb } from "./AppData";
@@ -95,7 +95,7 @@ export async function loadPassageCover(core: Db, book: BookCode, ord: number): P
   return {
     title: pericope.label,
     // A psalm's passage starts at its title (verse 0); readers count from verse 1.
-    range: formatRange(pericope.pericope_id).replace(`${BOOK_CODES[book].name} `, "").replace(/(\d+), title/u, "$1:1"),
+    range: formatRangeInBook(pericope.pericope_id).replace(/(\d+), title/u, "$1:1"),
     script: BOOK_CODES[book].testament === "NT" ? "greek" : "hebrew",
     word,
   };

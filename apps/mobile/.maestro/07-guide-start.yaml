@@ -1,0 +1,133 @@
+# A clear way to start and the passage guide (ON-01–07, PG-01–10): a fresh install opens on
+# Home with Start here; it opens John 1:1–18 with its guide over the text; a thing to notice
+# marks its words in the passage; × lands on the text with the one-time hint; the passage
+# title reopens the guide; a verse opens its Understand inside the guide and ‹ comes back;
+# the Next row opens 1:19–34 and counts 1:1–18 read on Home.
+#
+# Needs a simulator whose iCloud key-value store holds nothing of Yada's: clearState empties the
+# app's container but not that store, so once another flow has saved a reading place, iCloud sync
+# brings it back on the "fresh install" and the app opens on the reader, as a reinstall should
+# (package F, 11 Oct 2026). Run this flow first on an erased simulator:
+#   xcrun simctl erase <udid>, boot, install the app, then this flow.
+appId: studio.yada.reader
+---
+- launchApp:
+    clearState: true
+# First launch copies the bundles out of the app before Home draws.
+- extendedWaitUntil:
+    visible:
+      id: home-start-here
+    timeout: 90000
+# The lead is one element to VoiceOver, so Maestro reads its label, not its three lines.
+- assertVisible: "Start here. The Gospel of John, one passage at a time, explained. Opens the first passage"
+# One lead only: no Continue, no progress line before anything is read (ON-01).
+- assertNotVisible:
+    id: home-continue
+- assertNotVisible:
+    id: home-progress
+- tapOn:
+    id: home-start-here
+- extendedWaitUntil:
+    visible:
+      id: guide
+    timeout: 10000
+- waitForAnimationToEnd
+- assertVisible: "The Word became flesh"
+- assertVisible: "John 1:1–18"
+- assertVisible: "Where we are"
+- assertVisible: "Three things to notice"
+# PG-10: c2's three ἦν are the BSB's three "was"; the row says so and the words are marked.
+- scrollUntilVisible:
+    element:
+      id: notice-JHN.1.1.c2
+    centerElement: true
+- tapOn:
+    id: notice-JHN.1.1.c2
+- assertVisible: ".*, shown in the passage"
+# × is the one exit at the top level, and names where it goes.
+- assertVisible: "Close, back to reading"
+- tapOn:
+    id: sheet-close
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    notVisible:
+      id: guide
+    timeout: 5000
+# ON-03: the text at 1:1 under its title, with the hint once.
+- assertVisible:
+    id: passage-title-JHN.1.1-1.18
+- assertVisible:
+    id: reader-hint
+- assertVisible:
+    id: verse-1
+# IA-04: at rest the bar offers the passage.
+- assertVisible: "Understand the passage, The Word became flesh, John 1:1 to 18"
+
+# Maestro's iOS driver keeps a stale hierarchy once a native sheet has been dismissed and
+# another presented (seen with Maestro 2.11, 10 Oct 2026), so the flow relaunches here.
+# The relaunch resumes at 1:1, and the hint, seen, does not return.
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: passage-title-JHN.1.1-1.18
+    timeout: 20000
+- assertNotVisible:
+    id: reader-hint
+- tapOn:
+    id: passage-title-JHN.1.1-1.18
+- extendedWaitUntil:
+    visible:
+      id: guide
+    timeout: 10000
+- waitForAnimationToEnd
+# PG-04: a verse of the passage opens its Understand inside the guide; ‹ goes back to it.
+- scrollUntilVisible:
+    element:
+      id: guide-verse-1-1
+    centerElement: true
+- tapOn:
+    id: guide-verse-1-1
+- waitForAnimationToEnd
+- assertVisible:
+    id: understand
+- assertVisible: "John 1:1"
+- tapOn:
+    id: sheet-back
+- waitForAnimationToEnd
+- assertVisible:
+    id: guide
+# ON-04: the guide ends on the next passage, one tap away.
+- scrollUntilVisible:
+    element:
+      id: guide-next
+    timeout: 30000
+- assertVisible: "Next, The testimony of John the Baptist, John 1:19 to 34. Opens its guide"
+- tapOn:
+    id: guide-next
+- waitForAnimationToEnd
+- assertVisible: "The testimony of John the Baptist"
+- assertVisible: "John 1:19–34"
+
+# Home counts 1:1–18 read (reaching its Next row), and leads with the passage now open.
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: reader-back
+    timeout: 20000
+- tapOn:
+    id: reader-back
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: home-continue
+    timeout: 5000
+- assertVisible: "Continue reading, The testimony of John the Baptist, John 1:19\\..*"
+- assertVisible: "1 of 46 passages in John read"
+- assertNotVisible:
+    id: home-start-here
+- tapOn:
+    id: home-all-passages
+- waitForAnimationToEnd
+- assertVisible:
+    id: thread
+- assertVisible: "Next, passage 2, The testimony of John the Baptist, John 1:19 to 34\\..*"

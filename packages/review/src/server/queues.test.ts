@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import type { QueueResponse, TargetReason } from "../shared/api.js";
+import { ADVERSARY_VERDICTS, type QueueResponse, type TargetReason } from "../shared/api.js";
 import { openReviewDb } from "./db.js";
 import { buildEntry, buildQueue, type QueueOptions } from "./queues.js";
 import { asVerse, createTempStaging, golden, goldenPayloads, type Payload, type TempStaging } from "./test-staging.js";
@@ -213,6 +213,15 @@ describe("adversary disagreement queue", () => {
     expect(ids(queue)).toEqual(["1CO.14.34", "REV.13.18", "PSA.23.1", "JHN.1.1"]);
     expect(queue.items[0]?.adversary).toEqual({ disagreements: 1, critical: 1, minor: 0, worst: "critical" });
     expect(queue.items[2]?.adversary).toEqual({ disagreements: 2, critical: 0, minor: 2, worst: "minor" });
+  });
+
+  it("holds an entry for every non-upheld verdict in the contract, omitted_qualifier included", () => {
+    expect(ADVERSARY_VERDICTS).toContain("omitted_qualifier");
+    for (const verdict of ADVERSARY_VERDICTS.filter((v) => v !== "upheld")) {
+      const t = staging();
+      t.flag({ verse_id: "GEN.1.1", claim_id: "GEN.1.1.c1", verdict, severity: "minor" });
+      expect(ids(buildQueue(t.db, "adversary_disagreement", OPTIONS))).toEqual(["GEN.1.1"]);
+    }
   });
 
   it("is empty before the adversary pass has written anything", () => {

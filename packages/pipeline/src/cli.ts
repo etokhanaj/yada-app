@@ -9,14 +9,17 @@
  * `batch recover` is offline.
  */
 
+import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
+
 import { assertSchemaAlignment, openStaging } from "./db.js";
 import { ORACLE_FIXTURES, checkAgainstFixture, coverage } from "./derive.js";
 import { CEILING_USD, spentSoFar } from "./budget.js";
 import { buildRequests, dryRun, loadPericopes } from "./generate.js";
 import { inspectAll } from "./inspect.js";
-import { packageCore, packageUnderstand, readBundleManifest, understandBooks, writeBundleManifest } from "./package.js";
+import { BUNDLES, highestVersionOnDisk, packageCore, packageUnderstand, readBundleManifest, understandBooks, writeBundleManifest } from "./package.js";
 import { importGolden } from "./store.js";
-import { isBookCode, type BundleInfo } from "@yada/schema";
+import { XREFS_PER_VERSE, formatDisplayRef, isBookCode, ordToParts, parseVerseId, speakersFileName, syntaxFileName, verseOrd, type BundleInfo } from "@yada/schema";
 import { ensureDirs } from "./paths.js";
 import { MILESTONE_0_MODELS, generatePericope, type GenerationResult } from "./submit.js";
 import { normalize } from "./normalize.js";
@@ -29,6 +32,9 @@ import { LIVE_MODEL, LIVE_VERSE, runCiTier, runLiveRegress } from "./regress.js"
 import { PublishRefused, formatBytes, publish, totalBytes } from "./publish.js";
 import { BatchNotEnded, batchStatus, collectBatch, recoverBatch, submitBatch } from "./batch.js";
 import { DOWNLOADABLE, TranslationRefused, packageTranslation, type TranslationReport } from "./translations.js";
+import { StudyRefused, packageStudy, type StudyReport } from "./study.js";
+import { SyntaxRefused, packageSyntax, verseSyntax, type JoinCounts, type SyntaxReport, type SyntaxWord } from "./macula.js";
+import { SpeakersRefused, packageSpeakers, passageSpeakers, type PassageSpeaker, type SpeakersReport } from "./glyssen.js";
 
 /** `--model claude-sonnet-5` -> "claude-sonnet-5" */
 function flagValue(args: readonly string[], flag: string): string | undefined {
@@ -174,6 +180,237 @@ function packageTranslationCommand(code: string | undefined): number {
   return 0;
 }
 
+/**
+ * Not written into content/bundles/manifest.json: the entries go to a fragment beside the files,
+ * because a manifest entry is what publish uploads and every phone then offers (John merges it).
+ */
+function packageStudyCommand(): number {
+  let report: StudyReport;
+  try {
+    report = packageStudy();
+  } catch (error) {
+    if (error instanceof StudyRefused) {
+      console.error(`package study: REFUSED. ${error.message}`);
+      return 1;
+    }
+    throw error;
+  }
+  const { notes } = report;
+  for (const { info, reused } of report.books) {
+    console.log(
+      `  study     ${info.file.padEnd(22)} ${formatBytes(info.bytes).padStart(9)}  (${formatBytes(info.download_bytes)} gzipped)` +
+        `  ${info.notes} notes, ${info.xrefs} xrefs${reused ? "  (unchanged)" : ""}`,
+    );
+  }
+  console.log(
+    `  total     ${report.books.length} books, ${formatBytes(report.bytes)}  (${formatBytes(report.gzipBytes)} gzipped)`,
+  );
+  console.log(
+    `  notes     ${notes.note} verse notes in ${report.noteBooks.length} books, ${notes.intro} introductions, ` +
+      `${notes.intro_summary} summaries, ${notes.profile} profiles, ${notes.theme} theme articles`,
+  );
+  console.log(
+    `  xrefs     ${report.xrefsKept} kept of ${report.xrefsRead} (the ${XREFS_PER_VERSE} best-voted per verse; ` +
+      `${report.downvoted} downvoted rows left out)`,
+  );
+  console.log(`  manifest entries written to ${report.fragment}; manifest.json is unchanged`);
+  const { outsideVersification: outside } = report;
+  console.log(
+    `  outside the English versification: ${outside.notes.length} notes${outside.notes.length > 0 ? ` (${outside.notes.join(", ")})` : ""}, ${outside.xrefs} cross-references`,
+  );
+  return 0;
+}
+
+function joinLine(lang: string, j: JoinCounts): string {
+  return (
+    `  ${lang.padEnd(9)} ${j.joined}/${j.words} words joined (${pct(j.joined, j.words)}); ` +
+    `${j.noCoreVerse} in verses core has no tokens for, ${j.unaligned} with no matching token; ` +
+    `${j.coreUnmatched} core tokens with no MACULA word; ${j.lettersOnly} joined on letters with different points or accents`
+  );
+}
+
+/**
+ * Not written into content/bundles/manifest.json: the app does not read the syntax layer yet, and
+ * a manifest entry is what publish uploads.
+ */
+function packageSyntaxCommand(): number {
+  let report: SyntaxReport;
+  try {
+    report = packageSyntax();
+  } catch (error) {
+    if (error instanceof SyntaxRefused) {
+      console.error(`package syntax: REFUSED. ${error.message}`);
+      return 1;
+    }
+    throw error;
+  }
+  console.log(
+    `  syntax    ${report.file.padEnd(24)} ${formatBytes(report.bytes)}  (${formatBytes(report.gzipBytes)} gzipped)` +
+      `${report.reused ? "  (unchanged)" : ""}`,
+  );
+  console.log(
+    `  trees     ${report.books} books, ${report.rows} word rows, ${report.nodes} word groups (${report.clauses} clauses), ` +
+      `${report.links} links (${report.danglingLinks} naming no word, ${report.emptyFrameArgs} frame arguments with none), ${report.emptyGroups} empty groups left out`,
+  );
+  if (report.danglingExamples.length > 0) console.log(`    naming no word: ${report.danglingExamples.slice(0, 8).join(" | ")}`);
+  console.log(joinLine("greek", report.join.greek));
+  console.log(joinLine("hebrew", report.join.hebrew));
+  for (const [lang, j] of Object.entries(report.join)) {
+    for (const [kind, list] of Object.entries(j.examples)) {
+      if (list.length > 0) console.log(`    ${lang} ${kind}: ${list.slice(0, 8).join(" | ")}`);
+    }
+  }
+  console.log(
+    report.core === null
+      ? "  core      no core bundle to check the join against"
+      : `  core      ${report.coreMismatches.length} joined words whose surface differs from ${path.basename(report.core)}`,
+  );
+  for (const line of report.coreMismatches.slice(0, 10)) console.log(`    ${line}`);
+  return report.coreMismatches.length === 0 ? 0 : 1;
+}
+
+/** A Hebrew word is several morph rows; print it once, morphs joined, glosses joined. */
+function phrase(words: readonly SyntaxWord[]): string {
+  const merged: Array<{ key: string; surface: string; english: string[] }> = [];
+  for (const w of words) {
+    const key = `${w.ord}!${w.word}`;
+    const last = merged.at(-1);
+    if (last?.key === key) {
+      last.surface += w.surface;
+      if (w.english !== null) last.english.push(w.english);
+    } else merged.push({ key, surface: w.surface, english: w.english === null ? [] : [w.english] });
+  }
+  return merged.map((m) => `${m.surface}${m.english.length > 0 ? ` (${m.english.join(" ")})` : ""}`).join(" ");
+}
+
+/** `yada syntax JHN.3.16` — a verse's clauses and frames, straight from the syntax bundle. */
+function syntaxCommand(verseId: string | undefined): number {
+  const ref = verseId === undefined ? null : parseVerseId(verseId);
+  if (ref === null) {
+    console.error("usage: yada syntax <VERSE_ID>, e.g. yada syntax JHN.3.16");
+    return 2;
+  }
+  const version = highestVersionOnDisk("syntax", BUNDLES);
+  if (version === 0) {
+    console.error("no syntax bundle; run `yada package syntax`");
+    return 1;
+  }
+  const db = new DatabaseSync(path.join(BUNDLES, syntaxFileName(version)), { readOnly: true });
+  const view = verseSyntax(db, verseOrd(ref.book, ref.chapter, ref.verse));
+  db.close();
+  for (const clause of view.clauses) {
+    const indent = "  ".repeat(clause.depth + 1);
+    console.log(`${indent}clause ${clause.rule ?? ""}${clause.role === null ? "" : ` [as ${clause.role}]`}`);
+    for (const part of clause.constituents) console.log(`${indent}  ${part.role.padEnd(4)} ${phrase(part.words)}`);
+  }
+  if (view.frames.length > 0) console.log("  frames");
+  for (const frame of view.frames) {
+    console.log(`    ${phrase([frame.verb])}: ${frame.args.map((a) => `${a.arg} = ${phrase(a.words)}`).join("; ")}`);
+  }
+  return 0;
+}
+
+/**
+ * Not written into content/bundles/manifest.json, like the syntax layer: the app does not read
+ * speakers yet, and a manifest entry is what publish uploads.
+ */
+function packageSpeakersCommand(): number {
+  let report: SpeakersReport;
+  try {
+    report = packageSpeakers();
+  } catch (error) {
+    if (error instanceof SpeakersRefused) {
+      console.error(`package speakers: REFUSED. ${error.message}`);
+      return 1;
+    }
+    throw error;
+  }
+  console.log(
+    `  speakers  ${report.file.padEnd(24)} ${formatBytes(report.bytes)}  (${formatBytes(report.gzipBytes)} gzipped)` +
+      `${report.reused ? "  (unchanged)" : ""}`,
+  );
+  console.log(`  licence   MIT, LICENSE and GlyssenCharacters.csproj re-read: ${report.copyright.join(" | ")}`);
+  console.log(
+    `  control   version ${report.controlFileVersion}: ${report.lines} lines (${report.comments} '#' lines skipped) -> ${report.rows} verse rows in ${report.books} books`,
+  );
+  console.log(
+    `  mapped    ${report.mapped}/${report.rows} rows to a core verse (${pct(report.mapped, report.rows)}); ${report.unmapped} rows name a verse ${path.basename(report.core)} does not have`,
+  );
+  for (const line of report.unmappedExamples.slice(0, 10)) console.log(`    ${line}`);
+  console.log(
+    `  standing  speaks ${report.byStanding.speaks}, uncertain ${report.byStanding.uncertain}, reported ${report.byStanding.reported}; ` +
+      Object.entries(report.byQuoteType)
+        .sort((a, b) => b[1] - a[1])
+        .map(([type, n]) => `${type} ${n}`)
+        .join(", "),
+  );
+  console.log(
+    `  people    ${report.characters} character IDs; used but not in CharacterDetail.txt: ` +
+      Object.entries(report.notInDetail)
+        .filter(([, n]) => n > 0)
+        .map(([kind, n]) => `${n} ${kind}`)
+        .join(", ") +
+      `; ${report.undescribedParts.length} parts of "/" IDs undescribed; ${report.deliveryTo} rows with an explicit "to X" delivery note`,
+  );
+  if (report.undescribedParts.length > 0) console.log(`    undescribed parts: ${report.undescribedParts.slice(0, 10).join(" | ")}`);
+  return report.unmapped === 0 ? 0 : 1;
+}
+
+/** "1:19-34", or "1:19-2:3" across chapters. */
+function verses(ords: readonly number[]): string {
+  const runs: Array<[number, number]> = [];
+  for (const ord of ords) {
+    const last = runs.at(-1);
+    if (last !== undefined && ord === last[1] + 1) last[1] = ord;
+    else runs.push([ord, ord]);
+  }
+  return runs
+    .map(([a, b]) => {
+      const x = ordToParts(a);
+      const y = ordToParts(b);
+      if (a === b) return `${x.chapter}:${x.verse}`;
+      return x.chapter === y.chapter ? `${x.chapter}:${x.verse}-${y.verse}` : `${x.chapter}:${x.verse}-${y.chapter}:${y.verse}`;
+    })
+    .join(", ");
+}
+
+function speakerLine(s: PassageSpeaker): string {
+  const to = s.deliveryTo.length > 0 ? `; delivery note "to ${s.deliveryTo.join('", "to ')}"` : "";
+  const alias = s.aliases.length > 0 ? `; alias "${s.aliases.join('", "')}"` : "";
+  return `    ${s.name}  (${verses(s.ords)}; ${s.quoteTypes.join(", ")}${to}${alias})`;
+}
+
+/** `yada speakers JHN.1.19 JHN.1.34` — who Glyssen says speaks in a range, from the speakers bundle. */
+function speakersCommand(fromId: string | undefined, toId: string | undefined): number {
+  const from = fromId === undefined ? null : parseVerseId(fromId);
+  const to = toId === undefined ? from : parseVerseId(toId);
+  if (from === null || to === null) {
+    console.error("usage: yada speakers <FROM_VERSE_ID> [TO_VERSE_ID], e.g. yada speakers JHN.1.19 JHN.1.34");
+    return 2;
+  }
+  const version = highestVersionOnDisk("speakers", BUNDLES);
+  if (version === 0) {
+    console.error("no speakers bundle; run `yada package speakers`");
+    return 1;
+  }
+  const db = new DatabaseSync(path.join(BUNDLES, speakersFileName(version)), { readOnly: true });
+  const view = passageSpeakers(db, verseOrd(from.book, from.chapter, from.verse), verseOrd(to.book, to.chapter, to.verse));
+  db.close();
+  console.log(`${formatDisplayRef(from)} to ${formatDisplayRef(to)}`);
+  const groups = [
+    ["speaking", view.speaking],
+    ["uncertain (Potential, Rare, Hypothetical, Alternate: not to be shown as fact)", view.uncertain],
+    ["reported (Indirect, Quotation, Interruption)", view.reported],
+    ["markers (narrator, interruption, Needs Review, scripture)", view.markers],
+  ] as const;
+  for (const [label, list] of groups) {
+    if (list.length === 0) continue;
+    console.log(`  ${label}`);
+    for (const s of list) console.log(speakerLine(s));
+  }
+  return 0;
+}
+
 async function main(): Promise<number> {
   const [command, ...rest] = process.argv.slice(2);
 
@@ -300,6 +537,12 @@ async function main(): Promise<number> {
       // `--allow-unreviewed` include flagged entries, marked unreviewed-dev
       // `package translation ASV`  one downloadable translation
       if (rest[0] === "translation") return packageTranslationCommand(rest[1]);
+      // `package study`  one Tyndale notes and OpenBible cross-references file per book, plus a manifest fragment
+      if (rest[0] === "study") return packageStudyCommand();
+      // `package syntax`  MACULA Greek and Hebrew syntax trees, outside the manifest
+      if (rest[0] === "syntax") return packageSyntaxCommand();
+      // `package speakers`  Glyssen's speakers per verse, outside the manifest
+      if (rest[0] === "speakers") return packageSpeakersCommand();
       const allowUnreviewed = rest.includes("--allow-unreviewed");
       const only = rest.find((arg) => !arg.startsWith("--"));
       const previousManifest = readBundleManifest();
@@ -617,7 +860,7 @@ async function main(): Promise<number> {
         console.log(`publish${report.dryRun ? " --dry-run: NOTHING WAS UPLOADED" : ": uploaded to R2"}`);
         console.log(`  verified: ${plan.bundles.length} bundles, ${formatBytes(totalBytes(plan))}, sha256 and size match the manifest`);
         for (const b of plan.bundles) {
-          console.log(`    ${b.info.file.padEnd(24)} ${"review_gate" in b.info ? b.info.review_gate : "translation"}`);
+          console.log(`    ${b.info.file.padEnd(24)} ${"review_gate" in b.info ? b.info.review_gate : "code" in b.info ? "translation" : "study"}`);
         }
         if (plan.ignored.length > 0) console.log(`  not in the manifest, not uploaded: ${plan.ignored.join(", ")}`);
         if (report.dryRun) {
@@ -636,12 +879,18 @@ async function main(): Promise<number> {
       }
     }
 
+    case "syntax":
+      return syntaxCommand(rest[0]);
+
+    case "speakers":
+      return speakersCommand(rest[0], rest[1]);
+
     default: {
       console.log(
         "usage: yada <ingest|normalize|derive BOOK|oracle|generate [--dry-run|--confirm] [--batch] BOOK|" +
           "batch <status|collect|recover> ID|inspect|import-golden|" +
           "ingest-responses [--model M]|validate BOOK|adversary [--dry-run|--confirm] [--model M] BOOK|" +
-          "regress [--live --dry-run|--live --confirm]|publish [--dry-run|--confirm]|package [core|BOOK] [--allow-unreviewed]|package translation CODE>",
+          "regress [--live --dry-run|--live --confirm]|publish [--dry-run|--confirm]|package [core|BOOK] [--allow-unreviewed]|package translation CODE|package study|package syntax|syntax VERSE_ID|package speakers|speakers FROM [TO]>",
       );
       return command === undefined ? 0 : 2;
     }

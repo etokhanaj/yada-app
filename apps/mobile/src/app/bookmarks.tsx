@@ -5,6 +5,12 @@
  * Removal is `Edit` in the header, as iOS lists do, plus a VoiceOver custom
  * action on each row (brief §5 Gestures): a hidden long press had no visible
  * or spoken equivalent.
+ *
+ * One muted line after the rows says where they are kept (canvas IC-01): the
+ * reader would otherwise assume a reinstall loses them. It is one sentence,
+ * true signed in or out, because no reliable signed-in signal exists for the
+ * key-value store (data/cloud.ts cloudAvailable), so IC-02's signed-out line
+ * is not drawn. Nothing else in the app mentions iCloud.
  */
 
 import { parseVerseId, type VerseRef, verseOrd } from "@yada/schema";
@@ -18,6 +24,7 @@ import { GlassText, ListRow, PageScreen } from "../components/Page";
 import { Chrome, Scripture } from "../components/Type";
 import { DivineText } from "../components/Verse";
 import { useAppData, useCore, useQuery } from "../data/AppData";
+import { cloudAvailable } from "../data/cloud";
 import { getTextsForOrds } from "../data/queries";
 import { listBookmarks, removeBookmark } from "../data/user";
 import { useLayout, usePalette } from "../design/tokens";
@@ -33,7 +40,6 @@ export default function BookmarksScreen() {
   const translation = useSettings((s) => s.translation);
   const [ids, setIds] = useState<string[] | null>(null);
   const [editing, setEditing] = useState(false);
-
   const reload = useCallback(() => {
     void listBookmarks(user).then((rows) => setIds(rows.map((r) => r.verse_id)));
   }, [user]);
@@ -113,6 +119,11 @@ export default function BookmarksScreen() {
           </View>
         );
       })}
+      {refs.length > 0 && cloudAvailable() ? (
+        <Chrome step="note" tone="muted" style={styles.kept} testID="bookmarks-icloud">
+          Bookmarks and your reading place are kept in iCloud when you’re signed in.
+        </Chrome>
+      ) : null}
     </PageScreen>
   );
 }
@@ -123,6 +134,9 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 29,
     marginBottom: 6,
+  },
+  kept: {
+    marginTop: 20,
   },
   remove: {
     borderRadius: 999,

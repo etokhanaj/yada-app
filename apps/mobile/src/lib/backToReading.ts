@@ -11,6 +11,8 @@
 export const SHEET_ROUTES: ReadonlySet<string> = new Set([
   // Each is a route group with its own stack (brief §1: never more than two sheets).
   "understand",
+  // The passage guide (PG-02): depth 1 like Understand, with its own stack.
+  "guide",
   "evidence",
   "type-settings",
   "contents",

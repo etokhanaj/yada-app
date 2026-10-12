@@ -104,6 +104,16 @@ describe("parsing verdicts", () => {
     expect(parsed.ok).toBe(false);
   });
 
+  it("accepts omitted_qualifier, and like every contested verdict it needs a severity", async () => {
+    const { parseAdversaryResponse, loadGolden } = await load();
+    const entry = loadGolden("1co.14.34");
+    const ids = entry.claims.map((c) => c.id);
+    const ok = parseAdversaryResponse(verdictsFor(entry, { "1CO.14.34.c1": ["omitted_qualifier", "minor"] }), entry.verse_id, ids);
+    expect(ok.ok && ok.verdicts.find((v) => v.claim_id === "1CO.14.34.c1")?.verdict).toBe("omitted_qualifier");
+    const bare = parseAdversaryResponse(verdictsFor(entry, { "1CO.14.34.c1": ["omitted_qualifier", "none"] }), entry.verse_id, ids);
+    expect(bare.ok).toBe(false);
+  });
+
   it("rejects a verdict outside the contract's enum", async () => {
     const { parseAdversaryResponse, loadGolden } = await load();
     const entry = loadGolden("1co.14.34");
@@ -119,7 +129,7 @@ describe("the adversary request", () => {
     try {
       const entry = seed1Co1434(staging.db);
       const request = buildAdversaryRequest(staging.db, entry);
-      expect(request.body).toMatch(/adversary@1\.0\.0/);
+      expect(request.body).toMatch(/adversary@1\.1\.0/);
       for (const claim of entry.claims) expect(request.body).toContain(claim.id);
       expect(request.body).toMatch(/1CO\.14\.35\tἄνδρας\|ἀνήρ\|X\|G0435/);
       expect(request.body).toMatch(/1CO\.11\.5\t/);
@@ -275,6 +285,23 @@ describe("a confirmed adversary run", () => {
       expect(run.humanDecisionsKept).toEqual([entry.verse_id]);
       expect(staging.db.prepare("SELECT status FROM review_state").get()?.["status"]).toBe("human_reviewed");
       expect(staging.db.prepare("SELECT COUNT(*) AS n FROM adversary_flags WHERE verdict != 'upheld'").get()?.["n"]).toBe(1);
+    } finally {
+      staging.cleanup();
+    }
+  });
+
+  it("re-flags an entry on omitted_qualifier like any other disagreement", async () => {
+    const { tempStaging, seed1Co1434, storeVerseEntry, runAdversary } = await load();
+    const staging = tempStaging();
+    try {
+      const entry = seed1Co1434(staging.db);
+      storeVerseEntry(staging.db, entry, "flagged");
+      staging.db.prepare("UPDATE review_state SET status = 'auto_passed'").run();
+      const { client } = fakeClient({ text: verdictsFor(entry, { "1CO.14.34.c2": ["omitted_qualifier", "minor"] }) });
+      await runAdversary(staging.db, "1CO", "claude-sonnet-5", { confirm: true, client, responsesDir: tempDir });
+      const state = staging.db.prepare("SELECT status, reason FROM review_state").get();
+      expect(state?.["status"]).toBe("flagged");
+      expect(String(state?.["reason"])).toMatch(/1CO\.14\.34\.c2 omitted_qualifier\/minor/);
     } finally {
       staging.cleanup();
     }

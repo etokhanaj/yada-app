@@ -167,20 +167,20 @@
     }
   ],
   "close_rendering": "Here is wisdom. Let the one who has a mind calculate the number of the beast, for it is a number of a man, and its number is six hundred sixty-six.",
-  "whats_happening": "The passage about the second beast ends by turning to the reader and setting a task rather than giving an explanation. The number is written out as three ordinary words rather than as a figure, and the verse says it is a number of a man without saying which man. This is the only place in the book that explicitly invites the reader to work something out.",
+  "whats_happening": "The passage about the second beast ends by turning to the reader and setting a task rather than giving an explanation. The number is written as three ordinary words, not in digits. The verse calls it 'a number of a man' without saying who or what is meant. This is one of two places in the book that call for wisdom, and the only one that asks the reader to calculate.",
   "key_words": [
     {
       "surface": "ψηφισάτω",
       "lemma": "ψηφίζω",
       "gloss": "let him calculate",
-      "note": "An aorist imperative addressed to a third party. The verb is about reckoning or counting up, and is built on the word for a pebble used in counting.",
+      "note": "A command in the form 'let him…'. The verb means to count up or work out a total.",
       "strongs": "G5585"
     },
     {
       "surface": "ἀνθρώπου",
       "lemma": "ἄνθρωπος",
       "gloss": "of a man",
-      "note": "Genitive and without the article, which leaves open whether a particular person or humanity in general is meant.",
+      "note": "'Of a man', with no 'the', which leaves open whether a particular person or people in general is meant.",
       "strongs": "G0444"
     },
     {
@@ -191,7 +191,7 @@
       "strongs": "G1812"
     }
   ],
-  "translation_note": "English versions print 666 as a figure, which the Greek does not. Writing it out as three words is part of what the verse is doing, since the reader is being asked to count rather than to recognise a symbol.",
+  "translation_note": "English versions print 666 in digits; the Greek text here writes it as three words. That fits the verse: the reader is asked to count, not to recognise a symbol.",
   "claims": [
     {
       "id": "REV.13.18.c1",
@@ -241,7 +241,7 @@
     },
     {
       "id": "REV.13.18.c3",
-      "claim": "ἀνθρώπου is genitive and stands without the article.",
+      "claim": "ἀνθρώπου ('of a man') has no 'the' before it.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -287,7 +287,7 @@
     },
     {
       "id": "REV.13.18.c5",
-      "claim": "SBLGNT marks the closing number and the pronoun before it as points of textual variation.",
+      "claim": "The SBL Greek New Testament (SBLGNT) marks the final number, and the word 'its' before it, as places where manuscripts differ.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -325,7 +325,7 @@
     },
     {
       "id": "REV.13.18.c7",
-      "claim": "Assigning numeric values to the letters of a name was an established practice in Greek and Hebrew writing.",
+      "claim": "Giving each letter of a name a number value was a known practice in Greek and Hebrew writing.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "medium",
@@ -336,7 +336,7 @@
     },
     {
       "id": "REV.13.18.c8",
-      "claim": "What number the earliest text carried is disputed.",
+      "claim": "Some manuscripts have 616 instead of 666, and readers disagree about which is original.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "medium",
@@ -353,7 +353,7 @@
       "positions": [
         {
           "label": "Six hundred sixty-six",
-          "case": "This is the reading printed by SBLGNT and carried by the bulk of the manuscript tradition, and it is what the editors judged original.",
+          "case": "SBLGNT prints this reading, most manuscripts have it, and the editors judged it original.",
           "evidence": [
             {
               "type": "verse",
@@ -363,7 +363,7 @@
         },
         {
           "label": "Six hundred sixteen",
-          "case": "A reading of six hundred sixteen is attested in part of the tradition, and any name proposed as the solution has to account for which of the two numbers it is being counted against.",
+          "case": "Some manuscripts read six hundred sixteen. Any name offered as the answer has to say which of the two numbers it is counted against.",
           "evidence": [
             {
               "type": "apparatus",
@@ -377,7 +377,7 @@
     },
     {
       "id": "REV.13.18.c9",
-      "claim": "Whether ἀριθμὸς ἀνθρώπου points to one person or characterises the number as human is disputed.",
+      "claim": "Readers disagree whether 'a number of a man' points to one person or means a human number.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "medium",
@@ -398,7 +398,7 @@
       "positions": [
         {
           "label": "A particular person",
-          "case": "The instruction to calculate only makes sense if there is something to arrive at, which points to the number standing for a specific name.",
+          "case": "The instruction to calculate only makes sense if there is an answer to reach, which points to the number standing for a specific name.",
           "evidence": [
             {
               "type": "verse",
@@ -408,7 +408,7 @@
         },
         {
           "label": "Human rather than divine",
-          "case": "An anarthrous genitive readily carries a qualitative sense, giving a human number, so the line would be contrasting the beast with what is divine rather than encoding a name.",
+          "case": "Without 'the', the phrase can easily describe a kind of number: a human one. The line would then contrast the beast with what is divine, rather than hiding a name in code.",
           "evidence": [
             {
               "type": "verse",
@@ -434,7 +434,7 @@
     {
       "ref": "DAN.7.1-7.28",
       "relationship": "allusion",
-      "note": "The beast imagery this chapter draws on."
+      "note": "The beasts in Daniel that this chapter draws on."
     }
   ],
   "review": {

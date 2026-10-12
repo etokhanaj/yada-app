@@ -50,13 +50,13 @@
     }
   ],
   "close_rendering": "The LORD is my shepherd, I shall not lack.",
-  "whats_happening": "The psalm opens by naming a relation and then stating what follows from it, in four Hebrew words with no verb joining the first two. The line is built as two halves, and almost everything the psalm goes on to say is an unpacking of the first half. The word rendered my shepherd is not a noun but a participle, so the claim is about something God is doing rather than a title God holds.",
+  "whats_happening": "In four Hebrew words, the psalm says who the LORD is to the speaker, then what follows. No verb joins the first two words. The line has two halves, and almost everything the rest of the psalm says spells out the first. 'My shepherd' is a verb form, closer to 'the one shepherding me'. So the line is about what God does, more than a title.",
   "key_words": [
     {
       "surface": "רֹ֝עִ֗י",
       "lemma": "רָעָה",
       "gloss": "my shepherd",
-      "note": "A participle in construct with a first person suffix, so closer to the one shepherding me than to a fixed title.",
+      "note": "A verb form with 'my' attached, so closer to 'the one shepherding me' than to a fixed title.",
       "strongs": "H7462b"
     },
     {
@@ -67,7 +67,7 @@
       "strongs": "H2637"
     }
   ],
-  "translation_note": "Older English versions render the second half I shall not want, using want in its older sense of lack. The Hebrew verb concerns shortage, not appetite, which is why modern versions move away from want.",
+  "translation_note": "Older English versions say 'I shall not want', using 'want' in its old sense of 'lack'. The Hebrew verb is about running short, not desire, so modern versions avoid 'want'.",
   "claims": [
     {
       "id": "PSA.23.1.c1",
@@ -135,7 +135,7 @@
     },
     {
       "id": "PSA.23.1.c4",
-      "claim": "The Masoretic text counts the superscription מִזְמוֹר לְדָוִד inside verse 1, where English versification places it before the numbered verse.",
+      "claim": "The Masoretic text (the standard Hebrew text) counts the heading מִזְמוֹר לְדָוִד as part of verse 1.",
       "category": "text",
       "evidence_strength": "strong",
       "confidence": "high",
@@ -180,7 +180,7 @@
     },
     {
       "id": "PSA.23.1.c6",
-      "claim": "Shepherd was a widely used image for a king or a deity in the ancient Near East.",
+      "claim": "In the ancient Near East (the lands around Israel), 'shepherd' was a common picture of a king or a god.",
       "category": "context",
       "evidence_strength": "supported",
       "confidence": "medium",
@@ -191,7 +191,7 @@
     },
     {
       "id": "PSA.23.1.c7",
-      "claim": "What time frame the imperfect אֶחְסָר carries is disputed.",
+      "claim": "Readers disagree whether 'I shall not lack' (אֶחְסָר) speaks of the future or of how things generally are.",
       "category": "debated",
       "evidence_strength": "disputed",
       "confidence": "medium",
@@ -213,7 +213,7 @@
       "positions": [
         {
           "label": "Future",
-          "case": "The Hebrew imperfect commonly carries future reference, which makes the line a statement of confidence about what is to come rather than a report of present circumstances.",
+          "case": "This Hebrew verb form commonly points to the future. Read that way, the line expresses confidence about what is to come, not a report on the present.",
           "evidence": [
             {
               "type": "verse",
@@ -222,8 +222,8 @@
           ]
         },
         {
-          "label": "General present",
-          "case": "The imperfect also expresses habitual or characteristic action, which makes the line a statement about how things stand generally, matching the settled tone of the psalm's remaining verses.",
+          "label": "Generally true",
+          "case": "The same form also describes what usually or typically happens. Read that way, the line says how things generally stand, matching the settled tone of the rest of the psalm.",
           "evidence": [
             {
               "type": "verse",
@@ -239,7 +239,7 @@
     {
       "ref": "PSA.23.2-23.3",
       "relationship": "development",
-      "note": "The shepherd image is unpacked into specific actions."
+      "note": "The shepherd picture is spelled out in specific actions."
     },
     {
       "ref": "EZK.34.11-34.16",
