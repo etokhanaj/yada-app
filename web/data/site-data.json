@@ -1,0 +1,213 @@
+{
+  "source": {
+    "core": "core.v5.db"
+  },
+  "john": {
+    "verseId": "JHN.1.1",
+    "words": [
+      {
+        "surface": "Ἐν",
+        "translit": "en",
+        "gloss": "In",
+        "form": "Preposition",
+        "lemma": "ἐν",
+        "usually": "in",
+        "inBook": 220,
+        "total": 2733
+      },
+      {
+        "surface": "ἀρχῇ",
+        "translit": "archē",
+        "gloss": "beginning",
+        "form": "Noun, dative feminine singular",
+        "lemma": "ἀρχή",
+        "usually": "beginning",
+        "inBook": 8,
+        "total": 55
+      },
+      {
+        "surface": "ἦν",
+        "translit": "ēn",
+        "gloss": "was",
+        "form": "Verb, imperfect active indicative, 3rd person singular",
+        "lemma": "εἰμί",
+        "usually": "is",
+        "inBook": 443,
+        "total": 2456
+      },
+      {
+        "surface": "ὁ",
+        "translit": "o",
+        "gloss": "the",
+        "form": "Article, nominative masculine singular",
+        "lemma": "ὁ",
+        "usually": "the",
+        "inBook": 2159,
+        "total": 19769
+      },
+      {
+        "surface": "λόγος",
+        "translit": "logos",
+        "gloss": "Word",
+        "form": "Noun, nominative masculine singular",
+        "lemma": "λόγος",
+        "usually": "word",
+        "inBook": 40,
+        "total": 330
+      },
+      {
+        "surface": "καὶ",
+        "translit": "kai",
+        "gloss": "and",
+        "form": "Conjunction",
+        "lemma": "καί",
+        "usually": "and",
+        "inBook": 813,
+        "total": 8973
+      },
+      {
+        "surface": "ὁ",
+        "translit": "o",
+        "gloss": "the",
+        "form": "Article, nominative masculine singular",
+        "lemma": "ὁ",
+        "usually": "the",
+        "inBook": 2159,
+        "total": 19769
+      },
+      {
+        "surface": "λόγος",
+        "translit": "logos",
+        "gloss": "Word",
+        "form": "Noun, nominative masculine singular",
+        "lemma": "λόγος",
+        "usually": "word",
+        "inBook": 40,
+        "total": 330
+      },
+      {
+        "surface": "ἦν",
+        "translit": "ēn",
+        "gloss": "was",
+        "form": "Verb, imperfect active indicative, 3rd person singular",
+        "lemma": "εἰμί",
+        "usually": "is",
+        "inBook": 443,
+        "total": 2456
+      },
+      {
+        "surface": "πρὸς",
+        "translit": "pros",
+        "gloss": "with",
+        "form": "Preposition",
+        "lemma": "πρός",
+        "usually": "to",
+        "inBook": 100,
+        "total": 696
+      },
+      {
+        "surface": "τὸν",
+        "translit": "ton",
+        "gloss": "the",
+        "form": "Article, accusative masculine singular",
+        "lemma": "ὁ",
+        "usually": "the",
+        "inBook": 2159,
+        "total": 19769
+      },
+      {
+        "surface": "θεόν",
+        "translit": "theon",
+        "gloss": "God",
+        "form": "Noun, accusative masculine singular",
+        "lemma": "θεός",
+        "usually": "God",
+        "inBook": 83,
+        "total": 1307
+      },
+      {
+        "surface": "καὶ",
+        "translit": "kai",
+        "gloss": "and",
+        "form": "Conjunction",
+        "lemma": "καί",
+        "usually": "and",
+        "inBook": 813,
+        "total": 8973
+      },
+      {
+        "surface": "θεὸς",
+        "translit": "theos",
+        "gloss": "God",
+        "form": "Noun, nominative masculine singular",
+        "lemma": "θεός",
+        "usually": "God",
+        "inBook": 83,
+        "total": 1307
+      },
+      {
+        "surface": "ἦν",
+        "translit": "ēn",
+        "gloss": "was",
+        "form": "Verb, imperfect active indicative, 3rd person singular",
+        "lemma": "εἰμί",
+        "usually": "is",
+        "inBook": 443,
+        "total": 2456
+      },
+      {
+        "surface": "ὁ",
+        "translit": "o",
+        "gloss": "the",
+        "form": "Article, nominative masculine singular",
+        "lemma": "ὁ",
+        "usually": "the",
+        "inBook": 2159,
+        "total": 19769
+      },
+      {
+        "surface": "λόγος",
+        "translit": "logos",
+        "gloss": "Word",
+        "form": "Noun, nominative masculine singular",
+        "lemma": "λόγος",
+        "usually": "word",
+        "inBook": 40,
+        "total": 330
+      }
+    ],
+    "texts": {
+      "BSB": "In the beginning was the Word, and the Word was with God, and the Word was God.",
+      "KJV": "In the beginning was the Word, and the Word was with God, and the Word was God.",
+      "LSV": "In the beginning was the Word, and the Word was with God, and the Word was God;",
+      "WEB": "In the beginning was the Word, and the Word was with God, and the Word was God."
+    }
+  },
+  "hero": {
+    "john": "In the beginning was the Word, and the Word was with God, and the Word was God.",
+    "plain": "The Word existed before the universe existed. The Word was with God. The Word also was God."
+  },
+  "differ": {
+    "verseId": "1CO.14.34",
+    "bsb": "Women are to be silent in the churches. They are not permitted to speak, but must be in submission, as the law says.",
+    "readings": [
+      {
+        "about": "women",
+        "options": [
+          "married women (and possibly women with close male relatives)",
+          "women in general"
+        ],
+        "credit": "Translation Notes, adapted from unfoldingWord (translator guidance removed; readings set in a fixed sentence) · CC BY-SA 4.0"
+      },
+      {
+        "about": "be silent and speak",
+        "options": [
+          "speaking or not speaking in specific situations related to “examining” prophecies. These specific situations would be when the woman’s husband or close male relative is the one who has prophesied",
+          "speaking or not speaking in disruptive ways, particularly asking questions improperly, talking loudly, or speaking out of turn. Paul is using be silent as he did in 14:28, 30: it does not prohibit any kind of talking but refers to “keeping quiet” when speaking would be disruptive",
+          "any official speaking, including prophecy, discerning prophecies, and tongues"
+        ],
+        "credit": "Translation Notes, adapted from unfoldingWord (translator guidance removed; readings set in a fixed sentence) · CC BY-SA 4.0"
+      }
+    ]
+  }
+}
