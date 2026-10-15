@@ -135,6 +135,13 @@ function finalize(
   };
 }
 
+/**
+ * Manifest entries that are not core's to credit. The spike's bible-api.com WEB excerpt (three chapters
+ * vendored into the August spike app) was never a pinned source and its text is not in core, whose WEB
+ * row covers the whole translation; the next core build drops its row (audit item 11, 12 Oct 2026).
+ */
+export const NOT_IN_CORE: ReadonlySet<string> = new Set(["World English Bible — John 1, Genesis 1, 1 Corinthians 14"]);
+
 export function freshDb(file: string, ddl: string): DatabaseSync {
   if (existsSync(file)) rmSync(file);
   const db = new DatabaseSync(file);
@@ -346,7 +353,7 @@ export function packageCore(): CoreReport {
   // would credit text the reader may not have, and change core's bytes for every new version.
   const downloadable = new Set(SOURCES.filter((s) => s.downloadable === true).map((s) => s.dataset));
   for (const entry of manifest) {
-    if (downloadable.has(entry.dataset)) continue;
+    if (downloadable.has(entry.dataset) || NOT_IN_CORE.has(entry.dataset)) continue;
     insertSource.run(
       entry.dataset,
       entry.source,
@@ -475,9 +482,14 @@ export function understandBooks(): BookCode[] {
   return [...books].filter(isBookCode).sort((a, b) => BOOK_ORDER.indexOf(a) - BOOK_ORDER.indexOf(b));
 }
 
+/**
+ * `downloads` keeps the manifest's study and Understand lists: a command that rewrites the bundles
+ * or translations passes the previous lists through, so it never drops a book's downloads.
+ */
 export function writeBundleManifest(
   bundles: BundleInfo[],
   translations: TranslationInfo[] = [],
+  downloads: Pick<BundleManifest, "study" | "understand" | "audio"> = {},
   minAppVersion = "1.0.0",
 ): BundleManifest {
   const manifest: BundleManifest = {
@@ -487,6 +499,9 @@ export function writeBundleManifest(
     schema_versions: [SCHEMA_VERSION],
     bundles,
     ...(translations.length === 0 ? {} : { translations }),
+    ...(downloads.study === undefined || downloads.study.length === 0 ? {} : { study: downloads.study }),
+    ...(downloads.understand === undefined || downloads.understand.length === 0 ? {} : { understand: downloads.understand }),
+    ...(downloads.audio === undefined || downloads.audio.length === 0 ? {} : { audio: downloads.audio }),
   };
   BundleManifestSchema.parse(manifest);
   writeFileSync(BUNDLE_MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`);

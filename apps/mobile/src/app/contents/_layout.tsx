@@ -6,9 +6,13 @@
 
 import { Stack } from "expo-router";
 
+import { useReduceMotion } from "../../lib/motion";
+
 import { usePalette } from "../../design/tokens";
 
 export default function ContentsLayout() {
   const palette = usePalette();
-  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.sheet } }} />;
+  const reduceMotion = useReduceMotion();
+  // Reduce Motion: pages inside the sheet fade in place of sliding (QA, 13 Oct 2026).
+  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.sheet }, animation: reduceMotion ? "fade" : "default" }} />;
 }

@@ -6,9 +6,9 @@
  *   1. Never close a connection. expo-sqlite SIGSEGVs closing a database that
  *      holds an FTS5 table (docs/0a-findings.md, finding 2); the core bundle
  *      holds one. Connections live for the life of the process.
- *   2. Each book's Understand bundle is its own connection, opened lazily the
- *      first time that book is asked for — not ATTACHed to core. SQLite's
- *      default limit is 10 attached databases and there will be 66 books.
+ *   2. Each book's Understand and study bundle is its own connection, opened
+ *      lazily the first time that book is asked for (data/bookFiles.ts), not
+ *      ATTACHed to core: SQLite's default limit is 10 attached databases.
  *   3. Files are copied under their versioned names (core.v2.db) and a copy is
  *      refreshed when the manifest's digest changes. A file the manifest no
  *      longer lists is deleted at launch, before anything could have opened it.
@@ -17,19 +17,13 @@
  * download manager and nothing here talks to a network.
  */
 
-import { type BookCode, type BundleInfo } from "@yada/schema";
+import { type BundleInfo } from "@yada/schema";
 import { deleteDatabaseAsync, importDatabaseFromAssetAsync, openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 
-import { BUNDLED_ASSETS, BUNDLED_MANIFEST, BUNDLED_STUDY } from "./bundled.generated";
+import { BUNDLED_ASSETS, BUNDLED_MANIFEST, BUNDLED_STUDY, BUNDLED_UNDERSTAND } from "./bundled.generated";
 import { USER_DB, USER_DDL } from "./user";
 
 export const CORE_BUNDLE: BundleInfo | undefined = BUNDLED_MANIFEST.bundles.find((b) => b.kind === "core");
-
-export function understandBundle(book: BookCode): BundleInfo | undefined {
-  return BUNDLED_MANIFEST.bundles.find((b) => b.kind === "understand" && b.book === book);
-}
-
-export const UNDERSTAND_BUNDLES: readonly BundleInfo[] = BUNDLED_MANIFEST.bundles.filter((b) => b.kind === "understand");
 
 let userPromise: Promise<SQLiteDatabase> | null = null;
 
@@ -39,6 +33,10 @@ export function openUser(): Promise<SQLiteDatabase> {
     await db.execAsync(USER_DDL);
     return db;
   })();
+  // A failed open is not kept: US-10's Try again must really try again (review, 13 Oct 2026).
+  userPromise.catch(() => {
+    userPromise = null;
+  });
   return userPromise;
 }
 
@@ -50,8 +48,9 @@ export async function installBundles(user: SQLiteDatabase): Promise<void> {
       r.sha256,
     ]),
   );
-  // John's study bundle ships too (decision for build 3, 11 Oct): copied and refreshed like the rest.
-  const shipped = [...BUNDLED_MANIFEST.bundles, ...BUNDLED_STUDY];
+  // John's study and Understand bundles ship too (build 3, 11 Oct; Phase 0, 12 Oct): copied and
+  // refreshed like the rest.
+  const shipped = [...BUNDLED_MANIFEST.bundles, ...BUNDLED_STUDY, ...BUNDLED_UNDERSTAND];
   const wanted = new Set(shipped.map((b) => b.file));
 
   for (const [file] of installed) {
@@ -78,19 +77,11 @@ let corePromise: Promise<SQLiteDatabase> | null = null;
 
 export function openCore(): Promise<SQLiteDatabase> {
   if (CORE_BUNDLE === undefined) throw new Error("No core bundle in the manifest");
-  corePromise ??= openDatabaseAsync(CORE_BUNDLE.file);
-  return corePromise;
-}
-
-const bookConnections = new Map<BookCode, Promise<SQLiteDatabase | null>>();
-
-/** The book's Understand bundle, or null when that book has none yet. */
-export function openBook(book: BookCode): Promise<SQLiteDatabase | null> {
-  let connection = bookConnections.get(book);
-  if (connection === undefined) {
-    const bundle = understandBundle(book);
-    connection = bundle === undefined ? Promise.resolve(null) : openDatabaseAsync(bundle.file);
-    bookConnections.set(book, connection);
+  if (corePromise === null) {
+    corePromise = openDatabaseAsync(CORE_BUNDLE.file);
+    corePromise.catch(() => {
+      corePromise = null;
+    });
   }
-  return connection;
+  return corePromise;
 }

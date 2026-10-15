@@ -30,6 +30,8 @@ export const USAGE_LOG = path.join(CONTENT, "usage.jsonl");
  * spentSoFar sums all of usage.jsonl. John's whole AI budget is about $150;
  * he approved $100 of it for generation (Milestone 0 + John's Gospel) on
  * 9 Oct 2026. Raise it only with his explicit approval for a named step.
+ * Raised to $120 on 12 Oct 2026 for the John Opus batch, then back to $100 the same day: John chose an
+ * Understand built without AI (docs/no-ai-understand.md), so that batch does not run.
  */
 export const CEILING_USD = 100;
 

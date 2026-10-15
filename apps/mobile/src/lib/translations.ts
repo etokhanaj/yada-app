@@ -41,6 +41,8 @@ const KNOWN_COVERS: Readonly<Record<string, CoverTone>> = {
   MSB: "lime",
   ASV: "sage",
   NIV: "sage",
+  // Took NIV's place on the account (12 Oct 2026), so it takes its tone in the Online group.
+  MSG: "sage",
 };
 
 function isCoverTone(value: unknown): value is CoverTone {
@@ -162,7 +164,8 @@ export const BSB_BASIS = "Explanation based on BSB";
 
 /** What stands in for a verse a version does not print, muted, as the reader leaves it out. */
 export function notInLine(code: string): string {
-  return `Not in ${code}`;
+  // CP-08: a sentence, the version named as a reader says it ("Not in the BSB.").
+  return `Not in the ${code}.`;
 }
 
 /** The ATTACH schema name: an identifier SQLite accepts unquoted, unique per file. */

@@ -12,9 +12,9 @@
  */
 
 import * as Haptics from "expo-haptics";
+import { useNavigation, useRoute } from "expo-router";
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import {
-  AccessibilityInfo,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   Pressable,
@@ -35,17 +35,38 @@ import { Chrome, Label, Prose } from "./Type";
 export interface SheetSizeValue {
   readonly large: boolean;
   readonly headerHeight: number;
+  /** The last size change followed the reader's own touch on the sheet, not an open or a jump. */
+  readonly byReader: boolean;
 }
-const SheetSize = createContext<SheetSizeValue>({ large: false, headerHeight: 0 });
-export const useSheetSize = () => useContext(SheetSize);
+/**
+ * Each sheet page's title, by route key, so ‹ can name the page it returns to. VoiceOver heard "Back" on every
+ * page pushed inside a sheet; CLAUDE.md: every exit names its destination (IA stress test, 15 Oct 2026).
+ */
+const titles = new Map<string, string>();
 
-const UNREVIEWED = "A reviewer hasn't checked this explanation yet.";
+function useBackName(title: string): string | null {
+  const route = useRoute();
+  const navigation = useNavigation();
+  useEffect(() => {
+    titles.set(route.key, title);
+    return () => void titles.delete(route.key);
+  }, [route.key, title]);
+  const state = navigation.getState();
+  const index = state?.routes.findIndex((r) => r.key === route.key) ?? -1;
+  const previous = index > 0 ? state?.routes[index - 1] : undefined;
+  return previous === undefined ? null : (titles.get(previous.key) ?? null);
+}
+
+const SheetSize = createContext<SheetSizeValue>({ large: false, headerHeight: 0, byReader: false });
+
+/** A size change this soon after a touch on the sheet is taken as the reader's drag. */
+const DRAG_WINDOW_MS = 1500;
+export const useSheetSize = () => useContext(SheetSize);
 
 export function SheetScreen({
   children,
   title,
   subtitle,
-  unreviewed = false,
   backLabel,
   verseId,
   backText,
@@ -57,6 +78,7 @@ export function SheetScreen({
   footer = true,
   header,
   leading,
+  noBack = false,
   keyboard = false,
   onScrollY,
 }: {
@@ -67,6 +89,8 @@ export function SheetScreen({
   onScrollY?: (y: number, viewport: number) => void;
   /** A text control where `‹` would be, on a sheet's first screen: Translations' `Choose`. */
   leading?: ReactNode;
+  /** A root sheet over a full-screen view (Voice over the player) has no screen of its own behind it: × only. */
+  noBack?: boolean;
   children: ReactNode;
   /** Back to reading. Contents and Search have none: picking is the way out. */
   footer?: boolean;
@@ -82,8 +106,6 @@ export function SheetScreen({
   title: string;
   /** The verse it belongs to, when the title does not already say it. */
   subtitle?: string;
-  /** `Unreviewed` under the title, with its one-line popover (brief §2). */
-  unreviewed?: boolean;
   /** "1 Corinthians 14:34": where Back to reading returns. */
   backLabel: string | null;
   verseId?: string;
@@ -102,16 +124,23 @@ export function SheetScreen({
   const window = useWindowDimensions();
   const { ax, control } = useLayout();
   const { backToReading, closeSheet, back, escape } = useSheetNav();
+  const backName = useBackName(title);
   const log = useLog();
   const [scrolled, setScrolled] = useState(false);
-  const [popover, setPopover] = useState(false);
   const [large, setLarge] = useState(false);
   const [chrome, setChrome] = useState({ header: 90, footer: 74 });
-  useEffect(() => onSize?.({ large, headerHeight: chrome.header }), [onSize, large, chrome.header]);
-  // A rigid tick when the sheet settles at a new detent (motion note); not on first layout.
+  const touchedAt = useRef(0);
+  const [byReader, setByReader] = useState(false);
+  useEffect(() => onSize?.({ large, headerHeight: chrome.header, byReader }), [onSize, large, chrome.header, byReader]);
+  // A rigid tick when the reader drags the sheet to a new detent (motion note). Review §4: it fired
+  // when a sheet opened large (Contents, Search, every sheet at AX sizes), so only after a touch.
   const settled = useRef<boolean | null>(null);
   useEffect(() => {
-    if (settled.current !== null && settled.current !== large) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
+    const dragged = Date.now() - touchedAt.current < DRAG_WINDOW_MS;
+    if (settled.current !== null && settled.current !== large) {
+      setByReader(dragged);
+      if (dragged) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
+    }
     settled.current = large;
   }, [large]);
 
@@ -149,28 +178,6 @@ export function SheetScreen({
           {subtitle}
         </Chrome>
       ) : null}
-      {unreviewed ? (
-        <Pressable
-          onPress={() => {
-            if (!popover) AccessibilityInfo.announceForAccessibility(UNREVIEWED);
-            setPopover((v) => !v);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Unreviewed"
-          accessibilityHint="Explains what unreviewed means"
-          hitSlop={{ top: 10, bottom: 10, left: 12, right: 12 }}
-          style={styles.unreviewed}
-          testID="unreviewed"
-        >
-          <Chrome
-            step="note"
-            tone="muted"
-            style={{ fontWeight: "500", textDecorationLine: "underline", textDecorationStyle: "dotted" }}
-          >
-            Unreviewed
-          </Chrome>
-        </Pressable>
-      ) : null}
     </View>
   );
 
@@ -178,7 +185,7 @@ export function SheetScreen({
   // A text control is wider than `‹`; both ends take its width so the title stays centred.
   const slot = (child: ReactNode, end: "flex-start" | "flex-end") =>
     leading === undefined ? child : <View style={{ minWidth: 76, alignItems: end }}>{child}</View>;
-  const backButton = slot(leading ?? (back === null ? side : round("back", "Back", back, "sheet-back")), "flex-start");
+  const backButton = slot(leading ?? (back === null || noBack ? side : round("back", backName === null ? "Back" : `Back to ${backName}`, back, "sheet-back")), "flex-start");
   // × names its destination to VoiceOver: one layer up, never further (v2-review X7).
   // A sheet without the Back to reading capsule (Understand, canvas SN-09) counts its × as the return.
   const close = () => {
@@ -188,9 +195,11 @@ export function SheetScreen({
   const closeButton = slot(round("close", closeLabel, close, "sheet-close"), "flex-end");
 
   return (
-    <SheetSize.Provider value={{ large, headerHeight: chrome.header }}>
+    <SheetSize.Provider value={{ large, headerHeight: chrome.header, byReader }}>
       <View
         style={{ flex: 1, backgroundColor: palette.sheet }}
+        onTouchStart={() => (touchedAt.current = Date.now())}
+        onTouchEnd={() => (touchedAt.current = Date.now())}
         onLayout={(e) => setLarge(e.nativeEvent.layout.height > window.height * 0.75)}
         // A sheet is its own screen to VoiceOver, and two-finger Z goes back one depth (rule 6).
         accessibilityViewIsModal
@@ -246,13 +255,6 @@ export function SheetScreen({
               {closeButton}
             </View>
           )}
-          {popover ? (
-            <Pressable onPress={() => setPopover(false)} style={[styles.popover, { backgroundColor: palette.ink }]} accessibilityRole="text">
-              <Prose step="note" tone="paper">
-                {UNREVIEWED}
-              </Prose>
-            </Pressable>
-          ) : null}
         </View>
 
         {footer ? (
@@ -321,6 +323,8 @@ export function Row({
   label,
   hint,
   testID,
+  trailing,
+  selected,
 }: {
   children: ReactNode;
   onPress?: () => void;
@@ -329,6 +333,10 @@ export function Row({
   label?: string;
   hint?: string;
   testID?: string;
+  /** At the trailing edge in place of the chevron: Compare's Choose tick (CP-06). */
+  trailing?: ReactNode;
+  /** A chosen row, said by VoiceOver as selected. */
+  selected?: boolean;
 }) {
   const palette = usePalette();
   return (
@@ -339,6 +347,7 @@ export function Row({
       accessibilityRole={onPress === undefined ? undefined : "button"}
       accessibilityLabel={label}
       accessibilityHint={hint}
+      accessibilityState={selected === undefined ? undefined : { selected }}
       testID={testID}
       style={({ pressed }) => [
         styles.rowItem,
@@ -347,7 +356,7 @@ export function Row({
       ]}
     >
       <View style={{ flex: 1, minWidth: 0, rowGap: 4 }}>{children}</View>
-      {chevron && onPress !== undefined ? <Icon name="forward" size={18} tone="muted" /> : null}
+      {trailing ?? (chevron && onPress !== undefined ? <Icon name="forward" size={18} tone="muted" /> : null)}
     </Pressable>
   );
 }
@@ -433,23 +442,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingTop: 6,
   },
-  unreviewed: {
-    minHeight: 24,
-    justifyContent: "center",
-  },
   round: {
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
-  },
-  popover: {
-    position: "absolute",
-    top: "100%",
-    alignSelf: "center",
-    maxWidth: 300,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
   },
   body: {
     paddingHorizontal: 22,

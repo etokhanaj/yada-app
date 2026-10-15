@@ -1,0 +1,53 @@
+# Build 6 items G and H (canvas IG-01–05). Both show only what John approved in the review tool's Extracts
+# queue (rule 2), so each check runs when its content is on the phone: the book introduction needs an
+# Understand file rebuilt with an approved book_intro, the grammar rows an approved grammar.generated.ts.
+appId: studio.yada.reader
+---
+- launchApp
+# Genesis has no introduction in tN: chapter 1 opens as it always did.
+- openLink: studio.yada.reader:///read/GEN/1
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: book-intro
+- openLink: studio.yada.reader:///read/JHN/1
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible:
+        id: book-intro
+    commands:
+      - assertVisible: "About John"
+      - assertVisible: ".*CC BY-SA 4.0.*"
+# Chapter 2 never carries it.
+- openLink: studio.yada.reader:///read/JHN/2
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: book-intro
+
+# בָּרָא in Genesis 1:1: qal perfect. The word card by link, as 02-original-languages opens it.
+- openLink: studio.yada.reader:///evidence/word?ord=1001001&pos=2&from=GEN.1.1
+- waitForAnimationToEnd
+- assertVisible:
+    id: word
+- runFlow:
+    when:
+      visible:
+        id: grammar-term-perfect
+    commands:
+      - tapOn:
+          id: grammar-term-perfect
+      - assertVisible:
+          id: grammar-sentence
+      - assertVisible: ".*Hebrew Grammar, adapted from unfoldingWord.*"
+      # Tapping again closes it.
+      - tapOn:
+          id: grammar-term-perfect
+      - assertNotVisible:
+          id: grammar-sentence
+- tapOn:
+    point: "50%,95%"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    notVisible:
+      id: sheet-close
+    timeout: 5000

@@ -31,6 +31,12 @@ interface SettingsState {
   hintSeen: boolean;
   /** Understand's one-time "Tap a line to see the evidence." has been shown. */
   evidenceHintSeen: boolean;
+  /** The verse sheet's last height: it reopens where the reader left it (Phase 1, VS-01/02). */
+  understandFull: boolean;
+  /** Settings' "Open Understand in full": always open at the full view. */
+  understandOpenFull: boolean;
+  /** The one-time Hebrew poetry tip above the first psalm a reader opens (JR-01). */
+  psalmTipSeen: boolean;
   hydrated: boolean;
   setAppearance: (value: Appearance) => void;
   setTextScale: (value: number) => void;
@@ -39,6 +45,9 @@ interface SettingsState {
   markLaunched: () => void;
   markHintSeen: () => void;
   markEvidenceHintSeen: () => void;
+  setUnderstandFull: (value: boolean) => void;
+  setUnderstandOpenFull: (value: boolean) => void;
+  markPsalmTipSeen: () => void;
   /**
    * `installed`: downloads attached this launch, so a saved choice of one survives.
    * `fallback`: the translation kept when the saved one cannot be read here. BSB at
@@ -56,6 +65,9 @@ export const useSettings = create<SettingsState>((set) => ({
   launched: false,
   hintSeen: false,
   evidenceHintSeen: false,
+  understandFull: false,
+  understandOpenFull: false,
+  psalmTipSeen: false,
   hydrated: false,
   setAppearance: (appearance) => set({ appearance }),
   setTextScale: (textScale) => set({ textScale }),
@@ -64,6 +76,9 @@ export const useSettings = create<SettingsState>((set) => ({
   markLaunched: () => set({ launched: true }),
   markHintSeen: () => set({ hintSeen: true }),
   markEvidenceHintSeen: () => set({ evidenceHintSeen: true }),
+  setUnderstandFull: (understandFull) => set({ understandFull }),
+  setUnderstandOpenFull: (understandOpenFull) => set({ understandOpenFull }),
+  markPsalmTipSeen: () => set({ psalmTipSeen: true }),
   hydrate: (stored, installed = [], fallback = "BSB") => {
     const translation = stored["translation"];
     set({
@@ -77,6 +92,9 @@ export const useSettings = create<SettingsState>((set) => ({
       launched: stored["launched"] === "1",
       hintSeen: stored["hintSeen"] === "1",
       evidenceHintSeen: stored["evidenceHintSeen"] === "1",
+      understandFull: stored["understandFull"] === "1",
+      understandOpenFull: stored["understandOpenFull"] === "1",
+      psalmTipSeen: stored["psalmTipSeen"] === "1",
       hydrated: true,
     });
   },

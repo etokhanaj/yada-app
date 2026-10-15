@@ -1,0 +1,39 @@
+# Yada licensed-translation proxy (docs/licensed-translations.md, "The proxy").
+# No secrets here, ever (CLAUDE.md rule 1): the API.Bible key is a Worker secret set with
+# `wrangler secret put API_BIBLE_KEY`, and `.dev.vars` (gitignored) holds it for `wrangler dev`.
+
+name = "yada-licensed-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+# Placeholder: the account is chosen at `wrangler login`; set it here only if John has several.
+# account_id = "<cloudflare-account-id>"
+
+# A *.workers.dev URL is enough for TestFlight; a custom domain can replace it later.
+workers_dev = true
+preview_urls = false
+
+[vars]
+API_BIBLE_URL = "https://rest.api.bible"
+# The served set. NIV is off the account since 12 Oct 2026 (Biblica's licence excludes products
+# with AI features) and MSG took its place. A code added here and redeployed switches on; the app
+# learns the set from each response.
+SERVED = "NKJV,NLT,MSG"
+
+# Per-IP limit to protect the key (keyed on a hash of the IP; counters live in Cloudflare's
+# limiter, per location, and are not logs). 60 chapters a minute is far above one reader.
+[[ratelimits]]
+name = "LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60
+
+# No Workers Logs and no invocation logs: this Worker keeps no record of requests or clients.
+# New Workers get observability on by default, so it is turned off explicitly.
+[observability]
+enabled = false
+
+  [observability.logs]
+  enabled = false
+  invocation_logs = false

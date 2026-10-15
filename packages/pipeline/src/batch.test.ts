@@ -152,17 +152,17 @@ describe("generate --batch: the gate", () => {
 
   it("checks the whole batch against the ceiling, not each request alone", async () => {
     const { submitBatch, priceBatchUsage, maxTokensFor, CEILING_USD, db } = await load();
-    // 21M input tokens: one request is ~$53 at the batch rate and fits; two
-    // are ~$106 and do not. Checking request by request would let both through.
-    const one = priceBatchUsage(OPUS, 21_000_000, maxTokensFor(1));
+    // 28M input tokens: one request is ~$71 at the batch rate and fits; two
+    // are ~$141 and do not. Checking request by request would let both through.
+    const one = priceBatchUsage(OPUS, 28_000_000, maxTokensFor(1));
     expect(one).toBeLessThan(CEILING_USD);
     expect(2 * one).toBeGreaterThan(CEILING_USD);
 
     await expect(
-      submitBatch(db, "GEN", [GEN_1], [OPUS], { confirm: false, client: refusingClient(21_000_000) }),
+      submitBatch(db, "GEN", [GEN_1], [OPUS], { confirm: false, client: refusingClient(28_000_000) }),
     ).rejects.toThrow(/--confirm not given/);
     await expect(
-      submitBatch(db, "GEN", [GEN_1, GEN_2], [OPUS], { confirm: true, client: refusingClient(21_000_000) }),
+      submitBatch(db, "GEN", [GEN_1, GEN_2], [OPUS], { confirm: true, client: refusingClient(28_000_000) }),
     ).rejects.toThrow(/refusing to submit: .* this batch of 2 requests could cost/);
     expect(usageLines()).toEqual([]);
     db.close();
@@ -170,23 +170,24 @@ describe("generate --batch: the gate", () => {
 
   it("prices the batch at the discount, so a request too big to send synchronously can be batched", async () => {
     const { submitBatch, priceUsage, maxTokensFor, CEILING_USD, db } = await load();
-    expect(priceUsage(OPUS, 25_000_000, maxTokensFor(1))).toBeGreaterThan(CEILING_USD);
+    expect(priceUsage(OPUS, 30_000_000, maxTokensFor(1))).toBeGreaterThan(CEILING_USD);
     await expect(
-      submitBatch(db, "GEN", [GEN_1], [OPUS], { confirm: false, client: refusingClient(25_000_000) }),
+      submitBatch(db, "GEN", [GEN_1], [OPUS], { confirm: false, client: refusingClient(30_000_000) }),
     ).rejects.toThrow(/--confirm not given/);
     db.close();
   });
 
   it("counts money already reserved by an uncollected batch", async () => {
-    const { submitBatch, recordUsage, db } = await load();
+    const { submitBatch, recordUsage, CEILING_USD, db } = await load();
+    // $5 under the ceiling already reserved, whatever the ceiling is.
     recordUsage({
       at: "2026-10-10T00:00:00Z", model: OPUS, pericope_id: "JHN.1.1-1.18", verses: 18,
-      input_tokens: 1, output_tokens: 1, thinking_tokens: 0, cost_usd: 95,
+      input_tokens: 1, output_tokens: 1, thinking_tokens: 0, cost_usd: CEILING_USD - 5,
       estimated: true, reservation: true, batch_id: "msgbatch_earlier", custom_id: "x",
     });
     await expect(
       submitBatch(db, "GEN", [GEN_1], [OPUS], { confirm: true, client: refusingClient(2_000_000) }),
-    ).rejects.toThrow(/\$95\.00 already spent/);
+    ).rejects.toThrow(new RegExp(`\\$${(CEILING_USD - 5).toFixed(2)} already spent`));
     db.close();
   });
 });

@@ -1,7 +1,5 @@
-# Study notes (canvas SN-01–09, TD-01–02): John's study bundle ships inside the app (build 3),
-# so this needs no server. John 1:5 (no Yada entry) leads with Study notes and See also, Read
-# the whole note pushes the page, a See also row opens the verse with a way back, John 1:1 (an
-# entry) keeps them as Go further rows, and John 3:1 names Nicodemus.
+# Study notes (canvas SN-01–09, TD-01–02): John's study bundle ships inside the app (build 3).
+# John 1:5's Study notes row pushes the notes page, and John 3:1 names Nicodemus.
 appId: studio.yada.reader
 ---
 - launchApp
@@ -21,67 +19,21 @@ appId: studio.yada.reader
       - tapOn:
           id: bar-understand
       - waitForAnimationToEnd
-# Shipped with the app: the notes are there at once.
-- extendedWaitUntil:
-    visible:
-      id: study-notes
+# Every John verse has had a Yada entry since the 15 Oct 2026 rebuild, so Study notes is a Go deeper row
+# (Phase 1 order: Original, Compare, Study notes, Key words, Sources), never inline. The inline notes and
+# See also of a verse with no entry are covered by StudyLayer's unit tests. By label, not id: the rows sit
+# at the sheet's foot, where Maestro cannot centre an id.
+- scrollUntilVisible:
+    element: "Study notes, Tyndale.*"
     timeout: 120000
-- assertVisible: "Study notes"
-# The note opens on the NLT's words, and says whose they are.
-- assertVisible: ".*the darkness can never extinguish it.*\\(NLT\\).*"
-- assertVisible: "Tyndale Open Study Notes, CC BY-SA 4.0"
-- assertVisible: "See also"
-# No Back to reading capsule: × is the way out.
-- assertNotVisible:
-    id: back-to-reading
-- tapOn:
-    id: study-note-more
+- tapOn: "Study notes, Tyndale.*"
 - waitForAnimationToEnd
 - assertVisible:
     id: study-notes-page
+# The note opens on the NLT's words, and says whose they are.
+- assertVisible: ".*the darkness can never extinguish it.*\\(NLT\\).*"
 - scrollUntilVisible:
     element: "Tyndale Open Study Notes, CC BY-SA 4.0. Quoted words are the NLT’s."
-- tapOn:
-    id: sheet-back
-- waitForAnimationToEnd
-# See also rows show their verse in full (SN-03), so the credit under Show all sits a scroll
-# further down than the first row.
-- scrollUntilVisible:
-    element: "Cross-references from OpenBible.info, CC BY 4.0."
-- scrollUntilVisible:
-    element:
-      id: see-also-43003019
-    centerElement: true
-    direction: UP
-- tapOn:
-    id: see-also-43003019
-- waitForAnimationToEnd
-# The reader at John 3, with its return chip naming where it came from.
-- assertVisible: "John 3, BSB"
-- assertVisible: "John 1:5"
-
-# John 1:1 has Yada's entry: Study notes and See also are Go further rows.
-- launchApp
-- openLink: studio.yada.reader:///read/JHN/1?verse=1&select=1
-- extendedWaitUntil:
-    visible:
-      id: bar-understand
-    timeout: 120000
-- tapOn:
-    id: bar-understand
-- waitForAnimationToEnd
-- runFlow:
-    when:
-      notVisible:
-        id: understand
-    commands:
-      - tapOn:
-          id: bar-understand
-      - waitForAnimationToEnd
-# By label, not id: the rows sit at the sheet's foot, where Maestro cannot centre an id.
-- scrollUntilVisible:
-    element: "Study notes, Tyndale.*"
-- assertVisible: "See also, [0-9]+ passages"
 - tapOn:
     id: sheet-close
 - waitForAnimationToEnd

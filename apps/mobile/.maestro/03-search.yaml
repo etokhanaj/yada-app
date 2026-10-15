@@ -38,7 +38,7 @@ appId: studio.yada.reader
 - assertVisible: "Words"
 - assertVisible: "agapaō.*"
 - assertVisible: "Show all 25 words"
-- assertVisible: "Passages · 331"
+- assertVisible: "Verses · 331"
 - tapOn:
     id: search-field
 - waitForAnimationToEnd

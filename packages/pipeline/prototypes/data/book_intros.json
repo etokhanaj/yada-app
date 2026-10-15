@@ -1,0 +1,515 @@
+{
+ "_why": "Build 6 item G (15 Oct 2026): each book's introduction is the opening paragraph of Tyndale Open Study Notes' book introduction, or where that gives nothing usable the first paragraph of tN's front:intro “What is … about?” section, cut by rule (packages/pipeline/src/understand/intro.ts) and never edited. 'status' is 'draft' until John approves it in the review tool's Extracts queue; only 'approved' text shows in the app (rule 2). Re-running `yada intros --write` keeps a status only while the text is unchanged, and 'rejected' lists texts John rejected, which never return as drafts. 'paragraph' is the whole paragraph the cut came from, for checking.",
+ "entries": [
+  {
+   "book": "GEN",
+   "text": "Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him.",
+   "ref": "tosn-BookIntros.xml GEN intro-overview",
+   "paragraph": "Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him. Genesis traces God’s promised blessings from generation to generation, to the time of bondage and the need for redemption from Egypt. It lays the foundation for God’s subsequent revelation, and most other books of the Bible draw on its contents. Genesis is a source of instruction, comfort, and edification.",
+   "status": "draft"
+  },
+  {
+   "book": "EXO",
+   "text": "Exodus continues the story of the previous book, Genesis. The first half of Exodus is about how Yahweh made Abraham’s descendants into a nation. This nation, which would be called “Israel,” was meant to belong to Yahweh and worship him. The second half of Exodus describes how God gave the Israelites his law through Moses.",
+   "ref": "en_tn/tn_EXO.tsv front:intro",
+   "paragraph": "Exodus continues the story of the previous book, Genesis. The first half of Exodus is about how Yahweh made Abraham’s descendants into a nation. This nation, which would be called “Israel,” was meant to belong to Yahweh and worship him. The second half of Exodus describes how God gave the Israelites his law through Moses. The law of Moses told the Israelites how to obey and worship Yahweh properly.",
+   "status": "approved"
+  },
+  {
+   "book": "LEV",
+   "text": "In the book of Leviticus, Yahweh continues to give laws through Moses to the people of Israel. These laws detailed the way the people of Israel were to relate to Yahweh and one another as Yahweh’s holy people who reflected Yahweh’s own holiness.",
+   "ref": "en_tn/tn_LEV.tsv front:intro",
+   "paragraph": "In the book of Leviticus, Yahweh continues to give laws through Moses to the people of Israel. These laws detailed the way the people of Israel were to relate to Yahweh and one another as Yahweh’s holy people who reflected Yahweh’s own holiness. As such, many of the laws involve sacrifices and rituals intended to keep the people set apart from the impurity of sin and wrongdoing and keep them pure and holy to worship and serve Yahweh. The rest of the laws instruct the people and the priests about what is ritually clean and unclean and how to become clean again if one becomes unclean. In the middle of these laws is a portion of narrative (Leviticus 8–10) that details how Moses inaugurated the priesthood through Aaron and his sons, cleansed and prepared Yahweh’s sacred tent to be able to receive the people’s sacrifices, and began to offer sacrifices for himself and the people. It also describes the death of Aaron’s two oldest sons, who fail to follow Yahweh’s laws, reinforcing the vital necessity of obeying all of Yahweh’s laws. Yahweh promised the people and the priests that if they would be diligent in following all of these laws, he would consider them to be faithful in honoring their covenant with him. By maintaining their status of holiness, Yahweh would be able to be Israel’s God, and Israel would be able to be Yahweh’s people.",
+   "status": "approved"
+  },
+  {
+   "book": "NUM",
+   "text": "The book of Numbers tells the story of Israel in the wilderness, journeying toward the Promised Land from Mount Sinai. As Moses led Israel from Egypt to Canaan, God tested his people in the crucible of the wilderness to see if they would be faithful to him as a unified nation. Numbers documents their successes and failures.",
+   "ref": "tosn-BookIntros.xml NUM intro-overview",
+   "paragraph": "The book of Numbers tells the story of Israel in the wilderness, journeying toward the Promised Land from Mount Sinai. As Moses led Israel from Egypt to Canaan, God tested his people in the crucible of the wilderness to see if they would be faithful to him as a unified nation. Numbers documents their successes and failures. Israel’s disobedience resulted in the Lord’s judgment, always counterbalanced by his patient persistence in raising a new generation to fulfill his plan. With its many stories and the detailed exposition of God’s laws, Numbers gives us a dramatic account of the Lord’s nature, his covenant, and his plan for his people.",
+   "status": "draft",
+   "rejected": [
+    "The book of Numbers tells about the people of Israel as they traveled from Mount Sinai in the wilderness to the Jordan River. While traveling, the Israelites became discouraged. So they rebelled against the leaders whom God had given them. At the Jordan River, the people of Israel refused to enter the Promised Land."
+   ]
+  },
+  {
+   "book": "DEU",
+   "text": "In the book of Deuteronomy, Moses repeats the laws of the covenant that God made with the people of Israel. The people of Israel are about to go into the land that Yahweh had promised them. Before they enter the land, Moses reminds them of what Yahweh did for them and what he expects from them.",
+   "ref": "en_tn/tn_DEU.tsv front:intro",
+   "paragraph": "In the book of Deuteronomy, Moses repeats the laws of the covenant that God made with the people of Israel. The people of Israel are about to go into the land that Yahweh had promised them. Before they enter the land, Moses reminds them of what Yahweh did for them and what he expects from them. Moses warns the people about worshiping idols and no longer trusting Yahweh once they settle in the land. Yahweh promises to judge those who disobey him and to bless those who obey his law.",
+   "status": "approved"
+  },
+  {
+   "book": "JOS",
+   "text": "The book of Joshua is about the Israelites entering and occupying the land of Canaan. Joshua was the leader who replaced Moses. He led the Israelites as they fought against the people groups that had been living in Canaan. This book then tells how the Israelites divided the land among the 12 tribes.",
+   "ref": "en_tn/tn_JOS.tsv front:intro",
+   "paragraph": "The book of Joshua is about the Israelites entering and occupying the land of Canaan. Joshua was the leader who replaced Moses. He led the Israelites as they fought against the people groups that had been living in Canaan. This book then tells how the Israelites divided the land among the 12 tribes.",
+   "status": "approved"
+  },
+  {
+   "book": "JDG",
+   "text": "The book of Judges tells the stories of the inspired leaders who rescued Israel from their enemies time after time. During this period, the people were frequently unfaithful to God’s covenant, and God allowed their enemies to oppress them. Israel repeatedly turned to the Lord for help, and the Lord repeatedly sent charismatic judges to deliver Israel.",
+   "ref": "tosn-BookIntros.xml JDG intro-overview",
+   "paragraph": "The book of Judges tells the stories of the inspired leaders who rescued Israel from their enemies time after time. During this period, the people were frequently unfaithful to God’s covenant, and God allowed their enemies to oppress them. Israel repeatedly turned to the Lord for help, and the Lord repeatedly sent charismatic judges to deliver Israel. These powerful leaders did amazing things, but they were unable to transcend Israel’s anarchy and lawlessness. Israel needed a leader whose authority could give them national coherence and unity.",
+   "status": "draft",
+   "rejected": [
+    "The book of Judges tells of events that occurred after the Israelites settled in the land of Canaan. The events in this book happened over a period of about 150 years. The book continues the biblical narrative directly from the book of Joshua."
+   ]
+  },
+  {
+   "book": "RUT",
+   "text": "This book is about a non-Israelite woman named Ruth. It tells how she came to join the people of Yahweh. The book also explains how Ruth became an ancestor of King David.",
+   "ref": "en_tn/tn_RUT.tsv front:intro",
+   "paragraph": "This book is about a non-Israelite woman named Ruth. It tells how she came to join the people of Yahweh. The book also explains how Ruth became an ancestor of King David.",
+   "status": "approved"
+  },
+  {
+   "book": "1SA",
+   "text": "This book begins with the story of Samuel, who was the last of the judges over Israel. He anointed Saul to be the first king of Israel. Much of the book is about how Saul became king but then later sinned against Yahweh and died. Even while Saul was still alive, Yahweh chose David to be king after him.",
+   "ref": "en_tn/tn_1SA.tsv front:intro",
+   "paragraph": "This book begins with the story of Samuel, who was the last of the judges over Israel. He anointed Saul to be the first king of Israel. Much of the book is about how Saul became king but then later sinned against Yahweh and died. Even while Saul was still alive, Yahweh chose David to be king after him. This book shows how God protected David when Saul tried to kill him.",
+   "status": "approved"
+  },
+  {
+   "book": "2SA",
+   "text": "This book is about David ruling as king over Israel. He first ruled over the tribe of Judah for seven and a half years. Then the other 11 tribes agreed to have him become their king. He ruled over all Israel for 33 years.",
+   "ref": "en_tn/tn_2SA.tsv front:intro",
+   "paragraph": "This book is about David ruling as king over Israel. He first ruled over the tribe of Judah for seven and a half years. Then the other 11 tribes agreed to have him become their king. He ruled over all Israel for 33 years.",
+   "status": "approved"
+  },
+  {
+   "book": "1KI",
+   "text": "The book of 1 Kings describes what happened to the people of Israel after King David died. It tells how his son Solomon succeeded him as king. It then relates how, after Solomon died, his former kingdom split into two kingdoms, Israel and Judah. The book tells what the kings were like who ruled over those kingdoms.",
+   "ref": "en_tn/tn_1KI.tsv front:intro",
+   "paragraph": "The book of 1 Kings describes what happened to the people of Israel after King David died. It tells how his son Solomon succeeded him as king. It then relates how, after Solomon died, his former kingdom split into two kingdoms, Israel and Judah. The book tells what the kings were like who ruled over those kingdoms. It uses David’s conduct as a standard to measure the conduct of these later kings, since “David had done right in the eyes of Yahweh, and he had not turned from all that he had commanded him all of the days of his life, except in the matter of Uriah the Hittite” (15:5). While some of the kings were godly and righteous, others were wicked. The book describes how Yahweh sent prophets to the kings and people of Israel and Judah to call them back to obedience to him. The last section of the book describes the great confrontation between the prophet Elijah and King Ahab of Israel, who was more wicked than any king who had come before him.",
+   "status": "approved"
+  },
+  {
+   "book": "2KI",
+   "text": "The book of 2 Kings is filled with leaders who did not learn from the past. By virtue of their spiritual failure, these kings brought doom upon themselves and their nation. However, there are also sparkling examples of people who put God and his word first and enjoyed the blessings God promised.",
+   "ref": "tosn-BookIntros.xml 2KI intro-overview",
+   "paragraph": "The book of 2 Kings is filled with leaders who did not learn from the past. By virtue of their spiritual failure, these kings brought doom upon themselves and their nation. However, there are also sparkling examples of people who put God and his word first and enjoyed the blessings God promised. Reading the accounts of the kings’ lives inspires us to avoid their mistakes and to enjoy the blessings that God promises to those who love and serve him.",
+   "status": "draft",
+   "rejected": [
+    "The book of 2 Kings of continues the story that 1 Kings tells about what happened to the people of Israel after King David died. It tells what the kings were like who ruled over the two kingdoms, Israel and Judah, into which David’s kingdom split."
+   ]
+  },
+  {
+   "book": "1CH",
+   "text": "The book of 1 Chronicles is the first part of a history of David and his descendants who were kings of Israel and Judah. The book first situates David’s ancestry among all of the descendants of Abraham, Isaac, and Jacob. It then relates the death of Saul, Israel’s first king, and it tells how David became the next king.",
+   "ref": "en_tn/tn_1CH.tsv front:intro",
+   "paragraph": "The book of 1 Chronicles is the first part of a history of David and his descendants who were kings of Israel and Judah. The book first situates David’s ancestry among all of the descendants of Abraham, Isaac, and Jacob. It then relates the death of Saul, Israel’s first king, and it tells how David became the next king. It describes David’s military triumphs and his preparations for a temple in Jerusalem. It ends with his death. This history continues through the book of 2 Chronicles, which describes David’s successors up to the time of the Babylonian exile. (The books of Ezra and Nehemiah continue this story further and tell what happened after the return from exile.)",
+   "status": "approved"
+  },
+  {
+   "book": "2CH",
+   "text": "Second Chronicles gives purpose and hope to a people with an uncertain future. God had promised that David’s descendants would have an everlasting kingdom, but the people of Judah had been exiled to Babylon. Even after returning to Jerusalem, they now lived as Persian subjects.",
+   "ref": "tosn-BookIntros.xml 2CH intro-overview",
+   "paragraph": "Second Chronicles gives purpose and hope to a people with an uncertain future. God had promised that David’s descendants would have an everlasting kingdom, but the people of Judah had been exiled to Babylon. Even after returning to Jerusalem, they now lived as Persian subjects. Judah had no king descended from David and no hope of becoming a kingdom. Yet God’s promises are certain, so the Chronicler encouraged the Judeans to hope for the future. The words of King Jehoshaphat capture the spirit of the book: “Listen to me, all you people of Judah and Jerusalem! Believe in the Lord your God, and you will be able to stand firm. Believe in his prophets, and you will succeed” (2 Chr 20:20).",
+   "status": "draft",
+   "rejected": [
+    "The Book of 1 Chronicles retells the line of descendants from Adam to Saul. It then gives the history of Israel during the time of David. The Book of 2 Chronicles gives the history of Israel beginning with Solomon. It ends when the Babylonian army attacks Judah and takes some of the people to Babylon."
+   ]
+  },
+  {
+   "book": "EZR",
+   "text": "The book of Ezra is about how the people of Israel returned from Babylon and tried to worship Yahweh again as the law required. To do this, they needed to rebuild their temple so that they could sacrifice to Yahweh.",
+   "ref": "en_tn/tn_EZR.tsv front:intro",
+   "paragraph": "The book of Ezra is about how the people of Israel returned from Babylon and tried to worship Yahweh again as the law required. To do this, they needed to rebuild their temple so that they could sacrifice to Yahweh.",
+   "status": "approved"
+  },
+  {
+   "book": "NEH",
+   "text": "A Jew named Nehemiah lived in Persia and worked for King Artaxerxes. Nehemiah received a report that the walls around Jerusalem were broken down. Nehemiah returned to Jerusalem to help rebuild the city walls. The walls around the city helped protect the city against armies and invaders.",
+   "ref": "en_tn/tn_NEH.tsv front:intro",
+   "paragraph": "A Jew named Nehemiah lived in Persia and worked for King Artaxerxes. Nehemiah received a report that the walls around Jerusalem were broken down. Nehemiah returned to Jerusalem to help rebuild the city walls. The walls around the city helped protect the city against armies and invaders.",
+   "status": "approved"
+  },
+  {
+   "book": "EST",
+   "text": "The Book of Esther tells how a young Jewish woman named Esther became the queen of Persia. As queen, she worked to save all the Jews in the Persian Empire from being destroyed.",
+   "ref": "en_tn/tn_EST.tsv front:intro",
+   "paragraph": "The Book of Esther tells how a young Jewish woman named Esther became the queen of Persia. As queen, she worked to save all the Jews in the Persian Empire from being destroyed.",
+   "status": "approved"
+  },
+  {
+   "book": "JOB",
+   "text": "The book of Job is about a man named Job who experienced disaster even though he was faithful to Yahweh. Job speaks with three friends and asks why Yahweh has allowed him to experience trials and losses.",
+   "ref": "en_tn/tn_JOB.tsv front:intro",
+   "paragraph": "The book of Job is about a man named Job who experienced disaster even though he was faithful to Yahweh. Job speaks with three friends and asks why Yahweh has allowed him to experience trials and losses. The book teaches that we cannot understand all of Yahweh’s ways, and when we suffer, it is more important to trust Yahweh than it is to understand the reason for the suffering.",
+   "status": "approved"
+  },
+  {
+   "book": "PSA",
+   "text": "The book of Psalms is a collection of songs that are addressed to God or that speak about God. The word “psalm” comes from a Greek term that described a song that a person would sing while playing a stringed instrument.",
+   "ref": "en_tn/tn_PSA.tsv front:intro",
+   "paragraph": "The book of Psalms is a collection of songs that are addressed to God or that speak about God. The word “psalm” comes from a Greek term that described a song that a person would sing while playing a stringed instrument. In many languages, the word now refers to the songs in this collection in the Bible. (All of the songs were written in Hebrew, but they are now called by a Greek name because at one point many Jews became speakers of Greek.) People often call the writers of these psalms “psalmists.”",
+   "status": "approved"
+  },
+  {
+   "book": "PRO",
+   "text": "The book of Proverbs is a collection of proverbs. A proverb is a saying that gives wise advice or teaches something that is generally true about life. Most societies have their own proverbs and may use specific language that indicates something is a proverb.",
+   "ref": "en_tn/tn_PRO.tsv front:intro",
+   "paragraph": "The book of Proverbs is a collection of proverbs. A proverb is a saying that gives wise advice or teaches something that is generally true about life. Most societies have their own proverbs and may use specific language that indicates something is a proverb.",
+   "status": "approved"
+  },
+  {
+   "book": "ECC",
+   "text": "Ecclesiastes challenges us to think deeply about basic questions. Life and all it contains appears to be a meaningless vapor, here today and gone tomorrow. Even so, life need not be without purpose. Ecclesiastes recommends wisdom, righteous living, finding purpose in remembering our Creator, and keeping God’s commands. Then we can experience joy in the life God has given us.",
+   "ref": "tosn-BookIntros.xml ECC intro-overview",
+   "paragraph": "Ecclesiastes challenges us to think deeply about basic questions. Life and all it contains appears to be a meaningless vapor, here today and gone tomorrow. Even so, life need not be without purpose. Ecclesiastes recommends wisdom, righteous living, finding purpose in remembering our Creator, and keeping God’s commands. Then we can experience joy in the life God has given us.",
+   "status": "draft",
+   "rejected": [
+    "Ecclesiastes is a group of short teachings that try to answer questions such as “What profit belongs to humanity in exchange for all his toil that he toils under the sun?” (1:3) Ecclesiastes is a series of thoughts about a variety of subjects, all of them about the purpose and worth of various actions and events."
+   ]
+  },
+  {
+   "book": "SNG",
+   "text": "The Song of Songs is a poem or a series of poems that celebrate love and intimacy between a man and a woman. Jews traditionally have interpreted the book as a picture of God’s love for his people Israel.",
+   "ref": "en_tn/tn_SNG.tsv front:intro",
+   "paragraph": "The Song of Songs is a poem or a series of poems that celebrate love and intimacy between a man and a woman. Jews traditionally have interpreted the book as a picture of God’s love for his people Israel. Until the 1800’s the main view among Christians was that this book is primarily a picture of the love between Christ and his bride, the Church. Since the 1800’s the more common view has been that it is a poem or a series of poems that give a beautiful picture of love between a man and a woman. Many Christians also think that, even though the main meaning of this poem is to give a beautiful portrayal of romantic love between a man and a woman, this book also contains lessons about God’s love for his bride, the Church.",
+   "status": "approved"
+  },
+  {
+   "book": "ISA",
+   "text": "The prophecies in the book of Isaiah address two great moments of decision that the people of Judah faced 150 years apart. These were caused by the two foreign empires, Assyria and Babylon, that successively dominated this part of the world.",
+   "ref": "en_tn/tn_ISA.tsv front:intro",
+   "paragraph": "The prophecies in the book of Isaiah address two great moments of decision that the people of Judah faced 150 years apart. These were caused by the two foreign empires, Assyria and Babylon, that successively dominated this part of the world.",
+   "status": "approved"
+  },
+  {
+   "book": "JER",
+   "text": "When God called Jeremiah to warn the kingdom of Judah of its impending destruction, the kingdom was relatively prosperous, free, and secure. But Judah’s fortunes dramatically changed as Nebuchadnezzar II of Babylon asserted his power in the region. Judah suffered under his heavy hand for twenty years before he destroyed the city of Jerusalem and exiled its citizens to Babylon.",
+   "ref": "tosn-BookIntros.xml JER intro-overview",
+   "paragraph": "When God called Jeremiah to warn the kingdom of Judah of its impending destruction, the kingdom was relatively prosperous, free, and secure. But Judah’s fortunes dramatically changed as Nebuchadnezzar II of Babylon asserted his power in the region. Judah suffered under his heavy hand for twenty years before he destroyed the city of Jerusalem and exiled its citizens to Babylon. Throughout these events, Jeremiah warned of judgment and destruction while distinctively recording his own experience of the pain and conflict these announcements brought. Jeremiah beautifully conveyed God’s passionate plea for his people to return to him and receive salvation, and he also proclaimed God’s promise to restore Israel.",
+   "status": "draft",
+   "rejected": [
+    "The Book of Jeremiah gives the prophesies of a priest named Jeremiah. It also tells how Jeremiah suffered in different ways while he prophesied."
+   ]
+  },
+  {
+   "book": "LAM",
+   "text": "The Babylonians destroyed Jerusalem in 586 B.C., burned the temple, and took most of the people into exile. Lamentations is a collection of five poems responding to this catastrophe.",
+   "ref": "en_tn/tn_LAM.tsv front:intro",
+   "paragraph": "The Babylonians destroyed Jerusalem in 586 B.C., burned the temple, and took most of the people into exile. Lamentations is a collection of five poems responding to this catastrophe. The poems express deep grief over the loss of the city and its people, confess that the destruction came as divine judgment for sin, and close with a prayer for Yahweh to restore his people. Central to the book is the declaration in chapter 3 that Yahweh’s covenant faithfulness never ends.",
+   "status": "approved"
+  },
+  {
+   "book": "EZK",
+   "text": "The prophet Ezekiel’s book contains strange visions, images, and messages that seem far removed from contemporary life. Yet its message remains very relevant: God will purify his people and live among them forever. Even during the darkest days, God insisted that he would restore his people.",
+   "ref": "tosn-BookIntros.xml EZK intro-overview",
+   "paragraph": "The prophet Ezekiel’s book contains strange visions, images, and messages that seem far removed from contemporary life. Yet its message remains very relevant: God will purify his people and live among them forever. Even during the darkest days, God insisted that he would restore his people. This message offered hope to the exiled people of Judah and provides inspiration to all who put their trust in him.",
+   "status": "draft",
+   "rejected": [
+    "The book of Ezekiel contains words that Ezekiel prophesied between 592 B.C. and 573 B.C. The Jewish people were exiled in Babylonia. Ezekiel told them that God had punished them because they sinned against him. However, Ezekiel assured them that God would restore them. God was using Babylon to punish them. But eventually another nation would defeat the Babylonians."
+   ]
+  },
+  {
+   "book": "DAN",
+   "text": "The first part of the book of Daniel (chapters 1–6) relates stories about four young men whom the Babylonians took from the kingdom of Judah as prisoners. One of these men was named Daniel. He had three friends, to whom the Babylonians gave the names Shadrach, Meshach, and Abednego.",
+   "ref": "en_tn/tn_DAN.tsv front:intro",
+   "paragraph": "The first part of the book of Daniel (chapters 1–6) relates stories about four young men whom the Babylonians took from the kingdom of Judah as prisoners. One of these men was named Daniel. He had three friends, to whom the Babylonians gave the names Shadrach, Meshach, and Abednego. These stories tell how these young men were faithful to God while living in a pagan land and serving a pagan king. They tell how God protected them and rewarded them because they were faithful. They also tell how God gave Daniel the ability to interpret dreams and explain mysteries.",
+   "status": "approved"
+  },
+  {
+   "book": "HOS",
+   "text": "This book contains the prophecies of Hosea, son of Beeri. Hosea lived in the northern kingdom of Israel. He often called this kingdom Ephraim or Samaria. Hosea prophesied for about 38 years and predicted that Assyria would destroy the northern kingdom of Israel.",
+   "ref": "en_tn/tn_HOS.tsv front:intro",
+   "paragraph": "This book contains the prophecies of Hosea, son of Beeri. Hosea lived in the northern kingdom of Israel. He often called this kingdom Ephraim or Samaria. Hosea prophesied for about 38 years and predicted that Assyria would destroy the northern kingdom of Israel.",
+   "status": "approved"
+  },
+  {
+   "book": "JOL",
+   "text": "The main idea in the book of Joel is how the people of Judah should understand the spiritual significance of an unprecedented locust attack. The prophet Joel told them to understand it as an expression of the “day of Yahweh,” the occasion on which Yahweh would judge people and punish them for disobedience or reward them for obedience.",
+   "ref": "en_tn/tn_JOL.tsv front:intro",
+   "paragraph": "The main idea in the book of Joel is how the people of Judah should understand the spiritual significance of an unprecedented locust attack. The prophet Joel told them to understand it as an expression of the “day of Yahweh,” the occasion on which Yahweh would judge people and punish them for disobedience or reward them for obedience. Joel did not mean that the end of the world had come, but that the people should recognize that Yahweh was acting in judgment as he would at the end of the world. As the book progresses, Joel moves from his spiritual interpretation of the current locust plague to talking about the actual end of the world and final judgment. The apostles of Jesus understood some of Joel’s prophecies to have been fulfilled in their own day. In Acts 2:17 and 2:21, Peter quoted Joel 2:28 and 2:32, where Yahweh says, “I will pour out my Spirit on all flesh” and “everyone who calls on the name of Yahweh will be saved.”",
+   "status": "approved"
+  },
+  {
+   "book": "AMO",
+   "text": "The Book of Amos contains the words of Amos, a shepherd from Tekoa. Amos began to prophesy about 760 BC. He spoke Yahweh’s messages against God’s people behaving wickedly. He spoke messages to both the southern kingdom of Judah and the northern kingdom of Israel.",
+   "ref": "en_tn/tn_AMO.tsv front:intro",
+   "paragraph": "The Book of Amos contains the words of Amos, a shepherd from Tekoa. Amos began to prophesy about 760 BC. He spoke Yahweh’s messages against God’s people behaving wickedly. He spoke messages to both the southern kingdom of Judah and the northern kingdom of Israel.",
+   "status": "approved"
+  },
+  {
+   "book": "OBA",
+   "text": "After the nation of Babylon destroyed Jerusalem, the Edomites (from the neighboring land of Edom) captured fleeing Jews. Then they gave these Jews over to Babylon. The Book of Obadiah is about Yahweh judging the Edomites for harming his people. This book would be comforting to the people of Judah who had been captured and forced to live in Babylon.",
+   "ref": "en_tn/tn_OBA.tsv front:intro",
+   "paragraph": "After the nation of Babylon destroyed Jerusalem, the Edomites (from the neighboring land of Edom) captured fleeing Jews. Then they gave these Jews over to Babylon. The Book of Obadiah is about Yahweh judging the Edomites for harming his people. This book would be comforting to the people of Judah who had been captured and forced to live in Babylon.",
+   "status": "approved"
+  },
+  {
+   "book": "JON",
+   "text": "Jonah, son of Amittai, was a prophet from Gath Hepher, a village in the northern kingdom of Israel (2 Kings 14:25). This book tells about what happened to Jonah. It tells how Yahweh shows mercy and grace to Gentiles. It also tells how the Ninevites repented and called out to Yahweh for mercy.",
+   "ref": "en_tn/tn_JON.tsv front:intro",
+   "paragraph": "Jonah, son of Amittai, was a prophet from Gath Hepher, a village in the northern kingdom of Israel (2 Kings 14:25). This book tells about what happened to Jonah. It tells how Yahweh shows mercy and grace to Gentiles. It also tells how the Ninevites repented and called out to Yahweh for mercy.",
+   "status": "approved"
+  },
+  {
+   "book": "MIC",
+   "text": "God’s judgment was coming against false prophets, against Israel’s wayward leaders, and against the rich who oppressed the poor. God’s indictment against his people resulted in their ruin, but after ruin would come restoration. Through Micah, God’s Spirit provided a strong word of hope for Israel’s future.",
+   "ref": "tosn-BookIntros.xml MIC intro-overview",
+   "paragraph": "God’s judgment was coming against false prophets, against Israel’s wayward leaders, and against the rich who oppressed the poor. God’s indictment against his people resulted in their ruin, but after ruin would come restoration. Through Micah, God’s Spirit provided a strong word of hope for Israel’s future. The Lord promised to rescue the remnant of Israel—they would return to their land as God’s renewed people. God promised to subdue their enemies and send his ruler from Bethlehem. Micah exclaims simply but powerfully that there is no God like the Lord.",
+   "status": "draft",
+   "rejected": [
+    "This book contains many of Micah’s prophecies. Micah repeated many similar prophecies as found in Isaiah. Micah warned the kingdoms of Israel and Judah that the Assyrians would soon attack them. Micah condemned those who acted unjustly and immorally. He spoke against those who did not work for a living."
+   ]
+  },
+  {
+   "book": "NAM",
+   "text": "The book of Nahum contains prophecies about how Yahweh would judge and punish Nineveh.",
+   "ref": "en_tn/tn_NAM.tsv front:intro",
+   "paragraph": "The book of Nahum contains prophecies about how Yahweh would judge and punish Nineveh.",
+   "status": "approved"
+  },
+  {
+   "book": "HAB",
+   "text": "Unlike most prophetic books, Habakkuk is not primarily a message from God to the people. Instead, it is a dialogue between the prophet and Yahweh. Habakkuk complains that Yahweh is allowing injustice and violence to go unchecked in Judah, and Yahweh responds that he is raising up the Chaldeans (the Babylonians) to punish Judah.",
+   "ref": "en_tn/tn_HAB.tsv front:intro",
+   "paragraph": "Unlike most prophetic books, Habakkuk is not primarily a message from God to the people. Instead, it is a dialogue between the prophet and Yahweh. Habakkuk complains that Yahweh is allowing injustice and violence to go unchecked in Judah, and Yahweh responds that he is raising up the Chaldeans (the Babylonians) to punish Judah. This answer disturbs Habakkuk even more, and he asks why Yahweh would use a nation more wicked than Judah to carry out judgment. Yahweh’s second reply assures the prophet that the oppressor will also be judged in due time and that the righteous will live by faithfulness. The book concludes with a powerful prayer-psalm in which Habakkuk recounts Yahweh’s mighty acts in the past and resolves to trust him even when all visible sources of provision fail.",
+   "status": "approved"
+  },
+  {
+   "book": "ZEP",
+   "text": "Through Zephaniah’s prophecies, Yahweh warned Judah and other nations that he was about to destroy them because of their wickedness and idolatry. This message seems to have led at least the Judeans to repent, if only for a generation. Hezekiah had been a godly ruler, but his son Manasseh and his grandson Amon were wicked and idolatrous kings.",
+   "ref": "en_tn/tn_ZEP.tsv front:intro",
+   "paragraph": "Through Zephaniah’s prophecies, Yahweh warned Judah and other nations that he was about to destroy them because of their wickedness and idolatry. This message seems to have led at least the Judeans to repent, if only for a generation. Hezekiah had been a godly ruler, but his son Manasseh and his grandson Amon were wicked and idolatrous kings. Amon was so unpopular that he was assassinated, and his son Josiah became king when Josiah was only a boy. But when Josiah became a young adult and could assert himself, he introduced a series of reforms that led the people of Judah to worship and obey Yahweh once more. The prophecies of Zephaniah seem to have influenced Josiah strongly to do this. Zephaniah also prophesied about how Yahweh would restore Judah, and those prophecies had at least a partial fulfillment in his own time due to the reforms of Josiah.",
+   "status": "rejected",
+   "rejected": [
+    "Through Zephaniah’s prophecies, Yahweh warned Judah and other nations that he was about to destroy them because of their wickedness and idolatry. This message seems to have led at least the Judeans to repent, if only for a generation. Hezekiah had been a godly ruler, but his son Manasseh and his grandson Amon were wicked and idolatrous kings."
+   ]
+  },
+  {
+   "book": "HAG",
+   "text": "The Temple still lay in ruins nearly twenty years after the Hebrews returned to the land of Judah from exile in Babylon. Yet the people of Judah themselves were living in comfortable homes. Surely God’s house deserved better! Haggai pointed out this discrepancy and successfully roused the people to rebuild the Lord’s Temple.",
+   "ref": "tosn-BookIntros.xml HAG intro-overview",
+   "paragraph": "The Temple still lay in ruins nearly twenty years after the Hebrews returned to the land of Judah from exile in Babylon. Yet the people of Judah themselves were living in comfortable homes. Surely God’s house deserved better! Haggai pointed out this discrepancy and successfully roused the people to rebuild the Lord’s Temple. Haggai gave Israel a renewed vision of how their efforts would serve God’s plan for his people.",
+   "status": "draft",
+   "rejected": [
+    "In 539 B.C., the Persian emperor Cyrus conquered the Babylonian empire. He permitted peoples whom the Babylonians had exiled to return to their homelands. So the next year, a group of Israelites from the former kingdom of Judah returned home from exile. Within two years, they began to repair Yahweh’s temple in Jerusalem."
+   ]
+  },
+  {
+   "book": "ZEC",
+   "text": "Zechariah wrote to the people of Judah who returned from being exiled in Babylon. The people of Judah continued to sin, as their ancestors did before they went into exile. Zechariah called the people to repent and to obey Yahweh. And he called them to renew the covenant with Yahweh.",
+   "ref": "en_tn/tn_ZEC.tsv front:intro",
+   "paragraph": "Zechariah wrote to the people of Judah who returned from being exiled in Babylon. The people of Judah continued to sin, as their ancestors did before they went into exile. Zechariah called the people to repent and to obey Yahweh. And he called them to renew the covenant with Yahweh. Zechariah also prophesied about the Messiah and about Israel finally being victorious over her enemies.",
+   "status": "approved"
+  },
+  {
+   "book": "MAL",
+   "text": "The book of Malachi contains prophecies that address the Jews who had returned to Judah from exile in Babylon. At that time, the Jews were discouraged even though they had finished building a new temple. The wonderful things that previous prophets had promised for Judah had not yet happened. The Persian Empire still ruled over them.",
+   "ref": "en_tn/tn_MAL.tsv front:intro",
+   "paragraph": "The book of Malachi contains prophecies that address the Jews who had returned to Judah from exile in Babylon. At that time, the Jews were discouraged even though they had finished building a new temple. The wonderful things that previous prophets had promised for Judah had not yet happened. The Persian Empire still ruled over them. As a result, they no longer were concerned about the law or worshiping Yahweh. These prophecies rebuke the Judeans for not living as the law taught and for not bringing proper tithes and sacrifices. But the prophecies also assure the Judeans that Yahweh will ultimately do everything that he promised to do.",
+   "status": "approved"
+  },
+  {
+   "book": "MAT",
+   "text": "The Gospel of Matthew is one of four books in the New Testament that describe some of the life of Jesus Christ. These books are called “Gospels,” which means “good news.” Their authors wrote about different aspects of who Jesus was and what he did. Matthew wrote much about how Jesus fulfilled passages from the Old Testament.",
+   "ref": "en_tn/tn_MAT.tsv front:intro",
+   "paragraph": "The Gospel of Matthew is one of four books in the New Testament that describe some of the life of Jesus Christ. These books are called “Gospels,” which means “good news.” Their authors wrote about different aspects of who Jesus was and what he did. Matthew wrote much about how Jesus fulfilled passages from the Old Testament. Also, he focused on Jesus’ teaching by presenting some of what Jesus said in five separate speeches, or “discourses.” Many Christians think that Matthew expected his first readers to be Jewish people. However, Matthew also intended his Gospel to be read by all Christians.",
+   "status": "approved"
+  },
+  {
+   "book": "MRK",
+   "text": "The Gospel of Mark is one of four books in the New Testament that describe some of the life of Jesus Christ. These books are called “Gospels,” which means “good news.” Their authors wrote about different aspects of who Jesus was and what he did.",
+   "ref": "en_tn/tn_MRK.tsv front:intro",
+   "paragraph": "The Gospel of Mark is one of four books in the New Testament that describe some of the life of Jesus Christ. These books are called “Gospels,” which means “good news.” Their authors wrote about different aspects of who Jesus was and what he did. Mark wrote much about what Jesus did and how Jesus suffered and died on the cross. Mark also explained Jewish customs and some Aramaic words. This may indicate that Mark expected most of his first readers to be Gentiles. Many Christians believe that this Gospel was the first one to be written.",
+   "status": "approved"
+  },
+  {
+   "book": "LUK",
+   "text": "The Gospel of Luke is one of four books in the New Testament that describe the life and teachings of Jesus Christ. These books are called “Gospels,” which means “good news.” Their authors wrote about different aspects of who Jesus was and what he did. Luke wrote his Gospel for a person named Theophilus and dedicated it to him.",
+   "ref": "en_tn/tn_LUK.tsv front:intro",
+   "paragraph": "The Gospel of Luke is one of four books in the New Testament that describe the life and teachings of Jesus Christ. These books are called “Gospels,” which means “good news.” Their authors wrote about different aspects of who Jesus was and what he did. Luke wrote his Gospel for a person named Theophilus and dedicated it to him. Luke wrote an accurate description of the life and teachings of Jesus so that Theophilus would be certain that what he had been taught about Jesus was true. However, Luke expected that what he wrote would encourage all followers of Jesus.",
+   "status": "approved"
+  },
+  {
+   "book": "JHN",
+   "text": "The Gospel of John is one of four books in the New Testament that describe some of the life and teachings of Jesus Christ. These books are called “Gospels,” which means “good news.” Their authors wrote about different aspects of who Jesus was and what he did.",
+   "ref": "en_tn/tn_JHN.tsv front:intro",
+   "paragraph": "The Gospel of John is one of four books in the New Testament that describe some of the life and teachings of Jesus Christ. These books are called “Gospels,” which means “good news.” Their authors wrote about different aspects of who Jesus was and what he did. John said that he wrote his Gospel “so that people might believe that Jesus is the Christ, the Son of the living God” (20:31). John’s Gospel repeatedly emphasizes that Jesus is God in human form.",
+   "status": "approved"
+  },
+  {
+   "book": "ACT",
+   "text": "The book of Acts tells the story of the early church. It relates how more and more people, from different backgrounds and in different parts of the Roman Empire, became believers in Jesus. It shows the power of the Holy Spirit helping the early Christians.",
+   "ref": "en_tn/tn_ACT.tsv front:intro",
+   "paragraph": "The book of Acts tells the story of the early church. It relates how more and more people, from different backgrounds and in different parts of the Roman Empire, became believers in Jesus. It shows the power of the Holy Spirit helping the early Christians. The events in this book begin with the return of Jesus to heaven and they end about 30 years later.",
+   "status": "approved"
+  },
+  {
+   "book": "ROM",
+   "text": "Paul wrote this letter to the Christians in Rome. Paul wanted to get them ready to receive him when he visited them. He said his purpose was to “bring about the obedience of faith” (16:26).",
+   "ref": "en_tn/tn_ROM.tsv front:intro",
+   "paragraph": "Paul wrote this letter to the Christians in Rome. Paul wanted to get them ready to receive him when he visited them. He said his purpose was to “bring about the obedience of faith” (16:26).",
+   "status": "approved"
+  },
+  {
+   "book": "1CO",
+   "text": "While Paul was in Ephesus, he learned things about the Corinthians. People from “Chloe” told Paul about “factions” in the Corinthian group (1:11), and the Corinthian believers wrote a letter to him asking questions (7:1). Paul also mentions that he has “heard” things about what they are doing and saying.",
+   "ref": "en_tn/tn_1CO.tsv front:intro",
+   "paragraph": "While Paul was in Ephesus, he learned things about the Corinthians. People from “Chloe” told Paul about “factions” in the Corinthian group (1:11), and the Corinthian believers wrote a letter to him asking questions (7:1). Paul also mentions that he has “heard” things about what they are doing and saying. He may have learned these things from the people “from Chloe,” from their letter, or from other sources, such as “Stephanas and Fortunatus and Achaicus,” who visited Paul before he wrote this letter. Paul writes his letter in response to what he has learned about how the Corinthians are thinking and acting. He addresses multiple topics in order. You can see these topics in the outline above. Paul focuses on encouraging the Corinthian believers to remain faithful to Jesus and to behave as those who follow Jesus.",
+   "status": "approved"
+  },
+  {
+   "book": "2CO",
+   "text": "Paul wrote 2 Corinthians to continue to help the Corinthians believe the true gospel and trust him as an apostle of Christ. He wrote this letter after Titus returned to Paul from visiting the Corinthians and delivering to them a letter of strong rebuke from Paul.",
+   "ref": "en_tn/tn_2CO.tsv front:intro",
+   "paragraph": "Paul wrote 2 Corinthians to continue to help the Corinthians believe the true gospel and trust him as an apostle of Christ. He wrote this letter after Titus returned to Paul from visiting the Corinthians and delivering to them a letter of strong rebuke from Paul. In 2 Corinthians, Paul tells the Corinthians that he is happy that they have responded well to his letter. However, he still has instructions and corrections to write to them, and he continues to defend himself as an apostle who taught them the true gospel. Most generally, Paul wrote 2 Corinthians to strengthen his relationship with the Corinthians, to strengthen relationships between all Christians, and to help the Christians trust in and obey Christ more and more.",
+   "status": "approved"
+  },
+  {
+   "book": "GAL",
+   "text": "Paul’s letter to the Galatians proclaims that salvation is through faith alone. It also emphasizes freedom in Christ to live by the power of the Spirit, knowing that our relationship with God is not based on our performance but on the finished work of Jesus Christ.",
+   "ref": "tosn-BookIntros.xml GAL intro-overview",
+   "paragraph": "Is a person saved by faith alone, or by a combination of faith plus works? Paul’s letter to the Galatians proclaims that salvation is through faith alone. It also emphasizes freedom in Christ to live by the power of the Spirit, knowing that our relationship with God is not based on our performance but on the finished work of Jesus Christ. So we are truly free, not to serve our sinful nature, but to love and serve our Lord and others.",
+   "status": "draft",
+   "rejected": [
+    "Paul wrote this letter to both Jewish and non-Jewish Christians in the region of Galatia. He wanted to write against the false teachers who said that Christians need to follow the law of Moses. Paul defended the gospel by explaining that Christians only need to believe in Jesus Christ, and they do not need to practice the law of Moses."
+   ]
+  },
+  {
+   "book": "EPH",
+   "text": "Paul wrote this letter to the Christians in Ephesus to explain God’s love for them in Christ Jesus. He described the blessings that God was giving them because they were now united with Christ. He explained that all believers are united together, whether Jew or Gentile. Paul also wanted to encourage them to live in a way that pleases God.",
+   "ref": "en_tn/tn_EPH.tsv front:intro",
+   "paragraph": "Paul wrote this letter to the Christians in Ephesus to explain God’s love for them in Christ Jesus. He described the blessings that God was giving them because they were now united with Christ. He explained that all believers are united together, whether Jew or Gentile. Paul also wanted to encourage them to live in a way that pleases God.",
+   "status": "approved"
+  },
+  {
+   "book": "PHP",
+   "text": "Paul wrote this letter to the believers in Philippi, a city in Macedonia. He wrote it to thank the Philippians for the gift they had sent him. He wanted to tell them how he was doing in prison and to encourage them to rejoice, even if they were suffering.",
+   "ref": "en_tn/tn_PHP.tsv front:intro",
+   "paragraph": "Paul wrote this letter to the believers in Philippi, a city in Macedonia. He wrote it to thank the Philippians for the gift they had sent him. He wanted to tell them how he was doing in prison and to encourage them to rejoice, even if they were suffering. He also wrote to them about a man named Epaphroditus, the one who brought the gift to Paul. While visiting Paul, Epaphroditus became ill, so Paul decided to send him back to Philippi. Paul encouraged the believers in Philippi to welcome him and to be kind to Epaphroditus when he returned.",
+   "status": "approved"
+  },
+  {
+   "book": "COL",
+   "text": "The letter to the Colossians combines some of the deepest and most sublime teaching about Christ with some very basic instructions for life. As strongly as any other book in the New Testament, Colossians reminds us that Christ must always be preeminent in a Christian’s affections and worship.",
+   "ref": "tosn-BookIntros.xml COL intro-overview",
+   "paragraph": "The letter to the Colossians combines some of the deepest and most sublime teaching about Christ with some very basic instructions for life. As strongly as any other book in the New Testament, Colossians reminds us that Christ must always be preeminent in a Christian’s affections and worship.",
+   "status": "draft",
+   "rejected": [
+    "Paul wrote this letter to the believers in city of Colossae, which is in Asia Minor (modern Turkey). When he heard from Epaphras about the believers in Colossae, he wrote to encourage them and to warn them against false teachers."
+   ]
+  },
+  {
+   "book": "1TH",
+   "text": "As recent converts to Christianity, the Thessalonian church lacked a full understanding of the faith and suffered severe persecution.",
+   "ref": "tosn-BookIntros.xml 1TH intro-overview",
+   "paragraph": "As recent converts to Christianity, the Thessalonian church lacked a full understanding of the faith and suffered severe persecution. Could the fledgling believers withstand the antagonistic social climate? First Thessalonians reminds us that faithful leaders, good teaching, and obedience help believers remain firm in their faith. The letter presents a clear vision of God as powerfully active in the lives of those he has called through the Good News of Jesus Christ.",
+   "status": "draft",
+   "rejected": [
+    "Paul wrote 1 Thessalonians to make his relationship with the Thessalonians stronger and to teach them more about the gospel. He needed to do both of these things because, after he preached the gospel to the Thessalonians, persecution forced him to leave after only a few weeks."
+   ]
+  },
+  {
+   "book": "2TH",
+   "text": "Paul wrote this letter to the believers in the city of Thessalonica. He encouraged the believers because they were being persecuted. He told them to continue living in a way that pleased God. He also wanted to teach them again about Christ’s return.",
+   "ref": "en_tn/tn_2TH.tsv front:intro",
+   "paragraph": "Paul wrote this letter to the believers in the city of Thessalonica. He encouraged the believers because they were being persecuted. He told them to continue living in a way that pleased God. He also wanted to teach them again about Christ’s return. He also warned them that they should not be idle but should work as they wait for Christ to return.",
+   "status": "approved"
+  },
+  {
+   "book": "1TI",
+   "text": "Paul had left Timothy in the city of Ephesus to help the believers there. Paul wrote this letter to instruct Timothy about various matters. The topics he addressed included church worship, qualifications for church leaders, and how to deal with false teachers.",
+   "ref": "en_tn/tn_1TI.tsv front:intro",
+   "paragraph": "Paul had left Timothy in the city of Ephesus to help the believers there. Paul wrote this letter to instruct Timothy about various matters. The topics he addressed included church worship, qualifications for church leaders, and how to deal with false teachers. This letter shows how Paul was training Timothy to be a leader among the churches while Timothy himself trained other leaders.",
+   "status": "approved"
+  },
+  {
+   "book": "2TI",
+   "text": "When Paul wrote this letter, he knew that he would soon die. He wrote to encourage Timothy to continue serving God as a leader no matter what would happen to Paul. More specifically, he warned Timothy against false teachers, urged him to teach what is true, cautioned him about evil people, and asked him to visit.",
+   "ref": "en_tn/tn_2TI.tsv front:intro",
+   "paragraph": "When Paul wrote this letter, he knew that he would soon die. He wrote to encourage Timothy to continue serving God as a leader no matter what would happen to Paul. More specifically, he warned Timothy against false teachers, urged him to teach what is true, cautioned him about evil people, and asked him to visit. Throughout the letter, it is clear that Paul cared deeply for Timothy and wanted him to continue to serve God well even after Paul had died.",
+   "status": "approved"
+  },
+  {
+   "book": "TIT",
+   "text": "Paul wrote this letter to Titus, his fellow worker, who was leading the churches on the island of Crete. Paul instructed him about selecting church leaders. Paul also described how believers should behave toward each other. He also encouraged them all to live in a way that pleases God.",
+   "ref": "en_tn/tn_TIT.tsv front:intro",
+   "paragraph": "Paul wrote this letter to Titus, his fellow worker, who was leading the churches on the island of Crete. Paul instructed him about selecting church leaders. Paul also described how believers should behave toward each other. He also encouraged them all to live in a way that pleases God.",
+   "status": "approved"
+  },
+  {
+   "book": "PHM",
+   "text": "This brief letter, the shortest and most personal of Paul’s letters, shows how attitudes and relationships are transformed by Christ. It was written on behalf of Onesimus, a runaway slave, who was returning to Philemon, his master. Paul encouraged Philemon to go beyond the traditional master–slave relationship by welcoming Onesimus back as a beloved brother in Christ.",
+   "ref": "tosn-BookIntros.xml PHM intro-overview",
+   "paragraph": "This brief letter, the shortest and most personal of Paul’s letters, shows how attitudes and relationships are transformed by Christ. It was written on behalf of Onesimus, a runaway slave, who was returning to Philemon, his master. Paul encouraged Philemon to go beyond the traditional master–slave relationship by welcoming Onesimus back as a beloved brother in Christ. With these words of reconciliation, Paul reminds us that all relationships among Christians, regardless of a person’s social standing, are transformed by the love of Christ.",
+   "status": "draft",
+   "rejected": [
+    "Paul wrote this letter to a man named Philemon. Philemon was a believer in Jesus who lived in the city of Colossae. He owned a slave named Onesimus. Onesimus had run away from Philemon and possibly stole something from him as well. Onesimus went to Rome and visited Paul in prison there, where Paul brought Onesimus to Jesus."
+   ]
+  },
+  {
+   "book": "HEB",
+   "text": "Hebrews is a “word of exhortation” (13:22) that emphasizes the greatness of Jesus and his work and encourages the audience to persevere in trusting him.",
+   "ref": "en_tn/tn_HEB.tsv front:intro",
+   "paragraph": "Hebrews is a “word of exhortation” (13:22) that emphasizes the greatness of Jesus and his work and encourages the audience to persevere in trusting him. There are three primary explanations for why the author sent this letter. First, the audience could be experiencing temptation to become Jews (if they were originally Gentiles) or to participate in the sacrificial system again (if they were originally Jews). They might be tempted because they felt guilty and wanted a visible sacrifice to atone for them, or they might be experiencing persecution and desire the safety of being Jewish, which the Romans considered a protected religious status. Second, the audience could be experiencing shame and dishonor from the culture they were living in. Gentiles called Christians “atheists” because they believed in only one God, and Christians were also considered to be dangerous because they did not swear loyalty to Caesar, the “Lord.” In response, they might be tempted to conceal or abandon what they believed. Third, the audience could be experiencing a lack of intensity and interest in what they believed. In other words, as time went on, what they believed became less important to their lives. Whether the author is exhorting his audience not to return to Judaism or not becomes important for some translation decisions, including what to name this book. Given that there are at least three plausible situations that explain what the author was concerned about, it is recommended that you do not base translation decisions on any one specific option. It is better to use general language, just like the author of Hebrews does. In the end, what is clear is that Hebrews explains how Jesus functions as a high priest to save his people, and he is the only priest and savior that matters. The author wants the audience to believe this more and more.",
+   "status": "approved"
+  },
+  {
+   "book": "JAS",
+   "text": "In this letter, James writes to believers living all over the Roman Empire who are suffering. He tells them that God is working through their sufferings to help them become more mature Christians. James also writes much in this letter about how believers should live in this world and treat one another.",
+   "ref": "en_tn/tn_JAS.tsv front:intro",
+   "paragraph": "In this letter, James writes to believers living all over the Roman Empire who are suffering. He tells them that God is working through their sufferings to help them become more mature Christians. James also writes much in this letter about how believers should live in this world and treat one another. He urges them to treat other people fairly, not to quarrel and fight, and to be compassionate and generous.",
+   "status": "approved"
+  },
+  {
+   "book": "1PE",
+   "text": "Peter wrote this letter to encourage Gentile Christians who were being persecuted and to exhort them to stand firm in “the true grace of God” (5:12). Peter told his readers how they should act in the midst of a society that hated them. He encouraged Christians to continue obeying God even when they were suffering.",
+   "ref": "en_tn/tn_1PE.tsv front:intro",
+   "paragraph": "Peter wrote this letter to encourage Gentile Christians who were being persecuted and to exhort them to stand firm in “the true grace of God” (5:12). Peter told his readers how they should act in the midst of a society that hated them. He encouraged Christians to continue obeying God even when they were suffering. He told them to do this because Jesus would return soon. Peter also instructed Christians about submitting to people in authority over them.",
+   "status": "approved"
+  },
+  {
+   "book": "2PE",
+   "text": "Peter wrote this letter to encourage believers to live good lives. He warned them about false teachers who were saying Jesus was taking too long to return. He told them that Jesus was not slow in returning. Instead, God was giving people time to repent so that they would be saved.",
+   "ref": "en_tn/tn_2PE.tsv front:intro",
+   "paragraph": "Peter wrote this letter to encourage believers to live good lives. He warned them about false teachers who were saying Jesus was taking too long to return. He told them that Jesus was not slow in returning. Instead, God was giving people time to repent so that they would be saved.",
+   "status": "approved"
+  },
+  {
+   "book": "1JN",
+   "text": "False teachers were encouraging followers of Jesus to believe wrong things and to live in wrong ways. John wanted to challenge and correct those false teachings so that the people who received his letter would continue to believe the truth that they had been taught and live in right ways.",
+   "ref": "en_tn/tn_1JN.tsv front:intro",
+   "paragraph": "False teachers were encouraging followers of Jesus to believe wrong things and to live in wrong ways. John wanted to challenge and correct those false teachings so that the people who received his letter would continue to believe the truth that they had been taught and live in right ways. The false teachers were saying that these people were not saved; John wanted to assure them that they were saved.",
+   "status": "approved"
+  },
+  {
+   "book": "2JN",
+   "text": "Second John is the shortest book in the New Testament, containing only thirteen verses. In antiquity, the entire letter would have fit on one sheet of papyrus.",
+   "ref": "tosn-BookIntros.xml 2JN intro-overview",
+   "paragraph": "Second John is the shortest book in the New Testament, containing only thirteen verses. In antiquity, the entire letter would have fit on one sheet of papyrus. The first letter of John elaborated the principles of continuing in the truth, loving fellow believers, and watching out for false teachers. This letter gives us an example of applying these principles to a concrete situation.",
+   "status": "draft",
+   "rejected": [
+    "It appears that John addressed this letter to a specific congregation of believers. John’s purposes in writing this letter to them was to encourage them in their faith and to warn them about false teachers. John did not want believers helping or giving money to false teachers."
+   ]
+  },
+  {
+   "book": "3JN",
+   "text": "This small personal letter provides a window into some issues of leadership and conflict in the early churches. A man named Diotrephes was improperly controlling the church and rejecting the apostle and his emissaries. By contrast, Gaius and Demetrius were two men who remained faithful to the church and to the apostle John.",
+   "ref": "tosn-BookIntros.xml 3JN intro-overview",
+   "paragraph": "This small personal letter provides a window into some issues of leadership and conflict in the early churches. A man named Diotrephes was improperly controlling the church and rejecting the apostle and his emissaries. By contrast, Gaius and Demetrius were two men who remained faithful to the church and to the apostle John.",
+   "status": "draft",
+   "rejected": [
+    "John wrote this letter to a believer named Gaius. He instructed Gaius to be hospitable and helpful to fellow believers who were traveling through his area. These were probably groups of traveling Christian preachers and teachers. John also warned Gaius about a bad leader in the church there named Diotrephes. He also commended a good leader there named Demetrius."
+   ]
+  },
+  {
+   "book": "JUD",
+   "text": "Jude wrote this letter to warn believers against false teachers. Jude often referred to the Old Testament. This may suggest that Jude was writing to a Jewish Christian audience. This letter and 2 Peter have similar content. They both speak about angels, Sodom and Gomorrah, and false teachers.",
+   "ref": "en_tn/tn_JUD.tsv front:intro",
+   "paragraph": "Jude wrote this letter to warn believers against false teachers. Jude often referred to the Old Testament. This may suggest that Jude was writing to a Jewish Christian audience. This letter and 2 Peter have similar content. They both speak about angels, Sodom and Gomorrah, and false teachers.",
+   "status": "approved"
+  },
+  {
+   "book": "REV",
+   "text": "John wrote the book of Revelation to encourage believers to remain faithful even when suffering persecution. In the book, John describes visions he had of Satan and his followers fighting against and killing believers. In these visions, God causes many terrible things to happen on earth to punish wicked people. In the end, Jesus defeats Satan and his followers.",
+   "ref": "en_tn/tn_REV.tsv front:intro",
+   "paragraph": "John wrote the book of Revelation to encourage believers to remain faithful even when suffering persecution. In the book, John describes visions he had of Satan and his followers fighting against and killing believers. In these visions, God causes many terrible things to happen on earth to punish wicked people. In the end, Jesus defeats Satan and his followers. Then Jesus comforts those who were faithful. Those believers will live forever with God in the new heavens and earth.",
+   "status": "approved"
+  }
+ ]
+}

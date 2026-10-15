@@ -4,6 +4,6 @@ import { defineConfig } from "vitest/config";
 // (see each package.json); this root config is what `pnpm test` uses.
 export default defineConfig({
   test: {
-    projects: ["packages/*", "web"],
+    projects: ["packages/*", "services/*", "web"],
   },
 });

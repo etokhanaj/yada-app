@@ -30,11 +30,16 @@ export interface OnlineTranslationProvider {
   choose(code: string): void;
 }
 
-/** From docs/licensed-translations.md: the three versions on the account, and their rights holders. */
+/**
+ * From docs/licensed-translations.md: the licensed versions Yada knows, and their rights holders. NIV
+ * is off the account since 12 Oct 2026 and never served, so the served-set filter drops its row.
+ */
 export const ONLINE_PLACEHOLDERS: readonly OnlineTranslation[] = [
   { code: "NIV", name: "New International Version", publisher: "Biblica", cover: "sage" },
   { code: "NKJV", name: "New King James Version", publisher: "Thomas Nelson", cover: "forest" },
   { code: "NLT", name: "New Living Translation", publisher: "Tyndale House", cover: "paper" },
+  // NavPress holds The Message; Tyndale House represents it (API.Bible listing, 12 Oct 2026).
+  { code: "MSG", name: "The Message", publisher: "NavPress", cover: "sage" },
 ];
 
 export const useOnlineProvider = create<{ provider: OnlineTranslationProvider | null }>(() => ({ provider: null }));

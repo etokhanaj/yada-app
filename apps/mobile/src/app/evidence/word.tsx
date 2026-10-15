@@ -15,14 +15,16 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { View } from "react-native";
 
+import { GrammarTerms } from "../../components/GrammarTerms";
 import { Row, Section, SheetScreen } from "../../components/Sheet";
 import { Chrome, Original, Prose } from "../../components/Type";
 import { useCore, useLog, useQuery } from "../../data/AppData";
 import { countInBook, getLexeme, getToken, scriptOf } from "../../data/queries";
-import { isUnreviewed, loadEntry } from "../../data/understand";
 import { useLayout, usePalette } from "../../design/tokens";
 import { displayGloss } from "../../lib/glosses";
 import { useSheets } from "../../state/sheets";
+import { InTheBsb } from "../../components/BsbPartner";
+import { useSettings } from "../../state/settings";
 
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -36,19 +38,14 @@ export default function WordScreen() {
   const log = useLog();
   const palette = usePalette();
   const { ax } = useLayout();
+  const readingBsb = useSettings((s) => s.translation) === "BSB";
 
   const { data } = useQuery(async () => {
     const token = await getToken(core, ord, position);
     if (token === null) return null;
     const parts = ordToParts(ord);
-    const [lexeme, inBook, loaded] = await Promise.all([
-      getLexeme(core, token.occurrenceKey),
-      countInBook(core, parts.book, token.occurrenceKey),
-      loadEntry(parts.book, `${parts.book}.${parts.chapter}.${parts.verse === 0 ? 1 : parts.verse}`),
-    ]);
-    const keyWord =
-      loaded?.entry.key_words.find((k) => k.surface === token.surface || (token.strongs !== null && k.strongs === token.strongs)) ?? null;
-    return { token, lexeme, inBook, keyWord, reviewStatus: loaded?.reviewStatus ?? null };
+    const [lexeme, inBook] = await Promise.all([getLexeme(core, token.occurrenceKey), countInBook(core, parts.book, token.occurrenceKey)]);
+    return { token, lexeme, inBook };
   }, [ord, position]);
 
   useEffect(() => {
@@ -64,8 +61,6 @@ export default function WordScreen() {
     <SheetScreen
       title="Word"
       subtitle={where}
-      // Only "In this verse" is generated; everything else is source data.
-      unreviewed={data?.keyWord?.note !== undefined && data?.keyWord !== null && isUnreviewed(data?.reviewStatus)}
       backLabel={backLabel}
       verseId={from}
       backText={params.via === "search" ? "Back to search" : undefined}
@@ -77,7 +72,7 @@ export default function WordScreen() {
   );
   if (data === undefined || data === null) return shell(null);
 
-  const { token, lexeme, inBook, keyWord } = data;
+  const { token, lexeme, inBook } = data;
   const book = parts.book;
   const script = scriptOf(book);
   const rtl = script === "hebrew";
@@ -101,11 +96,15 @@ export default function WordScreen() {
         {token.translit}
         {token.gloss === null ? "" : ` · ${displayGloss(token.gloss)}`}
       </Prose>
+      {/* MM-03 (canvas WM-02): the verse in the BSB with this word's partner underlined; only when reading the BSB. */}
+      <InTheBsb book={book} ord={ord} position={position} reading={readingBsb} />
 
       <Section title="Form">
         <Prose step="claim" testID="word-morph">
           {capitalise(morphLine(token.morph))}
         </Prose>
+        {/* Build 6 item H (canvas IG-03): each term in plain words, the grammar's own sentence. */}
+        <GrammarTerms morph={token.morph} />
         {token.variantMarked ? (
           <Prose step="note" tone="muted" style={{ marginTop: 4 }}>
             The base text marks a variant reading at this word.
@@ -162,12 +161,6 @@ export default function WordScreen() {
               Usually “{lexeme.gloss}”.
             </Prose>
           ) : null}
-        </Section>
-      ) : null}
-
-      {keyWord?.note !== undefined ? (
-        <Section title="In this verse">
-          <Prose step="claim">{keyWord.note}</Prose>
         </Section>
       ) : null}
 

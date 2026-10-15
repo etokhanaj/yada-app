@@ -1,0 +1,48 @@
+# Phase 5 (IA-11, IA-14, RP-01–04, ST-01, ST-02, NT-02): Home's ⋯ → Reading plans and Settings, M'Cheyne
+# with no dates, the plan's next portion at a chapter's end, the Reminder page before iOS asks, Downloads.
+# A fresh launch first: a sheet left open by the flow before covered Home (15 Oct 2026).
+appId: studio.yada.reader
+---
+- launchApp
+- openLink: studio.yada.reader:///
+- tapOn:
+    id: home-more
+- tapOn: "Reading plans"
+- extendedWaitUntil:
+    visible:
+      id: plans
+    timeout: 8000
+- assertVisible: ".*The Gospel of John.*"
+- assertVisible: ".*four chapters at a sitting.*1842.*"
+- tapOn:
+    id: plans-mcheyne
+- assertVisible: ".*Reading \\d+ of 365.*"
+- tapOn:
+    id: mcheyne-portion-1
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: reader-plan-next
+    direction: DOWN
+    timeout: 30000
+    speed: 80
+- assertVisible: ".*Next in M’Cheyne.*"
+- openLink: studio.yada.reader:///settings
+- extendedWaitUntil:
+    visible:
+      id: settings
+    timeout: 8000
+- assertVisible: ".*Text and appearance.*"
+- assertVisible: ".*Compare with.*"
+- assertVisible: ".*Voice, .*computer voice.*"
+- tapOn:
+    id: settings-reminder
+- assertVisible: "Made on this iPhone. Nothing about your reading is sent anywhere."
+- assertVisible:
+    id: reminder-toggle
+- tapOn: "Back"
+- tapOn:
+    id: settings-downloads
+- scrollUntilVisible:
+    element: "Built-in texts are part of Yada and can’t be removed."
+    direction: DOWN

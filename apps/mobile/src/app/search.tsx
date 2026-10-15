@@ -8,9 +8,13 @@
  *
  * Words sit above passages, few and capped, as Telegram puts chats above
  * messages (https://mobbin.com/screens/9faafc96-77c1-4cb1-8a81-d6bde4047fa2).
+ *
+ * Search follows the translation (John, 12 Oct 2026). A licensed version is searched through the proxy
+ * (EG-06): its verses, the way to the BSB's own search with Words, and the notice (§7). Offline, or if
+ * that search fails, the BSB is searched and one line says so (EG-07). Nothing found there is stored.
  */
 
-import { BOOK_CODES, formatDisplayRef, formatVerseId, ordToParts, verseOrd } from "@yada/schema";
+import { BOOK_CODES, formatDisplayRef, formatVerseId, ordToParts, parseVerseId, verseOrd } from "@yada/schema";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
@@ -30,7 +34,9 @@ import {
   searchWordsByForm,
   searchWordsByGloss,
 } from "../data/queries";
+import { isLicensedCode } from "../data/licensed";
 import { searchProfiles } from "../data/study";
+import { licensedEnabled, useLicensedSearch } from "../data/useLicensedChapter";
 import { useLayout, usePalette } from "../design/tokens";
 import { fieldDirection } from "../lib/fieldDirection";
 import { excerptOf } from "../lib/reader";
@@ -46,9 +52,19 @@ export default function SearchScreen() {
   const { ax } = useLayout();
   const core = useCore();
   const log = useLog();
-  const translation = useSettings((s) => s.translation);
+  const reading = useSettings((s) => s.translation);
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
+  const [bsbInstead, setBsbInstead] = useState(false);
+  const licensedCode = licensedEnabled() && isLicensedCode(reading) && !bsbInstead ? reading : null;
+  // The proxy takes words only: references, verse numbers and punctuation are the BSB's own search.
+  const words = query.replace(/[^\p{L}\p{N}\s'’-]/gu, " ").replace(/\s+/gu, " ").trim();
+  const licensed = useLicensedSearch(licensedCode, planSearch(query).reference === null ? words : "");
+  const fallback = licensed !== undefined && licensed.status !== "ok";
+  // "Offline" only when it is: a refused or failed search falls back quietly with its own line.
+  const offline = licensed?.status === "needs-connection";
+  // The core holds no licensed text: everything here searches the BSB under a licensed reading.
+  const translation = isLicensedCode(reading) ? "BSB" : reading;
   const [allWords, setAllWords] = useState(false);
 
   // Debounced: a query per keystroke would make typing feel heavy.
@@ -222,7 +238,7 @@ export default function SearchScreen() {
               key={lexeme.occurrenceKey}
               first={i === 0}
               testID={`result-word-${lexeme.occurrenceKey}`}
-              label={`${lexeme.translit}, ${lexeme.gloss ?? ""}. ${lexeme.script === "greek" ? "Greek" : "Hebrew"}, ${lexeme.total} times`}
+              label={`${lexeme.translit}, ${lexeme.gloss ?? ""}. ${lexeme.language}, ${lexeme.total} times`}
               onPress={() => open({ pathname: "/evidence/in-bible", params: { key: lexeme.occurrenceKey, via: "search" } })}
             >
               {/* Headword in its own Text: nested inside English, a Hebrew span set the whole line right to left. */}
@@ -238,7 +254,7 @@ export default function SearchScreen() {
                 </Prose>
               </View>
               <Chrome step="note" tone="muted">
-                {lexeme.script === "greek" ? "Greek" : "Hebrew"} · {lexeme.total} {lexeme.total === 1 ? "time" : "times"}
+                {lexeme.language} · {lexeme.total} {lexeme.total === 1 ? "time" : "times"}
               </Chrome>
             </ListRow>
           ))}
@@ -248,9 +264,45 @@ export default function SearchScreen() {
         </View>
       ) : null}
 
-      {data !== undefined && data !== null && data.passages.length > 0 ? (
+      {licensed?.status === "ok" ? (
+        <View testID="licensed-results">
+          <Label style={styles.section}>{`Verses in the ${licensed.translation}`}</Label>
+          {licensed.verses.map((v, i) => {
+            const at = parseVerseId(v.verseId);
+            return (
+              <ListRow
+                key={v.verseId}
+                first={i === 0}
+                overline={v.reference}
+                onPress={at === null ? undefined : () => read({ book: at.book, chapter: at.chapter, verse: at.verse, select: true })}
+              >
+                <Scripture step="claim" numberOfLines={ax ? 3 : 2} style={{ fontFamily: "Literata" }}>
+                  {v.text}
+                </Scripture>
+              </ListRow>
+            );
+          })}
+          <Label style={styles.section}>Also</Label>
+          <ListRow first title="Search the BSB instead" onPress={() => setBsbInstead(true)} testID="search-bsb-instead">
+            <Chrome step="note" tone="muted">
+              on this iPhone · with Words
+            </Chrome>
+          </ListRow>
+          <Chrome step="note" tone="muted" style={{ marginTop: 12 }} testID="licensed-search-notice">
+            {licensed.copyright}
+          </Chrome>
+        </View>
+      ) : null}
+
+      {fallback && query.length >= 2 ? (
+        <Prose step="note" tone="muted" style={{ marginTop: 12 }} testID="search-offline">
+          {offline ? "You’re offline, so this searches the BSB." : `This searches the BSB: the ${reading} search didn’t answer.`}
+        </Prose>
+      ) : null}
+
+      {data !== undefined && data !== null && data.passages.length > 0 && (licensedCode === null || licensed === undefined || fallback) ? (
         <View>
-          <Label style={styles.section}>Passages · {data.total}</Label>
+          <Label style={styles.section}>{`Verses · ${data.total}`}</Label>
           {data.passages.map((hit, i) => {
             const parts = ordToParts(hit.ord);
             return (

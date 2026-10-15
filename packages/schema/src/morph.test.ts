@@ -1,6 +1,50 @@
 import { describe, expect, it } from "vitest";
 
-import { describeGreekMorph, describeHebrewMorph, describeMorph, morphLine } from "./morph.js";
+import { describeGreekMorph, describeHebrewMorph, describeMorph, grammarKey, morphLine, morphTerms } from "./morph.js";
+
+describe("grammar terms (build 6, item H)", () => {
+  it("names a Greek verb's tense, voice and mood, in the Form line's order", () => {
+    expect(morphTerms("V- 3PAD-P--")).toEqual([
+      { label: "present", language: "greek" },
+      { label: "active", language: "greek" },
+      { label: "imperative", language: "greek" },
+    ]);
+  });
+
+  it("names a participle's case and a comparative's degree", () => {
+    expect(morphTerms("V- -PAPNSM-").map((t) => t.label)).toEqual(["present", "active", "participle", "nominative"]);
+    expect(morphTerms("A- ----NSMC").map((t) => t.label)).toEqual(["nominative", "comparative"]);
+  });
+
+  it("keeps Greek and Hebrew imperfect apart", () => {
+    expect(morphTerms("V- 3IAI-S--")[0]).toEqual({ label: "imperfect", language: "greek" });
+    expect(morphTerms("HVqi3ms")[1]).toEqual({ label: "imperfect", language: "hebrew" });
+    expect(grammarKey({ label: "imperfect", language: "greek" })).not.toBe(grammarKey({ label: "imperfect", language: "hebrew" }));
+  });
+
+  it("names a Hebrew stem and conjugation, a state, a suffix and the object marker", () => {
+    expect(morphTerms("HVqp3ms").map((t) => t.label)).toEqual(["qal", "perfect"]);
+    expect(morphTerms("HR/Ncfsa").map((t) => t.label)).toEqual(["absolute"]);
+    expect(morphTerms("HNcmsc/Sp2ms").map((t) => t.label)).toEqual(["construct", "pronominal suffix"]);
+    expect(morphTerms("HTo").map((t) => t.label)).toEqual(["direct object marker"]);
+    expect(morphTerms("HVqrmsa").map((t) => t.label)).toEqual(["qal", "participle", "absolute"]);
+    expect(morphTerms("HNcmdc").map((t) => t.label)).toEqual(["dual", "construct"]);
+  });
+
+  it("every term is a word morphLine prints", () => {
+    for (const m of ["V- 3PAD-P--", "A- ----NSMC", "HVqp3ms", "HNcmsc/Sp2ms", "HTo", "HVqrmsa", "AVqp3ms", "ANcmsd"]) {
+      for (const t of morphTerms(m)) expect(morphLine(m)).toContain(t.label);
+    }
+  });
+
+  it("uses Aramaic stems and the determined state for Aramaic", () => {
+    expect(morphTerms("AVqp3ms")).toEqual([
+      { label: "peal", language: "aramaic" },
+      { label: "perfect", language: "aramaic" },
+    ]);
+    expect(morphTerms("ANcmsd").map((t) => t.label)).toEqual(["determined"]);
+  });
+});
 
 describe("Greek (MorphGNT)", () => {
   it("reads the brief's own example: σιγάτωσαν is a present active imperative, 3rd plural", () => {

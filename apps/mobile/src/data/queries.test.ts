@@ -11,12 +11,12 @@ import { TRANSLATION_DDL, verseOrd } from "@yada/schema";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { SOURCE_GAPS } from "../lib/omissions";
+import { originalLanguage } from "../lib/originalLanguage";
 import { buildFtsQuery, planSearch, splitSnippet } from "../lib/searchQuery";
-import { resolvePassage } from "../lib/pericopes";
 import { parseCatalogue, verifyDownload, verseTextIn } from "../lib/translations";
 import {
-  checkTranslationFile, countInBook, countPassages, countsByBook, countVerses, getChapter, getEntriesInRange, getEntryRow, getLexeme,
-  getOccurrences, getPericopes, getSources, getTexts, getTextsForOrds, getTextsInRange, getTokens, getTranslationSources,
+  checkTranslationFile, countInBook, countPassages, countsByBook, countVerses, getChapter, getLanguageLetters, getLexeme,
+  getOccurrences, getSources, getTexts, getTextsForOrds, getTextsInRange, getTokens, getTranslationSources,
   readableTranslations, routeTranslation, searchPassages, searchWordsByForm, searchWordsByGloss, unrouteTranslation, type Db,
 } from "./queries";
 
@@ -141,6 +141,18 @@ describe.skipIf(!haveBundles)("queries against the core bundle", { timeout: 30_0
     expect(love.some((l) => l.script === "hebrew")).toBe(true);
   });
 
+  it("names Aramaic as Aramaic: Daniel 3:1 Aramaic, 1:1 Hebrew, 2:4 both (John, 15 Oct 2026)", async () => {
+    const name = async (verse: [number, number]) => originalLanguage("hebrew", await getLanguageLetters(core, verseOrd("DAN", ...verse), verseOrd("DAN", ...verse)));
+    expect(await name([3, 1])).toBe("Aramaic");
+    expect(await name([1, 1])).toBe("Hebrew");
+    expect(await name([2, 4])).toBe("Hebrew and Aramaic");
+    const king = await searchWordsByGloss(core, "king");
+    // H4428 is Hebrew's king (2,526 times); H4430 is Daniel and Ezra's Aramaic king.
+    expect(king.find((l) => l.occurrenceKey === "H4428")?.language).toBe("Hebrew");
+    expect(king.find((l) => l.occurrenceKey === "H4430")?.language).toBe("Aramaic");
+    expect((await searchWordsByForm(core, planSearch("λόγος").wordKey ?? ""))[0]?.language).toBe("Greek");
+  });
+
   it("counts λόγος by book and by verse (canvas S-04)", async () => {
     const [lexeme] = await searchWordsByForm(core, "λογοσ");
     expect(lexeme?.total).toBe(330);
@@ -241,19 +253,6 @@ describe.skipIf(!haveBundles || !existsSync(asvPath))("the pipeline's ASV file, 
     expect(verseTextIn(texts, "ASV", true)).toBeNull();
     expect((await getChapter(core, "MAT", 23, "ASV")).some((v) => v.verse === 14)).toBe(false);
     expect((await searchPassages(core, buildFtsQuery("beginning") ?? "", "ASV", 3)).length).toBe(3);
-  });
-});
-
-describe.skipIf(!existsSync(path.join(bundles, "jhn.v1.db")))("queries against Understand bundles", () => {
-  it("reads an entry and resolves John's pericopes", async () => {
-    const jhn = open(path.join(bundles, "jhn.v1.db"));
-    const row = await getEntryRow(jhn, "JHN.1.1");
-    expect(row?.review_status).toBe("flagged");
-    const pericopes = await getPericopes(jhn);
-    const entries = await getEntriesInRange(jhn, 43001001, 43001020);
-    const r = resolvePassage(pericopes, entries, 43001001, 43001020);
-    expect(r.pericopes.map((p) => p.pericope.label)).toEqual(["The Word became flesh", "The testimony of John the Baptist"]);
-    expect(r.pericopes[0]?.entries.map((e) => e.verse_id)).toEqual(["JHN.1.1"]);
   });
 });
 

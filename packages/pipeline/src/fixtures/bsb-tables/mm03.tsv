@@ -1,0 +1,40 @@
+Heb Sort	Greek Sort	BSB Sort	Verse	Language	WLC / Nestle Base TR RP WH NE NA SBL	WLC / Nestle Base {TR} ⧼RP⧽ (WH) 〈NE〉 [NA] ‹SBL› [[ECM]]	Translit	Parsing	Parsing	Str Heb	Str Grk	VerseId	Hdg	Crossref	Par	Space	begQ	 BSB version 	pnc	endQ	footnotes	End text
+1	0	1	1	Hebrew	בְּרֵאשִׁ֖ית	בְּרֵאשִׁ֖ית	bə·rê·šîṯ	Prep-b | N-fs	Preposition-b | Noun - feminine singular	7225		Genesis 1:1	<p class=|hdg|>The Creation	<br /><span class=|cross|>(<a href =|../john/1.htm|>John 1:1–5</a>; <a href =|../hebrews/11.htm|>Hebrews 11:1–3</a>)</span>	<p class=|reg|>			 In the beginning 				
+3	0	2	1	Hebrew	אֱלֹהִ֑ים	אֱלֹהִ֑ים	’ĕ·lō·hîm	N-mp	Noun - masculine plural	430								 God 				
+4	0	3	1	Hebrew	אֵ֥ת	אֵ֥ת	’êṯ	DirObjM	Direct object marker	853								 - 				
+2	0	4	1	Hebrew	בָּרָ֣א	בָּרָ֣א	bā·rā	V-Qal-Perf-3ms	Verb - Qal - Perfect - third person masculine singular	1254								 created 				
+5	0	5	1	Hebrew	הַשָּׁמַ֖יִם	הַשָּׁמַ֖יִם	haš·šā·ma·yim	Art | N-mp	Article | Noun - masculine plural	8064								 the heavens 				
+6	0	6	1	Hebrew	וְאֵ֥ת	וְאֵ֥ת	wə·’êṯ	Conj-w | DirObjM	Conjunctive waw | Direct object marker	853								 and 				
+7	0	7	1	Hebrew	הָאָֽרֶץ׃	הָאָֽרֶץ׃	hā·’ā·reṣ	Art | N-fs	Article | Noun - feminine singular	776								 the earth 	.			
+999999	78168	615114	26046	Greek	Ἐν	Ἐν	En	Prep	Preposition		1722	John 1:1	<p class=|hdg|>The Beginning	<br /><span class=|cross|>(<a href =|../genesis/1.htm|>Genesis 1:1–2</a>; <a href =|../hebrews/11.htm|>Hebrews 11:1–3</a>)</span>	<p class=|reg|>			 In 				
+999999	78169	615115	26046	Greek	ἀρχῇ	ἀρχῇ	archē	N-DFS	Noun - Dative Feminine Singular		746							 [the] beginning 				
+999999	78170	615116	26046	Greek	ἦν	ἦν	ēn	V-IIA-3S	Verb - Imperfect Indicative Active - 3rd Person Singular		1510							 was 				
+999999	78171	615117	26046	Greek	ὁ	ὁ	ho	Art-NMS	Article - Nominative Masculine Singular		3588							 the 				
+999999	78172	615118	26046	Greek	Λόγος	Λόγος	Logos	N-NMS	Noun - Nominative Masculine Singular		3056							 Word 	,			
+999999	78173	615119	26046	Greek	καὶ	καὶ	kai	Conj	Conjunction		2532							 and 				
+999999	78174	615120	26046	Greek	ὁ	ὁ	ho	Art-NMS	Article - Nominative Masculine Singular		3588							 the 				
+999999	78175	615121	26046	Greek	Λόγος	Λόγος	Logos	N-NMS	Noun - Nominative Masculine Singular		3056							 Word 				
+999999	78176	615122	26046	Greek	ἦν	ἦν	ēn	V-IIA-3S	Verb - Imperfect Indicative Active - 3rd Person Singular		1510							 was 				
+999999	78177	615123	26046	Greek	πρὸς	πρὸς	pros	Prep	Preposition		4314							 with 				
+999999	78178	615124	26046	Greek	τὸν	τὸν	ton	Art-AMS	Article - Accusative Masculine Singular		3588							 - 				
+999999	78179	615125	26046	Greek	Θεόν	Θεόν	Theon	N-AMS	Noun - Accusative Masculine Singular		2316							 God 	,			
+999999	78180	615126	26046	Greek	καὶ	καὶ	kai	Conj	Conjunction		2532							 and 				
+999999	78183	615127	26046	Greek	ὁ	ὁ	ho	Art-NMS	Article - Nominative Masculine Singular		3588							 the 				
+999999	78184	615128	26046	Greek	Λόγος	Λόγος	Logos	N-NMS	Noun - Nominative Masculine Singular		3056							 Word 				
+999999	78182	615129	26046	Greek	ἦν	ἦν	ēn	V-IIA-3S	Verb - Imperfect Indicative Active - 3rd Person Singular		1510							 was 				
+999999	78181	615130	26046	Greek	Θεὸς	Θεὸς	Theos	N-NMS	Noun - Nominative Masculine Singular		2316							 God 	.			
+999999	78576	615521	26063	Greek	οὐδεὶς	οὐδεὶς	oudeis	Adj-NMS	Adjective - Nominative Masculine Singular		3762	John 1:18						 No one 				
+999999	78577	615522	26063	Greek	ἑώρακεν	ἑώρακεν	heōraken	V-RIA-3S	Verb - Perfect Indicative Active - 3rd Person Singular		3708							 has ever seen 				
+999999	78578	615523	26063	Greek	πώποτε	πώποτε	pōpote	Adv	Adverb		4455							 . . . 				
+999999	78575	615524	26063	Greek	Θεὸν	Θεὸν	Theon	N-AMS	Noun - Accusative Masculine Singular		2316							 God 	,			
+999999	78579	615525	26063	Greek	μονογενὴς	μονογενὴς	monogenēs	Adj-NMS	Adjective - Nominative Masculine Singular		3439							 [but] the one and only Son 	,			
+999999	78580	615526	26063	Greek	Θεὸς	Θεὸς	Theos	N-NMS	Noun - Nominative Masculine Singular		2316							 [who is Himself] God 				
+999999	78581	615527	26063	Greek	ὁ	ὁ	ho	Art-NMS	Article - Nominative Masculine Singular		3588							 [and] 			Or <i>but the only begotten God, who</i>; BYZ and TR <i>but the only begotten Son, who</i>	
+999999	78582	615528	26063	Greek	ὢν	ὢν	ōn	V-PPA-NMS	Verb - Present Participle Active - Nominative Masculine Singular		1510							 is 				
+999999	78583	615529	26063	Greek	εἰς	εἰς	eis	Prep	Preposition		1519							 at 				
+999999	78584	615530	26063	Greek	τὸν	τὸν	ton	Art-AMS	Article - Accusative Masculine Singular		3588							 the 				
+999999	78586	615531	26063	Greek	τοῦ	τοῦ	tou	Art-GMS	Article - Genitive Masculine Singular		3588							 vvv 				
+999999	78587	615532	26063	Greek	Πατρὸς	Πατρὸς	Patros	N-GMS	Noun - Genitive Masculine Singular		3962							 Father’s 				
+999999	78585	615533	26063	Greek	κόλπον	κόλπον	kolpon	N-AMS	Noun - Accusative Masculine Singular		2859							 side 	,		Greek <i>in the Father’s bosom</i>	
+999999	78588	615534	26063	Greek	ἐκεῖνος	ἐκεῖνος	ekeinos	DPro-NMS	Demonstrative Pronoun - Nominative Masculine Singular		1565							 - 				
+999999	78589	615535	26063	Greek	ἐξηγήσατο	ἐξηγήσατο	exēgēsato	V-AIM-3S	Verb - Aorist Indicative Middle - 3rd Person Singular		1834							 has made [Him] known 	.			

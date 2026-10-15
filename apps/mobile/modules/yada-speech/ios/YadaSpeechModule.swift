@@ -32,8 +32,27 @@ struct NowPlaying: Record {
   @Field var playing: Bool = false
 }
 
+struct Segment: Record {
+  /// A local file path to the chapter's recording (data/recordings.ts keeps it in Documents).
+  @Field var path: String = ""
+  /// Seconds into the file where this verse starts and ends.
+  @Field var start: Double = 0
+  @Field var end: Double = 0
+  /// When each word starts, and where it sits in the verse's spoken form (the same offsets onRange carries).
+  @Field var times: [Double] = []
+  @Field var locations: [Int] = []
+}
+
 public class YadaSpeechModule: Module {
   private let synth = AVSpeechSynthesizer()
+  /// The human-read recording (BA-01): one chapter file, played a verse at a time so JS keeps one queue for
+  /// both voices. A verse that follows on in the same file carries on without a seek, so there is no gap.
+  private var player: AVAudioPlayer?
+  private var playerPath: String?
+  private var segment: Segment?
+  private var segmentId: String?
+  private var nextWord = 0
+  private var ticker: Timer?
   private var delegate: Delegate?
   private var commandsReady = false
   private var sessionObservers: [NSObjectProtocol] = []
@@ -91,6 +110,9 @@ public class YadaSpeechModule: Module {
     AsyncFunction("speak") { (id: String, phrases: [Phrase], rate: Double, lead: Double, voiceId: String?) in
       try self.activateSession()
       self.setUpRemoteCommands()
+      // The recording runs on past a verse's end by design; the iPhone voice taking over must silence it
+      // (review, 12 Oct 2026: both read at once after a switch in the Voice sheet).
+      if self.player != nil { self.stopRecording() }
       if self.synth.isSpeaking || self.synth.isPaused {
         self.synth.stopSpeaking(at: .immediate)
       }
@@ -112,9 +134,37 @@ public class YadaSpeechModule: Module {
       }
     }.runOnQueue(.main)
 
+    /// One verse of a recording: plays from `start`, reports each word as it passes and finishes at `end`.
+    AsyncFunction("playSegment") { (id: String, segment: Segment, rate: Double) in
+      try self.activateSession()
+      self.setUpRemoteCommands()
+      if self.synth.isSpeaking || self.synth.isPaused { self.synth.stopSpeaking(at: .immediate) }
+      if self.playerPath != segment.path || self.player == nil {
+        self.player?.stop()
+        let player = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: segment.path))
+        player.enableRate = true
+        player.prepareToPlay()
+        self.player = player
+        self.playerPath = segment.path
+      }
+      guard let player = self.player else { return }
+      player.rate = Float(min(max(rate, 0.5), 2.0))
+      // Carry on without a seek when this verse starts where the last one stopped (within a quarter second).
+      if !(player.isPlaying && abs(player.currentTime - segment.start) < 0.25) {
+        player.currentTime = segment.start
+      }
+      self.segment = segment
+      self.segmentId = id
+      self.nextWord = 0
+      if !player.isPlaying { player.play() }
+      self.sendEvent("onStart", ["id": id])
+      self.startTicker()
+    }.runOnQueue(.main)
+
     AsyncFunction("pause") {
       // .immediate, not .word: pause answers the tap at once, and continue resumes mid-word cleanly.
       _ = self.synth.pauseSpeaking(at: .immediate)
+      self.pausePlayer()
     }.runOnQueue(.main)
 
     AsyncFunction("resume") { () -> Bool in
@@ -123,10 +173,16 @@ public class YadaSpeechModule: Module {
       // and sent nothing, so continuing would read on in the Personal Voice in the background (voiceFor).
       // False makes JS restart at the word, and that speak call gets the system voice.
       if self.speakingPersonal && UIApplication.shared.applicationState != .active { return false }
+      if let player = self.player, self.segment != nil {
+        player.play()
+        self.startTicker()
+        return true
+      }
       return self.synth.continueSpeaking()
     }.runOnQueue(.main)
 
     AsyncFunction("stop") {
+      self.stopRecording()
       self.synth.stopSpeaking(at: .immediate)
       self.delegate?.tags.removeAll()
       self.speakingPersonal = false
@@ -163,6 +219,51 @@ public class YadaSpeechModule: Module {
     else { return nil }
     return MPMediaItemArtwork(boundsSize: image.size) { _ in image }
   }()
+
+  // MARK: - Recording
+
+  private func startTicker() {
+    ticker?.invalidate()
+    // Twenty times a second: enough for the word pill to follow speech without spending the battery.
+    ticker = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in self?.tick() }
+  }
+
+  private func tick() {
+    guard let player, let segment, let id = segmentId else { return }
+    let now = player.currentTime
+    while nextWord < segment.times.count, nextWord < segment.locations.count, segment.times[nextWord] <= now {
+      sendEvent("onRange", ["id": id, "location": segment.locations[nextWord], "length": 1])
+      nextWord += 1
+    }
+    // Every pause stops the ticker, so a stopped player here reached the end of the file, where it puts
+    // currentTime back to 0 (review, 12 Oct 2026: the last verse never finished). Mid-verse, a stop the
+    // system made (an interruption arriving after this tick) is left to its notification.
+    let ended = !player.isPlaying && (now < 0.05 || now >= segment.end - 0.3)
+    if now >= segment.end - 0.02 || ended {
+      // The verse is done; the player runs on into the next verse, which JS asks for at once.
+      self.segment = nil
+      self.segmentId = nil
+      ticker?.invalidate()
+      ticker = nil
+      sendEvent("onFinish", ["id": id])
+    }
+  }
+
+  private func pausePlayer() {
+    player?.pause()
+    ticker?.invalidate()
+    ticker = nil
+  }
+
+  private func stopRecording() {
+    ticker?.invalidate()
+    ticker = nil
+    player?.stop()
+    player = nil
+    playerPath = nil
+    segment = nil
+    segmentId = nil
+  }
 
   // MARK: - Voice
 
@@ -259,6 +360,7 @@ public class YadaSpeechModule: Module {
       if type == .began {
         // A call or Siri: pause and stay paused unless the system says to resume (coordinator, 11 Oct 2026).
         _ = self.synth.pauseSpeaking(at: .immediate)
+        self.pausePlayer()
         self.sendEvent("onInterruption", ["began": true, "shouldResume": false])
       } else {
         let opts = AVAudioSession.InterruptionOptions(rawValue: (info[AVAudioSessionInterruptionOptionKey] as? UInt) ?? 0)
@@ -270,6 +372,7 @@ public class YadaSpeechModule: Module {
             AVAudioSession.RouteChangeReason(rawValue: raw) == .oldDeviceUnavailable else { return }
       // Headphones pulled or Bluetooth gone: never carry on out of the speaker.
       _ = self.synth.pauseSpeaking(at: .immediate)
+      self.pausePlayer()
       self.sendEvent("onRouteLost", [:])
     })
     sessionObservers.append(center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in

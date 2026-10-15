@@ -427,6 +427,76 @@ summary:focus-visible {
   overflow-x: auto;
 }
 
+/* ---- Debate positions ------------------------------------------------- */
+
+/* One passage per section, separated by hairlines rather than cards. */
+.debate {
+  padding: var(--xl) 0;
+  scroll-margin-top: var(--md);
+}
+.debate + .debate {
+  border-top: 1px solid var(--divider);
+}
+.debate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--md);
+  flex-wrap: wrap;
+}
+.debate-head .label {
+  color: var(--ink);
+}
+.debate-verses .scripture {
+  font-size: 19px;
+}
+.vnum {
+  font-family: var(--ui);
+  font-size: 10px;
+  color: var(--muted);
+  margin-right: 2px;
+}
+.show-all {
+  min-height: 44px;
+}
+.debate-positions {
+  margin-top: var(--lg);
+  gap: var(--lg);
+}
+.debate-position.rejected .explanation {
+  color: var(--muted);
+}
+.debate-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--lg);
+}
+.debate-actions .act {
+  min-height: 44px;
+}
+.debate-status {
+  font-size: 13px;
+  font-weight: 500;
+}
+.side-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--md);
+  margin: var(--md) 0;
+}
+.side-input {
+  min-height: 44px;
+  min-width: 12em;
+  font: inherit;
+}
+.side-field .act {
+  min-height: 44px;
+}
+.side-field .act[aria-pressed="true"] {
+  font-weight: 600;
+}
+
 /* ---- Decision bar ----------------------------------------------------- */
 
 .actions {
@@ -487,6 +557,18 @@ summary:focus-visible {
   outline: none;
   border-bottom-color: var(--accent);
 }
+.fix-note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--md);
+}
+.fix-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-bottom: var(--md);
+}
 .buttons {
   display: flex;
   gap: var(--md);
@@ -524,10 +606,23 @@ kbd {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
   }
+  /*
+   * Stacked, the rail is capped and scrolls as one block. Without the
+   * overflow, its lists spilled past the cap and under the main view
+   * (in-app browser pane, ~800px wide).
+   */
   .rail {
     border-right: 0;
     border-bottom: 1px solid var(--divider);
     max-height: 38vh;
+    overflow-y: auto;
+  }
+  .items {
+    flex: none;
+    overflow-y: visible;
+  }
+  .main {
+    background: var(--paper);
   }
   .actions-row {
     grid-template-columns: 1fr;

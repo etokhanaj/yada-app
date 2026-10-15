@@ -1,0 +1,2148 @@
+{
+ "_why": "John, 12 Oct 2026: on a few passages, readers (Jewish and Christian, or within each) divide over meaning, and tN gives one side or none. These are the one place Yada needs human writing: John or a trusted reviewer writes a fair note giving two or three readings. Until an entry has a note with status 'approved', the reader sees nothing extra and the report flags the passage. In every listed passage, no summary sentence comes from the disputed verses. 'question' is the candidate's subject, for John's list only; it is never shown. Option 3 (John, 12 Oct): instead of prose, John fills 'positions' with two or three readings, each at most 18 words, optionally naming who holds it ('held_by', e.g. 'many Jewish readers'). The app sets them in the Readers differ sentence. Set 'status' to 'approved' when done. Where tN already gives readings, those show meanwhile (option 1). 'kind' (John, 12 Oct): 'data' shows only the JPS 1917 verse (Old Testament) or the manuscript fact; 'tn-readings' shows tN's readings (verse notes, or a chapter introduction that sets out two readings) meanwhile; 'positions' shows nothing until John approves positions; 'held' shows nothing. Each position may carry 'source' (e.g. 'Tyndale Open Study Notes, JHN 6:53-58'), credited under Sources. Positions (John, 12 Oct, supersedes 'note' and the 18-word form): each position is a source's own sentence, unchanged, with 'source' (e.g. 'Tyndale Open Study Notes') and its own 'status'; John approves or rejects each and writes nothing. 'held_by' only where the source's own words say it. Two or more approved positions show; a passage with no source stating two views moves to kind 'held'. 'relation' (John, 12 Oct): 'differ' by default; 'together' where the readings can sit side by side rather than oppose (PSA 2:7, ISA 14:12–15). It changes only Yada's fixed lead-in ('Readers explain this in more than one way'); the slot is still Readers differ and the quotes are never edited.",
+ "entries": [
+  {
+   "book": "GEN",
+   "from": [
+    1,
+    1
+   ],
+   "to": [
+    2,
+    3
+   ],
+   "question": "Whether the six days are ordinary days, long ages, or a literary frame",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "But if the days of creation are regulated by the recurring interchange of light and darkness, they must be regarded not as periods of time of incalculable duration, of years or thousands of years, but as simple earthly days.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/01.BCOT.KD.PentateuchMoses.vol.1.Law._djvu.txt:2477",
+     "status": "approved",
+     "side": "ordinary days"
+    },
+    {
+     "text": "The periods of creation, which modern geology maintains with such confidence, that not a few theologians have accepted them as undoubted and sought to bring them into harmony with the scriptural account of the creation, if not to deduce them from the Bible itself, are inferences partly from the successive strata which compose the crust of the earth, and partly from the various fossil remains of plants and animals to be found in those strata.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/01.BCOT.KD.PentateuchMoses.vol.1.Law._djvu.txt:1997",
+     "status": "rejected"
+    },
+    {
+     "text": "The work of creation does not fall, as Herder and others maintain, into two triads of days, with the work of the second answering to that of the first.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/01.BCOT.KD.PentateuchMoses.vol.1.Law._djvu.txt:1819",
+     "status": "approved",
+     "side": "ordinary days"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "GEN",
+   "from": [
+    1,
+    26
+   ],
+   "to": [
+    1,
+    26
+   ],
+   "question": "Who “us” is in “Let us make man”",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The plural us has inspired several explanations: (1) the Trinity; (2) the plural to denote majesty; (3) a plural to show deliberation with the self; and (4) God speaking with his heavenly court of angels.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 1:26",
+     "status": "approved",
+     "side": "lists several views"
+    },
+    {
+     "text": "Hebrew scholars generally dismiss the plural of majesty view because the grammar does not clearly support it",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 1:26",
+     "status": "approved",
+     "side": "context"
+    },
+    {
+     "text": "The plural “We” was regarded by the fathers and earlier theologians almost unanimously as indicative of the Trinity : modern commentators, on the contrary, regard it either as pluralis majestatis ; or as an address by God to Himself, the subject and object being identical ; or as communicative, an address to the spirits or angels who stand around the Deity and constitute His council.\" (scan: \"Tlig plnrnl",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92) (scan errors corrected)",
+     "ref": "keil-delitzsch/01.BCOT.KD.PentateuchMoses.vol.1.Law._djvu.txt:2984",
+     "status": "rejected"
+    },
+    {
+     "text": "The text tells us he was the work of Elohim, the Divine Plurality, marked here more distinctly by the plural pronouns Us and Our; and to show that he was the masterpiece of God's creation, all the persons in the Godhead are represented as united in counsel and effort to produce this astonishing creature.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Gen 1:26",
+     "status": "draft",
+     "side_suggested": "Trinity"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "GEN",
+   "from": [
+    3,
+    15
+   ],
+   "to": [
+    3,
+    15
+   ],
+   "question": "Whether the woman’s offspring crushing the serpent points to one person or to humanity",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "GEN",
+   "from": [
+    6,
+    1
+   ],
+   "to": [
+    6,
+    4
+   ],
+   "question": "Who the “sons of God” are",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The sons of God have generally been understood as fallen angels (cp. the same Hebrew phrase in Job 1:6; 2:1; 38:7; Pss 29:1; 89:7).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 6:1-2",
+     "status": "approved",
+     "side": "fallen angels"
+    },
+    {
+     "text": "Others believe that sons of God refers to tyrannical human kings (possibly demon-possessed) who took Lamech’s polygamy (4:19) to a new height of wickedness by seizing the daughters of the righteous.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 6:1-2",
+     "status": "approved",
+     "side": "human kings"
+    },
+    {
+     "text": "As there is a distinction made here between men and those called the sons of God, it is generally supposed that the immediate posterity of Cain and that of Seth are intended.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Gen 6:1",
+     "status": "approved",
+     "side": "Sethite"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "GEN",
+   "from": [
+    49,
+    10
+   ],
+   "to": [
+    49,
+    10
+   ],
+   "question": "What “until Shiloh comes” (or “until tribute comes”) means",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "EXO",
+   "from": [
+    3,
+    14
+   ],
+   "to": [
+    3,
+    14
+   ],
+   "question": "What “I AM WHO I AM” means",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "God’s direct response is almost a riddle, but the majority of his answer is a statement of his faithfulness in the past and a demonstration of his knowledge of the future.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 3:13-22",
+     "status": "rejected"
+    },
+    {
+     "text": "By saying this, God is teaching that he is eternal; he has always lived and always will live.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 3:14",
+     "status": "approved",
+     "side": "God is eternal"
+    },
+    {
+     "text": "As the original words literally signify, I will be what I will be, some have supposed that God simply designed to inform Moses, that what he had been to his fathers Abraham, Isaac, and Jacob, he would be to him and the Israelites; and that he would perform the promises he had made to his fathers, by giving their descendants the promised land.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Exod 3:14",
+     "status": "approved",
+     "side": "presence and faithfulness"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "EXO",
+   "from": [
+    21,
+    22
+   ],
+   "to": [
+    21,
+    25
+   ],
+   "question": "Whether the harm is a miscarriage or an early birth",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "LEV",
+   "from": [
+    18,
+    22
+   ],
+   "to": [
+    18,
+    22
+   ],
+   "question": "What the law forbids and whether it applies today",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "held"
+  },
+  {
+   "book": "LEV",
+   "from": [
+    20,
+    13
+   ],
+   "to": [
+    20,
+    13
+   ],
+   "question": "What the law forbids and whether it applies today",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "held"
+  },
+  {
+   "book": "DEU",
+   "from": [
+    20,
+    16
+   ],
+   "to": [
+    20,
+    18
+   ],
+   "question": "How to read the command to destroy the cities completely",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "held"
+  },
+  {
+   "book": "JDG",
+   "from": [
+    11,
+    29
+   ],
+   "to": [
+    11,
+    40
+   ],
+   "question": "Whether Jephthah sacrificed his daughter or dedicated her",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Jephthah kept the vow by sacrificing his daughter—there is no evidence that he merely kept her permanently celibate (cp. 11:37).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:39",
+     "status": "approved",
+     "side": "sacrificed"
+    },
+    {
+     "text": "The father fulfilled his vow upon her, and she knew no man; i.e. he fulfilled the vow through the fact that she knew no man, but dedicated her life to the Lord, as a spiritual burnt-offering, in a lifelong chastity.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92) (scan errors corrected)",
+     "ref": "keil-delitzsch/02.BCOT.KD.HistoricalBooks.A.vol.2.EarlyProphets._djvu.txt:19903",
+     "status": "approved",
+     "side": "dedicated, not sacrificed"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "1SA",
+   "from": [
+    28,
+    7
+   ],
+   "to": [
+    28,
+    20
+   ],
+   "question": "Whether Samuel himself appeared to Saul",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Nevertheless the fathers, reformers, and earlier Christian theologians, with very few exceptions, assumed that there was not a real appearance of Samuel, but only an imaginary one.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/02.BCOT.KD.HistoricalBooks.A.vol.2.EarlyProphets._djvu.txt:38326",
+     "status": "rejected",
+     "held_by": "the fathers, reformers, and earlier Christian theologians"
+    },
+    {
+     "text": "It was not till the seventeenth century that the opinion was expressed, that the apparition of Samuel was merely a delusion produced by the witch, without any real background at all.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/02.BCOT.KD.HistoricalBooks.A.vol.2.EarlyProphets._djvu.txt:38355",
+     "status": "rejected"
+    },
+    {
+     "text": "… the more modern orthodox commentators are unanimous in the opinion that the departed prophet did really appear and announce the destruction of Saul, not, however, in consequence of the magical arts of the witch, but through a miracle wrought by the omnipotence of God.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/02.BCOT.KD.HistoricalBooks.A.vol.2.EarlyProphets._djvu.txt:38374",
+     "status": "rejected"
+    },
+    {
+     "text": "According to the explanation given by Ephraem Syrus, an apparent image of Samuel was presented to the eye of Saul through demoniacal arts.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/02.BCOT.KD.HistoricalBooks.A.vol.2.EarlyProphets._djvu.txt:38329",
+     "status": "approved",
+     "held_by": "Ephraem Syrus",
+     "side": "not Samuel himself"
+    },
+    {
+     "text": "“It is certain,” he says, “that it was not really Samuel, for God would never have allowed His prophets to be subjected to such diabolical conjuring.”",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/02.BCOT.KD.HistoricalBooks.A.vol.2.EarlyProphets._djvu.txt:38383",
+     "status": "rejected",
+     "held_by": "Calvin"
+    },
+    {
+     "text": "Some deny the possibility of the thing, and say that it was the devil that personified Samuel; and others, that the whole was the imposition of this cunning woman, and that there was no supernatural agency in the business.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on 1 Sam 28",
+     "status": "rejected"
+    },
+    {
+     "text": "I believe Samuel did actually appear to Saul; and that he was sent by the especial mercy of God to warn this infatuated king of his approaching death, that he might have an opportunity to make his peace with his Maker.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on 1 Sam 28",
+     "status": "approved",
+     "side": "Samuel himself"
+    },
+    {
+     "text": "The prohibition of witchcraft and necromancy (Deut. xviii. 11; Isa. viii. 19), which the earlier writers quote against this, does not preclude the possibility of God having, for His own special reasons, caused Samuel to appear.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/02.BCOT.KD.HistoricalBooks.A.vol.2.EarlyProphets._djvu.txt:38438",
+     "status": "rejected"
+    },
+    {
+     "text": "Samuel is the only known exception; God apparently commanded him to return and speak (see 1 Sam 28:12-19).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “Calling up the Dead”",
+     "status": "rejected"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "JOB",
+   "from": [
+    19,
+    25
+   ],
+   "to": [
+    19,
+    27
+   ],
+   "question": "Whether Job hopes to be vindicated in this life or after death",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Job’s faith in a Redeemer could find fulfillment only in Christ; the same was true of his request for an advocate (9:33) and a witness in heaven (16:19).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 19:25",
+     "status": "rejected"
+    },
+    {
+     "text": "Job had faith that he would be vindicated even if death came first.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 19:26",
+     "status": "approved",
+     "side": "vindicated after death"
+    },
+    {
+     "text": "Job believes that even if God is treating him unfairly now, God will ultimately do the right thing.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 19 intro",
+     "status": "rejected"
+    },
+    {
+     "text": "By learned men and eminent critics the words have been understood very differently; some vehemently contending that they refer to the resurrection of the body, and the redemption of the human race by Jesus Christ; while others, with equal vehemence and show of argument, have contended that they refer only to Job's restoration to health, family comforts, and general prosperity, after the present trial should be ended.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Job 19:25",
+     "status": "approved",
+     "side": "lists both views"
+    },
+    {
+     "text": "His firm hope is here supposed to be that, before his death, he should, with his bodily eyes, see God appearing and vindicating his character.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Job 19:29",
+     "status": "draft",
+     "held_by": "Dr. Kennicott",
+     "side_suggested": "vindicated in this life"
+    },
+    {
+     "text": "Job was taught of God to believe in a living Redeemer; to look for the resurrection of the dead, and the life of the world to come; he comforted himself with the expectation of these.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Job 19:23-29",
+     "status": "draft",
+     "side_suggested": "resurrection of the body"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "PSA",
+   "from": [
+    2,
+    7
+   ],
+   "to": [
+    2,
+    7
+   ],
+   "question": "Whether “You are my Son” speaks of Israel’s king, the Messiah, or both",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "It may, however, be a king of the time, who is here regarded in the light of the Messianic promise, or that King of the future, in whom at a future period the mission of the Davidic kingship in the world shall be fulfilled",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/04.BCOT.KD.PoeticalBooks.vol.4.Writings._djvu.txt from line 4819 (Psalm 2 intro)",
+     "status": "approved",
+     "side": "both"
+    },
+    {
+     "text": "It was probably first sung when a new person became the king.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN Psalm 2 intro",
+     "status": "approved",
+     "side": "Israel's king"
+    }
+   ],
+   "kind": "positions",
+   "relation": "together"
+  },
+  {
+   "book": "PSA",
+   "from": [
+    22,
+    16
+   ],
+   "to": [
+    22,
+    16
+   ],
+   "question": "Whether the phrase is “they pierced” or “like a lion”",
+   "note": null,
+   "status": "candidate",
+   "suggested_note": "One phrase in verse 16 is read as “they pierced” or as “like a lion”.",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "PSA",
+   "from": [
+    110,
+    1
+   ],
+   "to": [
+    110,
+    1
+   ],
+   "question": "Who “my Lord” is",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "PSA",
+   "from": [
+    137,
+    8
+   ],
+   "to": [
+    137,
+    9
+   ],
+   "question": "How to read a prayer for children to be killed",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "It is zeal for God that puts such harsh words into the mouth of the poet.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/04.BCOT.KD.PoeticalBooks.vol.4.Writings._djvu.txt:61892",
+     "status": "rejected"
+    },
+    {
+     "text": "On the other hand, it cannot be denied that the “blessed” of this Psalm is not suited to the mouth of the New Testament church.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/04.BCOT.KD.PoeticalBooks.vol.4.Writings._djvu.txt:61897",
+     "status": "approved",
+     "side": "not for Christians to pray"
+    },
+    {
+     "text": "These prophetic declarations contain no excitement to any person or persons to commit acts of cruelty and barbarity; but are simply declarative of what would take place in the order of the retributive providence and justice of God, and the general opinion that should in consequence be expressed on the subject",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) On 137:9",
+     "status": "approved",
+     "side": "a prophecy of judgment"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "PRO",
+   "from": [
+    8,
+    22
+   ],
+   "to": [
+    8,
+    31
+   ],
+   "question": "Whether Wisdom is a figure of speech or a person beside God",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "This wisdom the poet here personifies ; he does not speak of the personal Logos, but the further progress of the revelation points to her actual personification in the Logos.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/04.BCOT.KD.PoeticalBooks.vol.4.Writings._djvu.txt:76448",
+     "status": "approved",
+     "side": "a figure of speech"
+    },
+    {
+     "text": "The Targum makes this wisdom a creature, by thus translating the passage: אלהא בראני בריש בריתיה Elaha barani bereish biriteiah, “God created me in the beginning of his creatures.”",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) On 8:22",
+     "status": "rejected",
+     "note": "Whole sentence restored from the module text: the doc's quote elided the Aramaic and its transliteration; a position is the source's sentence unchanged."
+    },
+    {
+     "text": "Wisdom is not acquired by the Divine Being; man, and even angels, learn it by slow and progressive degrees; but in God it is as eternally inherent as any other essential attribute of his nature.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) On 8:22",
+     "status": "approved",
+     "side": "a figure of speech"
+    },
+    {
+     "text": "they who think they find the deity of Jesus Christ in these metaphors should be very cautious how they apply such terms as these",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) On 8:30",
+     "status": "rejected"
+    },
+    {
+     "text": "The Son of God declares himself to have been engaged in the creation of the world.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Prov 8:22-31",
+     "status": "draft",
+     "side_suggested": "the Son of God"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "SNG",
+   "from": [
+    1,
+    1
+   ],
+   "to": [
+    8,
+    14
+   ],
+   "question": "Whether the book is a love poem, an allegory of God and his people, or both",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Likewise, the Aramaic Targum (interpretive paraphrase) of the Song presents it as the story of God’s relationship with Israel from the Exodus to the future reign of the Messiah.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN intro “Interpreting the Song”",
+     "status": "rejected"
+    },
+    {
+     "text": "This allegorical view represents the predominant Jewish and Christian interpretation of the Song from Aqiba’s time through the mid-1800s.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN intro “Interpreting the Song”",
+     "status": "rejected"
+    },
+    {
+     "text": "Early Christian interpreters, such as Origen (AD 185–253) and Jerome (AD 347–420), adopted the allegorical interpretation but identified the man as Jesus Christ and the woman as the individual Christian or the church as a whole.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN intro “Interpreting the Song”",
+     "status": "approved",
+     "side": "allegory"
+    },
+    {
+     "text": "Today it is generally agreed that the Song speaks God’s wisdom into this important area of our lives as human beings: It affirms and celebrates God’s good gift of love and sexuality in the context of marriage.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN intro “Interpreting the Song”",
+     "status": "approved",
+     "side": "love poem"
+    },
+    {
+     "text": "Many Christians also think that, even though the main meaning of this poem is to give a beautiful portrayal of romantic love between a man and a woman, this book also contains lessons about God’s love for his bride, the Church.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN book intro",
+     "status": "approved",
+     "side": "both"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "ISA",
+   "from": [
+    7,
+    14
+   ],
+   "to": [
+    7,
+    14
+   ],
+   "question": "Whether the word means “virgin” or “young woman”, and who the child is",
+   "note": null,
+   "status": "candidate",
+   "suggested_note": "One word in verse 14 is read as “virgin” or as “young woman”.",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "ISA",
+   "from": [
+    9,
+    6
+   ],
+   "to": [
+    9,
+    7
+   ],
+   "question": "Who the child is and what his names mean",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Many interpreters understand this oracle to apply initially to Hezekiah, the son of Ahaz, who was a godly king.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 9 intro",
+     "status": "approved",
+     "side": "Hezekiah"
+    },
+    {
+     "text": "It has a further fulfillment in the ministry of Jesus, as Matthew 4:12–16 indicates.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 9 intro",
+     "status": "rejected"
+    },
+    {
+     "text": "Mighty God is an affirmation of the Messiah’s divine nature.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 9:6",
+     "status": "approved",
+     "side": "messianic"
+    },
+    {
+     "text": "This is an illustrious prophecy of the incarnation of Christ, with an enumeration of those characters in which he stands most nearly related to mankind as their Savior; and of others by which his infinite majesty and Godhead are shown.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Isa 9:7",
+     "status": "rejected",
+     "side_suggested": "messianic"
+    }
+   ],
+   "kind": "data"
+  },
+  {
+   "book": "ISA",
+   "from": [
+    14,
+    12
+   ],
+   "to": [
+    14,
+    15
+   ],
+   "question": "Whether the fallen “morning star” is the king of Babylon only, or also Satan",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Some see the fall of the king of Babylon here as symbolizing the fall of Satan (see Ezek 28; Luke 10:18; Rev 12:9).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 14:12",
+     "status": "approved",
+     "side": "also Satan"
+    },
+    {
+     "text": "However, there is little to suggest that Isaiah understood it in that way. He was thinking of the historical king of Babylon.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 14:12",
+     "status": "approved",
+     "side": "king of Babylon only"
+    }
+   ],
+   "kind": "positions",
+   "relation": "together"
+  },
+  {
+   "book": "ISA",
+   "from": [
+    52,
+    13
+   ],
+   "to": [
+    53,
+    12
+   ],
+   "question": "Who the servant is",
+   "note": null,
+   "status": "candidate",
+   "suggested_note": "Jewish and Christian readers understand who the servant is differently.",
+   "positions": [
+    {
+     "text": "Behold in the latter days my servant Jacob, i.e. the righteous who are in him, will prosper",
+     "source": "Rashi, in Driver and Neubauer, The Fifty-third Chapter of Isaiah According to the Jewish Interpreters (1877)",
+     "ref": "driver-neubauer/fiftythirdchapte02neub_djvu.txt (Rashi, on 52:13)",
+     "status": "approved",
+     "side": "Israel"
+    },
+    {
+     "text": "This prophet speaks constantly of the whole people as one man",
+     "source": "Rashi, in Driver and Neubauer, The Fifty-third Chapter of Isaiah According to the Jewish Interpreters (1877)",
+     "ref": "driver-neubauer/fiftythirdchapte02neub_djvu.txt (Rashi, on 53:3)",
+     "status": "rejected"
+    },
+    {
+     "text": "Behold my servant Messiah shall prosper",
+     "source": "the Targum, in Driver and Neubauer, The Fifty-third Chapter of Isaiah According to the Jewish Interpreters (1877)",
+     "ref": "driver-neubauer/fiftythirdchapte02neub_djvu.txt (Targum of Jonathan, on 52:13)",
+     "status": "approved",
+     "held_by": "the Targum",
+     "side": "the Messiah"
+    },
+    {
+     "text": "The prophet sees how the Messiah will bring a great deliverance to the whole world",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 53 intro",
+     "status": "approved",
+     "side": "the Messiah"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "JER",
+   "from": [
+    31,
+    31
+   ],
+   "to": [
+    31,
+    34
+   ],
+   "question": "Who the new covenant is for and when it comes",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The covenant which the Lord will make with all Israel in the future is called “a new covenant,” as compared with that made with the fathers at Sinai",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:73954",
+     "status": "approved",
+     "side": "all Israel, in the future"
+    },
+    {
+     "text": "A new covenant - The Christian dispensation.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) On 31:31",
+     "status": "rejected"
+    },
+    {
+     "text": "The re-establishment of Israel reaches its completion in the making of a new covenant, according to which the law of God is written in the hearts of the people; thereby Israel becomes in truth the people of the Lord, and the knowledge of God founded on the experience of the forgiveness of sins is such that there is no further need of any external means like mutual teaching about God (vers. 31-34).",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:73926",
+     "status": "rejected"
+    },
+    {
+     "text": "In the old covenant, the law with its requirements is the impelling force; in the new covenant, the grace shown in the forgiveness of sins is the aiding power by which man attains that common life with God which the law sets before him as the great problem of life.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:74076",
+     "status": "approved",
+     "side": "context"
+    },
+    {
+     "text": "The key difference between the new covenant and the one God made with their ancestors is that the Lord would write his instructions deep within his people's hearts (see Heb 10:16).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 31:32-34",
+     "status": "approved",
+     "side": "context"
+    },
+    {
+     "text": "The day of the new covenant was realized when Jesus Christ accomplished his redemptive mission on earth (see Heb 8:8-12).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 31:31",
+     "status": "draft",
+     "side_suggested": "fulfilled in the church"
+    },
+    {
+     "text": "In Heb. 8:8,9, this place is quoted as the sum of the covenant of grace made with believers in Jesus Christ.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Jer 31:27-34",
+     "status": "draft",
+     "side_suggested": "fulfilled in the church"
+    }
+   ],
+   "kind": "positions",
+   "relation": "together"
+  },
+  {
+   "book": "EZK",
+   "from": [
+    28,
+    12
+   ],
+   "to": [
+    28,
+    19
+   ],
+   "question": "Whether the lament is about the king of Tyre only, or also Satan",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "This chapter and Isa 14 (about the king of Babylon) have often been interpreted as referring to the heavenly conflict between God and Satan, “the prince of demons” (Matt 12:24).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 28:1-19",
+     "status": "approved",
+     "side": "also Satan"
+    },
+    {
+     "text": "However, this view ignores the historical nature of both passages.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 28:1-19",
+     "status": "rejected"
+    },
+    {
+     "text": "He personifies the city of Tyre, so his fate represents Tyre's fate.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 28:1-19",
+     "status": "rejected"
+    },
+    {
+     "text": "The prince of Tyre's God-given beauty and wisdom were corrupted by his pride, which inevitably led to disaster and exposed his true nature.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 28:15-18",
+     "status": "approved",
+     "side": "king of Tyre only"
+    },
+    {
+     "text": "The political powers that oppose God and his people may be agents of Satan in his struggle against God.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 28:1-19",
+     "status": "approved",
+     "side": "king as Satan's agent"
+    },
+    {
+     "text": "Some, supposing that stones of fire means the stars, have thought that the whole refers to the fall of Satan.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on 28:16",
+     "status": "rejected"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "EZK",
+   "from": [
+    40,
+    1
+   ],
+   "to": [
+    48,
+    35
+   ],
+   "question": "Whether the temple vision is a building to come or a picture",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The literal interpretation remained for a long time peculiar to the Jews, who expect from the Messiah not only their own restoration to the earthly Canaan, but the rebuilding of the temple and the renewal of the Levitical worship in the manner described by Ezekiel, and the establishment of a political kingdom generally",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:130348",
+     "status": "rejected"
+    },
+    {
+     "text": "… certain scientific defenders of chiliasm have not shrunk from carrying out their views so far as to teach … the rebuilding of the temple in Jerusalem and the renewal of the Levitical worship in the millennial kingdom.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:130356",
+     "status": "rejected"
+    },
+    {
+     "text": "The latter view gained the upper hand at a very early period in the Christian church, so that we find it adopted by Ephraem Syrus, Theodoret, and Jerome",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92) (scan errors corrected)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:130346",
+     "status": "rejected"
+    },
+    {
+     "text": "Hofmann, on the contrary (Schriftbeweis, II. 2, pp. 577 sqq.), finds only so much established with certainty in the revelation of Ezekiel, viz. that Israel will serve God again in its own land, and Jehovah will dwell in the midst of it again.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92) (scan errors corrected)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:130393",
+     "status": "approved",
+     "held_by": "Hofmann",
+     "side": "Israel restored"
+    },
+    {
+     "text": "As the prophet knew that the Chaldeans had utterly destroyed the temple, he thought it necessary to preserve an exact description of it, that on their restoration the people might build one on the same model.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1843 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Ezek 40",
+     "status": "approved",
+     "side": "a blueprint for the return"
+    },
+    {
+     "text": "It is evident that the rest of the things shown to the prophet in the building of the new temple pertain to the church of Christ, so that we must hold that the priests of that house were types of the apostles, and the calves slain therein prefigured the sacrifice of Christ.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:130321",
+     "status": "approved",
+     "held_by": "Ephraem Syrus",
+     "side": "symbolic"
+    },
+    {
+     "text": "It follows from this that the prophetic picture does not furnish a typical exhibition of the church of Christ in its gradual development, but sets forth the kingdom of God established by Christ in its perfect form, and is partly to be regarded as the Old Testament outline of the New Testament picture of the heavenly Jerusalem in Rev. xxi. and xxii.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92) (scan errors corrected)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:131541",
+     "status": "rejected"
+    },
+    {
+     "text": "This grand, new Temple points to Jesus Christ, in whom God's glory is revealed.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “Temple Architecture as Theology”",
+     "status": "approved",
+     "side": "symbolic"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "DAN",
+   "from": [
+    7,
+    13
+   ],
+   "to": [
+    7,
+    14
+   ],
+   "question": "Who the “son of man” is",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "DAN",
+   "from": [
+    9,
+    24
+   ],
+   "to": [
+    9,
+    27
+   ],
+   "question": "How to count the seventy weeks and what they point to",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Because the vision of ch 8 culminated with Antiochus IV (see 8:23-25; cp. 11:21-39), many interpreters understand this explanation as also pointing to Antiochus.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 9:24-27",
+     "status": "approved",
+     "side": "Antiochus IV"
+    },
+    {
+     "text": "Others understand it as culminating in the death of Christ, followed by the destruction of Jerusalem in AD 70 and the coming of the antichrist.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 9:24-27",
+     "status": "approved",
+     "side": "Christ, then antichrist"
+    },
+    {
+     "text": "Therefore, many interpreters believe that the numbers are not intended as calendar years but as symbolic periods of time to fulfill the visions.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 9:24",
+     "status": "rejected"
+    },
+    {
+     "text": "Other interpreters have held that the seventy weeks were fulfilled with the coming of Christ, his death and resurrection, and the destruction of Jerusalem and its Temple in AD 70.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “The Seventy Sets of Seven”",
+     "status": "approved",
+     "side": "fulfilled by AD 70"
+    },
+    {
+     "text": "It is also possible that the number seven is being used to symbolize completeness rather than to indicate a specific total of years.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 9 intro",
+     "status": "approved",
+     "side": "symbolic"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "MIC",
+   "from": [
+    5,
+    2
+   ],
+   "to": [
+    5,
+    2
+   ],
+   "question": "Who the ruler from Bethlehem is and what “from of old” means",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "It is now generally admitted that the Ruler proceeding from Bethlehem is the Messiah, since the idea that the words refer to Zerubbabel, which was cherished by certain Jews, according to the assertion of Chrysostom, Theodoret, and others, is too arbitrary to have met with any acceptance.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (T&T Clark, 1868 printing; scan errors corrected)",
+     "ref": "keil-delitzsch/scan-check/biblicalcommenta0001cfke_q6u5.txt:22338",
+     "status": "rejected"
+    },
+    {
+     "text": "Nevertheless Micah does not announce here the eternal proceeding of the Son from the Father, or of the Logos from God, the generatio filii æterna, as the earlier orthodox commentators supposed.",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (T&T Clark, 1868 printing; scan errors corrected)",
+     "ref": "keil-delitzsch/scan-check/biblicalcommenta0001cfke_q6u5.txt:22354",
+     "status": "rejected"
+    },
+    {
+     "text": "… understanding the going forth out of Bethlehem as referring to His springing out of the family of David, which belonged to Bethlehem (Kimchi, Abarb., and all the later Rabbins and more modern Rationalists).",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (T&T Clark, 1868 printing; scan errors corrected)",
+     "ref": "keil-delitzsch/scan-check/biblicalcommenta0001cfke_q6u5.txt:22374",
+     "status": "rejected"
+    }
+   ],
+   "kind": "held"
+  },
+  {
+   "book": "ZEC",
+   "from": [
+    12,
+    10
+   ],
+   "to": [
+    12,
+    10
+   ],
+   "question": "Who is “pierced” and who mourns",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "ROM",
+   "from": [
+    9,
+    1
+   ],
+   "to": [
+    9,
+    33
+   ],
+   "question": "Whether God's choosing in Romans 9 is of individuals for salvation or of peoples for a purpose",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "ROM",
+   "from": [
+    7,
+    14
+   ],
+   "to": [
+    7,
+    25
+   ],
+   "question": "Whose struggle this is: Paul before faith, Paul as a believer, or Israel under the law",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "This phrase could refer to Paul’s former state as an unredeemed person or to a part of Paul that remains tied to the world and resists the will of God.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 7:18",
+     "status": "approved",
+     "side": "either reading"
+    },
+    {
+     "text": "Those who are of another opinion maintain that by the word carnal here the apostle meant that corruption which dwelt in him after his conversion",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1846 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) On 7:14",
+     "status": "rejected",
+     "held_by": "those who are of another opinion"
+    },
+    {
+     "text": "From all this it follows that the epithet carnal, which is the characteristic designation of an unregenerate man, cannot be applied to St. Paul after his conversion; nor, indeed, to any Christian in that state.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1846 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) On 7:14",
+     "status": "rejected"
+    },
+    {
+     "text": "There can be little question that the description which follows to the end of verse 24 is a description of the unregenerate state of man.",
+     "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:39694",
+     "status": "approved",
+     "side": "Paul before faith"
+    },
+    {
+     "text": "The apostle enlarges on the conflict he daily maintained with the remainder of his original depravity.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Rom 7:14-17",
+     "status": "draft",
+     "side_suggested": "Paul as a believer"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "ROM",
+   "from": [
+    13,
+    1
+   ],
+   "to": [
+    13,
+    7
+   ],
+   "question": "How far obeying the governing authorities goes",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Looking impartially at the passage which follows, it would seem at first sight—and perhaps not only at first sight—that the Apostle distinctly preaches two doctrines, both of which are now discredited, the doctrines of divine right and of passive obedience.",
+     "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:43763",
+     "status": "rejected"
+    },
+    {
+     "text": "In the first place it should be noticed that though the duty of obedience is here stated without qualification, still the existence of qualifications to it is not therefore denied or excluded.",
+     "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:43778",
+     "status": "approved",
+     "side": "obedience has limits"
+    },
+    {
+     "text": "In this section of Christian teaching there was something that was temporary and local, and that had reference to conditions that have now passed away.",
+     "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:43961",
+     "status": "rejected"
+    },
+    {
+     "text": "The only time a Christian should disobey governing authorities is when those rulers do not allow Christians to do something God explicitly commands them to do",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 13 intro",
+     "status": "rejected"
+    },
+    {
+     "text": "It does not necessarily follow that precisely the same attitude is incumbent upon the Christian now. In this section of Christian teaching there was something that was temporary and local, and that had reference to conditions that have now passed away.",
+     "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:~43960",
+     "status": "rejected"
+    },
+    {
+     "text": "A tax revolt occurred in Rome at about the time that Paul was writing, so Paul's whole discussion of the Christian's responsibility to government might have been sparked by his knowledge that Roman Christians were participating in this tax revolt (see Tacitus, Annals 13).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 13:6",
+     "status": "rejected"
+    },
+    {
+     "text": "There will always be a certain debatable ground within which opposite duties will seem to clash, and where general principles are no longer of any avail. Here the individual conscience must assume the responsibility of deciding which to obey.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:43794",
+     "status": "rejected"
+    },
+    {
+     "text": "However, because God stands over all governments, our submission to governing authorities must always be in terms of our ultimate submission to God (see Acts 4:19-20).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 13:1-2",
+     "status": "approved",
+     "side": "obedience has limits"
+    },
+    {
+     "text": "Whatever the persons in authority over us themselves may be, yet the just power they have, must be submitted to and obeyed.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Rom 13:1-7",
+     "status": "draft",
+     "side_suggested": "obedience without qualification"
+    },
+    {
+     "text": "The duty of obedience is grounded upon the fact that the power wielded by the magistrate is derived from God, and that duty itself is stated without qualification.",
+     "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:43766",
+     "status": "draft",
+     "side_suggested": "obedience without qualification"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "1CO",
+   "from": [
+    14,
+    34
+   ],
+   "to": [
+    14,
+    35
+   ],
+   "question": "What the silence of women means, and whether it was Paul's own words or a later addition",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "1CO",
+   "from": [
+    11,
+    2
+   ],
+   "to": [
+    11,
+    16
+   ],
+   "question": "What head coverings and “head” mean, and whether the instructions apply today",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The two most common understandings are these: (1) “head” is a metaphor for authority, and (2) “head” is a metaphor for source.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 11 intro",
+     "status": "approved",
+     "side": "lists both readings",
+     "axis": "what head means"
+    },
+    {
+     "text": "The immediate context and Paul’s overall teaching both favor understanding head in this context as meaning authority (see Gen 3:16; Eph 5:21-23; Col 3:18; 1 Pet 3:1).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:3",
+     "status": "approved",
+     "side": "head means authority",
+     "axis": "what head means"
+    },
+    {
+     "text": "Paul argues that women publicly praying or prophesying should wear a veil as an element of dressing modestly and appropriately in public worship (cp. 1 Tim 2:9; 1 Pet 3:3).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:3-16",
+     "status": "approved",
+     "side": "covering as modesty",
+     "axis": "applies today"
+    },
+    {
+     "text": "Most contemporary interpreters take this verse to mean that the custom was culturally based.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:16",
+     "status": "rejected"
+    },
+    {
+     "text": "The subject treated of, viz., the uncovering of their heads by women in assemblies for worship, was of ephemeral moment, and as we all now would regard it, of trivial importance.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:55162",
+     "status": "approved",
+     "side": "cultural",
+     "axis": "applies today"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "1TI",
+   "from": [
+    2,
+    11
+   ],
+   "to": [
+    2,
+    15
+   ],
+   "question": "Whether the limits on women teaching apply to all churches and times",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Some Christians believe that women are prohibited from leading and teaching publicly in these settings.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 2 intro",
+     "status": "approved",
+     "side": "for all churches"
+    },
+    {
+     "text": "Other Christians believe that women can do whatever men do in these settings.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 2 intro",
+     "status": "rejected"
+    },
+    {
+     "text": "Therefore, Christian women in all times and places must recognize their role in the created order of God.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “Women’s Roles in the New Testament Church”",
+     "status": "rejected"
+    },
+    {
+     "text": "Paul was addressing a particular situation created by the false teaching within the Ephesian church (see 1 Tim 1:18-20; 4:1-5; cp. 2 Tim 3:6-9).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “Women’s Roles in the New Testament Church”",
+     "status": "approved",
+     "side": "a local situation"
+    },
+    {
+     "text": "Many Christians today subscribe to a complementarian viewpoint, affirming distinct gender roles in the church, while many others take an egalitarian position, supporting the notion that men and women share equal roles in the church.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “Women’s Roles in the New Testament Church”",
+     "status": "rejected"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "1CO",
+   "from": [
+    6,
+    9
+   ],
+   "to": [
+    6,
+    10
+   ],
+   "question": "What the two Greek words translated about sexual conduct mean",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "held"
+  },
+  {
+   "book": "HEB",
+   "from": [
+    6,
+    4
+   ],
+   "to": [
+    6,
+    6
+   ],
+   "question": "Whether those who “have fallen away” were true believers",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "JAS",
+   "from": [
+    2,
+    14
+   ],
+   "to": [
+    2,
+    26
+   ],
+   "question": "How James on works fits Paul on faith",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Dean Alford, quoting with entire approbation the opinion of the German commentator De Wette, found it “impossible to say” that the ideas of Faith, Works, and Justification in the two Apostles were the same.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:57742",
+     "status": "rejected"
+    },
+    {
+     "text": "If we look at the motive, he was justified by faith; if we look at the result, he was justified by works.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:55705",
+     "status": "rejected"
+    },
+    {
+     "text": "… it becomes a question whether St. James's protest against reliance on faith alone has any reference, direct or indirect, to St. Paul's language and teaching; whether, in fact, it is not aimed against an entirely different type of religious feeling, against the Pharisaic spirit which rested satisfied with a barren orthodoxy, fruitless in works of charity.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:57836",
+     "status": "rejected"
+    },
+    {
+     "text": "Though some have thought that this teaching contradicts what Paul taught, it does not.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 2:24",
+     "status": "rejected"
+    },
+    {
+     "text": "Paul does not speak against good deeds themselves, but about trying to receive forgiveness of sins through good deeds (Rom 3:28; Gal 2:16).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 2:24",
+     "status": "approved",
+     "side": "no real conflict"
+    },
+    {
+     "text": "Both Paul and James believed that a person must respond to God's offer of salvation by faith. But they differed in their emphasis.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN intro “Works”",
+     "status": "approved",
+     "side": "no real conflict"
+    },
+    {
+     "text": "But, if the Apostle of the Gentiles be inquired of further, he will say that, although works go not before faith, they certainly come after.",
+     "source": "Ellicott's Bible Commentary for English Readers (text from the 1878 New Testament Commentary for English Readers, vol. 3) (scan errors corrected)",
+     "ref": "ellicott/scan-check/newtestamentcomm03elli.txt:57434",
+     "status": "approved",
+     "side": "no real conflict"
+    },
+    {
+     "text": "Luther, supposing that James did actually teach the doctrine of justification by works, which his good sense showed him to be absolutely insufficient for salvation, was led to condemn the epistle in toto, as a production unauthenticated by the Holy Spirit, and consequently worthy of no regard; he therefore termed it epistola straminea, a chaffy epistle, an epistle of straw, fit only to be burnt.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Jas 2:14",
+     "status": "draft",
+     "held_by": "Luther",
+     "side_suggested": "a real conflict with Paul"
+    }
+   ],
+   "kind": "positions",
+   "relation": "together"
+  },
+  {
+   "book": "REV",
+   "from": [
+    7,
+    4
+   ],
+   "to": [
+    7,
+    8
+   ],
+   "question": "Who the 144,000 are",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Some have thought that the sealed ones must be Jewish Christians; i.e., they are disposed to take the twelve tribes literally.",
+     "source": "Ellicott's Bible Commentary for English Readers (text checked against the 1878 New Testament Commentary for English Readers, vol. 3)",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:89756",
+     "status": "approved",
+     "held_by": "some",
+     "side": "Jewish Christians"
+    },
+    {
+     "text": "The sealed ones are explained to be the servants of God; the description which follows proclaims them to be the “Israel of God.”",
+     "source": "Ellicott's Bible Commentary for English Readers (text checked against the 1878 New Testament Commentary for English Readers, vol. 3)",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:89767",
+     "status": "rejected"
+    },
+    {
+     "text": "the Israel of God",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 7:4-8 (quoted above): the church as",
+     "status": "rejected"
+    },
+    {
+     "text": "The early Christian church regarded itself symbolically as the Israel of God",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 7:4-8",
+     "status": "rejected"
+    },
+    {
+     "text": "The 144,000 probably represent all faithful Christians (cp. Rev 14:1-5; 21:12-17).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 7:4-8",
+     "status": "approved",
+     "side": "all faithful Christians"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "REV",
+   "from": [
+    13,
+    1
+   ],
+   "to": [
+    13,
+    18
+   ],
+   "question": "Who or what the beast is, and the number 666",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The number 666 represents supernatural evil (see “Symbolic Numbers” Theme Note).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 13:18",
+     "status": "approved",
+     "side": "supernatural evil"
+    },
+    {
+     "text": "John might have used the transliteration Caesar Neron (a Hebrew spelling of the name) to arrive at the number 666.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 13:18",
+     "status": "approved",
+     "side": "Nero"
+    },
+    {
+     "text": "A tradition emerged that the emperor Nero (AD 54–68) was so evil that he either did not really die or would be reincarnated as another tyrant like Domitian (AD 81–96).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 13:3",
+     "status": "rejected"
+    },
+    {
+     "text": "The Praeterist in general maintains that the visions of the Apocalypse relate to events and circumstances which are past: the prophecies of the book—at least in their primary intention—have been fulfilled.",
+     "source": "Ellicott's Bible Commentary for English Readers (text checked against the 1878 New Testament Commentary for English Readers, vol. 3)",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:83391",
+     "status": "rejected"
+    },
+    {
+     "text": "The Futurist is at the opposite pole of interpretation, and maintains that the fulfilment of the book is still future, when our Lord will come again.",
+     "source": "Ellicott's Bible Commentary for English Readers (text checked against the 1878 New Testament Commentary for English Readers, vol. 3)",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:83410",
+     "status": "rejected"
+    },
+    {
+     "text": "Its advocates believe that in the Apocalypse we have a continuous prophecy, exhibiting to us the main features of the world's history: the visions therefore are partly fulfilled, partly they are in course of fulfilment, and a portion still remains unfulfilled.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:83425",
+     "status": "rejected",
+     "check": "against a page scan before shipping (vol. 8 scan damaged; no second copy)"
+    },
+    {
+     "text": "The wild beast is always the figure of the kingdoms of this world—i.e., the kingdoms which are founded on passion or selfishness.",
+     "source": "Ellicott's Bible Commentary for English Readers (text checked against the 1878 New Testament Commentary for English Readers, vol. 3)",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:94986",
+     "status": "approved",
+     "side": "worldly kingdoms"
+    },
+    {
+     "text": "The first of these alluded to finds the word in Nero Caesar. The second, and more ancient, finds it in Lateinos: this last was mentioned by Irenaeus.",
+     "source": "Ellicott's Bible Commentary for English Readers (text checked against the 1878 New Testament Commentary for English Readers, vol. 3) (scan errors corrected)",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:95670",
+     "status": "rejected"
+    },
+    {
+     "text": "It follows that the view here maintained does not exclude the possibility of a future personal Antichrist, in whom the typical features shall yet find clearer and fuller manifestation than in any previous age.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:102422",
+     "status": "rejected",
+     "check": "against a page scan before shipping (vol. 8 scan damaged; no second copy)"
+    },
+    {
+     "text": "When Domitian became emperor (AD 81–96), he was as evil as Nero (both were fierce persecutors of the church), and many thought he was the embodiment of Nero's spirit, if not Nero himself (perhaps similar to the way that John the Baptist was considered to embody Elijah's spirit; see Mal 4:5; Matt 11:14; Luke 1:17; John 1:21).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 17:8",
+     "status": "rejected"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "REV",
+   "from": [
+    20,
+    1
+   ],
+   "to": [
+    20,
+    6
+   ],
+   "question": "Whether the thousand years are literal, symbolic, or already under way",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Some scholars believe that this refers to a future period of time, while others believe that it refers to Jesus reigning now from heaven.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 20 intro",
+     "status": "rejected"
+    },
+    {
+     "text": "Premillennialism: The current age between Christ’s first and second comings will end when he returns to inaugurate a literal 1,000-year rule on earth with his holy people, after which Christ will execute the final judgment and inaugurate his eternal Kingdom.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “The Thousand Years (The Millennium)”",
+     "status": "approved",
+     "side": "premillennial"
+    },
+    {
+     "text": "Amillennialism: The “1,000 years” represents the current age between Christ’s first and second comings, in which Christ reigns spiritually with his people (i.e., there is not a literal 1,000-year period).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “The Thousand Years (The Millennium)”",
+     "status": "approved",
+     "side": "amillennial"
+    },
+    {
+     "text": "Postmillennialism: During the current age following Christ’s first coming, Christ will establish through the church an age of peace on earth (the 1,000 years), at the end of which Christ will return, execute the final judgment, and inaugurate his eternal Kingdom.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN theme “The Thousand Years (The Millennium)”",
+     "status": "approved",
+     "side": "postmillennial"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "MAT",
+   "from": [
+    16,
+    18
+   ],
+   "to": [
+    16,
+    18
+   ],
+   "question": "What “this rock” is",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Some think that Peter is primarily important because of what he confessed about Jesus.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 16 intro",
+     "status": "draft"
+    },
+    {
+     "text": "Others think that Peter and his successors have authority over the church.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 16 intro",
+     "status": "approved",
+     "side": "Peter"
+    },
+    {
+     "text": "Others think that Peter himself had authority over the early church but that he did not have any successors.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 16 intro",
+     "status": "approved",
+     "side": "Peter"
+    },
+    {
+     "text": "Some scholars have suggested that Jesus was referring to himself when he said this rock, but it seems clear that Jesus was referring either to Peter or to his confession.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 16:18",
+     "status": "rejected"
+    },
+    {
+     "text": "Peter's confession is this rock as to doctrine.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Matt 16:13-20",
+     "status": "approved",
+     "side": "confession"
+    }
+   ],
+   "kind": "tn-readings"
+  },
+  {
+   "book": "JHN",
+   "from": [
+    6,
+    53
+   ],
+   "to": [
+    6,
+    58
+   ],
+   "question": "Whether eating the flesh and drinking the blood speaks of the Lord's Supper",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "His words hinted at the Lord’s Supper yet to come (see Luke 22:19).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 6:53-58",
+     "status": "approved",
+     "side": "Lord's Supper"
+    },
+    {
+     "text": "Since “flesh and blood” was a Jewish idiom for the whole person, Jesus might have been calling people to consume him fully by completely believing in him.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 6:53-58",
+     "status": "approved",
+     "side": "believing in him"
+    },
+    {
+     "text": "Some Christian traditions see the bread as Christ’s literal flesh broken for us and the wine as his literal blood poured out for us.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 6:53-58",
+     "status": "rejected"
+    },
+    {
+     "text": "Others take the meaning in purely spiritual terms.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 6:53-58",
+     "status": "rejected"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "MRK",
+   "from": [
+    16,
+    9
+   ],
+   "to": [
+    16,
+    20
+   ],
+   "question": "Whether the longer ending was part of Mark",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "JHN",
+   "from": [
+    7,
+    53
+   ],
+   "to": [
+    8,
+    11
+   ],
+   "question": "Whether the account of the woman caught in adultery was part of John",
+   "note": null,
+   "status": "candidate",
+   "positions": [],
+   "kind": "data"
+  },
+  {
+   "book": "PSA",
+   "from": [
+    45,
+    6
+   ],
+   "to": [
+    45,
+    6
+   ],
+   "question": "Whom “Your throne, O God” addresses: the king, God, or the Messiah",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The king is like a god among humans; he is anointed by God, he has received a mighty throne, and he dispenses justice as he rules forever.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 45:6-9",
+     "status": "approved",
+     "side": "the king"
+    },
+    {
+     "text": "One other possibility is that the psalmist could be addressing God directly but briefly in this sentence and then returning to address the king through the end of verse 9, after which he addresses the bride.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN Psalm 45 intro",
+     "status": "approved",
+     "side": "God"
+    },
+    {
+     "text": "Because Hebrews 1:8–9 applies Psalm 45:6–7 to Christ, both Jewish and Christian traditions have often treated the psalm as Messianic, seeing the historical king and his bride as a type or foreshadowing of the ultimate King and his people.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN Psalm 45 intro",
+     "status": "approved",
+     "side": "Messiah"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "EZK",
+   "from": [
+    38,
+    1
+   ],
+   "to": [
+    39,
+    29
+   ],
+   "question": "Who Gog is, and whether the battle is a literal event at the end of history",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Readers have long sought to identify Gog, who has sometimes been identified with Gyges, king of Lydia (about 680~644 BC).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 38:1-39:29",
+     "status": "approved",
+     "side": "Gyges",
+     "axis": "who Gog is"
+    },
+    {
+     "text": "Calmet says expressly, that Gog is Cambyses, king of Persia, who on his return from the land of Egypt, died in Judea.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Ezek 38:2",
+     "status": "rejected",
+     "held_by": "Calmet",
+     "side_suggested": "Cambyses"
+    },
+    {
+     "text": "Gog, in the land of Magog, prince of Rosh, Meshech, and Tubal, will invade the restored land of Israel from the far distant northern land by the appointment of God in the last times, and with a powerful army of numerous nations (ch. xxxviii. 1-9), with the intention of plundering Israel, now dwelling in security, that the Lord may sanctify Himself upon him before all the world (vers. 10-16).",
+     "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92) (scan errors corrected)",
+     "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:121235",
+     "status": "draft",
+     "side_suggested": "a literal battle in the last times"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "DAN",
+   "from": [
+    11,
+    36
+   ],
+   "to": [
+    11,
+    45
+   ],
+   "question": "Whether the king of these verses is Antiochus IV or a figure beyond him",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Some interpreters see these verses as a transition from the earthly Antiochus IV to a character larger than history (7:8).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:36-40",
+     "status": "approved",
+     "side": "beyond Antiochus"
+    },
+    {
+     "text": "Most commentators believe these verses describe the time of the end of history (cp. Mark 13:14; 2 Thes 2:3-12; Rev 19:19-21).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:40-45",
+     "status": "rejected",
+     "side_suggested": "end of history"
+    },
+    {
+     "text": "Antiochus was a paradigm for future rulers who set themselves against the God of gods.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:40-45",
+     "status": "approved",
+     "side": "Antiochus as pattern"
+    },
+    {
+     "text": "Antiochus IV thought himself equal to God (2 Maccabees 9:1–10:12), but God would hem him in until the time of wrath was completed.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:36",
+     "status": "draft",
+     "side_suggested": "Antiochus IV"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "HOS",
+   "from": [
+    1,
+    2
+   ],
+   "to": [
+    1,
+    2
+   ],
+   "question": "Whether Hosea's marriage to Gomer was real or an allegory, and what she was",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Many in the early church believed that the marriage did not actually take place.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 1:2-3",
+     "status": "approved",
+     "side": "allegory",
+     "axis": "real or allegory"
+    },
+    {
+     "text": "Today, most interpreters regard the marriage as a real one, but they differ in their ideas about Gomer’s occupation prior to the marriage.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 1:2-3",
+     "status": "approved",
+     "side": "real marriage",
+     "axis": "real or allegory"
+    },
+    {
+     "text": "Some suggest that Gomer was an ordinary prostitute, while others suggest that she was one of the sacred prostitutes involved in Canaanite fertility worship.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 1:2-3",
+     "status": "approved",
+     "side": "prostitute",
+     "axis": "what Gomer was"
+    },
+    {
+     "text": "Another possibility is that Gomer was a young woman who had not previously participated in illicit sexual activity, but whom God knew to be predisposed toward adultery and prostitution.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 1:2-3",
+     "status": "approved",
+     "side": "predisposed",
+     "axis": "what Gomer was"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "ROM",
+   "from": [
+    11,
+    26
+   ],
+   "to": [
+    11,
+    26
+   ],
+   "question": "Who “all Israel” is",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The phrase all Israel could refer to the total of all believers, both Jewish and Gentile; with this meaning, and so would describe the way that God works to bring salvation to all his people.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:26-27",
+     "status": "approved",
+     "side": "all believers"
+    },
+    {
+     "text": "The restoration of the Jews is, in the course of things, far less improbable than the call of the Gentiles to be the children of Abraham; and though others now possess these privileges, it will not hinder their being admitted again.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Rom 11:22-32",
+     "status": "rejected",
+     "side_suggested": "Jewish people restored"
+    },
+    {
+     "text": "When this ingathering of the Gentiles is complete, then the turn of Israel will come round again, and the prophecies of their conversion will be fulfilled.",
+     "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
+     "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:42965",
+     "status": "draft",
+     "side_suggested": "the Jewish people"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "1CO",
+   "from": [
+    7,
+    36
+   ],
+   "to": [
+    7,
+    38
+   ],
+   "question": "Whether the man is engaged to the virgin or is her father",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "The apostle is thought to give advice here about the disposal of children in marriage.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on 1 Cor 7:36-40",
+     "status": "approved",
+     "side": "father"
+    },
+    {
+     "text": "The apostle by παρθενος, does not mean a virgin, but the state of virginity or celibacy, whether in man or woman.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on 1 Cor 7:36",
+     "status": "approved",
+     "held_by": "Mr. Locke and Dr. Whitby",
+     "side": "state of celibacy"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "1TI",
+   "from": [
+    3,
+    11
+   ],
+   "to": [
+    3,
+    11
+   ],
+   "question": "Whether “the women” are deacons' wives or women deacons",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "These women, St. Chrysostom and most of the ancient expositors affirm, were deaconesses.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:30265",
+     "status": "approved",
+     "held_by": "St. Chrysostom and most of the ancient expositors",
+     "side": "women deacons"
+    },
+    {
+     "text": "I believe the apostle does not mean here the wives either of the bishops or deacons in particular, but the Christian women in general.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on 1 Tim 3:11",
+     "status": "rejected",
+     "side_suggested": "women in general"
+    },
+    {
+     "text": "In favor of their wives, 3:8-13 is a discussion of male deacons; switching to “women deacons” would disrupt the flow of thought.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 3:11",
+     "status": "draft",
+     "side_suggested": "deacons' wives"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "1PE",
+   "from": [
+    3,
+    18
+   ],
+   "to": [
+    3,
+    20
+   ],
+   "question": "Who the spirits in prison are and what Christ proclaimed to them",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "One interpretation holds that it refers to the spirits of people who have died and that Christ, after his resurrection, preached the Good News to these spirits.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 3:19-20",
+     "status": "approved",
+     "side": "the dead"
+    },
+    {
+     "text": "A second interpretation sees 3:19-20 as describing Christ’s preaching through Noah to people who are now spirits in prison.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 3:19-20",
+     "status": "approved",
+     "side": "through Noah"
+    },
+    {
+     "text": "In the third interpretation, the spirits in prison are evil spiritual beings.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 3:19-20",
+     "status": "approved",
+     "side": "evil spirits"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "1PE",
+   "from": [
+    4,
+    6
+   ],
+   "to": [
+    4,
+    6
+   ],
+   "question": "Whether the gospel was preached to people after they died",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Some people believe that this clause means that Jesus went to hell and preached the gospel to people who had died before Jesus himself died on the cross.",
+     "source": "unfoldingWord Translation Notes",
+     "ref": "tN 4:6",
+     "status": "approved",
+     "side": "after death"
+    },
+    {
+     "text": "Peter refers to people now dead who were exposed to the Good News while alive; he does not envision a chance to repent after death.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 4:6",
+     "status": "approved",
+     "side": "while alive"
+    },
+    {
+     "text": "The gospel had been preached to those since dead, who by the proud and carnal judgment of wicked men were condemned as evil-doers, some even suffering death.",
+     "source": "Matthew Henry, Concise Commentary on the Whole Bible",
+     "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on 1 Pet 4:1-6",
+     "status": "rejected",
+     "side_suggested": "while alive"
+    }
+   ],
+   "kind": "positions"
+  },
+  {
+   "book": "REV",
+   "from": [
+    11,
+    3
+   ],
+   "to": [
+    11,
+    13
+   ],
+   "question": "Who the two witnesses are",
+   "note": null,
+   "status": "candidate",
+   "positions": [
+    {
+     "text": "Moses and Elijah, who appeared with Jesus at the transfiguration (Matt 17:3; Mark 9:4; Luke 9:30), are likely candidates (see Rev 11:6); they represent the law and the prophets.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:1-13",
+     "status": "approved",
+     "side": "Moses and Elijah"
+    },
+    {
+     "text": "Others have suggested Enoch and Elijah because they did not die (see Gen 5:21-24; 2 Kgs 2:11-12).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:1-13",
+     "status": "approved",
+     "side": "Enoch and Elijah"
+    },
+    {
+     "text": "Other possibilities include Peter and Paul, or James and John.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 11:1-13",
+     "status": "approved",
+     "side": "apostles"
+    },
+    {
+     "text": "The witnesses, then, stand as the typical representatives of those who, in the strength of God, have, through the long ages, borne witness for Christ against all wrong and falsehood, against a world in arms or a Church in error, or against a nominal Christianity in danger of becoming as corrupt and as cruel as heathenism.",
+     "source": "Ellicott's Bible Commentary for English Readers",
+     "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:93248",
+     "status": "draft",
+     "side_suggested": "the witnessing church"
+    }
+   ],
+   "kind": "positions"
+  }
+ ]
+}

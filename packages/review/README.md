@@ -22,10 +22,13 @@ pnpm --filter @yada/review typecheck  # server and client tsconfigs
 | `YADA_REVIEW_PORT` | `4317` | API port (Vite's proxy reads it too) |
 | `YADA_SAMPLE_SEED` | `yada-review-sample-1` | Seed for the per-book sample |
 | `YADA_REVIEWER` | `john` | Written into every decision line |
+| `YADA_DEBATES` | `<repo>/packages/pipeline/prototypes/data/debates.json` | Debate positions to review |
+| `YADA_CORE_DB` | newest `<repo>/content/bundles/core.vN.db` | BSB text for the debate passages (read-only) |
+| `YADA_PASSAGE_REVIEWS` | `<repo>/packages/pipeline/prototypes/data/passage_reviews.json` | Passage summary decisions |
 
-**When you are testing, not reviewing**, point both `YADA_STAGING_DB` and `YADA_REVIEW_DIR` at
-copies. An approval clicked against the real database, or appended to the committed log, is a
-human review that never happened.
+**When you are testing, not reviewing**, point `YADA_STAGING_DB`, `YADA_REVIEW_DIR`,
+`YADA_DEBATES` and `YADA_PASSAGE_REVIEWS` at copies. An approval clicked against the real database or debates.json, or
+appended to the committed log, is a human review that never happened.
 
 ## Queues
 
@@ -44,6 +47,55 @@ the UI and written into every decision taken from that queue.
 The targeted-expert queue reads the raw payload, so an entry that no longer parses under the
 current schema is still routed. A `critical` flag counts whatever its verdict: `upheld` with
 `critical` severity is a contradiction, and a contradiction is worth an expert's time.
+
+## Debate positions
+
+`#/debates`, or "Debate positions" in the rail. One section per passage in debates.json whose
+`kind` is `positions` and whose `positions` list is not empty: John 6:53–58 first, because it
+ships first, then canonical order. Each shows the reference, the BSB text (the first verse and
+"Show all" past three verses), and each position as the app would show it: the source's
+sentence, its source and `held_by`, and "Check against a page scan before shipping" where
+`check` is set. The check never blocks approval. The counter reads "2 of 4 approved · shows in
+the app" or "1 of 4 approved · needs 2 to show": the app shows a passage's positions only once two
+are approved.
+
+The payload carries nothing a reader would not see: no `question`, `kind`, `ref` or `note`.
+
+- **Approve**, **Reject** and **Undo** (back to `draft`) each act on one position. The request
+  names the passage, the position index and the sha256 of the sentence on screen; a body naming
+  anything else, or a path naming more than one position, is refused. There are no bulk actions.
+- Each decision rewrites that position's `status` in debates.json through a temp file and a
+  rename, in the file's own `json.dump(indent=1, ensure_ascii=False)` form, and appends one
+  `"kind":"debate_position"` line to `decisions.jsonl` (reviewer, time, passage, position,
+  source, decision, and the `ref` for the record). The log line is written before the rename.
+- Loading never writes.
+
+## Passage summaries
+
+`#/summaries`, or "Passage summaries" in the rail. Every passage summary the gate flags, plus every
+one passage_reviews.json already names (a hold hides a summary the gate passed), one at a time with
+its id, label, BSB text, the summary as built and the gate's flags.
+
+The list comes from `packages/pipeline/src/understand/flagged.ts`, which builds each book in the
+manifest's `understand` list as `yada understand` does and writes nothing. The server runs it once
+as a child process at start; it takes minutes, and the queue reads "Building…" until it is done.
+Restart the server after the summaries change. Each summary's standing is read from
+passage_reviews.json on every load: not reviewed, approved, approved but the text has changed since
+(hidden again), or held.
+
+- **Approve** writes `{ "status": "approved", "sha256": <sha256 of the text shown> }`. The
+  pipeline shows the summary only while its text has that hash.
+- **Reject** writes `{ "status": "held", "reason": "rejected by John" }`: hidden, as before, with
+  the decision on record. A hold's earlier reason is kept in the log line's `previous`.
+- **Skip** moves on and writes nothing.
+- The text is never edited here (rule 2). A request must name the sha256 of the text the pipeline
+  builds now, or it is refused.
+- A passage with no candidate sentences, and Psalms and Proverbs, are built on paths that never
+  read passage_reviews.json. flagged.ts proves each summary's `reviewable` by approving every
+  listed text and building again; where that does not clear the flags, no decision is offered.
+- Each decision rewrites the one entry through a temp file and a rename, in the file's own
+  one-entry-per-line layout (other lines untouched; a file not in that layout is refused), and
+  appends one `"kind":"passage_summary"` line to `decisions.jsonl` before the rename.
 
 ## Decisions
 

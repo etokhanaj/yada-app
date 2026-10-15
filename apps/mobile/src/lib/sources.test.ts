@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
@@ -26,7 +26,7 @@ describe("licenceLabel", () => {
 describe("sourceItems", () => {
   it("puts the role first and the dataset with its licence beneath (S15, S16)", () => {
     const [item] = sourceItems([row("morphgnt/sblgnt (morphological annotations)", "CC-BY-SA-3.0")]);
-    expect(item).toMatchObject({ group: "Word data", title: "Greek parsing", subtitle: "MorphGNT · CC BY-SA 3.0" });
+    expect(item).toMatchObject({ group: "Words and people", title: "Greek parsing", subtitle: "MorphGNT · CC BY-SA 3.0" });
     expect(item?.label).toBe("Greek parsing, MorphGNT, CC BY-SA 3.0, opens the source");
   });
 
@@ -56,6 +56,32 @@ describe("sourceItems", () => {
     const items = sourceItems([row("morphgnt/sblgnt (morphological annotations)", "CC-BY-SA-3.0"), ylt, row("King James Version, 1769 standardised text (eng-kjv2006)", "PUBLIC_DOMAIN")]);
     expect(items.map((i) => i.title)).toEqual(["King James Version", "Young’s Literal Translation", "Greek parsing"]);
     expect(items[1]).toMatchObject({ group: "Bible text", subtitle: "English · YLT · Public domain" });
+  });
+
+  it("holds JPS 1917 back until the app handles an Old Testament-only text", () => {
+    const jps = row("JPS Tanakh 1917, The Holy Scriptures According to the Masoretic Text (engjps)", "PUBLIC_DOMAIN");
+    const downloaded = { ...row("Some JPS file", "PUBLIC_DOMAIN"), translation: { code: "JPS", name: "JPS 1917" } };
+    expect(sourceItems([jps, downloaded])).toEqual([]);
+    expect(sourceItems([jps], { otOnlyTexts: true })[0]).toMatchObject({ group: "Bible text", title: "JPS 1917", subtitle: "English · JPS · Public domain" });
+  });
+
+  it("lists Understand's sources by what they give, with the share-alike notice", () => {
+    const ust = { ...row("unfoldingWord Simplified Text (en_ust)", "CC-BY-SA-4.0"), attribution: "Adapted from unfoldingWord Simplified Text." };
+    expect(sourceItems([ust])[0]).toMatchObject({ group: "Understand", title: "In plain words", attribution: "Adapted from unfoldingWord Simplified Text." });
+    const clarke = row("Adam Clarke's Commentary and Critical Notes on the Bible (CrossWire SWORD module Clarke 2.0)", "PUBLIC_DOMAIN");
+    expect(sourceItems([clarke])[0]).toMatchObject({ group: "Understand", subtitle: "Adam Clarke’s Commentary · Public domain" });
+  });
+
+  it("gives every dataset in sources.manifest.json a reader's name, except those listed elsewhere (audit item 7)", () => {
+    const manifest = JSON.parse(readFileSync(path.resolve(__dirname, "../../../../sources.manifest.json"), "utf8")) as Array<{ dataset: string; license: string }>;
+    // Downloaded translations show under their own names from their files; study sources in their own group.
+    // The readings (BSB audio, Kokoro) are Sources' Audio group, read from the manifest's `audio` list.
+    const elsewhere = /^(American Standard Version|Young's Literal Translation|Majority Standard Bible|Tyndale Open Study Notes|OpenBible\.info|BSB Audio Bible|Kokoro-82M)/;
+    const unnamed = manifest
+      .filter((e) => !elsewhere.test(e.dataset))
+      .flatMap((e) => sourceItems([row(e.dataset, e.license)], { otOnlyTexts: true }))
+      .filter((i) => i.title === i.dataset);
+    expect(unnamed.map((i) => i.dataset)).toEqual([]);
   });
 
   it("leaves out datasets with no reader-facing role", () => {

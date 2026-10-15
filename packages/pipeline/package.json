@@ -15,7 +15,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.117.1",
     "@aws-sdk/client-s3": "^3.1131.0",
-    "@yada/schema": "workspace:*"
+    "@yada/schema": "workspace:*",
+    "kokoro-js": "1.2.1"
   },
   "devDependencies": {
     "tsx": "^4.23.12"

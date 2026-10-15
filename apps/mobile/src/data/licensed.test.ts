@@ -9,19 +9,31 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 
 import {
   CACHE_MAX_AGE_MS,
+  DEFAULT_SERVED,
+  LICENSED,
   LICENSED_DDL,
+  ON_ACCOUNT,
+  SERVED_HEADER,
   apiBibleChapterId,
   chapterUrl,
   clearLicensedCache,
   getLicensedChapter,
+  searchLicensed,
+  isLicensedCode,
+  licensedConfigUsable,
+  loadServed,
   parseChapterText,
+  parseServed,
+  proxyChapterUrl,
   pruneLicensedCache,
+  saveServed,
+  type LicensedCode,
   type LicensedConfig,
   type LicensedDb,
   type LicensedDeps,
 } from "./licensed";
 
-const CONFIG: LicensedConfig = { url: "https://api.example.test/", key: "test-key", enabled: true };
+const CONFIG: LicensedConfig = { via: "api-bible", url: "https://api.example.test/", key: "test-key", enabled: true };
 const NOTICE = "Placeholder Text®, Copyright © 2000 by Example House. Used by permission. All rights reserved.";
 const CONTENT = "     [1] Alpha beta “gamma,” delta. [2] Line one;\n     line two —\n  line three. \n     [3-4] Bridged ’verse’ text.  [5] Last.\n";
 
@@ -137,6 +149,15 @@ describe("getLicensedChapter", () => {
     expect(await getLicensedChapter(deps(), "NIV", "JHN", 3)).toEqual({ status: "needs-connection", translation: "NIV" });
   });
 
+  it("a load that hangs past the limit fails with Try again, never a blank page (US-07)", async () => {
+    const hanging: LicensedDeps["fetch"] = (_url, init) =>
+      new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(new Error("aborted"))));
+    const result = await getLicensedChapter({ ...deps(), fetch: hanging, timeoutMs: 20 }, "NIV", "JHN", 3);
+    // A failure to try again, not "needs a connection": the reader may well be online.
+    expect(result).toEqual({ status: "error", translation: "NIV", reason: "timeout" });
+    expect(db.count()).toBe(0);
+  });
+
   it("offline with only an expired copy: needs a connection, and the copy is gone", async () => {
     await getLicensedChapter(deps(), "NIV", "JHN", 3);
     clock = new Date(clock.getTime() + CACHE_MAX_AGE_MS + 1);
@@ -218,5 +239,131 @@ describe("pruneLicensedCache (at launch)", () => {
     await seed(db, [["JHN.3", at(0)], ["JHN.4", at(1000)]]);
     await pruneLicensedCache(db, false, launch);
     expect(db.count()).toBe(0);
+  });
+});
+
+describe("through Yada's proxy (release and TestFlight builds)", () => {
+  const PROXY: LicensedConfig = { via: "proxy", url: "https://proxy.example.test/", enabled: true };
+  const proxyBody = (content = CONTENT, copyright = NOTICE) => ({ translation: "NKJV", chapter: "JHN.3", content, copyright });
+  const withServed = (body: unknown, served: string | null, status = 200) => ({
+    ...response(body, status),
+    headers: { get: (name: string) => (name === SERVED_HEADER ? served : null) },
+  });
+  let db: ReturnType<typeof memoryDb>;
+  let fetchMock: ReturnType<typeof vi.fn<LicensedDeps["fetch"]>>;
+  let served: LicensedCode[][];
+  const deps = (): LicensedDeps => ({
+    db,
+    config: PROXY,
+    fetch: fetchMock,
+    now: () => new Date("2026-10-12T12:00:00Z"),
+    onServed: (codes) => served.push(codes),
+  });
+
+  beforeEach(() => {
+    db = memoryDb();
+    served = [];
+    fetchMock = vi.fn<LicensedDeps["fetch"]>(async () => withServed(proxyBody(), "NKJV,NLT"));
+  });
+
+  it("asks for the translation and chapter only: no key, no header about the reader", async () => {
+    const result = await getLicensedChapter(deps(), "NKJV", "JHN", 3);
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("https://proxy.example.test/v1/chapter/NKJV/JHN.3");
+    expect(proxyChapterUrl("https://proxy.example.test", "NLT", "1CO.13")).toBe("https://proxy.example.test/v1/chapter/NLT/1CO.13");
+    expect(init.headers).toEqual({ Accept: "application/json" });
+    expect(result).toMatchObject({ status: "ok", translation: "NKJV", copyright: NOTICE, fromCache: false });
+    if (result.status === "ok") expect(result.verses[1]?.text).toBe("Line one;\n     line two —\n  line three.");
+  });
+
+  it("is usable without a key, and is cached under the same 30-day rule", async () => {
+    expect(licensedConfigUsable(PROXY)).toBe(true);
+    expect(licensedConfigUsable({ ...PROXY, url: "" })).toBe(false);
+    await getLicensedChapter(deps(), "NLT", "PSA", 23);
+    const again = await getLicensedChapter(deps(), "NLT", "PSA", 23);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(again).toMatchObject({ status: "ok", fromCache: true });
+  });
+
+  it("learns the served set from every response, a refusal included", async () => {
+    await getLicensedChapter(deps(), "NKJV", "JHN", 3);
+    fetchMock.mockResolvedValueOnce(withServed({ error: "not-served", served: ["NKJV"] }, "NKJV", 404));
+    const refused = await getLicensedChapter(deps(), "NLT", "JHN", 3);
+    expect(refused).toEqual({ status: "error", translation: "NLT", reason: "http", httpStatus: 404 });
+    expect(served).toEqual([["NKJV", "NLT"], ["NKJV"]]);
+  });
+
+  it("reads The Message through the proxy by its code, with the notice it sends", async () => {
+    expect(isLicensedCode("MSG")).toBe(true);
+    expect(LICENSED.find((t) => t.code === "MSG")).toEqual({ code: "MSG", name: "The Message", bibleId: "6f11a7de016f942e-01" });
+    const result = await getLicensedChapter(deps(), "MSG", "PSA", 23);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://proxy.example.test/v1/chapter/MSG/PSA.23");
+    expect(result).toMatchObject({ status: "ok", translation: "MSG", copyright: NOTICE });
+  });
+
+  it("the dev path offers only what the account holds: MSG, not NIV", () => {
+    expect(ON_ACCOUNT).toEqual(["NKJV", "NLT", "MSG"]);
+  });
+
+  it("reads an API.Bible-shaped body from the proxy as malformed", async () => {
+    fetchMock.mockResolvedValueOnce(withServed({ data: { content: CONTENT, copyright: NOTICE } }, "NKJV,NLT"));
+    expect(await getLicensedChapter(deps(), "NKJV", "JHN", 3)).toEqual({ status: "error", translation: "NKJV", reason: "malformed" });
+  });
+
+  it("offline: needs a connection", async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError("Network request failed"));
+    expect(await getLicensedChapter(deps(), "NKJV", "JHN", 3)).toEqual({ status: "needs-connection", translation: "NKJV" });
+  });
+});
+
+describe("the served set", () => {
+  it("parses only known codes, and tells a missing header from an empty set", () => {
+    expect(parseServed("NLT, msg, nkjv,ESV")).toEqual(["NKJV", "NLT", "MSG"]);
+    expect(parseServed("")).toEqual([]);
+    expect(parseServed(null)).toBeNull();
+  });
+
+  it("assumes NKJV, NLT and MSG until the proxy answers, never NIV", async () => {
+    const db = memoryDb();
+    expect(DEFAULT_SERVED).toEqual(["NKJV", "NLT", "MSG"]);
+    expect(await loadServed(db)).toEqual(["NKJV", "NLT", "MSG"]);
+    await saveServed(db, ["NIV", "NKJV", "NLT"]);
+    expect(await loadServed(db)).toEqual(["NIV", "NKJV", "NLT"]);
+    await saveServed(db, []);
+    expect(await loadServed(db)).toEqual([]);
+  });
+
+  it("drops cached chapters of a version no longer served, at launch", async () => {
+    const db = memoryDb();
+    const now = new Date("2026-10-12T12:00:00Z");
+    for (const t of ["NIV", "NKJV", "NLT"]) {
+      await db.runAsync(
+        "INSERT INTO licensed_chapters (translation, chapter_id, content, copyright, fetched_at) VALUES (?, ?, ?, ?, ?)",
+        [t, "JHN.3", "[1] Text.", NOTICE, now.toISOString()],
+      );
+    }
+    await pruneLicensedCache(db, true, now, ["NKJV", "NLT"]);
+    expect(db.count()).toBe(2);
+    await pruneLicensedCache(db, true, now, []);
+    expect(db.count()).toBe(0);
+  });
+});
+
+describe("searchLicensed (EG-06, EG-07)", () => {
+  const PROXY: LicensedConfig = { via: "proxy", url: "https://proxy.example.test", enabled: true };
+  const body = { total: 1, verses: [{ id: "MAT.16.18", reference: "Matthew 16:18", text: "Placeholder." }], copyright: "Notice." };
+
+  it("asks the proxy's search route and passes the verses and notice through", async () => {
+    const fetch = vi.fn<LicensedDeps["fetch"]>(async () => ({ ok: true, status: 200, json: async () => body }));
+    const result = await searchLicensed({ config: PROXY, fetch }, "NKJV", "church");
+    expect(fetch.mock.calls[0]?.[0]).toBe("https://proxy.example.test/v1/search/NKJV?q=church");
+    expect(result).toEqual({ status: "ok", translation: "NKJV", total: 1, verses: [{ verseId: "MAT.16.18", reference: "Matthew 16:18", text: "Placeholder." }], copyright: "Notice." });
+  });
+
+  it("offline, says it needs a connection, so the screen falls back to the BSB", async () => {
+    const fetch = vi.fn<LicensedDeps["fetch"]>(async () => {
+      throw new TypeError("Network request failed");
+    });
+    expect(await searchLicensed({ config: PROXY, fetch }, "NKJV", "church")).toEqual({ status: "needs-connection", translation: "NKJV" });
   });
 });

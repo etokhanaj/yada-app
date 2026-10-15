@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -8,7 +8,7 @@ import { gunzipSync } from "node:zlib";
 import { HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUNDLE_FORMAT, SCHEMA_VERSION, type BundleInfo } from "@yada/schema";
 
-import { PublishRefused, planPublish, publish, type ObjectStore } from "./publish.js";
+import { PublishRefused, planPublish, pruneAudio, publish, type ObjectStore } from "./publish.js";
 import { gzipTranslation } from "./translations.js";
 
 /**
@@ -278,5 +278,58 @@ describe("publish", () => {
     manifest([bundle("core", "core bytes")]);
     writeFileSync(path.join(dir, "jhn.building.db"), "temp");
     expect(planPublish(dir).ignored).toEqual(["jhn.building.db"]);
+  });
+});
+
+describe("audio removed from this Mac after publishing", () => {
+  const sha = (s: string) => createHash("sha256").update(s).digest("hex");
+  /** One chapter of Heart's John 1, its audio and timings on disk, listed in the manifest. */
+  function audioChapter() {
+    mkdirSync(path.join(dir, "audio", "heart"), { recursive: true });
+    writeFileSync(path.join(dir, "audio/heart/jhn-001.m4a"), "sound");
+    writeFileSync(path.join(dir, "audio/heart/jhn-001.json"), "{}");
+    const core = bundle("core", "core bytes", { kind: "core" });
+    writeFileSync(
+      path.join(dir, "manifest.json"),
+      JSON.stringify({
+        format: BUNDLE_FORMAT,
+        generated_at: "2026-10-13T00:00:00Z",
+        min_app_version: "1.0.0",
+        schema_versions: [SCHEMA_VERSION],
+        bundles: [core],
+        audio: [
+          {
+            book: "JHN",
+            narrator: "heart",
+            narrator_name: "Heart",
+            kind: "computer",
+            chapters: [{ chapter: 1, file: "audio/heart/jhn-001.m4a", sha256: sha("sound"), bytes: 5, timings: "audio/heart/jhn-001.json", timings_sha256: sha("{}"), duration: 1 }],
+          },
+        ],
+      }),
+    );
+    return core;
+  }
+
+  it("removes only what the bucket holds with the same sha256, and records it", async () => {
+    audioChapter();
+    const missing = await pruneAudio({ confirm: true, dir, client: fakeStore().client, env: ENV });
+    expect(missing.removed).toEqual([]);
+    expect(existsSync(path.join(dir, "audio/heart/jhn-001.m4a"))).toBe(true);
+    const held = await pruneAudio({ confirm: true, dir, client: fakeStore({ "audio/heart/jhn-001.m4a": sha("sound") }).client, env: ENV });
+    expect(held.removed).toEqual(["audio/heart/jhn-001.m4a"]);
+    expect(existsSync(path.join(dir, "audio/heart/jhn-001.m4a"))).toBe(false);
+    expect(existsSync(path.join(dir, "audio/heart/jhn-001.json"))).toBe(true);
+  });
+
+  it("publishes past a removed chapter the bucket still holds, and refuses one it lost", async () => {
+    const core = audioChapter();
+    await pruneAudio({ confirm: true, dir, client: fakeStore({ "audio/heart/jhn-001.m4a": sha("sound") }).client, env: ENV });
+    expect(planPublish(dir).bundles.find((b) => b.info.file === "audio/heart/jhn-001.m4a")?.pruned).toBe(true);
+    const ok = await publish({ confirm: true, dir, client: fakeStore({ "audio/heart/jhn-001.m4a": sha("sound"), [core.file]: core.sha256 }).client, env: ENV });
+    expect(ok.unchanged).toContain("audio/heart/jhn-001.m4a");
+    const lost = fakeStore({ [core.file]: core.sha256 });
+    await expect(publish({ confirm: true, dir, client: lost.client, env: ENV })).rejects.toThrow(PublishRefused);
+    expect(lost.sent.filter((c) => c.type === "put")).toEqual([]);
   });
 });

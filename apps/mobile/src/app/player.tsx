@@ -14,16 +14,14 @@
  * the verse is its value) → speed → previous → pause → next → Guide. Word tracking is never
  * announced and focus never moves on its own. Magic tap plays and pauses.
  *
- * The basic-voice line (AU-07) shows under the title the first time the player opens on a
- * default-quality voice, once per device: iOS cannot open that Settings page from an app.
- *
- * The speed button opens a native menu: Speed (0.8×–1.5×), then Voice: the best installed system
- * voice, Your Personal Voice where the device has it (asked for only here), and Get a clearer
- * voice, which shows the AU-07 line on demand (lib/audio/voice.ts).
+ * The speed button opens a native menu of speeds (lib/audio/voice.ts). The voice is named under the
+ * title (BA-01): Heart or George, each as a computer voice, opening the Voice sheet (BA-03) where the book
+ * has a reading; "iPhone voice" where it has none, the system voice reading unasked (John, 13 Oct 2026:
+ * the iPhone voice and Personal Voice are no longer choices).
  */
 
-import { MenuView } from "@react-native-menu/menu";
-import { BOOK_CODES, type BookCode } from "@yada/schema";
+import { type MenuAction, MenuView } from "@react-native-menu/menu";
+import { BOOK_CODES, type BookCode, formatVerseId } from "@yada/schema";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
@@ -34,20 +32,14 @@ import { SpokenSegments, useVerseMark } from "../components/audio/Spoken";
 import { usePericopes } from "../components/audio/usePassage";
 import { Icon } from "../components/Icon";
 import { Chrome } from "../components/Type";
-import { chooseVoice, jumpTo, markVoiceHintSeen, next, previous, setSpeed, showClearerVoice, toggle } from "../data/audio";
+import { endSession, jumpTo, next, previous, setRepeat, setSpeed, setStop, toggle } from "../data/audio";
+import { readingKey, readText, refreshRecordings, useRecordings } from "../data/recordings";
 import type { VerseText } from "../data/queries";
 import { transparent } from "../design/contrast";
 import { FONTS, LTR_PROSE, useAXLevel, useLayout, usePalette, useType } from "../design/tokens";
-import { FADE_BOTTOM, FADE_TOP, followOffset, progressSegments, segmentFill, speedLabel } from "../lib/audio/session";
-import {
-  CLEARER_VOICE_HINT,
-  menuAccessibilityLabel,
-  offersClearerVoice,
-  offersPersonalVoice,
-  PERSONAL_VOICE,
-  playerMenu,
-  voiceLabel,
-} from "../lib/audio/voice";
+import { FADE_BOTTOM, FADE_TOP, followOffset, progressSegments, segmentFill, speedAccessibilityLabel, speedLabel } from "../lib/audio/session";
+import { passageEndIndex, passageStartIndex, repeatChoices, statusLine, stopChoices } from "../lib/audio/stop";
+import { playerMenu } from "../lib/audio/voice";
 import { useReduceMotion } from "../lib/motion";
 import { pericopeForVerse } from "../lib/pericopes";
 import { chapterTitle } from "../lib/reader";
@@ -66,23 +58,31 @@ export default function PlayerScreen() {
   const reduceMotion = useReduceMotion();
   const session = useAudio((s) => s.session);
   const speed = useAudio((s) => s.speed);
-  const voice = useAudio((s) => s.voice);
-  const voiceChoice = useAudio((s) => s.voiceChoice);
-  const personalStatus = useAudio((s) => s.personalStatus);
-  const personalVoice = useAudio((s) => s.personalVoice);
-  const voiceNote = useAudio((s) => s.voiceNote);
-  const [hint] = useState(() => voice?.quality === "default" && !useAudio.getState().voiceHintSeen);
+  const stop = useAudio((s) => s.stop);
+  const repeat = useAudio((s) => s.repeat);
+  // "Stops in 27 min" counts down while the player is open: a tick a minute is enough for whole minutes.
+  const [now, setNow] = useState(Date.now());
   useEffect(() => {
-    if (hint) markVoiceHintSeen();
-  }, [hint]);
-  // A line asked for from the menu appears under the title, so VoiceOver is told; it goes when the player closes.
+    if (stop?.kind !== "time") return;
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(timer);
+  }, [stop]);
+  const voiceNote = useAudio((s) => s.voiceNote);
+  // "You're offline." appears under the title, so VoiceOver is told; it goes when the player closes.
   useEffect(() => {
     if (voiceNote !== null) AccessibilityInfo.announceForAccessibility(voiceNote);
   }, [voiceNote]);
   useEffect(() => () => useAudio.setState({ voiceNote: null }), []);
-  const note = voiceNote ?? (hint ? CLEARER_VOICE_HINT : null);
+  useEffect(() => void refreshRecordings(), []);
+  const note = voiceNote;
 
   const pericopes = usePericopes(session?.book);
+  const reading = useRecordings((s) => {
+    const text = session === null ? null : readText(session.translation);
+    return session === null || text === null ? undefined : s.books[readingKey(session.book, text)];
+  });
+  const recordedBook = reading !== undefined;
   const scroll = useRef<ScrollView>(null);
   const rows = useRef(new Map<number, { y: number; height: number }>());
   const [viewport, setViewport] = useState(0);
@@ -113,10 +113,35 @@ export default function PlayerScreen() {
 
   const onMenu = (id: string) => {
     if (id.startsWith("speed:")) setSpeed(Number(id.slice("speed:".length)));
-    else if (id === "voice:system") void chooseVoice("system");
-    else if (id === "voice:personal") void chooseVoice("personal");
-    else if (id === "voice:clearer") showClearerVoice();
+    else if (id === "stop:off") setStop(null);
+    else if (id.startsWith("stop:")) {
+      const choice = stopChoices(repeat, pericopes.length > 0).find((c) => `stop:${c}` === id);
+      if (choice !== undefined) setStop(choice);
+    } else if (id === "repeat:off") setRepeat(null);
+    else if (id.startsWith("repeat:")) {
+      const choice = repeatChoices(pericopes.length > 0).find((r) => `repeat:${r}` === id);
+      if (choice !== undefined) setRepeat(choice);
+    }
+    else if (id === "end") {
+      // The full player had no way to stop (IA stress test, 15 Oct 2026): the session ends and the player closes.
+      endSession();
+      router.back();
+    }
   };
+  // LB-01–07: where the passage and the chapter end, for the menu's "After 1:18" and the line under the progress.
+  const ords = verses.map((v) => v.ord);
+  const starts = pericopes.length === 0 ? null : new Set(pericopes.map((p) => p.start_ord));
+  const at = Math.max(0, session.index);
+  const passageFirst = verses[passageStartIndex(at, ords, starts)]?.verse ?? 1;
+  const passageLast = verses[passageEndIndex(at, ords, starts)]?.verse ?? lastVerse;
+  const setLine = statusLine(stop, repeat, { chapter, verse: verse.verse, passageFirst, passageLast, chapterLast: lastVerse, chapterTitle: title }, now);
+  // BA-01, BA-05, BA-06: the voice named under the title, a computer voice named as one wherever it is
+  // named (John, 12 Oct 2026). It opens the Voice sheet (BA-03, LB-10) wherever the book has a reading in this
+  // text: the choice of voice where two read it (the BSB), the book's download in every text
+  // (docs/build-6-decisions.md). A chapter already on the phone plays without the manifest, so a playing
+  // reading opens it by itself (offline too), and the player asks for the manifest about the rest.
+  const voiceLine = session.recorded !== true ? "iPhone voice" : reading === undefined ? "Computer voice" : `${reading.narrator_name}, computer voice`;
+  const voiceChoices = recordedBook || session.recorded === true;
 
   // VoiceOver reads a row by each element's top edge, so in the one-row layout every control is as
   // tall as the pause button and draws its circle inside: speed → previous → pause → next → Guide (AU-06).
@@ -135,19 +160,38 @@ export default function PlayerScreen() {
     </Pressable>
   );
 
-  // Speed and voice in one native menu, as the ⋯ menus on Home and Translations (MT-04): the button
-  // still shows the speed, the frame's one control in that slot (AU-04).
-  const menu = playerMenu(speed, voice, voiceChoice, offersPersonalVoice(personalStatus, personalVoice), offersClearerVoice(voice));
-  const voiceName = voiceChoice === "personal" ? PERSONAL_VOICE : voice === null ? null : voiceLabel(voice);
+  // The speed menu, native as the ⋯ menus on Home and Translations (MT-04): the button shows the speed,
+  // the frame's one control in that slot (AU-04).
+  const menu = playerMenu(
+    speed,
+    stop,
+    repeat,
+    {
+      verse: `${chapter}:${verse.verse}`,
+      passage: starts === null ? null : `${chapter}:${passageFirst}–${passageLast}`,
+      chapter: title,
+      passageEnd: starts === null ? null : `${chapter}:${passageLast}`,
+      chapterEnd: `${chapter}:${lastVerse}`,
+    },
+    now,
+  );
   const speedButton = (
     <MenuView
       shouldOpenOnLongPress={false}
-      actions={menu.map((section) => ({
-        id: section.id,
-        title: section.title,
-        displayInline: true,
-        subactions: section.rows.map((row) => ({ id: row.id, title: row.title, state: row.on ? ("on" as const) : ("off" as const) })),
-      }))}
+      actions={[
+        ...menu.map((section): MenuAction => ({
+          id: section.id,
+          title: section.title,
+          ...(section.subtitle === undefined ? {} : { subtitle: section.subtitle }),
+          subactions: section.rows.map((row) => ({
+            id: row.id,
+            title: row.title,
+            ...(row.subtitle === undefined ? {} : { subtitle: row.subtitle }),
+            state: row.on ? ("on" as const) : ("off" as const),
+          })),
+        })),
+        { id: "end", title: "Stop listening", attributes: { destructive: true } },
+      ]}
       onPressAction={({ nativeEvent }) => onMenu(nativeEvent.event)}
       testID="player-speed"
       style={[styles.round, { width: ax ? 72 : 44 }, slot ?? { height: 72 }]}
@@ -157,7 +201,8 @@ export default function PlayerScreen() {
         pointerEvents="none"
         accessible
         accessibilityRole="button"
-        accessibilityLabel={menuAccessibilityLabel(speed, voiceName)}
+        accessibilityLabel={`${speedAccessibilityLabel(speed)}, stop and repeat`}
+        accessibilityValue={setLine === null ? undefined : { text: setLine }}
         style={[styles.round, { width: ax ? 72 : 44 }, slot ?? { height: 72 }]}
       >
         <View style={[styles.round, { width: ax ? 72 : 44, height: ax ? 72 : 44, backgroundColor: palette.fill }]}>
@@ -202,13 +247,37 @@ export default function PlayerScreen() {
         >
           <Icon name="down" size={20} maxScale={1.5} />
         </Pressable>
-        <View style={[styles.title, ax ? { flex: 0, alignItems: "flex-start", paddingHorizontal: 6 } : null]} accessibilityRole="header" accessible>
-          <Chrome tone="ink" step="sheetTitle" style={{ textAlign: ax ? "left" : "center" }} numberOfLines={ax ? undefined : 1}>
+        <View style={[styles.title, ax ? { flex: 0, alignItems: "flex-start", paddingHorizontal: 6 } : null]}>
+          {/* BA-01 AX5: one line, two at most. US-02: a book with no passages names the chapter once. */}
+          <Chrome tone="ink" step="sheetTitle" accessibilityRole="header" style={{ textAlign: ax ? "left" : "center" }} numberOfLines={ax ? 2 : 1}>
             {passage?.label ?? title}
           </Chrome>
-          <Chrome tone="muted" step="note" style={{ textAlign: ax ? "left" : "center" }}>
-            {`${title} · ${translation}`}
-          </Chrome>
+          {/* BA-01: the place is plain text; the voice is its own control, accented with ⌄, only where there is a choice (BA-06). */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: ax ? "flex-start" : "center" }}>
+            <Chrome tone="muted" step="note" accessibilityLabel={[passage === null ? null : title, translation].filter((p) => p !== null).join(", ")}>
+              {`${[passage === null ? null : title, translation].filter((p) => p !== null).join(" · ")} · `}
+            </Chrome>
+            {voiceChoices ? (
+              <Pressable
+                onPress={() => router.push("/voice")}
+                accessibilityRole="button"
+                accessibilityLabel={`Voice: ${voiceLine}`}
+                accessibilityHint="Changes the voice"
+                hitSlop={{ top: 14, bottom: 14, left: 8, right: 8 }}
+                style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", columnGap: 2 }, pressed ? styles.pressed : null]}
+                testID="player-voice"
+              >
+                <Chrome tone="accent" step="note" style={{ fontWeight: "600" }}>
+                  {voiceLine}
+                </Chrome>
+                <Icon name="down" size={12} tone="accent" maxScale={2} />
+              </Pressable>
+            ) : (
+              <Chrome tone="muted" step="note" testID="player-voice">
+                {voiceLine}
+              </Chrome>
+            )}
+          </View>
         </View>
         {ax ? null : <View style={{ width: 44 }} />}
       </View>
@@ -232,6 +301,17 @@ export default function PlayerScreen() {
           showsVerticalScrollIndicator={false}
           testID="player-lyrics"
         >
+          {/* LB-08: while the chapter's name is said it is the line playing, in ink above verse 1. */}
+          {session.titling === true ? (
+            <Text
+              accessibilityLabel={`${title}, playing`}
+              maxFontSizeMultiplier={2}
+              style={[LTR_PROSE, { fontFamily: "System", fontSize: axLevel === 0 ? 27 : 24, fontWeight: "600", color: palette.ink }]}
+              testID="player-title-line"
+            >
+              {title}
+            </Text>
+          ) : null}
           {verses.map((v) => (
             <View
               key={v.ord}
@@ -251,7 +331,7 @@ export default function PlayerScreen() {
                 chapter={chapter}
                 book={book}
                 translation={translation}
-                place={v.verse < verse.verse ? "past" : v.verse === verse.verse ? "current" : "upcoming"}
+                place={v.verse < verse.verse ? "past" : v.verse === verse.verse && session.titling !== true ? "current" : "upcoming"}
                 bold={reduceMotion}
                 big={axLevel === 0}
               />
@@ -282,14 +362,29 @@ export default function PlayerScreen() {
             ))}
           </View>
           <View style={styles.progressLabels} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-            <Chrome tone="muted" step="note" style={{ fontVariant: ["tabular-nums"] }}>
-              {`Verse ${verse.verse}`}
-            </Chrome>
-            <Chrome tone="muted" step="note" style={{ fontVariant: ["tabular-nums"] }}>
-              {`of ${lastVerse}`}
-            </Chrome>
+            {/* Review §6: "Verse 5 of 51" is one phrase at every size; split, AX5 wrapped "of 51" alone. */}
+            {ax ? (
+              <Chrome tone="muted" step="note" style={{ fontVariant: ["tabular-nums"] }}>
+                {`Verse\u00a0${verse.verse} of\u00a0${lastVerse}`}
+              </Chrome>
+            ) : (
+              <>
+                <Chrome tone="muted" step="note" style={{ fontVariant: ["tabular-nums"] }}>
+                  {`Verse ${verse.verse}`}
+                </Chrome>
+                <Chrome tone="muted" step="note" style={{ fontVariant: ["tabular-nums"] }}>
+                  {`of ${lastVerse}`}
+                </Chrome>
+              </>
+            )}
           </View>
         </View>
+        {/* LB-03, LB-06: one line while a stop or a repeat is set, under the progress it is about; nothing otherwise. */}
+        {setLine !== null ? (
+          <Chrome tone="muted" step="note" style={{ marginTop: 2 }} testID="player-status">
+            {setLine}
+          </Chrome>
+        ) : null}
         {ax ? (
           <View style={styles.gridAx}>
             {round("previous", "Previous verse", previous, 80, "player-previous")}
@@ -346,10 +441,11 @@ function Line({
   const segments = scriptureSegments(verse.text, translation);
   return (
     <Pressable
-      onPress={() => jumpTo(verse.verse)}
+      // UL-03: the playing line opens its Understand, over the player; any other line plays from there.
+      onPress={() => (current ? router.push({ pathname: "/understand", params: { ref: formatVerseId(book, chapter, verse.verse) } }) : jumpTo(verse.verse))}
       accessibilityRole="button"
       accessibilityLabel={`${name} ${chapter}:${verse.verse}${current ? ", playing" : ""}. ${spokenText(verse.text, translation)}`}
-      accessibilityHint="Plays from this verse"
+      accessibilityHint={current ? "Opens Understand" : "Plays from this verse"}
       testID={`line-${verse.verse}`}
       style={{ opacity: place === "upcoming" ? 0.55 : 1 }}
     >

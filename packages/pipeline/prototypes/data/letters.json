@@ -1,0 +1,132 @@
+{
+  "_why": "John, 12 Oct 2026 (Romans test): a letter's first- and second-person lines are its writer's words, so a summary frames them (“Paul tells the believers in Rome: “…””), never as Yada speaking to the reader. Each letter's writer, readers and one setting line (to whom, and why) are drafted from the tN book introduction quoted in `source`, in plain words. Where tN says the writer gives no name (Hebrews, 1 John) the line says so rather than naming one (rule 4). Nothing here is approved until status is 'approved' (rule 2). Approved by John on 12 Oct 2026.",
+  "status": "approved",
+  "letters": {
+    "ROM": {
+      "author": "Paul",
+      "recipients": "the believers in Rome",
+      "setting": "Paul wrote to the believers in Rome to get them ready for his visit, and set out the good news about Jesus in full.",
+      "source": "tN Romans intro: “Paul wrote this letter to the Christians in Rome. Paul wanted to get them ready to receive him when he visited them … In this letter Paul most fully described the gospel of Jesus Christ.”"
+    },
+    "1CO": {
+      "author": "Paul",
+      "recipients": "the believers in Corinth",
+      "setting": "Paul wrote from Ephesus to the believers in Corinth, answering their letter and what he had heard about their divisions.",
+      "source": "tN 1 Corinthians intro: “While Paul was in Ephesus … People from ‘Chloe’ told Paul about ‘factions’ … and the Corinthian believers wrote a letter to him asking questions.”"
+    },
+    "2CO": {
+      "author": "Paul",
+      "recipients": "the believers in Corinth",
+      "setting": "Paul wrote again to the believers in Corinth, glad they had taken his earlier letter well, and defended his work as an apostle.",
+      "source": "tN 2 Corinthians intro: “Paul tells the Corinthians that he is happy that they have responded well to his letter … he continues to defend himself as an apostle.”"
+    },
+    "GAL": {
+      "author": "Paul",
+      "recipients": "the believers in Galatia",
+      "setting": "Paul wrote to the believers in Galatia against teachers who said Christians must keep the law of Moses.",
+      "source": "tN Galatians intro: “He wanted to write against the false teachers who said that Christians need to follow the law of Moses.”"
+    },
+    "EPH": {
+      "author": "Paul",
+      "recipients": "the believers in Ephesus",
+      "setting": "Paul wrote to the believers in Ephesus about God’s love for them in Christ, and how to live in a way that pleases God.",
+      "source": "tN Ephesians intro: “to explain God’s love for them in Christ Jesus … to encourage them to live in a way that pleases God.”"
+    },
+    "PHP": {
+      "author": "Paul",
+      "recipients": "the believers in Philippi",
+      "setting": "Paul wrote from prison to the believers in Philippi to thank them for their gift and to encourage them to rejoice.",
+      "source": "tN Philippians intro: “Paul wrote this letter while in prison in Rome … to thank the Philippians for the gift … to encourage them to rejoice.”"
+    },
+    "COL": {
+      "author": "Paul",
+      "recipients": "the believers in Colossae",
+      "setting": "Paul wrote to the believers in Colossae, whom he had never met, to encourage them and warn them against false teachers.",
+      "source": "tN Colossians intro: “he had never met the Colossians in person … he wrote to encourage them and to warn them against false teachers.”"
+    },
+    "1TH": {
+      "author": "Paul",
+      "recipients": "the believers in Thessalonica",
+      "setting": "Paul had to leave Thessalonica after a few weeks; he wrote to the believers there to strengthen them and teach them more.",
+      "source": "tN 1 Thessalonians intro: “persecution forced him to leave after only a few weeks … to make his relationship with the Thessalonians stronger and to teach them more about the gospel.”"
+    },
+    "2TH": {
+      "author": "Paul",
+      "recipients": "the believers in Thessalonica",
+      "setting": "Paul wrote again to the persecuted believers in Thessalonica, and taught them again about Christ’s return.",
+      "source": "tN 2 Thessalonians intro: “He encouraged the believers because they were being persecuted … teach them again about Christ’s return.”"
+    },
+    "1TI": {
+      "author": "Paul",
+      "recipients": "Timothy",
+      "setting": "Paul wrote to Timothy, whom he had left in Ephesus, about worship, church leaders and false teachers.",
+      "source": "tN 1 Timothy intro: “Paul had left Timothy in the city of Ephesus … church worship, qualifications for church leaders, and how to deal with false teachers.”"
+    },
+    "2TI": {
+      "author": "Paul",
+      "recipients": "Timothy",
+      "setting": "Paul wrote to Timothy knowing he would soon die, to encourage him to keep serving God.",
+      "source": "tN 2 Timothy intro: “When Paul wrote this letter, he knew that he would soon die. He wrote to encourage Timothy to continue serving God.”"
+    },
+    "TIT": {
+      "author": "Paul",
+      "recipients": "Titus",
+      "setting": "Paul wrote to Titus, who led the churches on Crete, about choosing church leaders and how believers should live.",
+      "source": "tN Titus intro: “Titus … was leading the churches on the island of Crete. Paul instructed him about selecting church leaders.”"
+    },
+    "PHM": {
+      "author": "Paul",
+      "recipients": "Philemon",
+      "setting": "Paul wrote from prison to Philemon, asking him to take back his runaway slave Onesimus as a brother.",
+      "source": "tN Philemon intro: “Paul was in a prison … Onesimus had run away … Philemon should accept Onesimus back as a Christian brother.”"
+    },
+    "HEB": {
+      "author": "The writer",
+      "recipients": "his readers",
+      "setting": "The writer does not give his name; he wrote to show how great Jesus is and to urge his readers to keep trusting him.",
+      "source": "tN Hebrews intro: “Whoever wrote this letter did not include his name … emphasizes the greatness of Jesus and his work and encourages the audience to persevere in trusting him.”"
+    },
+    "JAS": {
+      "author": "James",
+      "recipients": "the believers",
+      "setting": "James wrote to suffering believers across the Roman Empire about how to live and treat one another.",
+      "source": "tN James intro: “James writes to believers living all over the Roman Empire who are suffering … how believers should live in this world and treat one another.”"
+    },
+    "1PE": {
+      "author": "Peter",
+      "recipients": "the believers",
+      "setting": "Peter wrote to Gentile believers who were being persecuted, urging them to keep obeying God.",
+      "source": "tN 1 Peter intro: “to encourage Gentile Christians who were being persecuted … to continue obeying God even when they were suffering.”"
+    },
+    "2PE": {
+      "author": "Peter",
+      "recipients": "the believers",
+      "setting": "Peter wrote to warn believers about false teachers who said Jesus was taking too long to return.",
+      "source": "tN 2 Peter intro: “He warned them about false teachers who were saying Jesus was taking too long to return.”"
+    },
+    "1JN": {
+      "author": "The writer",
+      "recipients": "his readers",
+      "setting": "The writer does not give his name; he wrote to correct false teachings and to assure his readers that they were saved.",
+      "source": "tN 1 John intro: “The author of this letter does not give his name … to challenge and correct those false teachings … to assure them that they were saved.”"
+    },
+    "2JN": {
+      "author": "The elder",
+      "recipients": "his readers",
+      "setting": "The elder wrote to a group of believers to encourage them and warn them about false teachers.",
+      "source": "tN 2 John intro: “identifies himself only as ‘the elder’ … to encourage them in their faith and to warn them about false teachers.”"
+    },
+    "3JN": {
+      "author": "The elder",
+      "recipients": "Gaius",
+      "setting": "The elder wrote to Gaius, asking him to welcome travelling believers and warning him about Diotrephes.",
+      "source": "tN 3 John intro: “He instructed Gaius to be hospitable and helpful to fellow believers who were traveling … warned Gaius about a bad leader in the church there named Diotrephes.”"
+    },
+    "JUD": {
+      "author": "Jude",
+      "recipients": "his readers",
+      "setting": "Jude wrote to warn believers against false teachers.",
+      "source": "tN Jude intro: “Jude wrote this letter to warn believers against false teachers.”"
+    }
+  }
+}

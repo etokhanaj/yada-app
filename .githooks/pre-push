@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Yada's push gate: the typecheck (CLAUDE.md gates), of exactly what is pushed. Unfinished work beside the
+# commit (another session's or an agent's uncommitted files) must neither block nor sneak through a push
+# (15 Oct 2026), so with local changes the check runs on a clean checkout of HEAD that borrows this
+# checkout's installed dependencies. Full tests and the review skills stay manual: a slow hook gets skipped.
+set -euo pipefail
+export PATH="$HOME/.nvm/versions/node/v24.15.0/bin:$PATH"
+root="$(git rev-parse --show-toplevel)"
+log=/tmp/yada-pre-push-typecheck.log
+if [ -z "$(git status --porcelain --untracked-files=normal -- apps packages services)" ]; then
+  (cd "$root" && pnpm -r typecheck) > "$log" 2>&1 || { echo "pre-push: typecheck failed; see $log" >&2; exit 1; }
+  exit 0
+fi
+tmp="$(mktemp -d)/yada-push"
+git worktree add --detach -q "$tmp" HEAD
+trap 'git worktree remove --force "$tmp" >/dev/null 2>&1 || true' EXIT
+for nm in $(cd "$root" && find . -maxdepth 3 -name node_modules -type d -not -path "*/node_modules/*"); do
+  ln -s "$root/$nm" "$tmp/$nm"
+done
+(cd "$tmp" && pnpm -r typecheck) > "$log" 2>&1 || { echo "pre-push: typecheck of the pushed commit failed; see $log" >&2; exit 1; }

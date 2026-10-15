@@ -1,6 +1,6 @@
 /**
- * Sources (canvas SO-01, SO-02), formerly Library: what is explained so far,
- * then where every word of text and data comes from.
+ * Sources (canvas SO-01, SO-02, ST-04), formerly Library: where every word of text, data and explanation
+ * comes from.
  *
  * The built-in texts ship inside the app (John's decision 4); downloaded
  * translations are saved on the phone, so one line says both work offline
@@ -15,82 +15,56 @@
  * (S15); PRD 0E still has to close them.
  */
 
-import { parseVerseId } from "@yada/schema";
-import { router } from "expo-router";
+import { useEffect } from "react";
+import { licensedCodes, licensedEnabled } from "../data/useLicensedChapter";
 import { Linking, View } from "react-native";
 
-import { readerHref } from "../components/navigation";
-import { DivineText } from "../components/Verse";
 import { ListRow, PageScreen } from "../components/Page";
-import { Chrome, Label, Scripture } from "../components/Type";
+import { Chrome, Label } from "../components/Type";
 import { useCore, useQuery } from "../data/AppData";
-import { UNDERSTAND_BUNDLES } from "../data/bundles";
-import { bookBounds, getSources, getTextsForOrds, getTranslationSources } from "../data/queries";
+import { getSources, getTranslationSources } from "../data/queries";
+import { refreshRecordings, useRecordings } from "../data/recordings";
 import { loadStudySources, useStudy } from "../data/study";
 import { useTranslations } from "../data/translations";
-import { loadEntriesInRange } from "../data/understand";
+import { loadAnyUnderstandSources, useUnderstand } from "../data/understand";
 import { useLayout } from "../design/tokens";
-import { excerptOf } from "../lib/reader";
-import { verseLabel } from "../lib/saved";
 import { type SourceGroup, sourceItems, studySourceItem } from "../lib/sources";
 import { useSettings } from "../state/settings";
 
-const GROUPS: readonly SourceGroup[] = ["Bible text", "Word data"];
+const GROUPS: readonly SourceGroup[] = ["Bible text", "Words and people", "Understand"];
+
+/** A row that opens its source's page, when it has one. */
+const opens = (url: string | undefined) => (url === undefined ? {} : { onPress: () => void Linking.openURL(url) });
 
 export default function SourcesScreen() {
+  return (
+    // ST-04: reached from Settings (IA-11), named for both halves of what it lists.
+    <PageScreen title="Sources and licences" back="Settings" subtitle="Built-in texts need no connection. Downloaded translations work offline once saved." testID="sources">
+      <SourcesList />
+    </PageScreen>
+  );
+}
+
+/**
+ * Every source and licence. A page from Settings; inside Understand and the guide it is pushed in the sheet's own
+ * stack (understand/sources, guide/sources), so it never stacks a page over a sheet (IA stress test, 15 Oct 2026).
+ */
+export function SourcesList() {
   const core = useCore();
   const { ax, sectionGap } = useLayout();
   const translation = useSettings((s) => s.translation);
   const installed = useTranslations((s) => s.installed);
   const { data: sources } = useQuery(async () => [...(await getSources(core)), ...(await getTranslationSources(core))], [installed.map((t) => t.code).join(",")]);
-  const { data: explained } = useQuery(async () => {
-    const books = UNDERSTAND_BUNDLES.flatMap((b) => (b.book === undefined ? [] : [b.book]));
-    const rows = (await Promise.all(books.map((book) => loadEntriesInRange(book, ...bookBounds(book))))).flat();
-    rows.sort((a, b) => a.ord - b.ord);
-    const texts = await getTextsForOrds(core, rows.map((r) => r.ord), translation);
-    return rows.flatMap((r) => {
-      const ref = parseVerseId(r.verse_id);
-      return ref === null ? [] : [{ id: r.verse_id, ref, text: excerptOf(texts.get(r.ord) ?? "") }];
-    });
-  }, [translation]);
+  const understandBooks = useUnderstand((s) => Object.keys(s.installed).join(","));
+  const { data: explanations } = useQuery(() => loadAnyUnderstandSources(), [understandBooks]);
   const items = sourceItems(sources ?? []);
   const studyBooks = useStudy((s) => Object.keys(s.installed).join(","));
   const { data: study } = useQuery(() => loadStudySources(), [studyBooks]);
+  const all = useRecordings((s) => s.all);
+  const readings = all.filter((a, i) => all.findIndex((b) => b.narrator === a.narrator) === i);
+  useEffect(() => void refreshRecordings(), []);
 
-  return (
-    <PageScreen title="Sources" subtitle="Built-in texts need no connection. Downloaded translations work offline once saved." testID="sources">
-      {explained !== undefined && explained.length > 0 ? (
-        <View>
-          <Label style={{ marginBottom: 6 }}>
-            Explained so far · {explained.length} {explained.length === 1 ? "verse" : "verses"}
-          </Label>
-          {explained.map(({ id, ref, text }, i) => {
-            const label = verseLabel(ref);
-            return (
-              <ListRow
-                key={id}
-                first={i === 0}
-                title={label}
-                label={`${label}. ${text}`}
-                onPress={() => router.push(readerHref({ book: ref.book, chapter: ref.chapter, verse: ref.verse, select: true }))}
-                testID={`explained-${id}`}
-                subtitle={
-                  <Scripture
-                    step="claim"
-                    tone="muted"
-                    numberOfLines={ax ? 3 : 1}
-                    style={{ fontFamily: "Literata" }}
-                  >
-                    <DivineText text={text} translation={translation} />
-                  </Scripture>
-                }
-              />
-            );
-          })}
-        </View>
-      ) : null}
-
-      {GROUPS.map((group) => {
+  const groupView = (group: SourceGroup) => {
         const rows = items.filter((item) => item.group === group);
         if (rows.length === 0) return null;
         return (
@@ -101,9 +75,11 @@ export default function SourcesScreen() {
                 key={item.dataset}
                 first={i === 0}
                 title={item.title}
+                // ST-04: the licence trails the name; at AX sizes it stacks under it, as the frame's AX5 does.
+                right={ax || item.attribution !== null ? undefined : <Chrome tone="muted" numberOfLines={2} style={{ textAlign: "right", maxWidth: 170 }}>{item.value}</Chrome>}
                 subtitle={
-                  item.attribution === null ? (
-                    item.subtitle
+                  !ax && item.attribution === null ? undefined : item.attribution === null ? (
+                    item.value
                   ) : (
                     <>
                       <Chrome step="note" tone="muted">
@@ -122,8 +98,73 @@ export default function SourcesScreen() {
               />
             ))}
           </View>
-        );
-      })}
+        );  };
+
+  return (
+    <>
+      {/* ST-04: the Bible's own text first. */}
+      {groupView("Bible text")}
+      {/* Explanations (ST-04): every source Understand is built from, with what was changed, read from
+          the book's own file (rule 3). Credited here once, never under each line (Phase 1). */}
+      {explanations !== undefined && explanations.length > 0 ? (
+        <View style={{ marginTop: sectionGap }}>
+          <Label style={{ marginBottom: 6 }}>Explanations</Label>
+          {explanations
+            .filter((source) => source.key !== "twl")
+            .map((source, i) => (
+              <ListRow
+                key={source.key}
+                first={i === 0}
+                title={source.name.replace(/^unfoldingWord /u, "")}
+                label={`${source.name}. ${source.credit}`}
+                testID={`source-understand-${source.key}`}
+                subtitle={
+                  <>
+                    <Chrome step="note" tone="muted">
+                      {source.credit}
+                    </Chrome>
+                    {source.original !== null ? (
+                      <Chrome step="note" tone="muted" style={{ marginTop: 4 }}>
+                        {source.original}
+                      </Chrome>
+                    ) : null}
+                  </>
+                }
+              />
+            ))}
+          <Chrome step="note" tone="muted" style={{ marginTop: 8 }}>
+            Yada’s adapted data is shared under CC BY‑SA 4.0, as these licences ask.
+          </Chrome>
+        </View>
+      ) : null}
+
+      {GROUPS.filter((g) => g !== "Bible text").map(groupView)}
+
+      {/* ST-04 Read online: the licensed versions, shown only, never kept for AI or audio (rule 9). */}
+      {licensedEnabled() ? (
+        <View style={{ marginTop: sectionGap }}>
+          <Label style={{ marginBottom: 6 }}>Read online</Label>
+          <ListRow first chevron={false} title={licensedCodes().map((c) => (c === "MSG" ? "The Message" : c)).join(" · ")} subtitle="API.Bible · display only" testID="source-read-online" />
+        </View>
+      ) : null}
+
+      {/* Audio (Phase 4): each reading once, with the licence the manifest carries from its source (rule 3).
+          A computer voice says so here too (John, 12 Oct 2026). */}
+      {readings.length > 0 ? (
+        <View style={{ marginTop: sectionGap }}>
+          <Label style={{ marginBottom: 6 }}>Audio</Label>
+          {readings.map((reading, i) => (
+            <ListRow
+              key={reading.narrator}
+              first={i === 0}
+              title={`${reading.narrator_name}, computer voice`}
+              subtitle={reading.credit ?? ""}
+              {...opens(reading.credit_url)}
+              testID={`source-audio-${reading.narrator}`}
+            />
+          ))}
+        </View>
+      ) : null}
 
       {/* Study notes (artifact, "Rules this follows"): both sources with their attribution and the
           licence statement in full, read from a downloaded study file's own sources table (rule 3),
@@ -158,6 +199,6 @@ export default function SourcesScreen() {
           })}
         </View>
       ) : null}
-    </PageScreen>
+    </>
   );
 }

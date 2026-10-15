@@ -24,6 +24,7 @@ import { GlassText, ListRow, PageScreen } from "../components/Page";
 import { Chrome, Scripture } from "../components/Type";
 import { DivineText } from "../components/Verse";
 import { useAppData, useCore, useQuery } from "../data/AppData";
+import { isLicensedCode } from "../data/licensed";
 import { cloudAvailable } from "../data/cloud";
 import { getTextsForOrds } from "../data/queries";
 import { listBookmarks, removeBookmark } from "../data/user";
@@ -50,12 +51,14 @@ export default function BookmarksScreen() {
     return ref === null ? [] : [{ id, ref, ord: verseOrd(ref.book, ref.chapter, ref.verse) }];
   });
   const ords = refs.map((r) => r.ord);
-  const { data: texts } = useQuery(() => getTextsForOrds(core, ords, translation), [ords.join(","), translation]);
+  // US-11: a licensed version is not on the phone, so its excerpt is the BSB's, labelled as such.
+  const shown = isLicensedCode(translation) ? "BSB" : translation;
+  const { data: texts } = useQuery(() => getTextsForOrds(core, ords, shown), [ords.join(","), shown]);
 
   const remove = (id: string) => {
     void removeBookmark(user, id).then(reload);
   };
-  const open = (ref: VerseRef) => router.push(readerHref({ book: ref.book, chapter: ref.chapter, verse: ref.verse, select: true }));
+  const open = (ref: VerseRef) => router.push(readerHref({ book: ref.book, chapter: ref.chapter, verse: ref.verse, select: true, back: "Bookmarks" }));
   const empty = ids !== null && refs.length === 0;
 
   return (
@@ -79,7 +82,7 @@ export default function BookmarksScreen() {
         </View>
       ) : null}
       {refs.map(({ id, ref, ord }, i) => {
-        const label = verseLabel(ref);
+        const label = shown === translation ? verseLabel(ref) : `${verseLabel(ref)} · BSB`;
         const excerpt = excerptOf(texts?.get(ord) ?? "");
         return (
           // One element to VoiceOver with the remove action on it; touches still reach the row and its control.

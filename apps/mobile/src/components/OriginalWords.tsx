@@ -79,7 +79,11 @@ function WordFlow({
           return (
             <Pressable
               key={`${word.ord}-${word.position}`}
-              onPress={() => onWord(word)}
+              onPress={() => {
+                // The same light tick as the flowing layout below: the AX3+ rows had none (review §4).
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onWord(word);
+              }}
               accessibilityRole="button"
               accessibilityLabel={`${word.translit}${word.gloss === null ? "" : `, ${displayGloss(word.gloss)}`}`}
               accessibilityHint="Opens the word"

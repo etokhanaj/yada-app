@@ -1,9 +1,9 @@
-# Audio read-along (AU-01–04): Listen at rest, pause, next and previous verse in the mini player,
+# Audio read-along (AU-01–04, BA-01, BA-03, LB-01–07): Listen at rest, pause, next and previous verse in the mini player,
 # Play from a selected verse, the full player and back. Steps that move by verse run paused, so
 # the voice reaching the next verse on its own never races an assertion.
+# Launch the app first, outside Maestro, as for flow 09: Maestro-launched dev builds froze (12 Oct 2026).
 appId: studio.yada.reader
 ---
-- launchApp
 - openLink: studio.yada.reader:///read/JHN/1
 - waitForAnimationToEnd
 - assertVisible:
@@ -17,6 +17,12 @@ appId: studio.yada.reader
 - tapOn:
     id: mini-toggle
 - assertVisible: "Play"
+# Heart can reach 1:2 before the pause lands, so step back to the top before moving by one.
+- tapOn:
+    id: mini-previous
+- tapOn:
+    id: mini-previous
+- assertVisible: ".*John 1:1, Berean Standard Bible.*"
 - tapOn:
     id: mini-next
 - assertVisible: ".*John 1:2, Berean Standard Bible.*"
@@ -34,6 +40,9 @@ appId: studio.yada.reader
     id: bar-play-from
 - assertVisible:
     id: bar-compare
+# The reading stays in view above the verse's actions, one tap to the player (John, 15 Oct 2026).
+- assertVisible:
+    id: now-playing-open
 - tapOn:
     id: bar-play-from
 # No waitForAnimationToEnd while a verse plays: the moving pill keeps the screen from settling, so
@@ -56,27 +65,105 @@ appId: studio.yada.reader
 - tapOn:
     id: player-toggle
 - assertVisible: "Pause"
-# Speed and voice share one native menu. The Simulator has only compact voices and no Personal
-# Voice ("unsupported"), so its row never shows here; Get a clearer voice shows the AU-07 line.
+# BA-01: John 1 has a reading (the local manifest offers it), named under the title as a computer voice.
+# Heart is chosen first in the Voice sheet, so a run that stopped on George starts clean. The menu is Speed
+# alone (John, 13 Oct 2026: the iPhone voice is no longer a choice). The sheet sits over the full-screen
+# player, which Maestro's hierarchy does not reach (12 Oct 2026), so its rows are tapped by place: Heart,
+# then George; × at the top right.
+- tapOn:
+    id: player-voice
+- waitForAnimationToEnd
+- tapOn:
+    point: "50%,62%"
+- waitForAnimationToEnd
+- tapOn:
+    point: "90%,53%"
+- waitForAnimationToEnd
+- assertVisible: "Voice: Heart, computer voice"
+# LB-01: one menu, Speed, Stop playing and Repeat, each a submenu showing its setting.
 - tapOn:
     id: player-speed
 - assertVisible: "Speed"
-- assertVisible: "Voice"
-- assertVisible: "Get a clearer voice"
-- assertNotVisible: "Your Personal Voice"
+- assertVisible: "Stop playing"
+- assertVisible: "Repeat"
+- assertNotVisible: "Voice"
+- assertNotVisible: ".*Get a clearer voice.*"
+- tapOn: "Speed"
 - tapOn: "1.25×"
 - assertVisible: ".*Speed, 1.25 times.*"
-- tapOn:
-    id: player-speed
-- tapOn: "Get a clearer voice"
-- assertVisible: ".*Settings › Accessibility › Spoken Content › Voices.*"
 # Back to 1×: the speed persists per device, and the other flows expect the default.
 - tapOn:
     id: player-speed
+- tapOn: "Speed"
 - tapOn: "1×"
 - assertVisible: ".*Speed, 1 times.*"
+# LB-02, LB-03: a stop at the end of this passage; one line under the progress says where.
+- tapOn:
+    id: player-speed
+- tapOn: "Stop playing"
+- assertVisible: "End of this chapter"
+- tapOn: "End of this passage"
+- assertVisible:
+    id: player-status
+- assertVisible: "Stops after 1:18"
+# LB-05, LB-06: repeat the passage too; the line names both. Then both off, which the other flows expect.
+- tapOn:
+    id: player-speed
+- tapOn: "Repeat"
+- tapOn: "This passage"
+- assertVisible: "Repeats 1:1–18 · Stops after 1:18"
+# LB-07: repeating a verse offers only the times, and clears the passage stop it would never reach.
+- tapOn:
+    id: player-speed
+- tapOn: "Repeat"
+- tapOn: "This verse"
+- assertVisible: "Repeats 1:.*"
+- assertNotVisible: ".*Stops after.*"
+- tapOn:
+    id: player-speed
+- tapOn: "Stop playing"
+- assertNotVisible: "End of this passage"
+- assertVisible: "In 15 minutes"
+- tapOn: "Off"
+- tapOn:
+    id: player-speed
+- tapOn: "Repeat"
+- tapOn: "Off"
+- assertNotVisible:
+    id: player-status
+# BA-03: George, then back to Heart, which the other flows expect.
+- tapOn:
+    id: player-voice
+- waitForAnimationToEnd
+- tapOn:
+    point: "50%,69%"
+- waitForAnimationToEnd
+- tapOn:
+    point: "90%,53%"
+- waitForAnimationToEnd
+- assertVisible: "Voice: George, computer voice"
+- tapOn:
+    id: player-voice
+- waitForAnimationToEnd
+- tapOn:
+    point: "50%,62%"
+- waitForAnimationToEnd
+- tapOn:
+    point: "90%,53%"
+- waitForAnimationToEnd
+- assertVisible: "Voice: Heart, computer voice"
 - tapOn:
     id: player-close
 - waitForAnimationToEnd
 - assertVisible:
     id: mini-player
+# Paused, the mini player can be put away (UX pass, 15 Oct 2026): Stop listening ends the session.
+- tapOn:
+    id: mini-toggle
+- assertVisible: "Play"
+- tapOn:
+    id: mini-close
+- assertNotVisible:
+    id: mini-player
+- assertVisible:
+    id: rest-bar

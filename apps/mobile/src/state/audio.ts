@@ -10,9 +10,9 @@ import type { BookCode } from "@yada/schema";
 import { create } from "zustand";
 
 import type { VerseText } from "../data/queries";
+import type { Repeat, Stop } from "../lib/audio/stop";
 import type { WordRange } from "../lib/audio/text";
-import type { PersonalVoiceStatus, Voice } from "../../modules/yada-speech";
-import type { VoiceChoice } from "../lib/audio/voice";
+import type { Voice } from "../../modules/yada-speech";
 
 export type PlayStatus = "playing" | "paused" | "finished";
 
@@ -26,33 +26,34 @@ export interface AudioSession {
   /** The drawn word being spoken, in the current verse's display text. */
   readonly word: WordRange | null;
   readonly status: PlayStatus;
+  /** Read by the human recording (BA-01), not the iPhone voice. */
+  readonly recorded?: boolean;
+  /** The chapter's name is being said before its first verse (build 6, LB-08). */
+  readonly titling?: boolean;
+  /** BA-02: the share of the chapter's recording fetched so far, while the first play gets it. */
+  readonly fetching?: number;
 }
 
 interface AudioState {
   session: AudioSession | null;
   speed: number;
-  /** The best system voice. Null: no English voice installed, so Listen is hidden. */
+  /** The best system voice, which reads where there is no reading by Heart or George. Null: no English voice installed, so Listen is hidden there. */
   voice: Voice | null;
-  /** The reader's choice as it really speaks (lib/audio/voice.ts effectiveChoice), per device. */
-  voiceChoice: VoiceChoice;
-  personalStatus: PersonalVoiceStatus;
-  /** The reader's Personal Voice, when authorized and one has been made. */
-  personalVoice: Voice | null;
-  /** The basic-voice line (AU-07) has been shown once. */
-  voiceHintSeen: boolean;
-  /** A Settings line the reader asked for from the menu, shown under the player's title. */
+  /** "You're offline." under the player's title, when a reading couldn't be had (BA-05). */
   voiceNote: string | null;
+  /** LB-02: where the reading stops on its own; back to null once it has. */
+  stop: Stop | null;
+  /** LB-05: what loops, for memorising. */
+  repeat: Repeat | null;
 }
 
 export const useAudio = create<AudioState>(() => ({
   session: null,
   speed: 1,
   voice: null,
-  voiceChoice: "system",
-  personalStatus: "unsupported",
-  personalVoice: null,
-  voiceHintSeen: false,
   voiceNote: null,
+  stop: null,
+  repeat: null,
 }));
 
 export function currentVerse(session: AudioSession): VerseText | undefined {

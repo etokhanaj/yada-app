@@ -69,7 +69,7 @@ import {
   whoLine,
 } from "../lib/study";
 import { useSettings } from "../state/settings";
-import { useSheetNav } from "./navigation";
+import { useSheetBase, useSheetNav } from "./navigation";
 import { Row, RowNote, Section, SheetScreen, TextLink, UNDERSTAND_EXIT } from "./Sheet";
 import { Chrome, Prose, Scripture } from "./Type";
 import { DivineText } from "./Verse";
@@ -235,10 +235,11 @@ function OnRange({ row }: { row: StudyNoteRow }) {
   );
 }
 
-const openNotes = (from: string) => router.push({ pathname: "/understand/notes", params: { ref: from } });
+const openNotes = (base: string, from: string) => router.push({ pathname: `${base}/notes`, params: { ref: from } });
 
 /** Study notes inline, for a verse with no Yada entry: the opening, then the page (canvas SN-03). */
 export function StudyNotesInline({ study, ord, from, first = false }: { study: VerseStudy; ord: number; from: string; first?: boolean }) {
+  const base = useSheetBase();
   const width = useWindowDimensions().width - 44;
   const size = useType("claim").size;
   const [primary, ...around] = study.notes;
@@ -252,7 +253,7 @@ export function StudyNotesInline({ study, ord, from, first = false }: { study: V
       <View testID="study-notes">
         {isOwnNote(primary, ord) ? null : <OnRange row={primary} />}
         <NoteParagraphText paragraph={opening} lead lines={more ? 4 : undefined} />
-        {more ? <TextLink label="Read the whole note" a11yLabel="Read the whole study note" onPress={() => openNotes(from)} testID="study-note-more" /> : null}
+        {more ? <TextLink label="Read the whole note" a11yLabel="Read the whole study note" onPress={() => openNotes(base, from)} testID="study-note-more" /> : null}
       </View>
       <Chrome step="note" tone="muted" style={{ marginTop: more ? 0 : 8 }} testID="study-source">
         {TYNDALE_SHORT}
@@ -263,6 +264,7 @@ export function StudyNotesInline({ study, ord, from, first = false }: { study: V
 
 /** The Study notes page, pushed inside the sheet: every note on the verse, in full. */
 export function StudyNotesScreen({ book, ord, from }: { book: BookCode; ord: number; from: string }) {
+  const base = useSheetBase();
   const core = useCore();
   const { data: bsb } = useQuery(async () => (await getTextsInRange(core, ord, ord))[0]?.texts["BSB"] ?? "", [ord]);
   const state = useVerseStudy(book, ord, bsb);
@@ -287,7 +289,7 @@ export function StudyNotesScreen({ book, ord, from }: { book: BookCode; ord: num
                 <Row
                   key={`${r.start}-${r.end}`}
                   first={i === 0}
-                  onPress={() => openNotes(formatVerseId(ordToParts(r.start)))}
+                  onPress={() => openNotes(base, formatVerseId(ordToParts(r.start)))}
                   label={spokenRange(title)}
                   testID={`note-ref-${r.start}`}
                 >
@@ -310,6 +312,7 @@ export function StudyNotesScreen({ book, ord, from }: { book: BookCode; ord: num
 
 /** People rows: one per Tyndale profile named in the verse (canvas TD-01). */
 export function PeopleRows({ people, book, from, first }: { people: readonly StudyNoteRow[]; book: BookCode; from: string; first: boolean }) {
+  const base = useSheetBase();
   return (
     <>
       {people.map((p, i) => {
@@ -318,7 +321,7 @@ export function PeopleRows({ people, book, from, first }: { people: readonly Stu
           <Row
             key={p.id}
             first={first && i === 0}
-            onPress={() => router.push({ pathname: "/understand/person", params: { book, id: String(p.id), from } })}
+            onPress={() => router.push({ pathname: `${base}/person`, params: { book, id: String(p.id), from } })}
             label={[p.title ?? "", who].filter((s) => s !== null && s !== "").join(", ")}
             testID={`person-${p.id}`}
           >
@@ -333,38 +336,6 @@ export function PeopleRows({ people, book, from, first }: { people: readonly Stu
           </Row>
         );
       })}
-    </>
-  );
-}
-
-/** Go further's rows for a verse with an entry (canvas SN-01): Study notes, See also. */
-export function StudyRows({ study, seeAlso, from }: { study: VerseStudy | null; seeAlso: number; from: string }) {
-  return (
-    <>
-      {study !== null && study.notes.length > 0 ? (
-        <Row onPress={() => openNotes(from)} label={`Study notes, ${studyNotesLine(study.notes.length).replace(" · ", ", ")}`} testID="open-study-notes">
-          <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            Study notes
-          </Chrome>
-          <RowNote>
-            {studyNotesLine(study.notes.length)}
-          </RowNote>
-        </Row>
-      ) : null}
-      {seeAlso > 0 ? (
-        <Row
-          onPress={() => router.push({ pathname: "/understand/see-also", params: { ref: from } })}
-          label={`See also, ${passagesLine(seeAlso)}`}
-          testID="open-see-also"
-        >
-          <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            See also
-          </Chrome>
-          <RowNote>
-            {passagesLine(seeAlso)}
-          </RowNote>
-        </Row>
-      ) : null}
     </>
   );
 }
@@ -504,6 +475,7 @@ export function SeeAlsoRow({ item, from, first, ax }: { item: ShownSeeAlso; from
 
 /** See also inline, for a verse with no Yada entry: three, then Show all (canvas SN-03). */
 export function SeeAlsoSection({ items, from, ax, first = false }: { items: readonly ShownSeeAlso[]; from: string; ax: boolean; first?: boolean }) {
+  const base = useSheetBase();
   if (items.length === 0) return null;
   const shown = items.slice(0, SEE_ALSO_FIRST);
   const more = items.length > SEE_ALSO_FIRST;
@@ -516,7 +488,7 @@ export function SeeAlsoSection({ items, from, ax, first = false }: { items: read
         <TextLink
           label={`Show all ${items.length}`}
           a11yLabel={`Show all ${items.length} passages`}
-          onPress={() => router.push({ pathname: "/understand/see-also", params: { ref: from } })}
+          onPress={() => router.push({ pathname: `${base}/see-also`, params: { ref: from } })}
           testID="see-also-all"
         />
       ) : null}

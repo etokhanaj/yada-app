@@ -24,7 +24,7 @@ import { bsbStandsIn, notInLine, verseTextIn } from "../../lib/translations";
 import { useSettings } from "../../state/settings";
 
 export default function PeekScreen() {
-  const params = useLocalSearchParams<{ ref?: string; from?: string; relationship?: string; note?: string; unreviewed?: string; via?: string }>();
+  const params = useLocalSearchParams<{ ref?: string; from?: string; relationship?: string; note?: string; via?: string }>();
   const refText = params.ref ?? "";
   const span = resolveRef(refText);
   const from = params.from ?? "";
@@ -62,8 +62,6 @@ export default function PeekScreen() {
       verseId={from}
       closeLabel={params.via === "search" ? "Close" : "Back to Understand"}
       backText={params.via === "search" ? "Back to search" : undefined}
-      // The note comes from an entry the caller marked unreviewed.
-      unreviewed={params.unreviewed === "1" && note !== null}
       testID="peek"
     >
       {echo !== undefined && echo !== null && fromRef !== null && span !== null ? (

@@ -196,3 +196,66 @@ export function morphLine(morph: string): string {
     .map((part) => (part.detail === "" ? part.partOfSpeech : `${part.partOfSpeech}, ${part.detail}`))
     .join(" + ");
 }
+
+// ---------------------------------------------------------------------------
+// Grammar terms (build 6, item H)
+// ---------------------------------------------------------------------------
+
+export type GrammarLanguage = "greek" | "hebrew" | "aramaic";
+
+/** A grammar term in a word's Form line, keyed by language: Greek and Hebrew "imperfect" are different things. */
+export interface GrammarTerm {
+  label: string;
+  language: GrammarLanguage;
+}
+
+export const grammarKey = (t: GrammarTerm): string => `${t.language}:${t.label}`;
+
+/**
+ * The terms a reader may not know, in the order the Form line says them: tense, voice, mood, case and
+ * degree in Greek; stem, conjugation, state and the less common genders, numbers, suffixes and the
+ * object marker in Hebrew and Aramaic. Person, gender, number and parts of speech are plain English.
+ * Each label is the same word morphLine prints, so the screen and the grammar table never disagree.
+ */
+export function morphTerms(morph: string): GrammarTerm[] {
+  const out: GrammarTerm[] = [];
+  const add = (label: string | undefined, language: GrammarLanguage) => {
+    if (label !== undefined && !out.some((t) => t.label === label && t.language === language)) out.push({ label, language });
+  };
+  if (/\s/.test(morph.trim())) {
+    const [, parsing = ""] = morph.trim().split(/\s+/);
+    const [, tense, voice, mood, kase, , , degree] = parsing.padEnd(8, "-").split("");
+    add(G_TENSE[tense ?? ""], "greek");
+    add(G_VOICE[voice ?? ""], "greek");
+    add(G_MOOD[mood ?? ""], "greek");
+    add(G_CASE[kase ?? ""], "greek");
+    add(G_DEGREE[degree ?? ""], "greek");
+    return out;
+  }
+  const language: GrammarLanguage = morph[0] === "A" ? "aramaic" : "hebrew";
+  const body = morph[0] === "H" || morph[0] === "A" ? morph.slice(1) : morph;
+  for (const code of body.split("/").filter((p) => p.length > 0)) {
+    const pos = code[0] ?? "";
+    const type = code[1] ?? "";
+    let gns = "";
+    if (pos === "V") {
+      add((language === "aramaic" ? ARAMAIC_STEMS : HEBREW_STEMS)[type], language);
+      const conjugation = code[2] ?? "";
+      add(H_CONJUGATION[conjugation], language);
+      if (conjugation === "r" || conjugation === "s") gns = code.slice(3, 6);
+      else if (conjugation !== "a" && conjugation !== "c") gns = code.slice(4, 6);
+    } else if (pos === "A" || (pos === "N" && type !== "p")) {
+      gns = code.slice(2, 5);
+    } else if (pos === "S" || pos === "P") {
+      gns = code.slice(3, 5);
+      if (pos === "S") add(SUFFIX_TYPE[type], language);
+    } else if (pos === "T" && type === "o") {
+      add(PARTICLE_TYPE[type], language);
+    }
+    const [g, n, s] = gns.split("");
+    if (g === "b" || g === "c") add(H_GENDER[g], language);
+    if (n === "d") add(H_NUMBER[n], language);
+    add(H_STATE[s ?? ""], language);
+  }
+  return out;
+}

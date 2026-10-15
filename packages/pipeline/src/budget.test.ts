@@ -69,12 +69,12 @@ describe("the spend gate", () => {
   });
 
   it("refuses a request that only crosses the ceiling once prior spend is counted", async () => {
-    const { assertWithinCeiling, recordUsage, BudgetExceeded } = await budget();
+    const { assertWithinCeiling, recordUsage, BudgetExceeded, CEILING_USD } = await budget();
     recordUsage({
       at: "2026-08-17T00:00:00Z", model: "claude-opus-5", pericope_id: "prior",
-      verses: 1, input_tokens: 1, output_tokens: 1, thinking_tokens: 0, cost_usd: 99.5,
+      verses: 1, input_tokens: 1, output_tokens: 1, thinking_tokens: 0, cost_usd: CEILING_USD - 0.5,
     });
-    // On its own this is about $1; against $99.50 already spent it crosses $100.
+    // On its own this is about $1; against 50 cents under the ceiling already spent it crosses it.
     expect(() => assertWithinCeiling("claude-opus-5", 1000, 40_000)).toThrow(BudgetExceeded);
   });
 
@@ -83,7 +83,7 @@ describe("the spend gate", () => {
     // The worst case is what is checked: the same request priced at its real
     // (unknown, smaller) output would pass, and that is exactly the reasoning
     // that lets a runaway loop through.
-    expect(() => assertWithinCeiling("claude-opus-5", 1000, 4_100_000)).toThrow();
+    expect(() => assertWithinCeiling("claude-opus-5", 1000, 5_000_000)).toThrow();
   });
 
   it("never writes the key anywhere, and says so when it is absent", async () => {

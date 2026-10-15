@@ -16,8 +16,8 @@ import {
   verseOrd,
 } from "@yada/schema";
 
+import { originalLanguage, type OriginalLanguage } from "../lib/originalLanguage";
 import { excerptAroundHit, glossMatches, glossStem, escapeLike, SNIPPET_CLOSE, SNIPPET_OPEN } from "../lib/searchQuery";
-import type { EntryRow, PericopeRow } from "../lib/pericopes";
 
 type Bind = string | number | null;
 
@@ -281,6 +281,12 @@ export async function getTokens(db: Db, ord: number): Promise<VerseTokens> {
   return { title: tokens.filter((t) => t.ord !== ord), words: tokens.filter((t) => t.ord === ord) };
 }
 
+/** The language letters ("H", "A") of the tokens in ords lo..hi, for originalLanguage(). */
+export async function getLanguageLetters(db: Db, lo: number, hi: number): Promise<string[]> {
+  const rows = await db.getAllAsync<{ l: string }>("SELECT DISTINCT substr(morph, 1, 1) AS l FROM tokens WHERE ord BETWEEN ? AND ?", [lo, hi]);
+  return rows.map((r) => r.l);
+}
+
 export async function getToken(db: Db, ord: number, position: number): Promise<Token | null> {
   const row = await db.getFirstAsync<TokenRow>("SELECT * FROM tokens WHERE ord = ? AND position = ?", [ord, position]);
   return row === null ? null : toToken(row);
@@ -295,6 +301,8 @@ export interface Lexeme {
   /** The commonest contextual gloss across every occurrence (pipeline package.ts). */
   readonly gloss: string | null;
   readonly total: number;
+  /** From its occurrences' morphology: a few lexemes occur in both Hebrew and Aramaic. */
+  readonly language: OriginalLanguage;
 }
 
 interface LexemeRow {
@@ -305,6 +313,22 @@ interface LexemeRow {
   strongs: string | null;
   gloss: string | null;
   total: number;
+  letters?: string | null;
+}
+
+/** The lexeme's language letters, read from its tokens through tokens_by_occurrence. */
+const LETTERS = "(SELECT group_concat(DISTINCT substr(t.morph, 1, 1)) FROM tokens t WHERE t.occurrence_key = l.occurrence_key) AS letters";
+
+/** Letters for the lexemes kept, only after the cut: a common word has thousands of tokens. */
+async function withLetters(db: Db, rows: readonly LexemeRow[]): Promise<Lexeme[]> {
+  if (rows.length === 0) return [];
+  const found = await db.getAllAsync<{ occurrence_key: string; letters: string }>(
+    `SELECT occurrence_key, group_concat(DISTINCT substr(morph, 1, 1)) AS letters FROM tokens
+      WHERE occurrence_key IN (${rows.map(() => "?").join(", ")}) GROUP BY occurrence_key`,
+    rows.map((r) => r.occurrence_key),
+  );
+  const letters = new Map(found.map((f) => [f.occurrence_key, f.letters]));
+  return rows.map((r) => toLexeme({ ...r, letters: letters.get(r.occurrence_key) ?? null }));
 }
 
 const toLexeme = (r: LexemeRow): Lexeme => ({
@@ -315,10 +339,11 @@ const toLexeme = (r: LexemeRow): Lexeme => ({
   strongs: r.strongs,
   gloss: r.gloss,
   total: r.total,
+  language: originalLanguage(r.script, (r.letters ?? "").split(",")),
 });
 
 export async function getLexeme(db: Db, occurrenceKey: string): Promise<Lexeme | null> {
-  const row = await db.getFirstAsync<LexemeRow>("SELECT * FROM lexemes WHERE occurrence_key = ?", [occurrenceKey]);
+  const row = await db.getFirstAsync<LexemeRow>(`SELECT l.*, ${LETTERS} FROM lexemes l WHERE l.occurrence_key = ?`, [occurrenceKey]);
   return row === null ? null : toLexeme(row);
 }
 
@@ -437,10 +462,11 @@ export async function searchWordsByForm(db: Db, key: string, limit = 30): Promis
     const seen = best.get(r.occurrence_key);
     if (seen === undefined || (exact && !seen.exact)) best.set(r.occurrence_key, { row: r, exact });
   }
-  return [...best.values()]
+  const picked = [...best.values()]
     .sort((a, b) => Number(b.exact) - Number(a.exact) || b.row.total - a.row.total)
     .slice(0, limit)
-    .map((x) => toLexeme(x.row));
+    .map((x) => x.row);
+  return withLetters(db, picked);
 }
 
 /**
@@ -453,10 +479,10 @@ export async function searchWordsByGloss(db: Db, word: string, limit = 30): Prom
     "SELECT * FROM lexemes WHERE lower(gloss) LIKE ? ESCAPE '\\' ORDER BY total DESC LIMIT 400",
     [`%${escapeLike(glossStem(word))}%`],
   );
-  return rows
-    .filter((r) => r.gloss !== null && glossMatches(r.gloss, word))
-    .slice(0, limit)
-    .map(toLexeme);
+  return withLetters(
+    db,
+    rows.filter((r) => r.gloss !== null && glossMatches(r.gloss, word)).slice(0, limit),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -501,24 +527,3 @@ export async function getTranslationSources(db: Db): Promise<Array<SourceRow & {
   return out;
 }
 
-// ---------------------------------------------------------------------------
-// Understand bundles
-// ---------------------------------------------------------------------------
-
-export async function getEntryRow(db: Db, verseId: string): Promise<EntryRow | null> {
-  return db.getFirstAsync<EntryRow>("SELECT * FROM entries WHERE verse_id = ?", [verseId]);
-}
-
-export async function getEntriesInRange(db: Db, lo: number, hi: number): Promise<EntryRow[]> {
-  return db.getAllAsync<EntryRow>("SELECT * FROM entries WHERE ord BETWEEN ? AND ? ORDER BY ord", [lo, hi]);
-}
-
-export async function getPericopes(db: Db): Promise<PericopeRow[]> {
-  return db.getAllAsync<PericopeRow>("SELECT * FROM pericopes ORDER BY start_ord, end_ord", []);
-}
-
-/** Which verses in a chapter have an Understand entry, so the reader can mark nothing and still know. */
-export async function entryOrdsInRange(db: Db, lo: number, hi: number): Promise<Set<number>> {
-  const rows = await db.getAllAsync<{ ord: number }>("SELECT ord FROM entries WHERE ord BETWEEN ? AND ?", [lo, hi]);
-  return new Set(rows.map((r) => r.ord));
-}

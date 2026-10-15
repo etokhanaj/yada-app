@@ -14,3 +14,5 @@ export * from "./morph.js";
 export * from "./study.js";
 export * from "./syntax.js";
 export * from "./speakers.js";
+export * from "./understand.js";
+export * from "./spoken.js";

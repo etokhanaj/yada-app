@@ -15,6 +15,7 @@ import { DivineText } from "../components/Verse";
 import { ListRow, PageScreen } from "../components/Page";
 import { Chrome, languageOf, Scripture } from "../components/Type";
 import { useAppData, useCore, useQuery } from "../data/AppData";
+import { isLicensedCode } from "../data/licensed";
 import { getLexeme, getTextsForOrds } from "../data/queries";
 import { recentlyExplored } from "../data/user";
 import { FONTS, useLayout, usePalette } from "../design/tokens";
@@ -62,7 +63,9 @@ export default function RecentScreen() {
     return ref === null ? [] : [{ item, ref, ord: verseOrd(ref.book, ref.chapter, ref.verse) }];
   });
   const ords = refs.map((r) => r.ord);
-  const { data: texts } = useQuery(() => getTextsForOrds(core, ords, translation), [ords.join(","), translation]);
+  // US-11: a licensed version is not on the phone, so its excerpt is the BSB's, labelled as such.
+  const shown = isLicensedCode(translation) ? "BSB" : translation;
+  const { data: texts } = useQuery(() => getTextsForOrds(core, ords, shown), [ords.join(","), shown]);
 
   return (
     <PageScreen title="Recent" testID="recent">
@@ -77,7 +80,7 @@ export default function RecentScreen() {
         </View>
       ) : null}
       {refs.map(({ item, ref, ord }, i) => {
-        const label = verseLabel(ref);
+        const label = shown === translation ? verseLabel(ref) : `${verseLabel(ref)} · BSB`;
         const excerpt = excerptOf(texts?.get(ord) ?? "");
         const lang = languageOf(item.tag);
         return (
@@ -85,7 +88,7 @@ export default function RecentScreen() {
             key={item.verseId}
             first={i === 0}
             chevron={false}
-            onPress={() => router.push(readerHref({ book: ref.book, chapter: ref.chapter, verse: ref.verse, select: true }))}
+            onPress={() => router.push(readerHref({ book: ref.book, chapter: ref.chapter, verse: ref.verse, select: true, back: "Recent" }))}
             label={`${label}, ${item.tag}. ${excerpt}`}
             testID={`recent-${item.verseId}`}
             overline={

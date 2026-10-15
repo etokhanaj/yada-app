@@ -35,14 +35,17 @@ import { Chrome, Label, Scripture } from "../components/Type";
 import { DivineText } from "../components/Verse";
 import { useAppData, useCore } from "../data/AppData";
 import { getTexts } from "../data/queries";
+import { loadMcheyne, loadYourPlan, type PlanId } from "../data/plans";
+import { notNow, shouldAsk, turnOff, turnOn, turnOnFromAsk, useReminder } from "../data/reminder";
 import { loadProgress } from "../data/startHere";
 import { loadPericopes } from "../data/understand";
-import { loadPosition } from "../data/user";
+import { loadPositionAt } from "../data/user";
 import { FONTS, useIsDark, useLayout, usePalette } from "../design/tokens";
 import { pericopeForVerse, type PericopeRow } from "../lib/pericopes";
 import { excerptOf } from "../lib/reader";
 import { rangeInBook, verseLabel } from "../lib/saved";
-import { homeLead, type HomeLead, progressLabel, progressLine } from "../lib/startHere";
+import { backAfterGap, homeLead, type HomeLead, progressLabel, progressLine } from "../lib/startHere";
+import { MCHEYNE_TOTAL, nextPortion } from "../lib/plans";
 import { useSettings } from "../state/settings";
 
 interface LeadState {
@@ -54,6 +57,12 @@ interface LeadState {
   /** The passage holding the place, in its own book, when that book has passages. */
   readonly placePassage: string | null;
   readonly excerpt: string;
+  /** The excerpt is the BSB's because the reader's version is licensed or lacks the verse: the lead says so. */
+  readonly excerptBsb: boolean;
+  /** MM-05: back after a gap; the lead says "Where you stopped", never how long. */
+  readonly away: boolean;
+  /** IA-14: "Your plan", the plan last read in, with its count when it is M'Cheyne. */
+  readonly plan: { readonly id: PlanId; readonly reading: number | null };
 }
 
 const spokenRange = (range: string) => range.replace("–", " to ");
@@ -67,6 +76,19 @@ export default function Home() {
   // Read once at mount: the effect below marks the first launch before its position loads.
   const returning = useRef(launched).current;
   const [state, setState] = useState<LeadState | null>(null);
+  const paused = useReminder((s) => s.paused);
+  // NP-03: after a Not now, asked once more on a return three or more days later, as one line; then never.
+  const [askAgain, setAskAgain] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      let live = true;
+      void shouldAsk(user, "home").then((ask) => live && setAskAgain(ask));
+      return () => {
+        live = false;
+      };
+    }, [user]),
+  );
+  const reminderPrefs = useReminder((s) => s.prefs);
 
   // A cold launch with a saved position opens the reader there (brief §8.18, decided by John
   // 10 Oct), Home beneath it. With none, Home is the first screen: it is the start (ON-01),
@@ -77,12 +99,21 @@ export default function Home() {
     if (useLaunch.getState().routed) return;
     useLaunch.getState().markRouted();
     if (!returning) useSettings.getState().markLaunched();
-    void loadPosition(user).then((id) => {
-      const position = id === null ? null : parseVerseId(id);
+    void loadPositionAt(user).then((saved) => {
+      const position = saved === null ? null : parseVerseId(saved.id);
       if (position !== null) {
         // Someone who read before this build skips the first-visit hint.
         if (!returning) useSettings.getState().markHintSeen();
-        router.push(readerHref({ book: position.book, chapter: position.chapter, verse: position.verse, resume: true }));
+        // MM-05 on a cold launch too, the commonest return: after a gap, one verse above the place with the last
+        // verse held for two seconds, as Home's "Where you stopped" lands (IA stress test, 15 Oct 2026).
+        const away = backAfterGap(saved?.at ?? null, new Date());
+        router.push(
+          readerHref(
+            away
+              ? { book: position.book, chapter: position.chapter, verse: Math.max(1, position.verse - 1), resume: true, hold: position.verse }
+              : { book: position.book, chapter: position.chapter, verse: position.verse, resume: true },
+          ),
+        );
       } else {
         // Home is the first screen, so it lifts the launch overlay (§8.17).
         useLaunch.getState().markReady();
@@ -96,7 +127,9 @@ export default function Home() {
     useCallback(() => {
       let live = true;
       void (async () => {
-        const [id, progress] = await Promise.all([loadPosition(user), loadProgress(user)]);
+        const [saved, progress, yourPlan, mcheyne] = await Promise.all([loadPositionAt(user), loadProgress(user), loadYourPlan(user), loadMcheyne(user)]);
+        const id = saved?.id ?? null;
+        const mNext = nextPortion(mcheyne);
         const ref = id === null ? null : parseVerseId(id);
         const ord = ref === null ? null : verseOrd(ref.book, ref.chapter, ref.verse);
         const lead = homeLead({
@@ -106,16 +139,19 @@ export default function Home() {
           place: ref === null || ord === null ? null : { book: ref.book, ord },
         });
         let excerpt = "";
+        let excerptBsb = false;
         let placePassage: string | null = null;
         if (lead.kind === "continue" && ref !== null && ord !== null) {
           const [texts, own] = await Promise.all([getTexts(core, ord), loadPericopes(ref.book)]);
           excerpt = excerptOf(texts[translation] ?? texts["BSB"] ?? "");
+          excerptBsb = texts[translation] === undefined;
           placePassage = pericopeForVerse(own, ord)?.label ?? null;
         } else if (lead.kind === "next") {
           const p = progress.passages[lead.passage];
           if (p !== undefined) {
             const texts = await getTexts(core, p.start_ord);
             excerpt = excerptOf(texts[translation] ?? texts["BSB"] ?? "");
+            excerptBsb = texts[translation] === undefined;
           }
         }
         if (!live) return;
@@ -126,6 +162,9 @@ export default function Home() {
           place: ref === null ? null : { ...ref, label: verseLabel(ref) },
           placePassage,
           excerpt,
+          excerptBsb,
+          plan: { id: yourPlan, reading: yourPlan === "mcheyne" && mNext !== null ? mNext.reading + 1 : null },
+          away: backAfterGap(saved?.at ?? null, new Date()),
         });
       })();
       return () => {
@@ -155,14 +194,16 @@ export default function Home() {
         actions={[
           // An action without imageColor reaches native as colour 0, transparent: @react-native-menu
           // 2.0's Fabric view always sends the field, so the icons were drawn invisible (10 Oct 2026).
+          // IA-11: Recent · Reading plans · Settings; Sources and the reminder live in Settings now.
           { id: "recent", title: "Recent", image: "clock", imageColor: palette.ink },
-          { id: "sources", title: "Sources", image: "books.vertical", imageColor: palette.ink },
+          { id: "plans", title: "Reading plans", image: "book", imageColor: palette.ink },
+          { id: "settings", title: "Settings", image: "gearshape", imageColor: palette.ink },
         ]}
-        onPressAction={({ nativeEvent }) => router.push(nativeEvent.event === "recent" ? "/recent" : "/sources")}
+        onPressAction={({ nativeEvent }) => router.push(nativeEvent.event === "recent" ? "/recent" : nativeEvent.event === "plans" ? "/plans" : "/settings")}
         testID="home-more"
       >
         {/* The menu is a UIButton; a child that took the touch would keep it from opening. */}
-        <View pointerEvents="none" accessible accessibilityRole="button" accessibilityLabel="More: Recent, Sources">
+        <View pointerEvents="none" accessible accessibilityRole="button" accessibilityLabel="More: Recent, Reading plans, Settings">
           <GlassButton>
             <Icon name="more" size={20} />
           </GlassButton>
@@ -188,16 +229,31 @@ export default function Home() {
         />
       );
     }
+    // IA-14: the plan in one line, "The Gospel of John · Your plan", in medium (`.valrow`): a way in, not
+    // a book. It replaces "All passages in John": John passage by passage is now a plan (IA-11).
+    const planName = state.plan.id === "mcheyne" ? "M’Cheyne" : "The Gospel of John";
     const all = (
       <ListRow
         first
-        onPress={() => router.push("/thread")}
-        // ON-05/ON-07 set this row in medium (`.valrow`): it is a way in, not a book.
-        title={<Chrome tone="ink" style={{ fontWeight: "500" }}>All passages in John</Chrome>}
-        label="All passages in John"
-        testID="home-all-passages"
+        onPress={() => router.push(state.plan.id === "mcheyne" ? "/mcheyne" : "/thread")}
+        title={<Chrome tone="ink" style={{ fontWeight: "500" }}>{planName}</Chrome>}
+        subtitle="Your plan"
+        label={`Your plan, ${planName}${state.plan.reading === null ? "" : `, reading ${state.plan.reading} of ${MCHEYNE_TOTAL}`}`}
+        testID="home-your-plan"
       />
     );
+    const count = (shown: boolean) =>
+      state.plan.id === "mcheyne" ? (
+        state.plan.reading === null ? null : (
+          <Chrome step="note" tone="muted" style={styles.progress} testID="home-progress">
+            {`Reading ${state.plan.reading} of ${MCHEYNE_TOTAL}`}
+          </Chrome>
+        )
+      ) : shown ? (
+        <Chrome step="note" tone="muted" style={styles.progress} accessibilityLabel={progressLabel(state.readCount, total)} testID="home-progress">
+          {progressLine(state.readCount, total)}
+        </Chrome>
+      ) : null;
     if (l.kind === "next") {
       const p = passages[l.passage];
       if (p === undefined) return null;
@@ -205,16 +261,15 @@ export default function Home() {
       return (
         <>
           <Lead
-            overline={`Next · John ${range}`}
+            // Under a licensed version the excerpt is the BSB's, and says so (IA stress test, 15 Oct 2026).
+            overline={`Next · John ${range}${state.excerptBsb ? " · BSB" : ""}`}
             title={p.label}
             excerpt={state.excerpt}
             label={`Next, ${p.label}, John ${spokenRange(range)}. Opens its guide`}
             onPress={() => openGuided(p)}
             testID="home-next"
           />
-          <Chrome step="note" tone="muted" style={styles.progress} accessibilityLabel={progressLabel(state.readCount, total)} testID="home-progress">
-            {progressLine(state.readCount, total)}
-          </Chrome>
+          {count(true)}
           {all}
         </>
       );
@@ -225,14 +280,21 @@ export default function Home() {
     return (
       <>
         <Lead
-          overline={`Continue · ${place.label}`}
+          overline={`${state.away ? "Where you stopped" : "Continue"} · ${place.label}${state.excerptBsb ? " · BSB" : ""}`}
           title={state.placePassage ?? place.label}
           excerpt={state.excerpt}
           // One element to VoiceOver: "Continue reading, The first disciples, John 1:39. “Come and see,”…" (brief §5).
-          label={`Continue reading, ${state.placePassage === null ? "" : `${state.placePassage}, `}${place.label}. ${state.excerpt}`}
+          label={`${state.away ? "Where you stopped" : "Continue reading"}, ${state.placePassage === null ? "" : `${state.placePassage}, `}${place.label}. ${state.excerpt}`}
           onPress={() =>
-            // Lands as a cold launch does (brief §8.18): the verse just below the header.
-            router.push(readerHref({ book: place.book, chapter: place.chapter, verse: place.verse, resume: true }))
+            // Lands as a cold launch does (brief §8.18): the verse just below the header. After a gap
+            // (MM-05) one verse above it, so the last verse read is in view, held for two seconds.
+            router.push(
+              readerHref(
+                state.away
+                  ? { book: place.book, chapter: place.chapter, verse: Math.max(1, place.verse - 1), resume: true, hold: place.verse }
+                  : { book: place.book, chapter: place.chapter, verse: place.verse, resume: true },
+              ),
+            )
           }
           testID="home-continue"
         />
@@ -247,11 +309,8 @@ export default function Home() {
             testID="home-john-next"
           />
         ) : null}
-        {l.passage !== null || state.readCount > 0 ? (
-          <Chrome step="note" tone="muted" style={styles.progress} accessibilityLabel={progressLabel(state.readCount, total)} testID="home-progress">
-            {progressLine(state.readCount, total)}
-          </Chrome>
-        ) : null}
+        {/* No "0 of 46": a count starts once there is one to show (UX pass, 15 Oct 2026). */}
+        {count(state.readCount > 0)}
         {all}
       </>
     );
@@ -261,6 +320,53 @@ export default function Home() {
     <PageScreen title="Yada" titleNode={<Wordmark />} back={null} right={right} testID="home">
       {/* No padding under the lead: the books' label sits 28 pt below its hairline, as ON-01/05/07
           space it (canvas `.lbl` margin-top); 12 more opened a gap the frames don't have (QA). */}
+      {paused ? (
+        // NT-09: said once, in the app, never as another notification; gone after either choice.
+        <View style={styles.paused} testID="home-reminder-paused">
+          <Chrome step="note" tone="muted" accessibilityRole="text">
+            Reminders paused while you were away.
+          </Chrome>
+          <View style={{ flexDirection: "row", columnGap: 16 }}>
+            <Pressable onPress={() => void turnOn(user, core, reminderPrefs)} accessibilityRole="button" style={styles.pausedAction} testID="home-reminder-resume">
+              <Chrome tone="accent" style={{ fontWeight: "600" }}>Resume</Chrome>
+            </Pressable>
+            <Pressable onPress={() => void turnOff(user)} accessibilityRole="button" style={styles.pausedAction} testID="home-reminder-off">
+              <Chrome tone="accent" style={{ fontWeight: "600" }}>Turn off</Chrome>
+            </Pressable>
+          </View>
+        </View>
+      ) : askAgain ? (
+        <View style={styles.paused} testID="home-reminder-ask">
+          <Chrome step="note" tone="muted" accessibilityRole="text">
+            A reminder to read each day?
+          </Chrome>
+          <View style={{ flexDirection: "row", columnGap: 16 }}>
+            <Pressable
+              onPress={() => {
+                setAskAgain(false);
+                void turnOnFromAsk(user, core, reminderPrefs);
+              }}
+              accessibilityRole="button"
+              accessibilityHint="iPhone will ask to allow notifications"
+              style={styles.pausedAction}
+              testID="home-reminder-ask-on"
+            >
+              <Chrome tone="accent" style={{ fontWeight: "600" }}>Turn on</Chrome>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setAskAgain(false);
+                void notNow(user);
+              }}
+              accessibilityRole="button"
+              style={styles.pausedAction}
+              testID="home-reminder-ask-later"
+            >
+              <Chrome tone="accent" style={{ fontWeight: "600" }}>Not now</Chrome>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
       <View>{lead()}</View>
 
       {[
@@ -363,6 +469,8 @@ function Wordmark() {
 }
 
 const styles = StyleSheet.create({
+  paused: { rowGap: 4, marginBottom: 20 },
+  pausedAction: { minHeight: 44, justifyContent: "center" },
   leadRow: {
     flexDirection: "row",
     alignItems: "flex-end",

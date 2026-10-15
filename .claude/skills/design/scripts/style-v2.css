@@ -477,11 +477,11 @@ h3,p{margin:0}
 .seg2 .fill{position:absolute;left:0;top:0;bottom:0;background:var(--ink)}
 .progl{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
 .fpr{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
-.big{width:56px;height:56px}
-.big2{width:72px;height:72px}
+.mpb.big{width:56px;height:56px}
+.mpb.big2{width:72px;height:72px}
 .ax5 .fpc{padding:10px 14px 30px}
 .ax5 .fpr{flex-wrap:wrap;row-gap:10px}
-.ax5 .big,.ax5 .big2{width:80px;height:80px}
+.ax5 .mpb.big,.ax5 .mpb.big2{width:80px;height:80px}
 .vo{position:absolute;top:-6px;left:-6px;z-index:9;min-width:22px;height:22px;padding:0 5px;box-sizing:border-box;border-radius:11px;background:#C2410C;color:#fff;font:700 12px/22px -apple-system,system-ui,sans-serif;text-align:center;pointer-events:none}
 .ax5 .vo{min-width:30px;height:30px;font-size:16px;line-height:30px;border-radius:15px}
 .lyr > .vo{top:10px;left:10px}
@@ -613,3 +613,581 @@ mark.evm{background:none;color:var(--ink);font-weight:600;text-decoration:underl
 .tbtn2{min-height:44px;padding:0 16px;border-radius:999px;background:var(--fill);font-size:15px;font-weight:600;flex:none}
 .ax5 .tbtn2{font-size:var(--chrome)}
 .ax5 .row.dlfail{flex-direction:column;align-items:flex-start}
+
+/* ---- Next release (next page, 12 Oct 2026) ---- */
+.todoi{font-style:italic;color:var(--muted);box-shadow:inset 0 -1px 0 var(--div)}
+.ptext{font-size:var(--claim);padding:14px 0 14px 12px;margin:6px 0 12px}
+/* Missing verse: the number keeps its place, one quiet line opens the note */
+.msl{display:flex;align-items:center;gap:6px;min-height:44px;margin:-4px 0 10px;font-size:var(--note);color:var(--muted);font-style:italic}
+.msl .vn{font-style:normal}
+.msl .i{color:var(--muted)}
+.ax5 .msl .i{width:30px;height:30px}
+/* A quoted verse inside a note (KJV of John 5:4, the agreeing text in Compare): its own class, so .scrq elsewhere is untouched */
+.kq{font-family:Literata,serif;font-size:var(--claim);line-height:1.6;margin:10px 0 4px;padding-left:12px;box-shadow:inset 1.5px 0 0 var(--div)}
+.rest-row.one{grid-template-columns:1fr}
+.rest-row .lone{width:auto;padding:0 18px;justify-self:end;background:var(--fill)}
+/* Voice under the player title: a quiet button, chevron, no capsule */
+.vsel{display:inline-flex;align-items:center;gap:2px;min-height:32px;color:var(--accent);font-weight:600}
+.ax5 .vsel .i{width:24px;height:24px}
+.pring{display:inline-flex}
+.ax5 .pring svg{width:44px;height:44px}
+.opt.lrow .lmain{font-weight:500}
+.opt.on .lmain{font-weight:600}
+/* Swipe panes */
+.pane{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--paper);overflow:hidden}
+.pane.edge{box-shadow:-1px 0 0 var(--div),-18px 0 40px rgba(0,0,0,.10)}
+.endpg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 var(--gut);text-align:center}
+.endk{font-family:Literata,serif;font-size:calc(var(--scr) + 8px);font-weight:600}
+.endt{font-size:var(--note);color:var(--muted)}
+.endl{margin-top:12px}
+.vorot{position:absolute;left:24px;right:24px;bottom:60px;z-index:9;border-radius:22px;padding:16px 20px;background:rgba(20,20,20,.86);color:#fff;font:600 17px/1.35 -apple-system,system-ui,sans-serif}
+.ax5 .vorot{font-size:30px}
+.vort{font-size:13px;opacity:.7;margin-bottom:8px}
+.ax5 .vort{font-size:22px}
+.vori{padding:6px 0;opacity:.75}
+.vori.on{opacity:1;box-shadow:0 0 0 3px #fff;border-radius:8px;padding:6px 8px;margin:0 -8px}
+/* Home Screen and widgets (system surfaces: wallpaper is neutral, widgets carry Yada's paper and ink) */
+.hscr,.lscr,.spot{position:absolute;inset:0;padding:56px 22px 0;background:linear-gradient(160deg,#6F8A7E,#2C4038 60%,#1B2723)}
+.dark .hscr,.dark .lscr,.dark .spot{background:linear-gradient(160deg,#2C3B35,#0E1714 70%)}
+.sbar{position:absolute;top:16px;left:44px;font:600 17px -apple-system,system-ui,sans-serif;color:#fff}
+.wgrid{display:grid;grid-template-columns:170px 1fr;gap:22px;margin-top:20px}
+.wg{display:flex;flex-direction:column;gap:4px;border-radius:22px;padding:16px;background:var(--paper);color:var(--ink);box-shadow:0 6px 18px rgba(0,0,0,.18);box-sizing:border-box;overflow:hidden}
+.wg.sm{width:170px;height:170px}
+.wg.md{width:100%;height:170px;margin-top:22px}
+.wgl{font-size:13px;font-weight:600;color:var(--muted)}
+.wgr{font-size:15px;font-weight:600}
+.wg.md .wgr{margin-top:auto;font-size:13px;color:var(--muted)}
+.wgt{font-family:Literata,serif;font-size:14px;line-height:1.4;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.wgq{font-family:Literata,serif;font-size:18px;line-height:1.4;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.ax5 .wg.sm .wgt{display:none}
+.ax5 .wgl{font-size:17px}
+.ax5 .wgr{font-size:24px;line-height:1.15}
+.ax5 .wgq{font-size:24px;-webkit-line-clamp:2}
+.apps4{display:grid;grid-template-columns:repeat(2,64px);gap:18px 26px;justify-content:end}
+.apps4.row4{grid-template-columns:repeat(4,64px);justify-content:space-between;margin-top:26px}
+.app{display:flex;flex-direction:column;align-items:center;gap:5px}
+.appic{width:64px;height:64px;border-radius:15px;background:rgba(255,255,255,.22);display:block}
+.yic{background:#16231E;display:flex;align-items:center;justify-content:center}
+.yic svg{width:46px;height:46px}
+.apl{font:500 12px -apple-system,system-ui,sans-serif;color:#fff}
+.wgnote{margin-top:24px}
+/* Lock Screen and Live Activity: forest ground in both modes, paper text */
+.lsd{text-align:center;color:#fff;font:600 20px -apple-system,system-ui,sans-serif;margin-top:28px}
+.lst{text-align:center;color:#fff;font:600 96px/1 -apple-system,system-ui,sans-serif;letter-spacing:-2px}
+.la{position:absolute;left:12px;right:12px;bottom:110px;border-radius:26px;padding:16px 18px 10px;background:#16231E;color:#F7F8F0;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.la .yic{width:40px;height:40px;border-radius:10px;background:#0E1814}
+.la .yic svg{width:28px;height:28px}
+.la-top{display:flex;align-items:center;gap:12px}
+.la-t{display:flex;flex-direction:column;min-width:0}
+.la-h{font-family:Literata,serif;font-size:17px;font-weight:600;line-height:1.25}
+.la-s{font-size:14px;opacity:.75}
+.la-prog{height:4px;border-radius:2px;background:rgba(247,248,240,.2);margin:14px 0 4px;overflow:hidden}
+.la-prog span{display:block;height:100%;background:#DBEC9A}
+.la-ctl{display:flex;justify-content:space-around}
+.lab{width:56px;height:56px;display:flex;align-items:center;justify-content:center;color:#F7F8F0}
+.ax5 .la-h{font-size:28px}
+.ax5 .la-s{font-size:22px}
+.ax5 .la{bottom:60px}
+.ax5 .lab{width:72px;height:72px}
+.ax5 .lst{font-size:80px}
+.dyn{position:absolute;top:11px;left:50%;margin-left:-100px;width:200px;height:36px;border-radius:20px;background:#000;z-index:21;display:flex;align-items:center;justify-content:space-between;padding:0 14px;box-sizing:border-box;color:#DBEC9A;font:600 14px -apple-system,system-ui,sans-serif}
+.dynx{position:absolute;top:8px;left:8px;right:8px;z-index:21}
+.dynx .la{position:static;background:#000;border-radius:44px;padding:22px 22px 10px}
+/* Map in Yada's tokens */
+.map{display:block;width:100%;height:auto;border-radius:20px;margin:4px 0 14px;box-shadow:0 0 0 1px var(--div)}
+.mland{fill:var(--paper)}
+.msea{fill:var(--sel)}
+.mriv{fill:none;stroke:var(--muted);stroke-width:1.5}
+.mlab{font-family:Literata,serif;font-size:13px;fill:var(--ink)}
+.mlab.sea{fill:var(--muted);font-style:italic;font-size:12px}
+.mlab.foc{font-weight:600;font-size:15px}
+.mdot{fill:var(--ink)}
+.mfoc{fill:none;stroke:var(--accent);stroke-width:2.5}
+.ax5 .mlab{font-size:20px}
+.ax5 .mlab.foc{font-size:22px}
+/* Spotlight, Siri, share sheet (system surfaces) */
+.spf{display:flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:14px;background:rgba(255,255,255,.2);color:#fff;font-size:17px;margin:20px 0 18px}
+.spl{color:#fff;font:600 15px -apple-system,system-ui,sans-serif;margin:14px 4px 8px;opacity:.85}
+.spr{display:flex;gap:12px;width:100%;padding:14px;border-radius:20px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-sizing:border-box}
+.spr .yic{width:44px;height:44px;border-radius:10px;flex:none}
+.spr .yic svg{width:30px;height:30px}
+.spt{font-size:17px;font-weight:600}
+.spx,.spx2{font-family:Literata,serif;font-size:15px;line-height:1.4;margin:2px 0}
+.spm{font-size:13px;color:var(--muted)}
+.sctiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sct{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:20px;background:var(--glass);font-size:15px;font-weight:600;min-height:110px;box-sizing:border-box}
+.sct .yic{width:36px;height:36px;border-radius:9px}
+.sct .yic svg{width:24px;height:24px}
+.ax5 .spt{font-size:28px}
+.ax5 .spx,.ax5 .spx2{font-size:24px}
+.ax5 .sct{font-size:22px}
+.ax5 .sctiles{grid-template-columns:1fr}
+.sirib{position:absolute;left:12px;right:12px;bottom:70px}
+.siriq{color:#fff;font:600 22px/1.3 -apple-system,system-ui,sans-serif;margin-bottom:14px}
+.sirsn{border-radius:26px;padding:18px;background:var(--paper);color:var(--ink)}
+.sirsn .clink{margin-top:12px}
+.siriglow{position:absolute;inset:0;border-radius:56px;box-shadow:inset 0 0 0 6px rgba(219,236,154,.5),inset 0 0 40px rgba(219,236,154,.35);pointer-events:none}
+.ax5 .siriq{font-size:30px}
+.shs{position:absolute;left:0;right:0;bottom:0;z-index:5;border-radius:38px 38px 0 0;background:var(--sheet);padding:0 18px 40px;box-shadow:var(--lift)}
+.shp{margin:14px 0;padding:14px;border-radius:18px;background:var(--fill)}
+.shp .ptext{margin:0 0 8px}
+.shapps{display:flex;justify-content:space-between;margin:12px 0}
+.shapps .appic{background:var(--fill)}
+.shapps .apl{color:var(--ink)}
+.shrow{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:52px;padding:0 16px;border-radius:14px;background:var(--fill);font-size:var(--chrome)}
+.offpg{padding-top:40px;display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+/* People and places line */
+.ppl{font-size:var(--chrome);line-height:1.6}
+.ppn{min-height:44px;font-weight:600;color:var(--accent);padding:0 2px}
+.pps{color:var(--muted)}
+.aboutb{display:flex;align-items:center;gap:4px;min-height:44px;font-size:var(--note);font-weight:600;color:var(--muted)}
+.ax5 .aboutb{font-size:var(--note)}
+.intro .lbl{margin-top:14px}
+.pnext{margin-bottom:18px}
+.nxo0{padding-left:0}
+/* Plan additions: Glyssen speaking line, MACULA word card, questions, timeline, Hebrew letter sizes */
+.spk{font-size:var(--claim);line-height:1.45;margin:0 0 6px}
+.spl2{font-size:var(--note);font-weight:600;color:var(--muted);margin-right:4px}
+.spmore{min-height:44px;font-weight:600;color:var(--accent)}
+.spu{margin:0 0 6px}
+.wpop{position:absolute;left:28px;right:28px;bottom:120px;z-index:7;border-radius:22px;padding:16px 18px;background:var(--sheet);box-shadow:var(--lift),0 0 0 1px var(--div);display:flex;flex-direction:column;gap:6px}
+.wph{font-size:var(--claim)}
+.wph .gk{font-size:24px}
+.wpr{font-size:var(--claim);display:flex;align-items:baseline;gap:8px}
+.wpa{font:600 12px/1.6 -apple-system,system-ui,sans-serif;color:var(--muted);box-shadow:0 0 0 1px var(--div);border-radius:6px;padding:0 6px}
+.ax5 .wph .gk{font-size:var(--orig)}
+.ax5 .wpa{font-size:22px}
+.ax5 .wpop{left:12px;right:12px;bottom:40px}
+.qrow{padding:10px 0;box-shadow:0 1px 0 var(--div)}
+.qa{padding-left:12px}
+.tlline{display:flex;align-items:center;gap:6px;min-height:44px;width:100%}
+.tlline .todo{margin:0;flex:1}
+.tlr{position:relative;display:flex;gap:14px;padding:12px 0 12px 4px;min-height:44px}
+.tlr::before{content:"";position:absolute;left:10px;top:0;bottom:0;width:1.5px;background:var(--div)}
+.tld{position:relative;flex:none;width:13px;height:13px;border-radius:999px;background:var(--paper);box-shadow:inset 0 0 0 2px var(--muted);margin-top:4px}
+.tlr.cur .tld{background:var(--ink);box-shadow:none}
+.tlr.cur .lmain{font-weight:600}
+.tlr .todo{margin:0}
+.hl-large{font-size:1.4em}
+.hl-small{font-size:.7em}
+.hl-suspended{position:relative;top:-.45em;font-size:.8em}
+/* Understand UX pass: Go deeper is a quiet second half, groups named by the reader's question */
+.deep{margin-top:calc(var(--secgap) + 8px);padding-top:18px;box-shadow:0 -1px 0 var(--div)}
+.deep.first{margin-top:0;padding-top:0;box-shadow:none}
+.deeph{font-family:Literata,serif;font-size:calc(var(--title) + 3px);font-weight:600;margin:0 0 4px}
+.deep .sec .lbl{margin-bottom:2px}
+.snote.clamp2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:0}
+/* Compare, redesigned: yours on top, each other version against yours, one line of what changed */
+.cmptop{display:flex;justify-content:flex-end;margin:-6px 0 4px}
+.cmpb,.cmpo{padding:12px 0;box-shadow:0 1px 0 var(--div)}
+.cmpn{font-size:var(--note);font-weight:600;margin-bottom:4px}
+.scrq0{font-family:Literata,serif;font-size:var(--claim);line-height:1.6}
+.cmpb .scrq0{font-size:calc(var(--claim) + 2px)}
+.cmpl{margin-top:6px}
+.cmpo.same{display:flex;align-items:baseline;gap:10px}
+.cmpo.same .cmpn{margin:0}
+.cmpv{margin-top:18px}
+.ckoff{display:block;width:22px;height:22px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--muted)}
+.ax5 .cmpo.same{flex-direction:column}
+/* Notifications (system surface; Yada's tones inside the card) */
+.ntstack{position:absolute;left:10px;right:10px;bottom:120px;display:flex;flex-direction:column;gap:8px}
+.ntf{border-radius:22px;padding:12px 14px;background:rgba(245,245,240,.82);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);color:#16231E}
+.dark .ntf{background:rgba(30,40,36,.86);color:#ECF0E4}
+.nth{display:flex;align-items:center;gap:8px;font:500 13px -apple-system,system-ui,sans-serif;opacity:.75}
+.nth .yic{width:22px;height:22px;border-radius:6px}
+.nth .yic svg{width:16px;height:16px}
+.ntapp{flex:1}
+.ntt{font:600 15px/1.3 -apple-system,system-ui,sans-serif;margin-top:6px}
+.ntb{font:400 15px/1.35 -apple-system,system-ui,sans-serif;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.ntf.open .ntb{-webkit-line-clamp:6}
+.nacts{border-radius:18px;overflow:hidden;background:rgba(245,245,240,.82);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
+.dark .nacts{background:rgba(30,40,36,.86)}
+.nact{display:block;width:100%;min-height:48px;padding:0 16px;font:400 17px -apple-system,system-ui,sans-serif;color:inherit}
+.nact + .nact{box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+.ax5 .ntt,.ax5 .ntb{font-size:26px}
+.ax5 .nact{font-size:26px;min-height:64px}
+.ax5 .ntstack{bottom:40px}
+.ntprev{margin:4px 0 18px;padding:14px;border-radius:24px;background:linear-gradient(160deg,#6F8A7E,#2C4038)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:6px 0 4px}
+.day{height:44px;border-radius:999px;background:var(--fill);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--muted)}
+.day.on{background:var(--ink);color:var(--paper)}
+.ax5 .days{grid-template-columns:repeat(4,1fr)}
+.ax5 .day{height:64px}
+.wide{display:flex;align-items:center;justify-content:center;width:100%;min-height:var(--pill);border-radius:999px;background:var(--ink);color:var(--paper);font-size:var(--chrome);font-weight:600;margin-top:16px}
+.ialert{position:absolute;left:50%;top:50%;width:270px;margin:-90px 0 0 -135px;z-index:6;border-radius:14px;background:rgba(242,242,242,.95);color:#000;text-align:center;font-family:-apple-system,system-ui,sans-serif;overflow:hidden}
+.iat{font-weight:600;font-size:17px;padding:18px 16px 4px}
+.iab{font-size:13px;padding:0 16px 16px}
+.iabtn{display:grid;grid-template-columns:1fr 1fr;box-shadow:0 -1px 0 rgba(0,0,0,.15)}
+.iabtn button{min-height:44px;color:#007AFF;font-size:17px;text-align:center}
+.iabtn button + button{box-shadow:-1px 0 0 rgba(0,0,0,.15);font-weight:600}
+.pnote{padding:14px 0 16px;box-shadow:0 1px 0 var(--div);margin-bottom:10px}
+.pnb{display:flex;gap:8px;margin-top:10px}
+.tbtn2.outline{background:none;box-shadow:inset 0 0 0 1px var(--div)}
+.valrow.off .valr{opacity:.6}
+/* Verse by verse inside a guide */
+.row.vbv{align-items:flex-start;gap:12px}
+.vbn{flex:none;min-width:22px;font:600 var(--note)/1.6 -apple-system,system-ui,sans-serif;color:var(--muted)}
+.vbt{font-family:Literata,serif;font-size:var(--claim);line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.ax5 .vbt{-webkit-line-clamp:3}
+/* Slop check, 12 Oct: the voice control is a full 44 pt target; paired buttons wrap rather than overflow */
+.vsel{min-height:44px;padding:0 4px}
+.pnb{flex-wrap:wrap}
+/* No-AI v2: plain words (UST) with implied words greyed; readings as a numbered list, no winner */
+.plainw{font-family:Literata,serif;font-size:var(--expl);line-height:1.55}
+.impl{color:var(--muted)}
+.rdq{padding:10px 0;box-shadow:0 1px 0 var(--div)}
+.rdl{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rdo{display:flex;gap:10px;font-size:var(--claim);line-height:1.45}
+.rdo.clamp2 span:last-child{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.rdn{flex:none;width:22px;height:22px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--muted);font:600 12px/22px -apple-system,system-ui,sans-serif;text-align:center;color:var(--muted)}
+.ax5 .rdn{width:34px;height:34px;font-size:18px;line-height:34px}
+/* Settings: a plain ink action row (Remove my data) — no red, the alert carries the weight */
+.lrow.plainbtn{font-size:var(--chrome);font-weight:500;color:var(--ink);min-height:52px}
+.valrow .valr{max-width:55%;text-align:right}
+.ax5 .valrow{flex-wrap:wrap}
+.ax5 .valrow .valr{max-width:100%;text-align:left}
+/* EG-03: the line above the mini player while the page shows a version that isn't read aloud */
+.mpline{padding:2px 6px 8px}
+/* John's round (12 Oct): the psalm tip, the lines before a psalm or a prophet's passage, grouped sources */
+.ptip{margin:4px 0 18px;padding:0 0 14px;border-bottom:1px solid var(--hair)}
+.ptipt{font-size:var(--claim);line-height:1.45;margin:0 0 6px}
+.ptipq{font-family:Literata,serif;font-size:var(--claim);line-height:1.5;margin:0 0 2px}
+.ptip .clink{min-height:44px;padding:0;margin-top:4px}
+.pline{font-size:var(--note);line-height:1.45;color:var(--muted);margin:0 0 6px}
+.secname{font-size:var(--note);font-weight:600;color:var(--muted);margin:0 0 4px}
+.clink.abtp{min-height:44px;padding:0;margin:0 0 6px;display:flex;align-items:center;gap:4px}
+.clink.abtp svg{width:14px;height:14px}
+.mvl{margin:0 0 8px}
+.srcs .note{line-height:1.5}
+.srcs .more{min-height:44px}
+.sh-back.named{width:auto;padding:0 10px 0 6px;gap:2px;display:flex;align-items:center;font-size:var(--chrome)}
+.mpline{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;margin:0 0 4px}
+.mpline .clink{min-height:44px;padding:0}
+.ptip .clink{min-width:64px}
+/* Understand v3 (John's UX test, 12 Oct): whose words; added words not by colour alone; plain line at body size when it is one reading */
+.voice{font-size:var(--note);font-weight:600;color:var(--ink);margin:0 0 4px}
+.plainw.body{font-size:var(--claim)}
+.impl{font-weight:300}
+.impl::before{content:"[" / "";font-weight:200;color:var(--muted)}
+.impl::after{content:"]" / "";font-weight:200;color:var(--muted)}
+/* Verse sheet (John's spec, 12 Oct): added words italic as well as grey; the plain line the only large text */
+.impl{font-style:italic;font-weight:400;color:var(--muted)}
+.impl::before,.impl::after{content:none}
+.plainw.big{font-size:var(--expl)}
+.nfact{margin:0 0 8px}
+.rep .v{font-family:Literata,serif;font-size:var(--scr);line-height:1.5;margin:0}
+.addtip{margin:6px 0 0;padding:8px 10px;border-radius:10px;background:var(--fill);font-size:var(--note);line-height:1.4}
+.morev .claim{font-weight:600}
+/* Slop pass (12 Oct): the sheet sits on the bottom edge, its corners following the phone's, so no reading text shows
+   under it; at AX5 an open sheet hides the reader's header instead of slicing its pills; label and value stack at AX5;
+   section labels stay below the title at AX5; the verse sheet's plain line no longer borrows the .big icon box. */
+.sheet{bottom:0;border-radius:38px 38px 48px 48px}
+.ax5 .hdr:has(~ .scrim),.ax5 .hdr:has(~ .sheet){visibility:hidden}
+.ax5 .valrow{flex-wrap:wrap;row-gap:2px}
+.ax5 .valrow .rm,.ax5 .valrow .valr{flex-basis:100%;max-width:100%;text-align:left;margin-left:0}
+.ax5 .lbl{font-size:min(var(--label),28px)}
+.plainw.plainbig{font-size:var(--expl)}
+.sh-back.named{width:auto;min-width:44px;padding:0 14px 0 8px;border-radius:999px;gap:2px}
+.ax5 .sh-back.named{width:auto;min-width:64px}
+.spt,.spx,.spm{display:block}
+.ax5 .valrow{position:relative;padding-right:44px}
+.ax5 .valrow .chev{position:absolute;right:0;top:50%;transform:translateY(-50%)}
+
+/* Audio at AX5 (slop pass, 12 Oct): the playing verse gets the room. The header keeps one line each for title and
+   subtitle, the offline line one line, the verse area fades at a line's end instead of slicing glyphs, "Verse 5 of 51"
+   reads as one phrase, Guide scales like 1×, and a mini player with one control stays one row. */
+.ax5 .fph .sttl,.ax5 .fph .ssub,.ax5 .vhint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:100%}
+.ax5 .fph .ssub{font-size:28px}
+.ax5 .vhint{margin:0 16px 4px;font-size:28px}
+.ax5 .lyr{-webkit-mask-image:linear-gradient(transparent,#000 6%,#000 70%,transparent 94%);mask-image:linear-gradient(transparent,#000 6%,#000 70%,transparent 94%)}
+.ax5 .progl{justify-content:flex-start;gap:.3em}
+.ax5 .guideb{font-size:var(--chrome);font-weight:600}
+.ax5 .mp-row:not(:has(.mp-ctl > :nth-child(2))){flex-direction:row;align-items:center}
+.ax5 .mp-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ax5 .mp-lab .note{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp::before{content:"";position:absolute;left:0;right:0;top:-28px;height:28px;background:linear-gradient(var(--paper0),var(--paper));pointer-events:none}
+.ax5 .sheet .sbody{padding-bottom:34px;-webkit-mask-image:linear-gradient(#000 86%,transparent);mask-image:linear-gradient(#000 86%,transparent)}
+.ax5 .mpline .clink{padding-right:16px}
+.ax5 .fph .ssub{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ax5 .guideb{width:auto;min-width:64px;padding:0 18px;border-radius:999px}
+.rmmenu{bottom:232px}
+.ax5 .rmmenu{bottom:262px}
+.ax5 .fpr .mpb.guideb{width:auto;height:64px;min-width:64px;padding:0 20px;border-radius:999px}
+.mpline .clink{padding:0 14px;border-radius:999px}
+.ax5 .mpline .clink{padding:6px 18px}
+.ax5 .fpc{padding:10px 22px 30px}
+
+/* Second slop pass (12 Oct): one "Verse 5 of 51" phrase at every size; the named back chip is a pill inside the sheet;
+   a sheet's foot clears the home indicator now the sheet sits on the bottom edge; the AX5 player title takes two lines;
+   the mini player's status wraps at AX5 rather than cutting; the AX5 ⋯ in a value row trails its title. */
+.progl{justify-content:flex-start;gap:.3em}
+.shdr .sh-back.named{width:auto;min-width:44px;padding:0 14px 0 8px;margin-left:8px;border-radius:999px;display:flex;align-items:center;gap:2px}
+.sfoot{padding-bottom:34px}
+.ax5 .fph .sttl{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ax5 .mp-lab .note{white-space:normal}
+.ax5 .valrow .trbtn{position:absolute;right:0;top:50%;transform:translateY(-50%)}
+.ax5 .vhint{white-space:normal}
+/* States nobody drew (12 Oct): the player menu's second lines; a failed download row; a disabled control; launch failure */
+.menu .mrm{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 0;text-align:left}
+.menu .msub{font-size:var(--note);color:var(--muted);line-height:1.3}
+.pmenu{left:16px;right:auto;width:300px;bottom:150px}
+.ax5 .pmenu{left:16px;right:16px;width:auto;bottom:240px}
+.trrow.failrow .lsub{color:var(--ink)}
+.mpb.off,.mpb[aria-disabled="true"],.guideb[disabled]{opacity:.35}
+.offpg .tbtn2{min-height:44px;padding:0 18px;border-radius:999px;background:var(--fill);font-weight:600}
+.lfail{padding:0 var(--gut);max-width:340px}
+.ax5 .pmenu{top:160px;bottom:auto}
+.ax5 .trrow.failrow{position:relative}
+.ax5 .trrow.failrow .trright{position:static;transform:none;flex-basis:100%;padding-left:70px}
+.ax5 .trrow.failrow{flex-wrap:wrap}
+.ax5 .trrow.failrow .trright{box-sizing:border-box}
+/* Magic moments (12 Oct): the passage boundary hairline, the next opener, gutter ticks, the same-words pair, the
+   evidence underline, the agree block, the end-of-book quotation. */
+.pbound{height:1px;background:var(--ink);opacity:.5;margin:22px 0 14px}
+.nextop{flex-wrap:wrap;gap:8px}
+.nextop .nxk{font-size:var(--note);font-weight:600;color:var(--muted);font-family:-apple-system,system-ui,sans-serif}
+.ftick{display:inline-block;width:10px;height:2px;background:var(--ink);vertical-align:middle;margin:0 6px 0 -2px}
+.sfw{font-family:Literata,serif;font-size:var(--claim);line-height:1.5;margin:0 0 8px}
+.sfwh{font-weight:600}
+.il{display:flex;flex-wrap:wrap;gap:6px 14px}
+.il.rtl{flex-direction:row-reverse;justify-content:flex-end}
+.evu{text-decoration:underline dotted;text-underline-offset:4px;text-decoration-thickness:1.5px}
+.hairjoin{height:18px;width:1px;background:var(--ink);opacity:.4;margin:4px 0 4px 40%}
+.agreeq{font-family:Literata,serif;font-size:var(--expl);line-height:1.4;margin:0 0 8px}
+.endq{font-family:Literata,serif;font-style:italic;font-size:var(--claim);line-height:1.5;margin:12px 0}
+.chop{margin-bottom:10px}
+.nextop{flex-wrap:nowrap}
+.v.fv{position:relative}
+.fv .ftick{position:absolute;left:-18px;top:.8em;width:10px;height:2px;background:var(--ink);margin:0}
+.ax5 .endpg{justify-content:flex-start;padding-top:24px}
+.ax5 .endpg{padding-top:calc(var(--hdrh) + 16px)}
+.ax5 .fv .ftick{left:-13px;width:8px}
+.sheet.med.agreesh{top:600px}
+.ax5 .sheet.med.agreesh{top:76px}
+/* Build 6 · listening (LB): the player's one menu with section headers and leading ticks, the status line, the spoken chapter name. */
+.lbmenu{width:290px}
+.menu .mhd{margin:0;padding:10px 18px 6px;font-size:var(--note);color:var(--muted)}
+.menu .mhd + button{box-shadow:0 -1px 0 var(--div)}
+.lbmenu button{justify-content:flex-start;gap:6px}
+.lbmenu .mck{flex:none;width:22px;display:inline-flex;color:var(--ink)}
+.lbmenu .mrm{flex:1}
+.stopl{margin:2px 0 0;text-align:left}
+.ax5 .stopl{font-size:28px;line-height:1.25}
+.ly.lyt{font-family:inherit;font-weight:600;letter-spacing:0}
+.ldsub{padding-left:56px}
+.ax5 .ldsub{padding-left:0}
+/* System surfaces (SX): widgets, Lock Screen, StandBy, Control Center, Siri, notifications, Live Activity. Points = px. */
+.sxhome{padding:62px 28px 0}
+.sxgrid{display:flex;flex-direction:column;gap:16px;margin-top:6px}
+.sxrow{display:flex;gap:22px;align-items:flex-start}
+.sxcell{display:flex;flex-direction:column;align-items:center;gap:6px}
+.sxlab{font:500 12px -apple-system,system-ui,sans-serif;color:#fff}
+.sxapps{display:grid;grid-template-columns:repeat(4,64px);justify-content:space-between;row-gap:14px;flex:1}
+.sxapps .appic{width:62px;height:62px}
+.sxrow .sxapps{grid-template-columns:repeat(2,64px)}
+.yic{color:#DBEC9A}
+.sxw{display:flex;flex-direction:column;box-sizing:border-box;padding:16px;border-radius:24px;background:var(--paper);color:var(--ink);box-shadow:0 6px 18px rgba(0,0,0,.18);overflow:hidden;text-align:left}
+.sxw.s{width:162px;height:162px}
+.sxw.m{width:346px;height:162px;flex-direction:row;gap:12px}
+.sxw.l{width:346px;height:362px;padding:18px}
+.sxwm{display:flex;flex-direction:column;flex:1;min-width:0}
+.sxwb{align-self:flex-end}
+.sxo{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.1px}
+.sxt{font-family:Literata,serif;font-size:19px;font-weight:600;line-height:1.2;margin-top:3px}
+.sxt.big{font-size:24px}
+.sxq{font-family:Literata,serif;font-size:14px;line-height:1.38;margin-top:6px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.sxq.big{font-size:17px;-webkit-line-clamp:3;margin-top:2px}
+.sxq3{font-family:Literata,serif;font-size:13px;line-height:1.35;margin-top:auto;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.sxbig{font-family:Literata,serif;font-size:50px;font-weight:600;line-height:1;font-variant-numeric:lining-nums;margin-top:2px}
+.sxsup{font-family:Literata,serif;font-style:italic;font-size:13px;color:var(--muted);margin-top:2px}
+.sxr{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.sxr.mute{font-weight:400;color:var(--muted);margin-top:2px}
+.sxsp{flex:1}
+.sxplace{display:block;height:2px;border-radius:1px;background:var(--div);margin-top:8px;overflow:hidden}
+.sxplace span{display:block;height:100%;background:var(--ink)}
+.sxl{flex:none;width:44px;height:44px;border-radius:999px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center}
+.sxvv{margin-top:12px}
+.sxv{font-family:Literata,serif;font-size:15px;line-height:1.45;margin:0 0 6px;position:relative}
+.sxn{font:600 10px -apple-system,system-ui,sans-serif;color:var(--muted);margin-right:4px;vertical-align:1px}
+.sxv.here{background:var(--sel);border-radius:10px;margin:0 -8px 6px -8px;padding:4px 8px 4px 16px}
+.sxv.here::before{content:"";position:absolute;left:6px;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--accent)}
+.sxfoot{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sxfl{flex:1;display:flex;flex-direction:column-reverse;gap:6px}
+.ax5 .sxo{font-size:16px}
+.ax5 .sxt{font-size:24px}
+.ax5 .sxt.big{font-size:30px}
+.ax5 .sxq,.ax5 .sxq3,.ax5 .sxw.m .sxsup{display:none}
+.ax5 .sxw.m .sxq.big{display:-webkit-box;font-size:22px;-webkit-line-clamp:2}
+.ax5 .sxr{font-size:18px}
+.ax5 .sxbig{font-size:64px}
+.ax5 .sxsup{font-size:18px}
+.ax5 .sxw.l .sxv{display:none;font-size:22px}
+.ax5 .sxw.l .sxv.here,.ax5 .sxw.l .sxvv:not(:has(.here)) .sxv:first-child{display:-webkit-box;-webkit-line-clamp:4}
+.ax5 .sxl{width:56px;height:56px}
+.ax5 .sxlab{font-size:12px}
+/* Tinted (accented) rendering: the system removes the background; content takes the tint, the name is the accented group. */
+.tinted .hscr{background:linear-gradient(160deg,#36463F,#151D1A 70%)}
+.tinted .sxw{background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.25);--ink:#E9EFD3;--muted:rgba(233,239,211,.62);--div:rgba(233,239,211,.25);--paper:#1F2A25;--sel:rgba(233,239,211,.12);--accent:#F2F6B0;color:var(--ink)}
+.tinted .sxt,.tinted .sxbig{color:#F2F6B0}
+.tinted .sxl{background:rgba(242,246,176,.22);color:#F2F6B0}
+.tinted .appic{background:rgba(255,255,255,.12)}
+/* Lock Screen */
+.sxlock .lsd{display:flex;justify-content:center}
+.sxinl{display:inline-flex;align-items:center;gap:6px;font:600 17px -apple-system,system-ui,sans-serif;white-space:nowrap}
+.sxacc{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:14px;color:#fff}
+.sxac{color:#fff;display:flex;align-items:center;justify-content:center}
+.sxac.c{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.sxac.r{width:160px;height:72px;flex-direction:column;align-items:flex-start;justify-content:center;padding:0 4px;box-sizing:border-box}
+.sxacr{font:600 15px -apple-system,system-ui,sans-serif}
+.sxacq{font-family:Literata,serif;font-size:13px;line-height:1.3;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.sxacv{font:700 17px -apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.ax5 .sxacq{display:none}
+.ax5 .sxacr{font-size:22px}
+.ax5 .sxacv{font-size:21px}
+.ax5 .sxinl{font-size:20px}
+.sxring{position:relative;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;color:#DBEC9A}
+.sxring::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(currentColor calc(var(--p) * 1turn),rgba(219,236,154,.25) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px))}
+.sxring svg{width:13px;height:13px;display:block}
+.sxring.big{width:64px;height:64px;color:#fff}
+.sxring.big::before{background:conic-gradient(#fff calc(var(--p) * 1turn),rgba(255,255,255,.3) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4.5px))}
+/* Dynamic Island */
+.sxdi{position:absolute;top:11px;left:50%;margin-left:-113px;width:226px;height:36px;border-radius:20px;background:#000;z-index:21;display:flex;align-items:center;padding:0 14px 0 6px;box-sizing:border-box}
+.sxcam{flex:1}
+.sxdv{color:#DBEC9A;font:600 15px -apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.sxdi.o{margin-left:-104px;width:160px;padding:0 0 0 10px}
+.sxog{width:20px;height:20px;border-radius:50%;background:#3A3A3C}
+.sxdi.m{margin-left:64px;width:36px;padding:0;justify-content:center}
+.sxdix{position:absolute;top:8px;left:8px;right:8px;z-index:21;background:#000;border-radius:44px;padding:20px 22px 14px;color:#F7F8F0;--ink:#F7F8F0;--muted:rgba(247,248,240,.66);--div:rgba(247,248,240,.22);--paper:#000;--accent:#DBEC9A}
+.sxdix .sxring{width:30px;height:30px}
+/* Live Activity: Lock Screen at most 160 tall */
+.sxla{position:absolute;left:14px;right:14px;bottom:108px;max-height:160px;box-sizing:border-box;border-radius:24px;padding:14px 16px 8px;background:var(--paper);color:var(--ink);box-shadow:0 8px 30px rgba(0,0,0,.22)}
+.sxlah{display:flex;align-items:center;gap:10px}
+.sxlam{width:24px;height:24px;border-radius:6px;background:#16231E;color:#DBEC9A;display:flex;align-items:center;justify-content:center;flex:none}
+.sxlam svg{width:16px;height:16px}
+.sxlat{flex:1;min-width:0;font-family:Literata,serif;font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sxlar{font-size:15px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.sxlav{font-family:Literata,serif;font-size:15px;line-height:1.35;margin:6px 0 10px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.sxlav.name{font-size:17px;font-weight:600}
+.sxseg{display:flex;gap:4px;height:4px}
+.sxseg span{display:block;background:var(--div);border-radius:2px;overflow:hidden}
+.sxseg i{display:block;height:100%;background:var(--ink)}
+.sxlaf{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.sxlast{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--muted)}
+.sxlac{display:flex;align-items:center;gap:4px}
+.sxlac button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.sxlac .pp{width:44px;height:44px;border-radius:999px;background:var(--ink);color:var(--paper)}
+.ax5 .sxla{bottom:36px;max-height:none}
+.ax5 .sxlav{display:none}
+.ax5 .sxlav.name{display:block;font-size:26px}
+.ax5 .sxlat{font-size:26px;white-space:normal}
+.ax5 .sxlar{font-size:22px}
+.ax5 .sxlast{font-size:20px}
+.ax5 .sxseg{margin-top:10px}
+.ax5 .sxlaf{flex-wrap:wrap;row-gap:4px}
+.ax5 .sxlac button{width:56px;height:56px}
+.ax5 .sxdv{font-size:16px}
+/* StandBy: the phone on its side, drawn rotated inside the portrait frame */
+.sxsb{position:absolute;width:874px;height:402px;left:-236px;top:236px;transform:rotate(90deg);background:#000;display:flex;align-items:center;gap:28px;padding:36px 56px;box-sizing:border-box;z-index:25;--ink:#F2F2F2;--muted:rgba(242,242,242,.6);--div:rgba(242,242,242,.2);--paper:#000;color:var(--ink)}
+.night .sxsb{--ink:#E0402F;--muted:rgba(224,64,47,.72);--div:rgba(224,64,47,.25)}
+.sxsbclock{flex:1;font:300 150px/1 -apple-system,system-ui,sans-serif;letter-spacing:-4px}
+.sxsbw{width:360px;height:330px;box-sizing:border-box;border-radius:40px;background:#1C1C1E;padding:28px;display:flex;flex-direction:column;gap:14px}
+.night .sxsbw{background:#160403}
+.sxsbq{font-family:Literata,serif;font-size:28px;line-height:1.3;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
+.sxsb .sxo{font-size:17px}
+.ax5 .sxsbq{font-size:34px;-webkit-line-clamp:5}
+.ax5 .sxsb .sxo{font-size:24px}
+.sxsbla{display:flex;align-items:center;gap:40px;width:100%}
+.sxsbt{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px}
+.sxsbv{font-family:Literata,serif;font-size:36px;line-height:1.3;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.sxsbt .sxlast{font-size:17px}
+.sxsbt .sxseg{height:6px}
+.sxsbc{display:flex;align-items:center;gap:8px}
+.sxsbc button{width:72px;height:72px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.sxsbc .pp{width:96px;height:96px;border-radius:999px;background:var(--ink);color:#000}
+.ax5 .sxsbv{font-size:40px;-webkit-line-clamp:4}
+.ax5 .sxsbt .sxlast{font-size:26px}
+/* Control Center */
+.sxcc{position:absolute;inset:0;background:linear-gradient(160deg,#3F5249,#121A17);padding:118px 22px 0}
+.sxccg{display:grid;grid-template-columns:repeat(4,76px);gap:16px;justify-content:center}
+.sxct,.sxctl{width:76px;height:76px;border-radius:22px;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.sxctl.wide{grid-column:span 2;width:auto;flex-direction:row;justify-content:flex-start;gap:10px;padding:0 12px;padding:0 14px 0 12px}
+.sxctl.on{background:#F7F8F0;color:#16231E}
+.sxcti{width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex:none}
+.sxctl.on .sxcti{background:#16231E;color:#DBEC9A}
+.sxctt{display:flex;flex-direction:column;line-height:1.25;font-size:13px;min-width:0}
+.sxctt b{font-size:15px}
+.ax5 .sxctt b{font-size:19px}
+.ax5 .sxctt{font-size:16px}
+/* Siri, Shortcuts, Spotlight */
+.sxsiri{position:absolute;top:60px;left:10px;right:10px;z-index:5;border-radius:32px;padding:20px;background:var(--sheet);color:var(--ink);box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.sxbtns{display:flex;gap:10px;margin-top:12px}
+.sxbtns.sp{margin:10px 0 4px}
+.sxpill{min-height:44px;padding:0 20px;border-radius:999px;background:var(--fill);color:var(--ink);display:inline-flex;align-items:center;gap:6px;font-size:16px;font-weight:600}
+.sxpill:first-child{background:var(--ink);color:var(--paper)}
+.spot .sxpill{background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.spot .sxpill:first-child{background:#F7F8F0;color:#16231E}
+.ax5 .sxsiri .sxv{font-size:24px}
+.ax5 .sxsiri .sxv:nth-child(n+2){display:none}
+.ax5 .sxpill{font-size:24px;min-height:64px}
+.sxsys{position:absolute;inset:0;padding:64px 16px 0;background:#F2F2F7;color:#000}
+.dark .sxsys{background:#000;color:#fff}
+.light .sxsys .sbar,.ax5 .sxsys .sbar{color:#000}
+.sxsyst{font:700 34px -apple-system,system-ui,sans-serif}
+.sxsyss{font-size:15px;opacity:.6;margin:2px 0 16px}
+.sxtiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sxtile{display:flex;flex-direction:column;gap:6px;min-height:124px;padding:14px;border-radius:20px;background:#24443A;color:#fff;box-sizing:border-box}
+.sxtg{margin-bottom:auto;color:#DBEC9A}
+.sxtt{font-size:16px;font-weight:600;line-height:1.25}
+.sxtp{font-size:12px;opacity:.72;line-height:1.3}
+.ax5 .sxtiles{grid-template-columns:1fr}
+.ax5 .sxtile{min-height:0}
+.ax5 .sxtt{font-size:24px}
+.ax5 .sxtp{font-size:18px}
+.ax5 .sxsyst{font-size:44px}
+.sxtop{display:flex;gap:12px;padding:14px;border-radius:20px;background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:var(--ink)}
+.sxtop .yic{width:56px;height:56px;border-radius:13px;flex:none}
+.sxtop .yic svg,.sxnt .yic svg,.sxsumtop .yic svg{width:70%;height:70%}
+.sxtop .rm{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sxtops{font-size:14px;color:var(--muted)}
+.sxspr{display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:20px;background:var(--glass);color:var(--ink)}
+.ax5 .spt{font-size:24px}
+.ax5 .sxtops{font-size:20px}
+.ax5 .sxtop .spx{font-size:22px}
+.ax5 .sxspr,.ax5 .sxspot .spl:last-of-type{display:none}
+/* Notifications */
+.sxns{position:absolute;left:10px;right:10px;bottom:118px;z-index:3}
+.sxns.top{top:150px;bottom:auto}
+.sxnt{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:22px;background:rgba(245,245,240,.84);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);color:#16231E}
+.dark .sxnt,.dark .sxsum{background:rgba(30,40,36,.88);color:#ECF0E4}
+.sxnt .yic,.sxsumtop .yic{width:38px;height:38px;border-radius:9px;flex:none}
+.sxnt .rm,.sxsumtop .rm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.sxnth{display:flex;justify-content:space-between;gap:8px;font-size:15px;line-height:1.3}
+.sxnth span{font-size:13px;opacity:.6;flex:none}
+.sxntb{font-size:15px;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.sxntb.q{font-family:Literata,serif;-webkit-line-clamp:3}
+.sxrich{border-radius:26px;padding:20px;background:var(--sheet);color:var(--ink);margin-bottom:8px}
+.sxacts{color:#16231E}
+.dark .sxacts{color:#ECF0E4}
+.sxblur{position:absolute;inset:0;z-index:2;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.sxgh{color:#fff;font:600 15px -apple-system,system-ui,sans-serif;margin:0 6px 8px}
+.sxbehind{height:12px;margin:0 14px;border-radius:0 0 18px 18px;background:rgba(245,245,240,.5)}
+.sxsum{position:absolute;left:10px;right:10px;top:240px;border-radius:28px;padding:18px;background:rgba(245,245,240,.9);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);color:#16231E}
+.sxsumh{font:700 22px -apple-system,system-ui,sans-serif}
+.sxsumtop{display:flex;gap:10px;margin-top:14px}
+.sxsumtop b{font-size:15px}
+.sxsumo{display:flex;gap:8px;align-items:center;margin-top:16px}
+.sxsumo .appic{width:28px;height:28px;border-radius:7px;background:rgba(128,128,128,.25)}
+.sxsuml{flex:1;height:10px;border-radius:5px;background:rgba(128,128,128,.18)}
+.ax5 .sxnth,.ax5 .sxntb,.ax5 .sxsumtop b{font-size:26px}
+.ax5 .sxntb{-webkit-line-clamp:3}
+.ax5 .sxnth{flex-direction:column}
+.ax5 .sxrich .sxv{font-size:24px}
+.ax5 .sxrich .sxv:nth-child(2){display:none}
+.ax5 .sxsumh{font-size:30px}
+.ax5 .sxns.top{top:60px}
+.npnot{display:block;margin:6px auto 0;min-height:44px}
+
+/* Build 6 · words and places (WM-01–07) */
+.v.sm{font-size:var(--claim);line-height:1.45;margin:0}
+.plink{all:unset;color:var(--accent);font-weight:600;cursor:pointer}
+.tr.rtl{text-align:right}

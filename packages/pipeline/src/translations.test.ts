@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
-import { TranslationInfoSchema, verseOrd } from "@yada/schema";
+import { TranslationInfoSchema, translationLabel, verseOrd } from "@yada/schema";
 
 import { parseVpl } from "./english.js";
 import { SOURCES, checkLicense, checkPin } from "./sources.js";
@@ -165,6 +165,71 @@ describe("package translation", () => {
     expect(readdirSync(dir).some((f) => f.endsWith(".db"))).toBe(false);
   });
 
+  describe("an Old Testament text in Hebrew order (JPS 1917)", () => {
+    // TVTMS's table, padded past the parser's 1000-row floor with rows that change nothing.
+    const tvtms = [
+      "English (NRSV, ESV, KJV etc)\tHebrew MT",
+      "Jol.2:28\tJol.3:1",
+      "Jol.3:1\tJol.4:1",
+      "Psa.3:0\tPsa.3:1",
+      "Psa.3:1\tPsa.3:2",
+      ...Array.from({ length: 1000 }, (_, i) => `Psa.150:${i + 100}\tPsa.150:${i + 100}`),
+      "",
+      "Phrases and Abbreviations",
+    ];
+    const reference = [...REFERENCE, "PSA 3:1 LORD, how are they increased that trouble me!", "JOE 3:1 For, behold, in those days"];
+    const jps = [
+      "GEN 1:1 IN THE beginning God created the heaven and the earth.",
+      "SOL 2:1 I am a rose of Sharon, a lily of the valleys.",
+      "PSA 3:1 (3-1) A Psalm of David, when he fled from Absalom his son. (3-2) LORD, how many are mine adversaries become!",
+      "JOE 3:1 (4-1) For, behold, in those days, and in that time,",
+    ];
+
+    beforeEach(() => {
+      write(REFERENCE_VPL, reference);
+      write("TVTMS.txt", tvtms);
+    });
+
+    it("counts only Old Testament verses as missing, and labels itself OT", () => {
+      write("engjps_vpl.txt", jps);
+      const { info, gaps, numbering } = packageTranslation("JPS", options());
+      expect(info.verses).toBe(4);
+      expect(info.missing).toEqual([]);
+      expect(gaps).toEqual({ missing: [], extra: [] });
+      expect(info.testament).toBe("OT");
+      expect(translationLabel(info)).toBe("JPS 1917 · Jewish Publication Society · Old Testament");
+      expect(info.description).toMatch(/thee and thou/);
+      expect(numbering?.renumbered).toBe(2);
+      expect(TranslationInfoSchema.safeParse(info).success).toBe(true);
+
+      const db = new DatabaseSync(path.join(dir, info.file), { readOnly: true });
+      const meta = Object.fromEntries(
+        db.prepare("SELECT key, value FROM meta").all().map((r) => [String(r["key"]), String(r["value"])]),
+      );
+      expect(meta).toMatchObject({ code: "JPS", testament: "OT", publisher: "Jewish Publication Society" });
+      expect(db.prepare("SELECT text FROM texts WHERE ord = ?").get(verseOrd("PSA", 3, 1))?.["text"]).toBe(
+        "A Psalm of David, when he fled from Absalom his son. LORD, how many are mine adversaries become!",
+      );
+      expect(db.prepare("SELECT count(*) AS n FROM texts WHERE ord >= ?").get(verseOrd("MAT", 1, 1))?.["n"]).toBe(0);
+      db.close();
+    });
+
+    it("refuses a New Testament verse in an Old Testament text", () => {
+      write("engjps_vpl.txt", [...jps, "JOH 1:1 In the beginning was the Word."]);
+      expect(() => packageTranslation("JPS", options())).toThrow(TranslationRefused);
+    });
+
+    it("refuses words TVTMS places in another verse", () => {
+      write("engjps_vpl.txt", [...jps.slice(0, 3), "JOE 3:1 (3-1) For, behold, in those days"]);
+      expect(() => packageTranslation("JPS", options())).toThrow(/TVTMS places elsewhere \(JOL\.3\.1\)/);
+    });
+
+    it("leaves whole-Bible versions without a testament", () => {
+      expect(DOWNLOADABLE.filter((t) => t.testament !== undefined).map((t) => t.code)).toEqual(["JPS"]);
+      expect(translationLabel({ name: "Young's Literal Translation" })).toBe("Young's Literal Translation");
+    });
+  });
+
   it("refuses a code it has no definition for", () => {
     expect(() => packageTranslation("NIV", options())).toThrow(TranslationRefused);
   });
@@ -176,7 +241,16 @@ describe("downloadable translation sources", () => {
       ASV: "sage",
       YLT: "paper",
       MSB: "lime",
+      JPS: "lime",
     });
+  });
+
+  it("pins the JPS 1917 to the eBible zip downloaded on 12 Oct 2026, its licence from engjps_about.htm", () => {
+    const file = SOURCES.find((s) => s.key === "jps1917")?.files[0];
+    expect(file?.url).toBe("https://ebible.org/Scriptures/engjps_vpl.zip");
+    expect(file?.sha256).toBe("12b1812db23e9c10be68f2dd417aa1a190db4c03c6e6f5c29f53f97332b659d7");
+    expect(file?.licenseIn).toEqual({ zipMember: "engjps_about.htm", mustContain: "Public Domain" });
+    expect(SOURCES.find((s) => s.key === "jps1917")?.license).toBe("PUBLIC_DOMAIN");
   });
 
   it("pins every download by full digest and re-reads its licence from the package", () => {

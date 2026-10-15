@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { foldWord, hasRealDivergence, markReadingDifferences, splitWords } from "./diff";
+import { changeLine, changeText, foldWord, hasRealDivergence, splitWords } from "./diff";
 
 describe("word diff", () => {
   it("folds case, curly quotes and punctuation", () => {
@@ -21,28 +21,25 @@ describe("word diff", () => {
   });
 });
 
-describe("markReadingDifferences (amendment 2)", () => {
-  const BSB = "Women are to be silent in the churches. They are not permitted to speak, but must be in submission, as the law says.";
-  const WEB = "Let the wives be quiet in the assemblies, for it has not been permitted for them to be talking except in submission, as the law also says,";
-  const KJV = "Let your women keep silence in the churches: for it is not permitted unto them to speak; but they are commanded to be under obedience, as also saith the law.";
-
-  it("treats a shared stem as the same word (silent / silence)", () => {
-    const marked = markReadingDifferences(BSB, [WEB, KJV]).filter((w) => w.divergent).map((w) => w.text);
-    expect(marked).not.toContain("silent");
-    expect(marked).not.toContain("churches.");
+describe("Compare's line of changes (CP-01–04)", () => {
+  it("names each run that differs, punctuation never counting", () => {
+    expect(changeText(changeLine("The Light shines in the darkness, and the darkness has not overcome it.", "The light shines in the darkness, and the darkness hasn’t overcome it."))).toBe("has not → hasn’t");
   });
 
-  it("never marks function words", () => {
-    const marked = markReadingDifferences("must be in the", ["quite different words"]).filter((w) => w.divergent);
-    expect(marked).toEqual([]);
+  it("shows two runs, then how many more", () => {
+    const line = changeLine(
+      "For God so loved the world that He gave His one and only Son, that everyone who believes in Him shall not perish but have eternal life.",
+      "For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.",
+    );
+    expect(line.changes).toHaveLength(2);
+    expect(changeText(line)).toMatch(/1 more change$/u);
   });
 
-  it("marks a content word no other version uses", () => {
-    expect(markReadingDifferences("ask something", ["ask anything"]).find((w) => w.text === "something")?.divergent).toBe(true);
+  it("says a verse worded differently throughout, rather than listing every word", () => {
+    expect(changeText(changeLine("Women are to be silent in the churches.", "Let your women keep silence in the assemblies."))).toBe("Worded differently throughout");
   });
 
-  it("marks nothing when the versions agree (JN-06)", () => {
-    const t = "In the beginning was the Word, and the Word was with God, and the Word was God.";
-    expect(markReadingDifferences(t, [t, t]).some((w) => w.divergent)).toBe(false);
+  it("is empty when only punctuation differs", () => {
+    expect(changeText(changeLine("Jesus wept.", "Jesus wept"))).toBe("");
   });
 });

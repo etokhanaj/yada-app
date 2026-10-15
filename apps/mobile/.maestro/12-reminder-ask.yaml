@@ -1,0 +1,22 @@
+# Asking for the reminder (NP-01–03; John, 15 Oct 2026): at the end of the first passage, Yada shows the
+# notification it would send and asks in its own words; iOS asks only after Turn on. Not now closes it.
+# Run on a fresh install (no passage read, reminder never asked). Launch the app first, outside Maestro.
+appId: studio.yada.reader
+---
+- openLink: studio.yada.reader:///read/JHN/1?verse=14
+- waitForAnimationToEnd
+# Reading past 1:18 finishes the first passage; the sheet rises as the next passage comes into view, and
+# covers the "Next passage" line, so the scroll waits for the sheet itself (15 Oct 2026).
+- scrollUntilVisible:
+    element:
+      id: remind-ask
+    timeout: 30000
+- assertVisible: "A reminder to read"
+- assertVisible:
+    id: reminder-preview
+- assertVisible: "Turn on"
+- tapOn:
+    id: remind-ask-later
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: remind-ask

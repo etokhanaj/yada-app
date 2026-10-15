@@ -106,6 +106,8 @@ export function Verse({
   place,
   bookmarked,
   hasEntry,
+  differs = false,
+  footprint = false,
   onPress,
   onAction,
   mark = null,
@@ -124,6 +126,13 @@ export function Verse({
   place: SelectionPlace;
   bookmarked: boolean;
   hasEntry: boolean;
+  /**
+   * Readers differ on this verse (its Understand has a debate): the one marker in the text, as on
+   * 1 Corinthians 14:34 in VS-03. Not on every verse Understand covers, which is nearly all of them.
+   */
+  differs?: boolean;
+  /** MM-04: this verse uses the word open over the reader; a short ink tick in the margin. */
+  footprint?: boolean;
   onPress: () => void;
   onAction: (action: VerseAction) => void;
   /** Audio is reading this chapter and has not yet passed this verse. */
@@ -164,7 +173,7 @@ export function Verse({
   const spokenAt = (offset: number): Spoken | null => (mark === null ? null : { mark, face, offset });
   const small = scripture.size * 0.85;
 
-  const marker = hasEntry ? (
+  const marker = differs ? (
     <>
       {JOIN}
       <View style={styles.inline}>
@@ -206,7 +215,8 @@ export function Verse({
         : `Verse ${verse}`,
     playing ? "playing" : null,
     bookmarked ? "bookmarked" : null,
-    hasEntry ? "has an explanation" : null,
+    differs ? "readers differ here" : null,
+    footprint ? "uses this word" : null,
   ]
     .filter((p) => p !== null)
     .join(", ");
@@ -247,6 +257,7 @@ export function Verse({
         },
       ]}
     >
+      {footprint ? <View style={[styles.footprint, { backgroundColor: palette.ink }]} accessible={false} testID={`footprint-${verse}`} /> : null}
       {selected ? (
         <View
           style={[
@@ -418,6 +429,7 @@ function ChapterOpening({
 }
 
 const styles = StyleSheet.create({
+  footprint: { position: "absolute", left: -14, top: 18, width: 10, height: 2 },
   row: {
     marginHorizontal: -WASH_INSET,
     paddingRight: WASH_INSET,

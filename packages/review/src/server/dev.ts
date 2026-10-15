@@ -8,10 +8,11 @@ import path from "node:path";
 import { createServer as createViteServer } from "vite";
 
 import { PACKAGE_ROOT } from "./config.js";
-import { describe, startReviewServer } from "./main.js";
+import { announceSummaries, describe, startReviewServer } from "./main.js";
 
 const running = await startReviewServer({ staticDir: null });
 console.log(describe(running));
+announceSummaries(running);
 
 const vite = await createViteServer({
   configFile: path.join(PACKAGE_ROOT, "vite.config.ts"),

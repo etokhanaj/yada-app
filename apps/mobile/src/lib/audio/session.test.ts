@@ -16,7 +16,7 @@ import {
 describe("canSpeak", () => {
   it("reads the built-in texts aloud and never a licensed or downloaded one", () => {
     for (const t of ["BSB", "WEB", "KJV", "LSV"]) expect(canSpeak(t)).toBe(true);
-    for (const t of ["NIV", "NKJV", "NLT", "YLT", "ASV"]) expect(canSpeak(t)).toBe(false);
+    for (const t of ["NIV", "NKJV", "NLT", "MSG", "YLT", "ASV"]) expect(canSpeak(t)).toBe(false);
   });
 });
 

@@ -18,11 +18,14 @@ import {
   parseVerseId,
   translationFileName,
   verseOrd,
+  BOOK_CODES,
   type CoverTone,
+  type Testament,
   type TranslationInfo,
 } from "@yada/schema";
 
 import { parseVpl } from "./english.js";
+import { readHebrewNumberedVpl, type HebrewMappingReport } from "./hebrew-numbering.js";
 import { BUNDLES, freshDb, highestVersionOnDisk, readBundleManifest, sha256File } from "./package.js";
 import { RAW } from "./paths.js";
 import { SOURCES } from "./sources.js";
@@ -35,13 +38,39 @@ export interface TranslationDef {
   cover: CoverTone;
   /** The SOURCES entry the text comes from. */
   source: string;
+  /** One testament only; its verses alone are expected, and any outside it are refused. */
+  testament?: Testament;
+  publisher?: string;
+  /** One line saying what kind of text it is. */
+  description?: string;
+  /**
+   * "hebrew": printed in Hebrew verse order, with eBible's "(4-1)" markers, and placed on English
+   * verse ids through TVTMS (hebrew-numbering.ts). Absent: already in English order.
+   */
+  numbering?: "hebrew";
 }
 
 export const DOWNLOADABLE: readonly TranslationDef[] = [
   { code: "ASV", name: "American Standard Version", year: 1901, cover: "sage", source: "asv" },
   { code: "YLT", name: "Young's Literal Translation", year: 1898, cover: "paper", source: "ylt" },
   { code: "MSB", name: "Majority Standard Bible", year: 2024, cover: "lime", source: "msb" },
+  // A Jewish rendering for Compare and "Readers differ" (John, 12 Oct 2026): Isaiah 7:14 "the young
+  // woman shall conceive". Public domain in the UK as well as the US: docs/research/jps-1917-licence.md.
+  {
+    code: "JPS",
+    name: "JPS 1917",
+    year: 1917,
+    cover: "lime",
+    source: "jps1917",
+    testament: "OT",
+    publisher: "Jewish Publication Society",
+    description: "The 1917 Jewish translation in older English (thee and thou), for comparing, not for plain reading.",
+    numbering: "hebrew",
+  },
 ];
+
+/** TVTMS, which places a Hebrew-ordered text's verses on English ids. */
+export const TVTMS_FILE = "TVTMS.txt";
 
 /**
  * The English versification every Yada verse id belongs to, taken from the KJV file core already
@@ -96,6 +125,8 @@ export interface TranslationReport {
   info: TranslationInfo;
   gaps: VerseGaps;
   reused: boolean;
+  /** For a Hebrew-ordered text: how its verses were placed. */
+  numbering?: HebrewMappingReport | undefined;
 }
 
 export interface PackageTranslationOptions {
@@ -122,8 +153,34 @@ export function packageTranslation(code: string, options: PackageTranslationOpti
 
   // eBible keeps a verse's number with no words where the translation omits it (the ASV's
   // Matthew 23:14). Dropped here, it is listed in `missing`, which is what the app trusts.
-  const verses = parseVpl(textFile, def.code).filter((v) => v.text.trim() !== "");
-  const reference = parseVpl(path.join(rawDir, REFERENCE_VPL), "KJV").map((v) => v.verse_id);
+  let numbering: HebrewMappingReport | undefined;
+  let printed: Array<{ verse_id: string; text: string }>;
+  if (def.numbering === "hebrew") {
+    const tvtms = path.join(rawDir, TVTMS_FILE);
+    if (!existsSync(tvtms)) throw new TranslationRefused(`${TVTMS_FILE} is not in ${rawDir}; run \`yada ingest\``);
+    const mapped = readHebrewNumberedVpl(textFile, def.code, tvtms);
+    numbering = mapped.report;
+    // A new disagreement with TVTMS means the pinned text or TVTMS changed: look before shipping.
+    if (mapped.report.unmapped.length > 0) {
+      throw new TranslationRefused(
+        `${def.code}: ${mapped.report.unmapped.length} passages carry a Hebrew number TVTMS places elsewhere ` +
+          `(${mapped.report.dropped.join(", ")}). Check them against the KJV before accepting any.`,
+      );
+    }
+    printed = mapped.verses;
+  } else {
+    printed = parseVpl(textFile, def.code);
+  }
+  const verses = printed.filter((v) => v.text.trim() !== "");
+  const inScope = (id: string): boolean => {
+    const book = parseVerseId(id)?.book;
+    return def.testament === undefined || (book !== undefined && BOOK_CODES[book].testament === def.testament);
+  };
+  // An Old Testament text is measured against the Old Testament only; a verse it prints outside
+  // it is `extra`, and refused below like any other.
+  const reference = parseVpl(path.join(rawDir, REFERENCE_VPL), "KJV")
+    .map((v) => v.verse_id)
+    .filter(inScope);
   const gaps = verseGaps(reference, verses.map((v) => v.verse_id));
   // A verse number outside the English versification means the file follows another numbering,
   // and then the verses around it are shifted too (eBible's Geneva has Job 39:1 where English has
@@ -155,6 +212,9 @@ export function packageTranslation(code: string, options: PackageTranslationOpti
   meta.run("source_sha256", file.sha256);
   meta.run("verses", String(verses.length));
   meta.run("missing", JSON.stringify(gaps.missing));
+  if (def.testament !== undefined) meta.run("testament", def.testament);
+  if (def.publisher !== undefined) meta.run("publisher", def.publisher);
+  if (def.description !== undefined) meta.run("description", def.description);
 
   const insert = out.prepare("INSERT INTO texts (ord, text) VALUES (?, ?)");
   const rows = verses
@@ -181,7 +241,7 @@ export function packageTranslation(code: string, options: PackageTranslationOpti
   if (previous !== undefined && previous.sha256 === sha && existsSync(path.join(outDir, previous.file))) {
     rmSync(tmp);
     // A manifest from before compression gains the size; the file itself is untouched.
-    return { info: { ...previous, download_bytes: downloadBytes }, gaps, reused: true };
+    return { info: { ...previous, download_bytes: downloadBytes }, gaps, reused: true, numbering };
   }
   const version = Math.max(previous?.version ?? 0, highestVersionOnDisk(name, outDir)) + 1;
   const fileName = translationFileName(def.code, version);
@@ -202,8 +262,12 @@ export function packageTranslation(code: string, options: PackageTranslationOpti
       cover: def.cover,
       verses: verses.length,
       missing: gaps.missing.filter(isVerseId),
+      ...(def.testament === undefined ? {} : { testament: def.testament }),
+      ...(def.publisher === undefined ? {} : { publisher: def.publisher }),
+      ...(def.description === undefined ? {} : { description: def.description }),
     },
     gaps,
     reused: false,
+    numbering,
   };
 }

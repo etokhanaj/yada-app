@@ -6,6 +6,15 @@
  *   GET  /api/entries/:verseId
  *   POST /api/entries/:verseId/approve   { rating, payload_sha256, reason?, queue? }
  *   POST /api/entries/:verseId/reject    { reason, rating?, queue?, payload_sha256? }
+ *   GET  /api/debates
+ *   POST /api/debates/:passageId/positions/:index/(reject|undo|accept-suggestion|accept-axis)   { text_sha256 }
+ *   POST /api/debates/:passageId/positions/:index/(approve|side)   { text_sha256, side }
+ *   POST /api/debates/:passageId/positions/:index/axis   { text_sha256, axis }
+ *   GET  /api/summaries
+ *   POST /api/summaries/:passageId/(approve|reject)   { text_sha256 }
+ *   POST /api/summaries/:passageId/fix   { text_sha256, note }
+ *   GET  /api/extracts
+ *   POST /api/extracts/(book_intro|grammar)/:id/(approve|reject|undo)     { text_sha256 }
  *
  * Loopback binding keeps other machines out. The Host check keeps out a web
  * page that rebinds its own hostname to 127.0.0.1, and requiring a JSON content
@@ -17,16 +26,31 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 
-import type { DecisionResponse, ErrorResponse, MetaResponse } from "../shared/api.js";
-import { isReviewQueue } from "../shared/api.js";
+import type {
+  DecisionResponse,
+  ErrorResponse,
+  MetaResponse,
+  ExtractDecisionResponse,
+  PositionDecisionResponse,
+  SummaryDecisionResponse,
+} from "../shared/api.js";
+import { isExtractAction, isExtractKind, isPositionAction, isReviewQueue, isSummaryAction } from "../shared/api.js";
+import { buildExtracts, decideExtract } from "./extracts.js";
 import { approve, decisionsPath, RefusedError, reject, type DecisionContext } from "./actions.js";
+import { buildDebates, decidePosition } from "./debates.js";
 import { buildEntry, buildQueue, queueCounts } from "./queues.js";
+import { buildSummaries, decideSummary, type SummarySource } from "./summaries.js";
 
 export interface ServerContext extends DecisionContext {
   dbPath: string;
   sampleRate: number;
   /** Built client directory, or null when Vite serves the client (dev). */
   staticDir: string | null;
+  debatesPath: string;
+  coreDbPath: string;
+  passageReviewsPath: string;
+  summaries: SummarySource;
+  extractsDir: string;
 }
 
 const LOCAL_HOSTNAMES = new Set(["127.0.0.1", "localhost", "[::1]"]);
@@ -67,6 +91,13 @@ async function readJsonBody(req: IncomingMessage): Promise<Record<string, unknow
     throw new RefusedError("Request body must be a JSON object.", 400);
   }
   return parsed as Record<string, unknown>;
+}
+
+function requireJson(req: IncomingMessage): void {
+  const contentType = req.headers["content-type"] ?? "";
+  if (!contentType.startsWith("application/json")) {
+    throw new RefusedError("Decisions must be posted as application/json.", 415);
+  }
 }
 
 export function createHandler(ctx: ServerContext): (req: IncomingMessage, res: ServerResponse) => void {
@@ -121,6 +152,58 @@ async function handle(ctx: ServerContext, req: IncomingMessage, res: ServerRespo
       return;
     }
 
+    if (parts[1] === "debates") {
+      if (method === "GET" && parts.length === 2) {
+        sendJson(res, 200, buildDebates(ctx));
+        return;
+      }
+      const [, , id, segment, index, action] = parts;
+      if (
+        method === "POST" &&
+        parts.length === 6 &&
+        id !== undefined &&
+        segment === "positions" &&
+        index !== undefined &&
+        isPositionAction(action)
+      ) {
+        requireJson(req);
+        const body = await readJsonBody(req);
+        const passage = decidePosition(ctx, id, index, action, body);
+        sendJson(res, 200, { passage, logged_to: decisionsPath(ctx.reviewDir) } satisfies PositionDecisionResponse);
+        return;
+      }
+    }
+
+    if (parts[1] === "summaries") {
+      if (method === "GET" && parts.length === 2) {
+        sendJson(res, 200, buildSummaries(ctx));
+        return;
+      }
+      const [, , id, action] = parts;
+      if (method === "POST" && parts.length === 4 && id !== undefined && isSummaryAction(action)) {
+        requireJson(req);
+        const body = await readJsonBody(req);
+        const item = decideSummary(ctx, id, action, body);
+        sendJson(res, 200, { item, logged_to: decisionsPath(ctx.reviewDir) } satisfies SummaryDecisionResponse);
+        return;
+      }
+    }
+
+    if (parts[1] === "extracts") {
+      if (method === "GET" && parts.length === 2) {
+        sendJson(res, 200, buildExtracts(ctx));
+        return;
+      }
+      const [, , kind, id, action] = parts;
+      if (method === "POST" && parts.length === 5 && isExtractKind(kind) && id !== undefined && isExtractAction(action)) {
+        requireJson(req);
+        const body = await readJsonBody(req);
+        const item = decideExtract(ctx, kind, id, action, body);
+        sendJson(res, 200, { item, logged_to: decisionsPath(ctx.reviewDir) } satisfies ExtractDecisionResponse);
+        return;
+      }
+    }
+
     if (parts[1] === "entries" && parts[2] !== undefined) {
       const verseId = parts[2];
 
@@ -133,10 +216,7 @@ async function handle(ctx: ServerContext, req: IncomingMessage, res: ServerRespo
 
       const action = parts[3];
       if (method === "POST" && parts.length === 4 && (action === "approve" || action === "reject")) {
-        const contentType = req.headers["content-type"] ?? "";
-        if (!contentType.startsWith("application/json")) {
-          throw new RefusedError("Decisions must be posted as application/json.", 415);
-        }
+        requireJson(req);
         const body = await readJsonBody(req);
         const state = action === "approve" ? approve(ctx, verseId, body) : reject(ctx, verseId, body);
         sendJson(res, 200, { state, logged_to: decisionsPath(ctx.reviewDir) } satisfies DecisionResponse);

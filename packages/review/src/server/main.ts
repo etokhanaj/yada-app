@@ -6,7 +6,11 @@ import { pathToFileURL } from "node:url";
 
 import {
   CLIENT_DIST,
+  coreDbPath,
+  debatesPath,
+  extractsDir,
   HOST,
+  passageReviewsPath,
   reviewDir,
   reviewerName,
   reviewPort,
@@ -16,12 +20,15 @@ import {
 } from "./config.js";
 import { openReviewDb } from "./db.js";
 import { createHandler, type ServerContext } from "./http.js";
+import { pipelineLoader, SummarySource, type SummaryLoader } from "./summaries.js";
 
 export interface StartOptions {
   port?: number;
   /** Built client directory; null to serve the API only. Defaults to dist/client. */
   staticDir?: string | null;
   env?: Record<string, string | undefined>;
+  /** Lists the flagged passage summaries. Defaults to the pipeline's flagged.ts. */
+  summaryLoader?: SummaryLoader;
 }
 
 export interface RunningServer {
@@ -42,6 +49,11 @@ export async function startReviewServer(options: StartOptions = {}): Promise<Run
     sampleSeed: sampleSeed(env),
     sampleRate: SAMPLE_RATE,
     staticDir: options.staticDir === undefined ? CLIENT_DIST : options.staticDir,
+    debatesPath: debatesPath(env),
+    extractsDir: extractsDir(env),
+    coreDbPath: coreDbPath(env),
+    passageReviewsPath: passageReviewsPath(env),
+    summaries: new SummarySource(options.summaryLoader ?? pipelineLoader()),
   };
 
   const server = createServer(createHandler(ctx));
@@ -60,12 +72,25 @@ export function describe(running: RunningServer): string {
     `Yada review on ${url}`,
     `  staging.db   ${ctx.dbPath}`,
     `  decisions -> ${ctx.reviewDir}`,
+    `  debates      ${ctx.debatesPath}`,
+    `  extracts     ${ctx.extractsDir}`,
+    `  BSB from     ${ctx.coreDbPath}`,
+    `  summaries    ${ctx.passageReviewsPath}`,
     `  sample seed  ${ctx.sampleSeed} (${Math.round(ctx.sampleRate * 100)}% per book, at least one)`,
   ].join("\n");
+}
+
+/** Building every book's summaries takes minutes: start at once, so the queue is ready when John opens it. */
+export function announceSummaries(running: RunningServer): void {
+  void running.ctx.summaries.settled().then(() => {
+    const list = running.ctx.summaries.read();
+    console.log(Array.isArray(list) ? `  ${list.length} passage summaries listed` : `  passage summaries: ${list.state === "error" ? list.error : list.state}`);
+  });
 }
 
 const entry = process.argv[1];
 if (entry !== undefined && import.meta.url === pathToFileURL(entry).href) {
   const running = await startReviewServer();
   console.log(describe(running));
+  announceSummaries(running);
 }

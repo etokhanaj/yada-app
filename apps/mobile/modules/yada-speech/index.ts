@@ -27,6 +27,15 @@ export interface SpokenPhrase {
   readonly pause: number;
 }
 
+/** A verse of a chapter recording: where it is, and when and where each word falls (data/recordings.ts). */
+export interface RecordedSegment {
+  readonly path: string;
+  readonly start: number;
+  readonly end: number;
+  readonly times: readonly number[];
+  readonly locations: readonly number[];
+}
+
 export type RemoteCommand = "play" | "pause" | "toggle" | "next" | "previous";
 
 export interface SpeechEvents {
@@ -52,6 +61,8 @@ interface NativeSpeech {
   personalVoice(): Voice | null;
   /** `voiceId` null speaks in voice(); a Personal Voice is used only while authorized and in the foreground. */
   speak(id: string, phrases: readonly SpokenPhrase[], rate: number, lead: number, voiceId: string | null): Promise<void>;
+  /** One verse of a human-read recording; events arrive as for speak, with the same id. */
+  playSegment(id: string, segment: RecordedSegment, rate: number): Promise<void>;
   pause(): Promise<void>;
   /** False when nothing was paused mid-utterance (paused between verses), or a Personal Voice verse is resumed in the background. */
   resume(): Promise<boolean>;

@@ -17,10 +17,6 @@ export interface WordPiece {
   readonly key: string;
 }
 
-export interface MarkedWord extends WordPiece {
-  readonly divergent: boolean;
-}
-
 export function foldWord(word: string): string {
   return word
     .normalize("NFKD")
@@ -53,30 +49,79 @@ export function hasRealDivergence(texts: readonly string[]): boolean {
   return keys.some((k) => k !== keys[0]);
 }
 
-/**
- * Function words, including the KJV's archaic ones (unto, saith), that never
- * carry a difference mark: marking them made a third of 1 Cor 14:34–35 light
- * up, so the marks stopped guiding (v2-review X6).
- */
-const UNMARKED = new Set(
-  "unto saith thing anything any been keep also the a an and or but to of in for is are be as it they them their if at on with about this that let your own has have not must were was its so he she his her him from by do did no nor".split(
-    " ",
-  ),
-);
+/** More than this share of the words changed, and Compare says "Worded differently throughout" (CP-04). */
+const THROUGHOUT = 0.5;
+const CHANGES_SHOWN = 2;
 
-/** First five letters: "silent" and "silence" are the same choice of word. */
-const stem = (word: string) => foldWord(word).slice(0, 5);
+export interface ChangeLine {
+  /** "has not → hasn’t", each a run of words that differs between yours and this version. */
+  readonly changes: readonly string[];
+  /** Runs beyond the first two: "· 1 more change". */
+  readonly more: number;
+  readonly throughout: boolean;
+}
 
 /**
- * Amendment 2 (J01-13): only the reader's translation carries marks, on its
- * content words whose stem no other version uses. WEB and KJV are shown
- * unmarked beneath it.
+ * One line under each compared version (CP-01, CP-02): what it says differently from yours, run by run,
+ * by a word-level longest common subsequence on folded words, so punctuation never counts (CP-03).
  */
-export function markReadingDifferences(base: string, others: readonly string[]): MarkedWord[] {
-  const pool = new Set(others.flatMap((o) => splitWords(o).map((w) => stem(w.text))));
-  return splitWords(base).map((w) => {
-    const key = foldWord(w.text);
-    const content = /\p{L}/u.test(key) && !UNMARKED.has(key);
-    return { ...w, divergent: content && !pool.has(stem(w.text)) };
-  });
+export function changeLine(yours: string, other: string): ChangeLine {
+  const a = splitWords(yours).filter((w) => w.key !== "");
+  const b = splitWords(other).filter((w) => w.key !== "");
+  const lcs: number[][] = Array.from({ length: a.length + 1 }, () => new Array<number>(b.length + 1).fill(0));
+  for (let i = a.length - 1; i >= 0; i--) {
+    for (let j = b.length - 1; j >= 0; j--) {
+      const row = lcs[i] as number[];
+      row[j] = a[i]?.key === b[j]?.key ? (lcs[i + 1]?.[j + 1] ?? 0) + 1 : Math.max(lcs[i + 1]?.[j] ?? 0, row[j + 1] ?? 0);
+    }
+  }
+  // The alignment as a list of steps: a word both share, or a word only one side has.
+  type Step = { kind: "same"; word: string } | { kind: "from" | "to"; word: string };
+  const steps: Step[] = [];
+  let i = 0;
+  let j = 0;
+  const bare = (w: WordPiece) => w.text.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}’']+$/gu, "");
+  while (i < a.length || j < b.length) {
+    if (i < a.length && j < b.length && a[i]?.key === b[j]?.key) {
+      steps.push({ kind: "same", word: bare(a[i++] as WordPiece) });
+      j++;
+    } else if (j >= b.length || (i < a.length && (lcs[i + 1]?.[j] ?? 0) >= (lcs[i]?.[j + 1] ?? 0))) {
+      steps.push({ kind: "from", word: bare(a[i++] as WordPiece) });
+    } else {
+      steps.push({ kind: "to", word: bare(b[j++] as WordPiece) });
+    }
+  }
+  // Runs of differing words. Two runs with a single shared word between them are one change, the word
+  // on both sides: "one and only → only born" (CP-02), never "one and → …" and "… → born".
+  const runs: Array<{ from: string[]; to: string[] }> = [];
+  let open: { from: string[]; to: string[] } | null = null;
+  for (let k = 0; k < steps.length; k++) {
+    const step = steps[k] as Step;
+    if (step.kind === "same") {
+      const next = steps[k + 1];
+      if (open !== null && next !== undefined && next.kind !== "same") {
+        open.from.push(step.word);
+        open.to.push(step.word);
+      } else {
+        open = null;
+      }
+      continue;
+    }
+    if (open === null) {
+      open = { from: [], to: [] };
+      runs.push(open);
+    }
+    open[step.kind].push(step.word);
+  }
+  const changed = runs.reduce((n, r) => n + Math.max(r.from.length, r.to.length), 0);
+  if (changed > Math.max(a.length, b.length) * THROUGHOUT) return { changes: [], more: 0, throughout: true };
+  const lines = runs.map((r) => `${r.from.join(" ") || "…"} → ${r.to.join(" ") || "…"}`);
+  return { changes: lines.slice(0, CHANGES_SHOWN), more: Math.max(0, lines.length - CHANGES_SHOWN), throughout: false };
+}
+
+/** "has not → hasn’t · 1 more change", or "Worded differently throughout"; "" when nothing differs. */
+export function changeText(line: ChangeLine): string {
+  if (line.throughout) return "Worded differently throughout";
+  const more = line.more === 0 ? [] : [`${line.more} more ${line.more === 1 ? "change" : "changes"}`];
+  return [...line.changes, ...more].join(" · ");
 }

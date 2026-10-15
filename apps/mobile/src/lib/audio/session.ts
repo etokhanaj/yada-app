@@ -7,8 +7,8 @@ import { BOOK_CODES, type BookCode } from "@yada/schema";
 
 /**
  * Read aloud: the four built-in texts only (BSB, WEB, KJV public domain; LSV CC BY-SA 4.0).
- * Licensed versions (NIV, NKJV, NLT via API.Bible) are display-only (CLAUDE.md rule 9) and no
- * licence file grants audio, so they are never spoken. Downloads (ASV, YLT, MSB, DBY) are left
+ * Licensed versions (NIV, NKJV, NLT, MSG via API.Bible) are display-only (CLAUDE.md rule 9) and no
+ * licence file grants audio, so they are never spoken. Downloads (ASV, YLT, MSB, JPS) are left
  * out until each one's licence file has been read for audio (CLAUDE.md rule 3).
  */
 const SPEAKABLE: ReadonlySet<string> = new Set(["BSB", "WEB", "KJV", "LSV"]);

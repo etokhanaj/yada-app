@@ -14,3 +14,8 @@ content/*
 .env.*
 !.env.example
 .gstack/
+
+# Wrangler: local secrets for `wrangler dev` and its state. Never committed (CLAUDE.md rule 1).
+.dev.vars
+.dev.vars.*
+.wrangler/

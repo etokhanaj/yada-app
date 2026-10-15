@@ -9,7 +9,7 @@
  */
 
 import type { BookCode } from "@yada/schema";
-import { router, useNavigation, useRoute } from "expo-router";
+import { router, useNavigation, usePathname, useRoute } from "expo-router";
 import { useCallback } from "react";
 
 import { LEAVE_ROUTES, SHEET_ROUTES, trailingSheets } from "../lib/backToReading";
@@ -35,6 +35,13 @@ export interface ReaderTarget {
   readonly resume?: boolean;
   /** A pericope id whose guide opens over the text on arrival (Start here, Home's Next; ON-02). */
   readonly guide?: string;
+  /** MM-05: the verse last read, held in the bar for two seconds (Home after a gap). */
+  readonly hold?: number;
+  /**
+   * The page the reader returns to, for its back control: "Bookmarks", "Recent", a plan. Without it the
+   * control said "Home" while going back to the page that opened it (IA stress test, 15 Oct 2026).
+   */
+  readonly back?: string;
 }
 
 export function readerHref(target: ReaderTarget) {
@@ -42,10 +49,34 @@ export function readerHref(target: ReaderTarget) {
   if (target.verse !== undefined) params["verse"] = String(target.verse);
   if (target.from !== undefined) params["from"] = target.from;
   if (target.select === true) params["select"] = "1";
+  if (target.hold !== undefined) params["hold"] = String(target.hold);
   if (target.select === true && target.to !== undefined && target.to !== target.verse) params["to"] = String(target.to);
   if (target.resume === true) params["resume"] = "1";
   if (target.guide !== undefined) params["guide"] = target.guide;
+  if (target.back !== undefined) params["back"] = target.back;
   return { pathname: "/read/[book]/[chapter]" as const, params };
+}
+
+/**
+ * A door from outside the app (IA-13): a notification, Siri, Spotlight or a widget. Every door lands the same
+ * way: whatever is open closes (sheets, the full player; audio keeps playing) and the reader opens at depth 0
+ * over Home. Before, each door stacked differently and a widget link could put a second reader over the first
+ * (IA stress test, 15 Oct 2026).
+ */
+export function openFromOutside(target: ReaderTarget | null): void {
+  // A cold launch through /open has nothing beneath it: the door replaces it, or a tap on the Live Activity after
+  // the app was killed left an empty page (review, 15 Oct 2026). The reader's ‹ Home replaces itself with Home.
+  if (!router.canDismiss()) {
+    router.replace(target === null ? "/" : readerHref(target));
+    return;
+  }
+  router.dismissAll();
+  if (target !== null) router.push(readerHref(target));
+}
+
+/** A widget's link: `/open` hands its target to openFromOutside, so a widget lands as every other door. */
+export function openHref(book: string, chapter: number, verse: number): string {
+  return `studio.yada.reader:///open?book=${book}&chapter=${chapter}&verse=${verse}`;
 }
 
 interface NavigatorLike {
@@ -120,4 +151,12 @@ export function useSheetNav(): {
     [navigation],
   );
   return { backToReading, closeSheet, back, escape, jumpTo };
+}
+
+/**
+ * Pages inside a sheet push within the sheet they were opened in: the passage guide's own stack, or
+ * Understand's. A push to the other would stack a second sheet (brief §1 rule 2: two sheets at most).
+ */
+export function useSheetBase(): "/guide" | "/understand" {
+  return usePathname().startsWith("/guide") ? "/guide" : "/understand";
 }

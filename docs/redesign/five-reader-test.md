@@ -1,7 +1,7 @@
 # Five-reader test: the John passage guide
 
 Run this once the John batch is generated and John has approved at least passages 1–3. Five sessions of
-20 minutes each. Five people find most of the problems a screen has, so five is enough; more would mostly
+25 minutes each (20, plus 5 for the Psalms and Isaiah tasks added on 12 Oct). Five people find most of the problems a screen has, so five is enough; more would mostly
 repeat them. This test checks whether ordinary readers understand the passage, not whether they like the app.
 
 ## Who
@@ -24,6 +24,13 @@ Yada, and nobody who has seen the canvas.
 3. "Is there anything here that Christians read differently? What are the options?"
 4. "Pick one thing the guide says. How do you know it's true?" (They should reach the evidence.)
 5. "Go back to reading where you were." Then: "Close the app and open it again. Where are you?"
+6. Psalm 51 (added 12 Oct, John). "Open Psalm 51. Before you read it, what do you know about it?" Then, after
+   they read: "Why was it written, and what is David asking for?" (They should use the two lines before the psalm,
+   Written when and What kind, without opening "About this psalm". Note whether the one-time tip on saying things
+   twice appears here, since it shows on the first psalm a reader opens, and whether they mention it.)
+7. Isaiah 40 (added 12 Oct, John). "Open Isaiah 40. Who is this spoken to, and what is the mood?" Then: "Is it the
+   same people and the same time as Isaiah 1?" (They should use the setting line, "Spoken to exiles in Babylon",
+   and the plain section name, "Comfort for the exiles in Babylon".)
 
 ## Questions afterwards
 
@@ -41,6 +48,8 @@ Yada, and nobody who has seen the canvas.
 | Names both readings at a debated point without being shown (task 3) | 3 of 5 |
 | Reaches the evidence for a claim (task 4) | 4 of 5 |
 | Gets back to the right place (task 5) | 5 of 5 |
+| Says Psalm 51 follows David’s sin with Bathsheba and asks forgiveness, from the lines before the psalm (task 6) | 4 of 5 |
+| Says Isaiah 40 speaks comfort to exiles, and that Isaiah 1 is an earlier time (task 7) | 4 of 5 |
 | Words called "hard" | none twice |
 
 Any word named hard by two testers goes into the writing rules for the next prompt version. Any task that

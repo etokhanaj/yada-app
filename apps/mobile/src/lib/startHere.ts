@@ -21,8 +21,21 @@ export const THREAD = "start-here-john";
  */
 export const READ_PREFIX = `${THREAD}/read/`;
 
-export function readThread(pericopeId: string): string {
-  return `${READ_PREFIX}${pericopeId}`;
+export function readThread(pericopeId: string, thread: string = THREAD): string {
+  return `${thread}/read/${pericopeId}`;
+}
+
+/** Each book's own progress thread; John's is Start here's, so its rows stay where Home reads them. */
+export function bookThread(book: string): string {
+  return book === START_HERE_BOOK ? THREAD : `book-${book}`;
+}
+
+/**
+ * The step a finished passage leaves: the index of the passage after it (thread.tsx reads
+ * `lastFinished = step - 1`). Review, 12 Oct 2026: the boundary passed index + 1 and skipped one.
+ */
+export function stepAfter(finishedIndex: number): number {
+  return finishedIndex + 1;
 }
 
 export function pericopeOfReadThread(thread: string): string | null {
@@ -139,4 +152,16 @@ export function progressLabel(readCount: number, count: number): string {
 export function nextRowReached(rowY: number, rowHeight: number, scrollY: number, viewport: number): boolean {
   if (rowHeight <= 0 || viewport <= 0) return false;
   return rowY + rowHeight <= scrollY + viewport + 0.5;
+}
+
+/**
+ * MM-05: three days or more since the place was saved is a return after a gap: Home says "Where you
+ * stopped" and never how long it has been. Three days is Yada's choice, logged for John.
+ */
+export const GAP_DAYS = 3;
+
+export function backAfterGap(savedAt: string | null, now: Date): boolean {
+  if (savedAt === null) return false;
+  const at = Date.parse(savedAt);
+  return Number.isFinite(at) && now.getTime() - at >= GAP_DAYS * 86_400_000;
 }

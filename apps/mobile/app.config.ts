@@ -6,6 +6,7 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
  *
  * `extra` is embedded in the app binary, so the key is extractable from any
  * build that carries it: internal dev builds only (docs/licensed-translations.md).
+ * Builds for testers read licensed text through the proxy URL instead.
  */
 const build = require("./build.json") as { buildNumber: string };
 
@@ -32,6 +33,35 @@ export function apiBibleExtra(env: Readonly<Record<string, string | undefined>>)
   };
 }
 
+/**
+ * `extra.licensedProxy`: the URL of Yada's licensed-translation proxy (services/licensed-proxy),
+ * from EXPO_PUBLIC_LICENSED_PROXY_URL. It is a URL, not a secret: the proxy holds the API.Bible key,
+ * so this is what lets a TestFlight build read NKJV and NLT without carrying the key (rule 1).
+ * Refused when it could carry a credential or point anywhere but a proxy, and plain http only for
+ * a local `wrangler dev` in a non-Release build.
+ */
+export function licensedProxyExtra(env: Readonly<Record<string, string | undefined>>): { url: string } {
+  const raw = (env.EXPO_PUBLIC_LICENSED_PROXY_URL ?? "").trim();
+  if (raw === "") return { url: "" };
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("EXPO_PUBLIC_LICENSED_PROXY_URL is not a URL.");
+  }
+  if (url.username !== "" || url.password !== "" || url.search !== "" || url.hash !== "") {
+    throw new Error("EXPO_PUBLIC_LICENSED_PROXY_URL must carry no credentials, query or fragment: it ships in the binary.");
+  }
+  if (/(^|\.)api\.bible$/i.test(url.hostname)) {
+    throw new Error("EXPO_PUBLIC_LICENSED_PROXY_URL must be Yada's proxy, not API.Bible itself.");
+  }
+  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  if (url.protocol !== "https:" && !(url.protocol === "http:" && local && env.CONFIGURATION !== "Release")) {
+    throw new Error("EXPO_PUBLIC_LICENSED_PROXY_URL must be https (http only for localhost in a non-Release build).");
+  }
+  return { url: `${url.origin}${url.pathname.replace(/\/+$/, "")}` };
+}
+
 // newArchEnabled is no longer in SDK 57's ExpoConfig type; kept from app.json unchanged.
 export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boolean } => {
   return {
@@ -47,6 +77,8 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
     newArchEnabled: true,
     ios: {
       bundleIdentifier: "studio.yada.reader",
+      // From the release script's environment (release-ios.sh); the extension targets need it to sign.
+      ...(process.env.APPLE_TEAM_ID === undefined ? {} : { appleTeamId: process.env.APPLE_TEAM_ID }),
       // release-ios.sh bumps this file on each upload; config can no longer be rewritten as JSON.
       buildNumber: build.buildNumber,
       supportsTablet: false,
@@ -57,10 +89,15 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
       // kept in the reader's own iCloud. The App ID needs the iCloud capability to match.
       entitlements: {
         "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)",
+        // Shared with the widgets (WL-01): the reading place and today's psalm, nothing else. The App ID
+        // needs the App Groups capability with this group for a device build.
+        "com.apple.security.application-groups": ["group.studio.yada.reader"],
       },
       // Audio read-along keeps reading with the screen locked (AU-02; modules/yada-speech).
       infoPlist: {
         UIBackgroundModes: ["audio"],
+        // The listening Live Activity (WL-02, WL-03).
+        NSSupportsLiveActivities: true,
       },
       icon: {
         light: "./assets/brand/icon.png",
@@ -81,6 +118,13 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
           backgroundColor: "#0E1814",
         },
       ],
+      // The reminder (NT-01–10): local only, asked once after a passage is finished, never at launch.
+      "expo-notifications",
+      "@react-native-community/datetimepicker",
+      // Widgets and the listening Live Activity (WL-01–04): targets/widget.
+      "@bacons/apple-targets",
+      // Siri, App Shortcuts and the Live Activity's controls, in the app target (MS-02, MS-03).
+      "./plugins/withAppIntents",
     ],
     experiments: {
       typedRoutes: false,
@@ -88,6 +132,7 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
     extra: {
       ...config.extra,
       apiBible: apiBibleExtra(process.env),
+      licensedProxy: licensedProxyExtra(process.env),
     },
   };
 };

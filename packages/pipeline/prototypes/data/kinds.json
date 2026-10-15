@@ -1,0 +1,325 @@
+{
+  "_why": "John, 12 Oct 2026 (Modes by kind of writing): a law code, a building plan, a debate, the Teacher's reflections, a collection of sayings, love poetry and visions each need their own summary shape, and in each the summary says whose words it gives. Which passages take which mode, and every fixed line a reader sees (settings, purposes, voices), are drafts here for John to approve once. Ranges follow the tN book outlines named in `source`. Nothing here is approved until status is 'approved' (rule 2). Approved by John on 12 Oct 2026. John approves; he is never cited as a source.",
+  "status": "approved",
+  "modes": [
+    {
+      "book": "LEV",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        7,
+        38
+      ],
+      "mode": "law",
+      "source": "tN Leviticus outline 1–3 (offerings)"
+    },
+    {
+      "book": "LEV",
+      "from": [
+        11,
+        1
+      ],
+      "to": [
+        27,
+        34
+      ],
+      "mode": "law",
+      "source": "tN Leviticus outline 5–10 (chapters 8–10 tell what happened, so they stay narrative)"
+    },
+    {
+      "book": "EXO",
+      "from": [
+        21,
+        1
+      ],
+      "to": [
+        23,
+        19
+      ],
+      "mode": "law",
+      "source": "tN Exodus outline 4: the covenant described"
+    },
+    {
+      "book": "EXO",
+      "from": [
+        25,
+        1
+      ],
+      "to": [
+        31,
+        11
+      ],
+      "mode": "plans",
+      "source": "tN Exodus outline 4: design of the Dwelling (chapters 32–34, the golden calf, are narrative)"
+    },
+    {
+      "book": "EXO",
+      "from": [
+        35,
+        1
+      ],
+      "to": [
+        40,
+        38
+      ],
+      "mode": "plans",
+      "source": "tN Exodus outline 4: making of the ark, its furnishings and the priestly garments"
+    },
+    {
+      "book": "NUM",
+      "from": [
+        5,
+        1
+      ],
+      "to": [
+        6,
+        27
+      ],
+      "mode": "law",
+      "source": "tN Numbers outline 1: regulations"
+    },
+    {
+      "book": "NUM",
+      "from": [
+        15,
+        1
+      ],
+      "to": [
+        15,
+        41
+      ],
+      "mode": "law",
+      "source": "tN Numbers outline 2: commands"
+    },
+    {
+      "book": "NUM",
+      "from": [
+        18,
+        1
+      ],
+      "to": [
+        19,
+        22
+      ],
+      "mode": "law",
+      "source": "tN Numbers outline 3: the priests and purifying"
+    },
+    {
+      "book": "NUM",
+      "from": [
+        28,
+        1
+      ],
+      "to": [
+        30,
+        16
+      ],
+      "mode": "law",
+      "source": "tN Numbers outline 5: offerings and women’s vows"
+    },
+    {
+      "book": "DEU",
+      "from": [
+        12,
+        1
+      ],
+      "to": [
+        26,
+        19
+      ],
+      "mode": "law",
+      "source": "tN Deuteronomy outline 5: Moses’ second speech, the laws"
+    },
+    {
+      "book": "JOB",
+      "from": [
+        3,
+        1
+      ],
+      "to": [
+        42,
+        6
+      ],
+      "mode": "debate",
+      "source": "tN Job outline 2–7 (the speeches); the prose frame stays narrative"
+    },
+    {
+      "book": "ECC",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        12,
+        14
+      ],
+      "mode": "teacher",
+      "source": "tN Ecclesiastes intro"
+    },
+    {
+      "book": "PRO",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        31,
+        31
+      ],
+      "mode": "sayings",
+      "source": "tN Proverbs outline"
+    },
+    {
+      "book": "SNG",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        8,
+        14
+      ],
+      "mode": "love",
+      "source": "tN Song of Songs intro"
+    },
+    {
+      "book": "REV",
+      "from": [
+        1,
+        9
+      ],
+      "to": [
+        1,
+        20
+      ],
+      "mode": "visions",
+      "source": "tN Revelation intro: “John used a special style of writing to describe his visions”"
+    },
+    {
+      "book": "REV",
+      "from": [
+        4,
+        1
+      ],
+      "to": [
+        22,
+        5
+      ],
+      "mode": "visions",
+      "source": "tN Revelation intro and outline 3–11 (chapters 2–3, the letters to the seven churches, are Jesus’ words, framed with him)"
+    }
+  ],
+  "settings": [
+    {
+      "book": "JOB",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        42,
+        17
+      ],
+      "line": "Job’s friends argue that his suffering is punishment; at the end God says they were wrong (42:7).",
+      "source": "tN Job outline 7: “Yahweh rebukes Eliphaz, Bildad, and Zophar (42:7–9)”"
+    },
+    {
+      "book": "ECC",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        12,
+        14
+      ],
+      "line": "The Teacher looks at life “under the sun”, that is, on earth, and calls it vapor that quickly passes; his conclusion is to fear God and keep his commands.",
+      "source": "tN Ecclesiastes intro: “Under the sun” … “on the earth”; vapor “indicates transience”; “we must fear Yahweh and keep his commandments”"
+    },
+    {
+      "book": "SNG",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        8,
+        14
+      ],
+      "line": "Love poems in which a woman and a man speak to each other; the poem does not say who is speaking, so the speakers named here follow the UST’s headings.",
+      "source": "tN Song of Songs 1 intro: “the author does not identify the speakers … Before each speech, the UST places a header to identify the speaker”"
+    },
+    {
+      "book": "REV",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        22,
+        21
+      ],
+      "line": "John writes down visions he was shown, told in symbols.",
+      "source": "tN Revelation intro: “John used a special style of writing to describe his visions. John described what he saw by using many symbols.”"
+    }
+  ],
+  "purposes": [
+    {
+      "book": "EXO",
+      "from": [
+        25,
+        1
+      ],
+      "to": [
+        31,
+        11
+      ],
+      "line": "The tent where God would live among his people.",
+      "source": "tN Exodus intro: “The Dwelling was a tent where Yahweh would be among his people.”"
+    },
+    {
+      "book": "EXO",
+      "from": [
+        35,
+        1
+      ],
+      "to": [
+        40,
+        38
+      ],
+      "line": "The tent where God would live among his people.",
+      "source": "tN Exodus intro: “The Dwelling was a tent where Yahweh would be among his people.”"
+    }
+  ],
+  "voices": {
+    "ECC": {
+      "name": "The Teacher",
+      "source": "tQ Ecclesiastes names him “the Teacher” throughout"
+    },
+    "LUK": {
+      "name": "The writer",
+      "source": "tN Luke intro: “This book does not give the name of its author”; the writer speaks as “I” in 1:1–4"
+    },
+    "ACT": {
+      "name": "The writer",
+      "source": "tN Acts intro: “The author of this book does not give his own name … in parts of this book, the author uses the word ‘we’”"
+    },
+    "JHN": {
+      "name": "The writer",
+      "source": "tN John intro: “This book does not give the name of the author”; the writer speaks as “I” in 20:31 and 21:25"
+    },
+    "ISA": {
+      "name": "Isaiah",
+      "source": "Isaiah 1:1 (BSB): “This is the vision concerning Judah and Jerusalem that Isaiah son of Amoz saw”; first-person lines with no other speaker in Glyssen are the prophet’s"
+    },
+    "REV": {
+      "vision": "In John’s vision, ",
+      "names": [
+        "John"
+      ],
+      "source": "tN Revelation intro"
+    }
+  }
+}

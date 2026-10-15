@@ -1,0 +1,1052 @@
+{
+ "_why": "Build 6 item H (15 Oct 2026): each grammar term on the word screen's Form line, with the first sentence of the matching unfoldingWord Grammar article's Summary (or Glossary), word for word. Built by `yada grammar --write` (packages/pipeline/src/grammar.ts). 'status' is 'draft' until John approves it in the review tool's Extracts queue; only approved entries are written into the app (apps/mobile/src/data/grammar.generated.ts). Since John's review, six Greek terms take a sentence from Machen's New Testament Greek for Beginners (1923, public domain) instead, spelling slips are corrected with a note saying so, a sentence shared by two terms is held, and 'rejected' lists sentences that never return as drafts. This table is an adapted copy, published under CC BY-SA 4.0 like its unfoldingWord sources.",
+ "pins": {
+  "en_ugg": "e358acbf9c86ae0f0c381df0ccf5e1ddd7e54a84",
+  "en_uhg": "ddad74ff2632140569c8ab49cf2950bd4cccf768",
+  "en_uag": "6babf1977048702caa3bddf12f57507e318caf0e"
+ },
+ "gaps": [
+  {
+   "key": "aramaic:determined",
+   "reason": "state_determined.rst is filed as state_absolute (“state_absolute”), a copy of another article"
+  },
+  {
+   "key": "aramaic:infinitive construct",
+   "reason": "no en_uag/infinitive_construct.rst"
+  },
+  {
+   "key": "aramaic:direct object marker",
+   "reason": "no en_uag/particle_direct_object_marker.rst"
+  },
+  {
+   "key": "aramaic:ithpeel",
+   "reason": "no en_uag/stem_ithpeel.rst"
+  },
+  {
+   "key": "aramaic:polel",
+   "reason": "no en_uag/stem_polel.rst"
+  },
+  {
+   "key": "aramaic:directional he",
+   "reason": "no en_uag/suffix_directional_he.rst"
+  },
+  {
+   "key": "aramaic:hithpolel",
+   "reason": "no en_uag/stem_hithpolel.rst"
+  },
+  {
+   "key": "aramaic:hithpoel",
+   "reason": "no en_uag/stem_hithpoel.rst"
+  }
+ ],
+ "entries": [
+  {
+   "key": "aramaic:absolute",
+   "label": "absolute",
+   "language": "aramaic",
+   "text": "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state.",
+   "ref": "en_uag/content/state_absolute.rst Summary",
+   "paragraph": "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state. A word in the absolute state can take a prefix but not a suffix.",
+   "tokens": 884,
+   "status": "rejected",
+   "rejected": [
+    "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state."
+   ]
+  },
+  {
+   "key": "aramaic:construct",
+   "label": "construct",
+   "language": "aramaic",
+   "text": "The construct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state.",
+   "ref": "en_uag/content/state_construct.rst Summary",
+   "paragraph": "The contruct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state. The construct state is used when a word takes a suffix or is connected to another term in a construct chain.",
+   "tokens": 761,
+   "status": "rejected",
+   "note": "Spelling corrected from the source: “The contruct state” → “The construct state”.",
+   "rejected": [
+    "The contruct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state."
+   ]
+  },
+  {
+   "key": "aramaic:peal",
+   "label": "peal",
+   "language": "aramaic",
+   "text": "The Pe'al stem is the stem formation that is the simplest form in Biblical Aramaic.",
+   "ref": "en_uag/content/stem_peal.rst Summary",
+   "paragraph": "The Pe'al stem is the stem formation that is the simplest of form in Biblical Aramaic. The Pe'al stem is generally used to express either simple action or stative action.",
+   "tokens": 652,
+   "status": "draft",
+   "note": "Spelling corrected from the source: “the simplest of form” → “the simplest form”.",
+   "rejected": [
+    "The Pe'al stem is the stem formation that is the simplest of form in Biblical Aramaic."
+   ]
+  },
+  {
+   "key": "aramaic:pronominal suffix",
+   "label": "pronominal suffix",
+   "language": "aramaic",
+   "text": "Pronominal suffixes refer to a person(s) or thing(s) and can be attached to nouns, verbs, prepositions, participles, infinitives, even some particles.",
+   "ref": "en_uag/content/suffix_pronominal.rst Summary",
+   "paragraph": "Pronominal suffixes refer to a person(s) or thing(s) and can be attached to nouns, verbs, prepositions, participles, infinitives, even some particles. A pronominal suffix nearly always functions as either a personal pronoun (for example, \"I\" or \"me\" in English) or a possessive pronoun (for example, \"my\" or \"mine\" in English).",
+   "tokens": 601,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:perfect",
+   "label": "perfect",
+   "language": "aramaic",
+   "text": "A Perfect verb usually expresses a completed action in the past.",
+   "ref": "en_uag/content/verb_perfect.rst Summary",
+   "paragraph": "A Perfect verb usually expresses a completed action in the past. However, the Perfect conjugation can also be used to describe other kinds of actions.",
+   "tokens": 401,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:participle",
+   "label": "participle",
+   "language": "aramaic",
+   "text": "An active participle is a non-finite verbal form with active voice that can function as a verb (either a main verb or a verbal complement), an adjective, or a noun.",
+   "ref": "en_uag/content/participle_active.rst Summary",
+   "paragraph": "An active participle is a non-finite verbal form with active voice that can function as a verb (either a main verb or a verbal complement), an adjective, or a noun. When used verbally, an active participle most often expresses continuous or imminent action.",
+   "tokens": 275,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:imperfect",
+   "label": "imperfect",
+   "language": "aramaic",
+   "text": "An Imperfect verb is used generally to indicate an action that is not complete, or an action that either occurs in the present or will occur in the future.",
+   "ref": "en_uag/content/verb_imperfect.rst Summary",
+   "paragraph": "An Imperfect verb is used generally to indicate an action that is not complete, or an action that either occurs in the present or will occur in the future. However, an Imperfect verb can also be used to describe other kinds of actions.",
+   "tokens": 254,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:common",
+   "label": "common",
+   "language": "aramaic",
+   "text": "A word is classified as \"common gender\" if it can refer to either a grammatically-masculine or a grammatically-feminine person/thing.",
+   "ref": "en_uag/content/gender_common.rst Summary",
+   "paragraph": "A word is classified as \"common gender\" if it can refer to either a grammatically-masculine or a grammatically-feminine person/thing.",
+   "tokens": 215,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:haphel",
+   "label": "haphel",
+   "language": "aramaic",
+   "text": "The Haphel stem generally expresses causative action in active voice, but it can also express other kinds of verbal action depending on the context and the specific verb.",
+   "ref": "en_uag/content/stem_haphel.rst Summary",
+   "paragraph": "The Haphel stem generally expresses causative action in active voice, but it can also express other kinds of verbal action depending on the context and the specific verb.",
+   "tokens": 144,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:pael",
+   "label": "pael",
+   "language": "aramaic",
+   "text": "The Pa'el stem generally expresses resultative action in active voice.",
+   "ref": "en_uag/content/stem_pael.rst Summary",
+   "paragraph": "The Pa'el stem generally expresses resultative action in active voice.",
+   "tokens": 85,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:both genders",
+   "label": "both genders",
+   "language": "aramaic",
+   "text": "A word is classified as \"both gender\" if it contains both a masculine and a feminine form, or if a single form is masculine in some contexts and feminine in other contexts.",
+   "ref": "en_uag/content/gender_both.rst Summary",
+   "paragraph": "A word is classified as \"both gender\" if it contains both a masculine and a feminine form, or if a single form is masculine in some contexts and feminine in other contexts.",
+   "tokens": 80,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:peil",
+   "label": "peil",
+   "language": "aramaic",
+   "text": "The Pe'il is the passive form of the Pe'al stem.",
+   "ref": "en_uag/content/stem_peil.rst Summary",
+   "paragraph": "The Pe'il is the passive form of the Pe'al stem. It expresses the verbal action of the Pe'al stem in passive voice.",
+   "tokens": 63,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:hithpeel",
+   "label": "hithpeel",
+   "language": "aramaic",
+   "text": "The Hithpe'el stem is related to the Pe'al stem formation, and it generally expresses the reflexive voice of the meaning of a verb in the Pe'al stem.",
+   "ref": "en_uag/content/stem_hithpeel.rst Summary",
+   "paragraph": "The Hithpe'el stem is related to the Pe'al stem formation, and it generally expresses the reflexive voice of the meaning of a verb in the Pe'al stem.",
+   "tokens": 50,
+   "status": "rejected",
+   "rejected": [
+    "The Hithpe'el stem is related to the Pe'al stem formation, and it generally expresses the reflexive voice of the meaning of a verb in the Pe'al stem."
+   ]
+  },
+  {
+   "key": "aramaic:passive participle",
+   "label": "passive participle",
+   "language": "aramaic",
+   "text": "A passive participle is a non-finite verbal form with passive or reflexive voice that can function as a verb (or verbal complement), an adjective, or a noun.",
+   "ref": "en_uag/content/participle_passive.rst Summary",
+   "paragraph": "A passive participle is a non-finite verbal form with passive or reflexive voice that can function as a verb (or verbal complement), an adjective, or a noun. Passive participles most often function as either an attributive adjective or a predicative adjective.",
+   "tokens": 44,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:imperative",
+   "label": "imperative",
+   "language": "aramaic",
+   "text": "An imperative verb is used to express direct commands, instructions, and other similar actions with varying degrees of desirability as determined by the context.",
+   "ref": "en_uag/content/verb_imperative.rst Summary",
+   "paragraph": "An imperative verb is used to express direct commands, instructions, and other similar actions with varying degrees of desirability as determined by the context.",
+   "tokens": 35,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:hithpaal",
+   "label": "hithpaal",
+   "language": "aramaic",
+   "text": "The Hithpa'al stem is related to the Pa'el stem formation, and it generally expresses the reflexive voice of the meaning of a verb in the Pa'el stem.",
+   "ref": "en_uag/content/stem_hithpaal.rst Summary",
+   "paragraph": "The Hithpa'al stem is related to the Pa'el stem formation, and it generally expresses the reflexive voice of the meaning of a verb in the Pa'el stem.",
+   "tokens": 33,
+   "status": "rejected",
+   "rejected": [
+    "The Hithpa'al stem is related to the Pa'el stem formation, and it generally expresses the reflexive voice of the meaning of a verb in the Pa'el stem."
+   ]
+  },
+  {
+   "key": "aramaic:aphel",
+   "label": "aphel",
+   "language": "aramaic",
+   "text": "The Aphel stem is a rare stem formation that is similar to the Haphel stem and generally expresses causative action in active voice.",
+   "ref": "en_uag/content/stem_aphel.rst Summary",
+   "paragraph": "The Aphel stem is a rare stem formation that is similar to the Haphel stem and generally expresses causative action in active voice.",
+   "tokens": 24,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:shaphel",
+   "label": "shaphel",
+   "language": "aramaic",
+   "text": "The Shaphel stem is a rare stem formation that is similar to the Haphel stem and generally expresses causative action in active voice.",
+   "ref": "en_uag/content/stem_shaphel.rst Summary",
+   "paragraph": "The Shaphel stem is a rare stem formation that is similar to the Haphel stem and generally expresses causative action in active voice.",
+   "tokens": 15,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:hophal",
+   "label": "hophal",
+   "language": "aramaic",
+   "text": "The Hophal stem is the passive form of the Haphel, and it generally expresses the passive voice of the meaning of a verb in the Haphel stem.",
+   "ref": "en_uag/content/stem_hophal.rst Summary",
+   "paragraph": "The Hophal stem is the passive form of the Haphel, and it generally expresses the passive voice of the meaning of a verb in the Haphel stem.",
+   "tokens": 12,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:dual",
+   "label": "dual",
+   "language": "aramaic",
+   "text": "The dual form of a term usually refers to a pair of items.",
+   "ref": "en_uag/content/number_dual.rst Summary",
+   "paragraph": "The dual form of a term usually refers to a pair of items.",
+   "tokens": 8,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:ithpaal",
+   "label": "ithpaal",
+   "language": "aramaic",
+   "text": "The Ithpa'al stem is a rare stem formation that is similar to the Hithpa'al stem and generally expresses verbal action in reflexive voice.",
+   "ref": "en_uag/content/stem_ithpaal.rst Summary",
+   "paragraph": "The Ithpa'al stem is a rare stem formation that is similar to the Hithpa'al stem and generally expresses verbal action in reflexive voice.",
+   "tokens": 3,
+   "status": "rejected",
+   "rejected": [
+    "The Ithpa'al stem is a rare stem formation that is similar to the Hithpa'al stem and generally expresses verbal action in reflexive voice."
+   ]
+  },
+  {
+   "key": "aramaic:hishtaphel",
+   "label": "hishtaphel",
+   "language": "aramaic",
+   "text": "The Hishtaphel is an extremely rare stem formation that is similar to the Haphel and expresses causative action in active voice.",
+   "ref": "en_uag/content/stem_hishtaphel.rst Summary",
+   "paragraph": "The Hishtaphel is an extremely rare stem formation that is similar to the Haphel and expresses causative action in active voice.",
+   "tokens": 2,
+   "status": "rejected",
+   "rejected": [
+    "The Hishtaphel is an extremely rare stem formation that is similar to the Haphel and expresses causative action in active voice."
+   ]
+  },
+  {
+   "key": "aramaic:saphel",
+   "label": "saphel",
+   "language": "aramaic",
+   "text": "The Saphel stem is a rare stem formation that is similar to the Haphel stem and generally expresses causative action in active voice.",
+   "ref": "en_uag/content/stem_saphel.rst Summary",
+   "paragraph": "The Saphel stem is a rare stem formation that is similar to the Haphel stem and generally expresses causative action in active voice.",
+   "tokens": 1,
+   "status": "approved"
+  },
+  {
+   "key": "aramaic:ishtaphel",
+   "label": "ishtaphel",
+   "language": "aramaic",
+   "text": "The Ishtaphel is a rare stem formation that is similar to the Hishtaphel and expresses causative action in active voice.",
+   "ref": "en_uag/content/stem_ishtaphel.rst Summary",
+   "paragraph": "The Ishtaphel is a rare stem formation that is similar to the Hishtaphel and expresses causative action in active voice.",
+   "tokens": 1,
+   "status": "rejected",
+   "rejected": [
+    "The Ishtaphel is a rare stem formation that is similar to the Hishtaphel and expresses causative action in active voice."
+   ]
+  },
+  {
+   "key": "greek:nominative",
+   "label": "nominative",
+   "language": "greek",
+   "text": "In Koiné Greek, the nominative case ending usually indicates the subject of the sentence.",
+   "ref": "en_ugg/content/case_nominative.rst Summary",
+   "paragraph": "In Koiné Greek, the nominative case ending usually indicates the subject of the sentence. However, the nominative case ending can also indicate a predicate nominative or predicate adjective.",
+   "tokens": 24236,
+   "status": "approved"
+  },
+  {
+   "key": "greek:accusative",
+   "label": "accusative",
+   "language": "greek",
+   "text": "The object of a transitive verb is placed in the accusative case.",
+   "ref": "machen/newtestamentgree00mach_djvu.txt §34",
+   "paragraph": "The object of a transitive verb is placed in the accusative case.",
+   "tokens": 23276,
+   "status": "draft",
+   "source": "machen",
+   "rejected": [
+    "In Koiné Greek, the accusative case ending of a word indicates either the direct object of a verb (including participles) or the object of a preposition."
+   ]
+  },
+  {
+   "key": "greek:active",
+   "label": "active",
+   "language": "greek",
+   "text": "A verb in the active voice indicates that the subject performs the action (e.g., He washed the baby).",
+   "ref": "en_ugg/content/voice_active.rst Glossary",
+   "paragraph": "A verb in the active voice indicates that the subject performs the action (e.g., He washed the baby).",
+   "tokens": 20658,
+   "status": "approved"
+  },
+  {
+   "key": "greek:genitive",
+   "label": "genitive",
+   "language": "greek",
+   "text": "The genitive case expresses possession.",
+   "ref": "machen/newtestamentgree00mach_djvu.txt §35",
+   "paragraph": "The genitive case expresses possession.",
+   "tokens": 19569,
+   "status": "draft",
+   "source": "machen",
+   "rejected": [
+    "In Koiné Greek, the genitive case ending serves a wide variety of functions."
+   ]
+  },
+  {
+   "key": "greek:indicative",
+   "label": "indicative",
+   "language": "greek",
+   "text": "The indicative mood indicates that the speaker is portraying or speaking as if the verbal action he is referring to is real (rather than only potential).",
+   "ref": "en_ugg/content/mood_indicative.rst Glossary",
+   "paragraph": "The indicative mood indicates that the speaker is portraying or speaking as if the verbal action he is referring to is real (rather than only potential). It is the most frequently used mood and is the default mood when there is no reason to use one of the other moods.",
+   "tokens": 15589,
+   "status": "approved"
+  },
+  {
+   "key": "greek:dative",
+   "label": "dative",
+   "language": "greek",
+   "text": "The dative case is the case of the indirect object.",
+   "ref": "machen/newtestamentgree00mach_djvu.txt §36",
+   "paragraph": "The dative case is the case of the indirect object.",
+   "tokens": 12125,
+   "status": "draft",
+   "source": "machen",
+   "rejected": [
+    "In Koiné Greek, the dative case ending can serve a wide range of functions."
+   ]
+  },
+  {
+   "key": "greek:aorist",
+   "label": "aorist",
+   "language": "greek",
+   "text": "Aorist is a verb tense-form used to express an unspecified kind of action (in other words - only that some form of action has occurred or occurs), without reference to its duration or completeness.",
+   "ref": "en_ugg/content/tense_aorist.rst Glossary",
+   "paragraph": "Aorist is a verb tense-form used to express an unspecified kind of action (in other words - only that some form of action has occurred or occurs), without reference to its duration or completeness.",
+   "tokens": 11572,
+   "status": "rejected",
+   "rejected": [
+    "Aorist is a verb tense-form used to express an unspecified kind of action (in other words - only that some form of action has occurred or occurs), without reference to its duration or completeness."
+   ]
+  },
+  {
+   "key": "greek:present",
+   "label": "present",
+   "language": "greek",
+   "text": "Present is a verb tense-form which a speaker uses to describe an action as imperfective (either continuous or incomplete), and is often used to depict an action as being in process (e.g., I am running, she is reading, they are sleeping).",
+   "ref": "en_ugg/content/tense_present.rst Glossary",
+   "paragraph": "Present is a verb tense-form which a speaker uses to describe an action as imperfective (either continuous or incomplete), and is often used to depict an action as being in process (e.g., I am running, she is reading, they are sleeping).",
+   "tokens": 11530,
+   "status": "approved"
+  },
+  {
+   "key": "greek:participle",
+   "label": "participle",
+   "language": "greek",
+   "text": "A participle is a verbal adjective (e.g. eating, going, running).",
+   "ref": "en_ugg/content/mood_participle.rst Glossary",
+   "paragraph": "A participle is a verbal adjective (e.g. eating, going, running). It has properties of a verb in that it expresses aspect and voice. Participles are never the main verb in the sentence. As a verbal adjective, it functions as an adverb modifying the verb.",
+   "tokens": 6640,
+   "status": "approved"
+  },
+  {
+   "key": "greek:middle",
+   "label": "middle",
+   "language": "greek",
+   "text": "The middle voice represents the subject as acting in some way that concerns itself, or as acting upon something that belongs to itself.",
+   "ref": "machen/newtestamentgree00mach_djvu.txt lesson on the middle voice",
+   "paragraph": "The middle voice represents the subject as acting in some way that concerns itself, or as acting upon something that belongs to itself.",
+   "tokens": 3846,
+   "status": "draft",
+   "source": "machen",
+   "rejected": [
+    "Middle voice indicates that the action of a verb is done by the subject to itself, or for its benefit (e.g., He washed himself)."
+   ]
+  },
+  {
+   "key": "greek:passive",
+   "label": "passive",
+   "language": "greek",
+   "text": "A verb in the passive voice indicates that the action of the verb is performed on the subject (e.g., The baby was washed by the mother.)",
+   "ref": "en_ugg/content/voice_passive.rst Glossary",
+   "paragraph": "A verb in the passive voice indicates that the action of the verbs is performed on the subject (e.g., The baby was washed by the mother.)",
+   "tokens": 3552,
+   "status": "draft",
+   "note": "Spelling corrected from the source: “the action of the verbs is performed” → “the action of the verb is performed”.",
+   "rejected": [
+    "A verb in the passive voice indicates that the action of the verbs is performed on the subject (e.g., The baby was washed by the mother.)"
+   ]
+  },
+  {
+   "key": "greek:infinitive",
+   "label": "infinitive",
+   "language": "greek",
+   "text": "An infinitive is a verbal noun (e.g., to eat, to run, to go).",
+   "ref": "en_ugg/content/mood_infinitive.rst Glossary",
+   "paragraph": "An infinitive is a verbal noun (e.g., to eat, to run, to go). It expresses aspect (simple, continuous, or repeated action) and voice (active, middle, or passive) like other (finite) verbs, but does not indicate person or number. It can take an object, but usually does not explicitly express a subject.",
+   "tokens": 2285,
+   "status": "approved"
+  },
+  {
+   "key": "greek:subjunctive",
+   "label": "subjunctive",
+   "language": "greek",
+   "text": "The subjunctive mood indicates that the speaker is referring to the verbal action as a possibility or probability.",
+   "ref": "en_ugg/content/mood_subjunctive.rst Glossary",
+   "paragraph": "The subjunctive mood indicates that the speaker is referring to the verbal action as a possibility or probability. (e.g., he may eat, he should eat, he could eat). The subjunctive mood is also used as a mild command (let’s eat).",
+   "tokens": 1856,
+   "status": "approved"
+  },
+  {
+   "key": "greek:imperfect",
+   "label": "imperfect",
+   "language": "greek",
+   "text": "Imperfect is a verb tense-form in which the speaker describes an action as imperfective, (describing the action as a process or incomplete).",
+   "ref": "en_ugg/content/tense_imperfect.rst Glossary",
+   "paragraph": "Imperfect is a verb tense-form in which the speaker describes an action as imperfective, (describing the action as a process or incomplete). The imperfect almost always describes actions which took place in the past. (e.g., he was eating, they were sleeping, she was running).",
+   "tokens": 1670,
+   "status": "approved"
+  },
+  {
+   "key": "greek:future",
+   "label": "future",
+   "language": "greek",
+   "text": "Future tense is a tense form the speaker uses to refer to an action which will take place at a point in the future from when he is speaking (e.g., she will sleep, I will run, they will eat).",
+   "ref": "en_ugg/content/tense_future.rst Glossary",
+   "paragraph": "Future tense is a tense form the speaker uses to refer to an action which will take place at a point in the future from when he is speaking (e.g., she will sleep, I will run, they will eat). It can also be used to give a command (e.g., you will obey me!) When used with a participle, it refers to a time in the future from the time of the main verb.",
+   "tokens": 1624,
+   "status": "approved"
+  },
+  {
+   "key": "greek:imperative",
+   "label": "imperative",
+   "language": "greek",
+   "text": "The imperative mood is a mood of direction.",
+   "ref": "en_ugg/content/mood_imperative.rst Glossary",
+   "paragraph": "The imperative mood is is a mood of direction. It includes commands, and orders, but also requests and directions. It expresses the intentions of the speaker and appeals to the will of the hearer.",
+   "tokens": 1618,
+   "status": "draft",
+   "note": "Spelling corrected from the source: “mood is is a mood” → “mood is a mood”.",
+   "rejected": [
+    "The imperative mood is is a mood of direction."
+   ]
+  },
+  {
+   "key": "greek:perfect",
+   "label": "perfect",
+   "language": "greek",
+   "text": "The Greek perfect tense denotes the present state resultant upon a past action.",
+   "ref": "machen/newtestamentgree00mach_djvu.txt §452",
+   "paragraph": "The Greek perfect tense denotes the present state resultant upon a past action.",
+   "tokens": 1572,
+   "status": "draft",
+   "source": "machen",
+   "rejected": [
+    "Perfect is the verb tense-form used to describe the present state (e.g., you are forgiven) of what is being described or to describe something which took place in the past (e.g., we have eaten, they have traveled)."
+   ]
+  },
+  {
+   "key": "greek:vocative",
+   "label": "vocative",
+   "language": "greek",
+   "text": "Vocative is the case used when addressing (speaking directly to) someone.",
+   "ref": "en_ugg/content/case_vocative.rst Glossary",
+   "paragraph": "Vocative is the case used when addressing (speaking directly to) someone.",
+   "tokens": 668,
+   "status": "approved"
+  },
+  {
+   "key": "greek:comparative",
+   "label": "comparative",
+   "language": "greek",
+   "text": "Adjectives can have three degrees, called positive (e.g., good), comparative (e.g., better) and superlative (e.g., best).",
+   "ref": "en_ugg/content/comparative.rst Glossary",
+   "paragraph": "Adjectives can have three degrees, called positive (e.g., good), comparative (e.g., better) and superlative (e.g., best).",
+   "tokens": 265,
+   "status": "approved"
+  },
+  {
+   "key": "greek:pluperfect",
+   "label": "pluperfect",
+   "language": "greek",
+   "text": "Pluperfect is the verb tense-form a speaker can use to describe the state of a completed action that was in existence at some point in the past.",
+   "ref": "en_ugg/content/tense_pluperfect.rst Glossary",
+   "paragraph": "Pluperfect is the verb tense-form a speaker can use to describe the state of a completed action that was in existance at some point in the past. (e.g., we had eaten, they had traveled).",
+   "tokens": 88,
+   "status": "draft",
+   "note": "Spelling corrected from the source: “in existance” → “in existence”.",
+   "rejected": [
+    "Pluperfect is the verb tense-form a speaker can use to describe the state of a completed action that was in existance at some point in the past."
+   ]
+  },
+  {
+   "key": "greek:optative",
+   "label": "optative",
+   "language": "greek",
+   "text": "The optative is still retained to express a wish.",
+   "ref": "machen/newtestamentgree00mach_djvu.txt lesson on the optative",
+   "paragraph": "The optative is still retained to express a wish.",
+   "tokens": 68,
+   "status": "draft",
+   "source": "machen",
+   "rejected": [
+    "The Optative mood indicates that the speaker is referring to a verbal action as a contingent possibility (even less assured than the subjunctive mood) (e.g., he might eat)."
+   ]
+  },
+  {
+   "key": "greek:superlative",
+   "label": "superlative",
+   "language": "greek",
+   "text": "Superlative is a degree, expressed by an adjective, indicating that something is the most or greatest in comparison with other entities.",
+   "ref": "en_ugg/content/superlative.rst Glossary",
+   "paragraph": "Superlative is a degree, expressed by an adjective, indicating that something is the most or greatest in comparison with other entities.",
+   "tokens": 42,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:absolute",
+   "label": "absolute",
+   "language": "hebrew",
+   "text": "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state.",
+   "ref": "en_uhg/content/state_absolute.rst Summary",
+   "paragraph": "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state. A word in the absolute state can take a prefix but not a suffix.",
+   "tokens": 73589,
+   "status": "rejected",
+   "rejected": [
+    "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state."
+   ]
+  },
+  {
+   "key": "hebrew:construct",
+   "label": "construct",
+   "language": "hebrew",
+   "text": "The construct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state.",
+   "ref": "en_uhg/content/state_construct.rst Summary",
+   "paragraph": "The construct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state. The construct state is used when a word takes a suffix or is connected to another term in a construct chain.",
+   "tokens": 60507,
+   "status": "rejected",
+   "rejected": [
+    "The construct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state."
+   ]
+  },
+  {
+   "key": "hebrew:qal",
+   "label": "qal",
+   "language": "hebrew",
+   "text": "The Qal stem is the stem formation that is the simplest form in Biblical Hebrew.",
+   "ref": "en_uhg/content/stem_qal.rst Summary",
+   "paragraph": "The Qal stem is the stem formation that is the simplest of form in Biblical Hebrew. The Qal stem is generally used to express either simple action or stative action.",
+   "tokens": 50431,
+   "status": "draft",
+   "note": "Spelling corrected from the source: “the simplest of form” → “the simplest form”.",
+   "rejected": [
+    "The Qal stem is the stem formation that is the simplest of form in Biblical Hebrew."
+   ]
+  },
+  {
+   "key": "hebrew:pronominal suffix",
+   "label": "pronominal suffix",
+   "language": "hebrew",
+   "text": "Pronominal suffixes refer to a person(s) or thing(s) and can be attached to nouns, verbs, prepositions, participles, infinitives, even some particles.",
+   "ref": "en_uhg/content/suffix_pronominal.rst Summary",
+   "paragraph": "Pronominal suffixes refer to a person(s) or thing(s) and can be attached to nouns, verbs, prepositions, participles, infinitives, even some particles. A pronominal suffix nearly always functions as either a personal pronoun (for example, \"I\" or \"me\" in English) or a possessive pronoun (for example, \"my\" or \"mine\" in English).",
+   "tokens": 45373,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:common",
+   "label": "common",
+   "language": "hebrew",
+   "text": "A word is classified as \"common gender\" if it can refer to either a grammatically-masculine or a grammatically-feminine person/thing.",
+   "ref": "en_uhg/content/gender_common.rst Summary",
+   "paragraph": "A word is classified as \"common gender\" if it can refer to either a grammatically-masculine or a grammatically-feminine person/thing.",
+   "tokens": 23225,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:both genders",
+   "label": "both genders",
+   "language": "hebrew",
+   "text": "A word is classified as \"both gender\" if it contains both a masculine and a feminine form, or if a single form is masculine in some contexts and feminine in other contexts.",
+   "ref": "en_uhg/content/gender_both.rst Summary",
+   "paragraph": "A word is classified as \"both gender\" if it contains both a masculine and a feminine form, or if a single form is masculine in some contexts and feminine in other contexts.",
+   "tokens": 17419,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:perfect",
+   "label": "perfect",
+   "language": "hebrew",
+   "text": "A Perfect verb usually expresses a completed action in the past.",
+   "ref": "en_uhg/content/verb_perfect.rst Summary",
+   "paragraph": "A Perfect verb usually expresses a completed action in the past. However, the Perfect conjugation can also be used to describe other kinds of actions.",
+   "tokens": 15124,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:sequential imperfect",
+   "label": "sequential imperfect",
+   "language": "hebrew",
+   "text": "A Sequential Imperfect verb functions generally like a verb with Perfect conjugation, but it also connects to an earlier verb to form either a sequence of time or a sequence of thought.",
+   "ref": "en_uhg/content/verb_sequential_imperfect.rst Summary",
+   "paragraph": "A Sequential Imperfect verb functions generally like a verb with Perfect conjugation, but it also connects to an earlier verb to form either a sequence of time or a sequence of thought.",
+   "tokens": 15034,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:imperfect",
+   "label": "imperfect",
+   "language": "hebrew",
+   "text": "An Imperfect verb is used generally to indicate an action that is not complete, or an action that either occurs in the present or will occur in the future.",
+   "ref": "en_uhg/content/verb_imperfect.rst Summary",
+   "paragraph": "An Imperfect verb is used generally to indicate an action that is not complete, or an action that either occurs in the present or will occur in the future. However, an Imperfect verb can also be used to describe other kinds of actions.",
+   "tokens": 14224,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:direct object marker",
+   "label": "direct object marker",
+   "language": "hebrew",
+   "text": "This particle immediately precedes the term that functions as the direct object of a verb.",
+   "ref": "en_uhg/content/particle_direct_object_marker.rst Summary",
+   "paragraph": "This particle immediately precedes the term that functions as the direct object of a verb.",
+   "tokens": 10979,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:hiphil",
+   "label": "hiphil",
+   "language": "hebrew",
+   "text": "The Hiphil stem generally expresses causative action in active voice, but it can also express other kinds of verbal action depending on the context and the specific verb.",
+   "ref": "en_uhg/content/stem_hiphil.rst Summary",
+   "paragraph": "The Hiphil stem generally expresses causative action in active voice, but it can also express other kinds of verbal action depending on the context and the specific verb.",
+   "tokens": 9489,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:participle",
+   "label": "participle",
+   "language": "hebrew",
+   "text": "An active participle is a non-finite verbal form with active voice that can function as a verb (either a main verb or a verbal complement), an adjective, or a noun.",
+   "ref": "en_uhg/content/participle_active.rst Summary",
+   "paragraph": "An active participle is a non-finite verbal form with active voice that can function as a verb (either a main verb or a verbal complement), an adjective, or a noun. When used verbally, an active participle most often expresses continuous or imminent action.",
+   "tokens": 8021,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:infinitive construct",
+   "label": "infinitive construct",
+   "language": "hebrew",
+   "text": "The infinitive construct is a non-finite verbal form that usually functions as a verbal complement, providing extra information regarding the purpose, result, or temporal frame of the verbal action of the main verb.",
+   "ref": "en_uhg/content/infinitive_construct.rst Summary",
+   "paragraph": "The infinitive construct is a non-finite verbal form that usually functions as a verbal complement, providing extra information regarding the purpose, result, or temporal frame of the verbal action of the main verb. In rare cases, the infinitive construct functions independently as a noun.",
+   "tokens": 6555,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:piel",
+   "label": "piel",
+   "language": "hebrew",
+   "text": "The Piel stem is the most flexible stem formation in Biblical Hebrew and can express simple, intensive, resultative, causative, or other kinds of verbal action depending on the context and the specific verb.",
+   "ref": "en_uhg/content/stem_piel.rst Summary",
+   "paragraph": "The Piel stem is the most flexible stem formation in Biblical Hebrew and can express simple, intensive, resultative, causative, or other kinds of verbal action depending on the context and the specific verb.",
+   "tokens": 6502,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:sequential perfect",
+   "label": "sequential perfect",
+   "language": "hebrew",
+   "text": "A Sequential Perfect verb often expresses the same kinds of action as the Imperfect conjugation, but it also connects to an earlier verb to form either a sequence of time or a sequence of thought.",
+   "ref": "en_uhg/content/verb_sequential_perfect.rst Summary",
+   "paragraph": "A Sequential Perfect verb often expresses the same kinds of action as the Imperfect conjugation, but it also connects to an earlier verb to form either a sequence of time or a sequence of thought. However, in Biblical Hebrew a Sequential Perfect verb has an additional and unique potential to express the same kind of action as the verb immediately preceding it.",
+   "tokens": 5688,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:imperative",
+   "label": "imperative",
+   "language": "hebrew",
+   "text": "An imperative verb is used to express direct commands, instructions, and other similar actions with varying degrees of desirability as determined by the context.",
+   "ref": "en_uhg/content/verb_imperative.rst Summary",
+   "paragraph": "An imperative verb is used to express direct commands, instructions, and other similar actions with varying degrees of desirability as determined by the context.",
+   "tokens": 4298,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:niphal",
+   "label": "niphal",
+   "language": "hebrew",
+   "text": "The Niphal stem generally expresses passive or reflexive voice, but it can also express other kinds of action depending on the context and the specific verb.",
+   "ref": "en_uhg/content/stem_niphal.rst Summary",
+   "paragraph": "The Niphal stem generally expresses passive or reflexive voice, but it can also express other kinds of action depending on the context and the specific verb.",
+   "tokens": 4162,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:dual",
+   "label": "dual",
+   "language": "hebrew",
+   "text": "The dual form of a term usually refers to a pair of items.",
+   "ref": "en_uhg/content/number_dual.rst Summary",
+   "paragraph": "The dual form of a term usually refers to a pair of items.",
+   "tokens": 2828,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:passive participle",
+   "label": "passive participle",
+   "language": "hebrew",
+   "text": "A passive participle is a non-finite verbal form with passive or reflexive voice that can function as a verb (or verbal complement), an adjective, or a noun.",
+   "ref": "en_uhg/content/participle_passive.rst Summary",
+   "paragraph": "A passive participle is a non-finite verbal form with passive or reflexive voice that can function as a verb (or verbal complement), an adjective, or a noun. Passive participles most often function as either an attributive adjective or a predicative adjective.",
+   "tokens": 1441,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:jussive",
+   "label": "jussive",
+   "language": "hebrew",
+   "text": "A jussive verb is used to express indirect commands, direct negative commands limited by time, and other similar actions with varying degrees of desirability as determined by the context.",
+   "ref": "en_uhg/content/verb_jussive.rst Summary",
+   "paragraph": "A jussive verb is used to express indirect commands, direct negative commands limited by time, and other similar actions with varying degrees of desirability as determined by the context.",
+   "tokens": 1162,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:directional he",
+   "label": "directional he",
+   "language": "hebrew",
+   "text": "The directional (he) suffix at the end of a term expresses the concept of movement (either in space or in time) toward the word (usually a person or thing) that takes the suffix.",
+   "ref": "en_uhg/content/suffix_directional_he.rst Summary",
+   "paragraph": "The directional (he) suffix at the end of a term expresses the concept of movement (either in space or in time) toward the word (usually a person or thing) that takes the suffix.",
+   "tokens": 1083,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:hithpael",
+   "label": "hithpael",
+   "language": "hebrew",
+   "text": "The Hithpael stem is related to the Piel stem formation, and it generally expresses the reflexive voice of the meaning of a verb in the Piel stem.",
+   "ref": "en_uhg/content/stem_hithpael.rst Summary",
+   "paragraph": "The Hithpael stem is related to the Piel stem formation, and it generally expresses the reflexive voice of the meaning of a verb in the Piel stem.",
+   "tokens": 920,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:infinitive absolute",
+   "label": "infinitive absolute",
+   "language": "hebrew",
+   "text": "The infinitive absolute is an extremely flexible non-finite verbal form and can function as an adverb, a finite verb, a verbal complement, or a noun.",
+   "ref": "en_uhg/content/infinitive_absolute.rst Summary",
+   "paragraph": "The infinitive absolute is an extremely flexible non-finite verbal form and can function as an adverb, a finite verb, a verbal complement, or a noun. Its most common use is to express intensity or certainty of verbal action.",
+   "tokens": 888,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:cohortative",
+   "label": "cohortative",
+   "language": "hebrew",
+   "text": "The cohortative form is used to express indirect commands and other similar actions with varying degrees of desirability as determined by the context.",
+   "ref": "en_uhg/content/verb_cohortative.rst Summary",
+   "paragraph": "The cohortative form is used to express indirect commands and other similar actions with varying degrees of desirability as determined by the context.",
+   "tokens": 576,
+   "status": "rejected",
+   "rejected": [
+    "The cohortative form is used to express indirect commands and other similar actions with varying degrees of desirability as determined by the context."
+   ]
+  },
+  {
+   "key": "hebrew:pual",
+   "label": "pual",
+   "language": "hebrew",
+   "text": "The Pual stem is the passive form of the Piel, and it generally expresses the passive voice of the meaning of a verb in the Piel stem.",
+   "ref": "en_uhg/content/stem_pual.rst Summary",
+   "paragraph": "The Pual stem is the passive form of the Piel, and it generally expresses the passive voice of the meaning of a verb in the Piel stem.",
+   "tokens": 467,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:paragogic he",
+   "label": "paragogic he",
+   "language": "hebrew",
+   "text": "The paragogic ה (he) suffix can only attach to an imperative verb and most likely expresses some kind of added emphasis to the verb.",
+   "ref": "en_uhg/content/suffix_paragogic_he.rst Summary",
+   "paragraph": "The paragogic ה (he) suffix can only attach to an imperative verb and most likely expresses some kind of added emphasis to the verb. However, the specific nature and meaning of this emphasis is unknown.",
+   "tokens": 453,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:hophal",
+   "label": "hophal",
+   "language": "hebrew",
+   "text": "The Hophal stem is the passive form of the Hiphil, and it generally expresses the passive voice of the meaning of a verb in the Hiphil stem.",
+   "ref": "en_uhg/content/stem_hophal.rst Summary",
+   "paragraph": "The Hophal stem is the passive form of the Hiphil, and it generally expresses the passive voice of the meaning of a verb in the Hiphil stem.",
+   "tokens": 409,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:paragogic nun",
+   "label": "paragogic nun",
+   "language": "hebrew",
+   "text": "The paragogic נ (nun) suffix can only attach to a finite verb, and its meaning is unknown.",
+   "ref": "en_uhg/content/suffix_paragogic_nun.rst Summary",
+   "paragraph": "The paragogic נ (nun) suffix can only attach to a finite verb, and its meaning is unknown.",
+   "tokens": 314,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:polel",
+   "label": "polel",
+   "language": "hebrew",
+   "text": "The Polel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "ref": "en_uhg/content/stem_polel.rst Summary",
+   "paragraph": "The Polel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "tokens": 181,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:hithpolel",
+   "label": "hithpolel",
+   "language": "hebrew",
+   "text": "The Hithpolel is a rare stem formation that is similar to the Hithpael.",
+   "ref": "en_uhg/content/stem_hithpolel.rst Summary",
+   "paragraph": "The Hithpolel is a rare stem formation that is similar to the Hithpael. It expresses the reflexive voice of the Polel stem.",
+   "tokens": 108,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:hishtaphel",
+   "label": "hishtaphel",
+   "language": "hebrew",
+   "text": "The Hishtaphel is an extremely rare stem formation that is similar to the Hiphil and expresses causative action in active voice.",
+   "ref": "en_uhg/content/stem_hishtaphel.rst Summary",
+   "paragraph": "The Hishtaphel is an extremely rare stem formation that is similar to the Hiphil and expresses causative action in active voice.",
+   "tokens": 96,
+   "status": "rejected",
+   "rejected": [
+    "The Hishtaphel is an extremely rare stem formation that is similar to the Hiphil and expresses causative action in active voice."
+   ]
+  },
+  {
+   "key": "hebrew:poel",
+   "label": "poel",
+   "language": "hebrew",
+   "text": "The Poel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "ref": "en_uhg/content/stem_poel.rst Summary",
+   "paragraph": "The Poel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "tokens": 77,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:pilpel",
+   "label": "pilpel",
+   "language": "hebrew",
+   "text": "The Pilpel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "ref": "en_uhg/content/stem_pilpel.rst Summary",
+   "paragraph": "The Pilpel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "tokens": 52,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:qal passive",
+   "label": "qal passive",
+   "language": "hebrew",
+   "text": "The Qal Passive is a passive form of the Qal stem.",
+   "ref": "en_uhg/content/stem_qal_passive.rst Summary",
+   "paragraph": "The Qal Passive is a passive form of the Qal stem. It looks similar to (and is sometimes identified as) the Pual or the Hophal stem.",
+   "tokens": 31,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:hithpalpel",
+   "label": "hithpalpel",
+   "language": "hebrew",
+   "text": "The Hithpalpel is an extremely rare stem formation that is similar to the Hithpael.",
+   "ref": "en_uhg/content/stem_hithpalpel.rst Summary",
+   "paragraph": "The Hithpalpel is an extremely rare stem formation that is similar to the Hithpael. It expresses the reflexive voice of the Pilpel stem.",
+   "tokens": 20,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:pulal",
+   "label": "pulal",
+   "language": "hebrew",
+   "text": "The Pulal is a rare stem formation that is similar to the Pual.",
+   "ref": "en_uhg/content/stem_pulal.rst Summary",
+   "paragraph": "The Pulal is a rare stem formation that it similar to the Pual. It expresses the passive voice of the Pilel and/or Palel stems.",
+   "tokens": 15,
+   "status": "draft",
+   "note": "Spelling corrected from the source: “that it similar” → “that is similar”.",
+   "rejected": [
+    "The Pulal is a rare stem formation that it similar to the Pual."
+   ]
+  },
+  {
+   "key": "hebrew:polal",
+   "label": "polal",
+   "language": "hebrew",
+   "text": "The Polal is a rare stem formation that is similar to the Pual.",
+   "ref": "en_uhg/content/stem_polal.rst Summary",
+   "paragraph": "The Polal is a rare stem formation that is similar to the Pual. It expresses the passive voice of the Polel stem.",
+   "tokens": 11,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:poal",
+   "label": "poal",
+   "language": "hebrew",
+   "text": "The Poal is a rare stem formation that is similar to the Pual.",
+   "ref": "en_uhg/content/stem_poal.rst Summary",
+   "paragraph": "The Poal is a rare stem formation that is similar to the Pual. It expresses the passive voice of the Poel stem.",
+   "tokens": 8,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:hothpaal",
+   "label": "hothpaal",
+   "language": "hebrew",
+   "text": "The Hothpaal is an extremely rare stem formation that is derived from the Hithpael.",
+   "ref": "en_uhg/content/stem_hothpaal.rst Summary",
+   "paragraph": "The Hothpaal is an extremely rare stem formation that is derived from the Hithpael. It generally expresses action in passive voice.",
+   "tokens": 8,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:palel",
+   "label": "palel",
+   "language": "hebrew",
+   "text": "The Palel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "ref": "en_uhg/content/stem_palel.rst Summary",
+   "paragraph": "The Palel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "tokens": 7,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:pealal",
+   "label": "pealal",
+   "language": "hebrew",
+   "text": "The Pealal is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "ref": "en_uhg/content/stem_pealal.rst Summary",
+   "paragraph": "The Pealal is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "tokens": 6,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:nithpael",
+   "label": "nithpael",
+   "language": "hebrew",
+   "text": "The Nithpael is an extremely rare stem formation that is derived from both the Hithpael and Niphal.",
+   "ref": "en_uhg/content/stem_nithpael.rst Summary",
+   "paragraph": "The Nithpael is an extremely rare stem formation that is derived from both the Hithpael and Niphal. It expresses the reflexive voice of the Piel stem.",
+   "tokens": 3,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:tiphil",
+   "label": "tiphil",
+   "language": "hebrew",
+   "text": "The Tiphil is an extremely rare stem formation that is similar to the Hiphil and expresses causative action in active voice.",
+   "ref": "en_uhg/content/stem_tiphil.rst Summary",
+   "paragraph": "The Tiphil is an extremely rare stem formation that is similar to the Hiphil and expresses causative action in active voice.",
+   "tokens": 3,
+   "status": "rejected",
+   "rejected": [
+    "The Tiphil is an extremely rare stem formation that is similar to the Hiphil and expresses causative action in active voice."
+   ]
+  },
+  {
+   "key": "hebrew:polpal",
+   "label": "polpal",
+   "language": "hebrew",
+   "text": "The Polpal is a rare stem formation that is similar to the Pual.",
+   "ref": "en_uhg/content/stem_polpal.rst Summary",
+   "paragraph": "The Polpal is a rare stem formation that is similar to the Pual. It expresses the passive voice of the Pilpel stem.",
+   "tokens": 2,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:hithpoel",
+   "label": "hithpoel",
+   "language": "hebrew",
+   "text": "The Hithpoel is an extremely rare stem formation that is similar to the Hithpael.",
+   "ref": "en_uhg/content/stem_hithpoel.rst Summary",
+   "paragraph": "The Hithpoel is an extremely rare stem formation that is similar to the Hithpael. It expresses the reflexive voice of the Poel stem.",
+   "tokens": 2,
+   "status": "approved"
+  },
+  {
+   "key": "hebrew:pilel",
+   "label": "pilel",
+   "language": "hebrew",
+   "text": "The Pilel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "ref": "en_uhg/content/stem_pilel.rst Summary",
+   "paragraph": "The Pilel is a rare stem formation that is similar to the Piel and expresses the same range of meanings.",
+   "tokens": 1,
+   "status": "approved"
+  }
+ ]
+}

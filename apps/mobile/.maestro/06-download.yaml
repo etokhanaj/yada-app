@@ -127,7 +127,7 @@ appId: studio.yada.reader
 # YLT's Genesis 1:2, "the earth hath existed waste and void": both words are in no
 # built-in version's verse, so a hit proves Search reads the downloaded file.
 - inputText: "existed waste"
-- assertVisible: "Passages · 1"
+- assertVisible: "Verses · 1"
 - assertVisible:
     id: result-passage-1001002
 - tapOn:

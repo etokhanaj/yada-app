@@ -108,8 +108,20 @@ export interface KeyValueStore {
 let queue: Promise<boolean> = Promise.resolve(false);
 
 /** Merge user.db with the store and write the result to both. Resolves whether a setting changed here. */
+/** Resolves once no sync is running (Remove my data waits for it before it deletes). */
+export function cloudIdle(): Promise<unknown> {
+  return queue;
+}
+
+/** Settings › iCloud (ST-01): off, nothing is read from or written to the store. */
+let paused = false;
+export function setCloudPaused(value: boolean): void {
+  paused = value;
+}
+
 export function syncWithCloud(db: SQLiteDatabase, store: KeyValueStore, initialSync = false): Promise<boolean> {
   const run = async (): Promise<boolean> => {
+    if (paused) return false;
     const raw = {
       bookmarks: store.get(CLOUD_KEYS.bookmarks),
       position: store.get(CLOUD_KEYS.position),
@@ -199,4 +211,19 @@ export async function startCloudSync(db: SQLiteDatabase, settingsChanged: () => 
  */
 export function cloudAvailable(): boolean {
   return cloudStore !== null;
+}
+
+/**
+ * Remove my data (ST-03): this device's copy in iCloud emptied. Another signed-in device still holds its
+ * own and sends it back at its next sync; the alert names this iPhone and iCloud, as that is what goes.
+ */
+export function clearCloud(): void {
+  const store = cloudStore;
+  if (store === null) return;
+  try {
+    for (const kind of SYNC_KINDS) store.set(CLOUD_KEYS[kind], serializeRegisters({}));
+    store.synchronize();
+  } catch {
+    // No store reachable: nothing in iCloud to clear from here.
+  }
 }

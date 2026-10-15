@@ -19,7 +19,8 @@
  */
 
 import { MenuView } from "@react-native-menu/menu";
-import { type ReactNode, useEffect, useState } from "react";
+import * as Haptics from "expo-haptics";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Rect } from "react-native-svg";
 
@@ -44,6 +45,8 @@ import { useIsDark, useLayout, usePalette } from "../design/tokens";
 import { comparingLabel, compareSelection, COMPARE_MAX, toggleCompare } from "../lib/compare";
 import { useReduceMotion } from "../lib/motion";
 import { percent, progressLine } from "../lib/progress";
+import { LICENSED } from "../data/licensed";
+import { licensedCodes, licensedEnabled } from "../data/useLicensedChapter";
 import { coverTone, downloadedLine, downloadLine, onPhoneOrder, rowLabel, UPDATE_LINE } from "../lib/translations";
 import { useSettings } from "../state/settings";
 
@@ -59,6 +62,21 @@ export default function TranslationsScreen() {
   const online = useTranslations((s) => s.online);
   const downloading = useTranslations((s) => s.downloading);
   const failed = useTranslations((s) => s.failed);
+  // Review §4: success when a download the reader started here finishes while the sheet is open; a
+  // warning only right after it failed. Nothing for downloads that began elsewhere.
+  const startedHere = useRef(new Set<string>());
+  const installedCodes = useTranslations((s) => s.installed.map((t) => t.code).join(","));
+  useEffect(() => {
+    for (const code of [...startedHere.current]) {
+      if (installedCodes.split(",").includes(code)) {
+        startedHere.current.delete(code);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else if (failed[code] !== undefined) {
+        startedHere.current.delete(code);
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+    }
+  }, [installedCodes, failed]);
   const needsUpdate = useTranslations((s) => s.needsUpdate);
   const provider = useOnlineProvider((s) => s.provider);
   const [choosing, setChoosing] = useState(false);
@@ -68,7 +86,10 @@ export default function TranslationsScreen() {
   }, [user]);
 
   const onPhone = onPhoneOrder(BUILT_IN, installed.map((t) => t.code));
-  const comparing = compareSelection(translation, onPhone, compareWith);
+  // The same versions as Compare's own Choose (evidence/choose.tsx): the licensed ones too, while they are on
+  // (IA stress test, 15 Oct 2026: the two pickers offered different lists).
+  const licensedOnline = licensedEnabled() ? licensedCodes() : [];
+  const comparing = compareSelection(translation, [...onPhone, ...licensedOnline], compareWith);
   // Unknown until the first fetch answers: offer downloads, and a failure says why.
   const connected = online !== false;
   const offered = catalogue.filter((e) => !onPhone.includes(e.code));
@@ -154,6 +175,29 @@ export default function TranslationsScreen() {
         <Section title="On your iPhone" first>
           {onPhoneRows}
         </Section>
+        {licensedOnline.length > 0 ? (
+          <Section title="Online" hint="Needs a connection.">
+            {licensedOnline.map((code, i) => {
+              const on = comparing.includes(code);
+              const name = LICENSED.find((t) => t.code === code)?.name ?? code;
+              return (
+                <TranslationRow
+                  key={code}
+                  first={i === 0}
+                  code={code}
+                  tone={coverTone(code)}
+                  name={name}
+                  strong={on}
+                  right={on ? <Icon name="check" size={22} tone="accent" /> : null}
+                  onPress={() => choose(code)}
+                  label={name}
+                  checked={on}
+                  testID={`compare-choose-${code}`}
+                />
+              );
+            })}
+          </Section>
+        ) : null}
       </SheetScreen>
     );
   }
@@ -197,10 +241,33 @@ export default function TranslationsScreen() {
                 code={entry.code}
                 tone={entry.cover}
                 name={entry.name}
-                line={failed[entry.code] === true && connected ? "Couldn't download. Tap to try again." : downloadLine(entry)}
-                right={connected ? <Icon name="download" size={22} tone="accent" /> : null}
-                onPress={connected ? () => void downloadTranslation(core, user, entry) : undefined}
-                label={rowLabel.download(entry, connected)}
+                // US-05: "Didn't download" and Try again in place of the button; US-06: the reason, the
+                // button stays.
+                line={failed[entry.code] === "space" ? "Not enough space on this iPhone" : failed[entry.code] === "failed" && connected ? "Didn’t download" : downloadLine(entry)}
+                right={
+                  !connected ? null : failed[entry.code] === "failed" ? (
+                    <Chrome tone="accent" style={{ fontWeight: "600" }}>
+                      Try again
+                    </Chrome>
+                  ) : (
+                    <Icon name="download" size={22} tone="accent" />
+                  )
+                }
+                onPress={
+                  connected
+                    ? () => {
+                        startedHere.current.add(entry.code);
+                        void downloadTranslation(core, user, entry);
+                      }
+                    : undefined
+                }
+                label={
+                  failed[entry.code] === "space"
+                    ? `${entry.name}, not enough space on this iPhone. Download`
+                    : failed[entry.code] === "failed" && connected
+                      ? `${entry.name}, didn’t download. Try again`
+                      : rowLabel.download(entry, connected)
+                }
                 testID={`download-${entry.code}`}
               />
             );
@@ -366,8 +433,9 @@ function ProgressRing({ pct }: { pct: number }) {
   const reduceMotion = useReduceMotion();
   if (reduceMotion) {
     return (
-      <View style={styles.action}>
-        <Text style={{ color: palette.accent, fontWeight: "600", fontVariant: ["tabular-nums"] }} maxFontSizeMultiplier={1.6}>
+      // Grows to fit "100%" at 1.6×; a fixed 44 pt box let it spill (QA, 13 Oct 2026).
+      <View style={[styles.action, { width: undefined, minWidth: 44 }]}>
+        <Text style={{ color: palette.accent, fontWeight: "600", fontVariant: ["tabular-nums"] }} maxFontSizeMultiplier={1.6} numberOfLines={1}>
           {pct}%
         </Text>
       </View>

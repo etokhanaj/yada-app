@@ -55,6 +55,13 @@ All public domain, read from each eBible package's `_about.htm` on 10 Oct 2026 (
 | ASV | American Standard Version | 1901 | 31,086 | 3.4 MB (7.5 MB on the phone) |
 | YLT | Young's Literal Translation | 1898 | 31,102 | 3.4 MB (7.5 MB on the phone) |
 | MSB | Majority Standard Bible | 2024 | 31,098 | 3.3 MB (7.2 MB on the phone) |
+| JPS | JPS 1917 · Jewish Publication Society · Old Testament | 1917 | 23,145 (OT only) | 2.6 MB (5.8 MB on the phone) |
+
+JPS 1917 was added 12 Oct 2026 (John), so Compare and "Readers differ" have a Jewish rendering:
+Isaiah 7:14 reads "the young woman shall conceive". It is public domain in the UK as well as the US
+(`docs/research/jps-1917-licence.md`). It is printed in Hebrew verse order and placed on English verse
+ids through TVTMS (`hebrew-numbering.ts`). Its manifest entry carries `testament: "OT"`, and the app must
+honour that before it is published.
 
 Darby and Geneva are left out (John, 10 Oct 2026): Geneva's eBible text is numbered against another versification, and Darby lacks verses the others print.
 More can follow the same path one at a time; each needs its licence read from the source file.

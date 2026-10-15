@@ -2,7 +2,7 @@ import { useLocalSearchParams } from "expo-router";
 
 import { UnderstandRoute } from "../../components/UnderstandViews";
 
-/** `More on 14:34` from a passage, pushed inside the Understand sheet. */
+/** A verse of a passage or a selection, its Understand pushed inside the same sheet. */
 export default function Verse() {
   const params = useLocalSearchParams<{ ref?: string }>();
   return <UnderstandRoute refText={params.ref ?? ""} />;

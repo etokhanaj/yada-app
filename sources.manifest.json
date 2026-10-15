@@ -74,7 +74,7 @@
     "attribution_text": "Lexicon data created by www.STEPBible.org based on work at Tyndale House Cambridge, CC BY 4.0.",
     "url": "https://github.com/STEPBible/STEPBible-Data",
     "retrieved_at": "2026-10-11T07:40:38Z",
-    "modifications": "Parsed for the lemma-to-extended-Strong's mapping; definitions not read. Lemma forms normalised to NFC to reconcile polytonic oxia with monotonic tonos."
+    "modifications": "Parsed for the lemma-to-extended-Strong's mapping, and for the Gloss column (column 6; its first sense, before any '/'), used as the fallback gloss for a Greek word no TAGNT gloss aligns to. The Abbott-Smith and Middle Liddell definitions are not read. Lemma forms normalised to NFC to reconcile polytonic oxia with monotonic tonos."
   },
   {
     "source": "Berean Bible / Bible Hub",
@@ -152,6 +152,17 @@
     "url": "https://ebible.org/engmsb/",
     "retrieved_at": "2026-10-11T07:40:38Z",
     "modifications": "Verse text used unaltered apart from whitespace."
+  },
+  {
+    "source": "eBible.org / Jewish Publication Society of America",
+    "dataset": "JPS Tanakh 1917, The Holy Scriptures According to the Masoretic Text (engjps)",
+    "version": "c18015f3485c",
+    "commit_hash": "sha256:c18015f3485c9c0f9c5f55008811c573b4870accd0bd13c8a3954c23c5b0cb36",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "The Holy Scriptures According to the Masoretic Text (Jewish Publication Society of America, 1917). Public domain. From eBible.org.",
+    "url": "https://ebible.org/engjps/",
+    "retrieved_at": "2026-10-12T10:31:00Z",
+    "modifications": "Old Testament only. Verses placed on English verse numbers through STEPBible's TVTMS from the Hebrew numbers eBible marks, e.g. '(3-1)'; the markers are removed, and a psalm's title joins its English verse 1. The Psalter's five book headings ('BOOK I' to 'BOOK V') are removed. Words otherwise unaltered apart from whitespace."
   },
   {
     "source": "STEPBible / Tyndale House Cambridge",
@@ -240,5 +251,269 @@
     "url": "https://bible-api.com",
     "retrieved_at": "2026-08-16T01:37:00Z",
     "modifications": "Whitespace normalised; three chapters vendored into the spike app. SPIKE ONLY — this is not the ingest path, and the API is not a pinned source."
+  },
+  {
+    "source": "Clear Bible / Biblica",
+    "dataset": "MACULA Greek Linguistic Datasets — SBLGNT syntax trees (release 24.06.17)",
+    "version": "b5b7ece",
+    "commit_hash": "b5b7ecec0882a3e9a609ecac99e157391e5d9b46",
+    "license": "CC-BY-4.0",
+    "attribution_text": "MACULA Greek Linguistic Datasets, available at https://github.com/Clear-Bible/macula-greek/. © 2022-2024 by Biblica, Inc. Licensed under CC BY 4.0. English glosses from Cherith Glosses for the Greek New Testament, by Andi Wu, Copyright (C) 2023 by Cherith Analytics, licensed under CC BY 4.0.",
+    "url": "https://github.com/Clear-Bible/macula-greek",
+    "retrieved_at": "2026-10-11T08:53:15Z",
+    "modifications": "Read from SBLGNT/lowfat: word groups (clause and phrase boundaries, class, role, rule, clause type), each word's role and class, semantic frames, referents and subject referents, and the Cherith English gloss (@english). Words joined to Yada's MorphGNT tokens by verse and accent-stripped surface. Not read: @ln and @domain (UBS MARBLE, 'Used with permission', not CC BY), the Berean @gloss, Strong's numbers, lemmas and morphology (core already has them from MorphGNT and TBESG)."
+  },
+  {
+    "source": "Clear Bible / Biblica",
+    "dataset": "MACULA Hebrew Linguistic Datasets — WLC syntax trees (release 26.04.13)",
+    "version": "09f8ea9",
+    "commit_hash": "09f8ea9e25025841ec45e2b6e7fc01595a080568",
+    "license": "CC-BY-4.0",
+    "attribution_text": "MACULA Hebrew Linguistic Datasets, available at https://github.com/Clear-Bible/macula-hebrew/. © 2022-2024 by Biblica, Inc. Licensed under CC BY 4.0. Includes the Westminster Hebrew Syntax, Copyright (C) 1991-2018 by The J. Alan Groves Center for Advanced Biblical Research, licensed under CC BY 4.0, and English glosses from Cherith Glosses for the Hebrew Old Testament, by Andi Wu, Copyright (C) 2022 by Cherith Analytics, licensed under CC BY 4.0.",
+    "url": "https://github.com/Clear-Bible/macula-hebrew",
+    "retrieved_at": "2026-10-11T08:53:15Z",
+    "modifications": "Read from WLC/lowfat: word groups (clause and phrase boundaries, class, role, rule, clause type), each morph's role and class, semantic frames, subject and participant referents, and the Cherith English gloss (@english). Morphs joined to Yada's OSHB tokens by Hebrew verse and consonantal surface. Not read: @sdbh, @lexdomain, @coredomain, @contextualdomain (UBS Semantic Dictionary of Biblical Hebrew, 'Used with permission', not CC BY), @gloss (its source is not named in LICENSE.md), Greek equivalents, Strong's numbers, lemmas and morphology (core already has them from OSHB)."
+  },
+  {
+    "source": "SIL International / Faith Comes By Hearing",
+    "dataset": "Glyssen character data — CharacterVerse.txt and CharacterDetail.txt (control file version 171)",
+    "version": "e912d20",
+    "commit_hash": "e912d2097dffc625778782c18043e21d8820c414",
+    "license": "MIT",
+    "attribution_text": "Character data from Glyssen, https://github.com/sillsdev/Glyssen. Copyright (c) 2014-2020 SIL LSDev and Faith Comes By Hearing; Copyright © 2014-2023 Faith Comes By Hearing and SIL International. Licensed under the MIT License.",
+    "url": "https://github.com/sillsdev/Glyssen",
+    "retrieved_at": "2026-10-11T10:16:48Z",
+    "modifications": "CharacterVerse.txt rows read as written, a verse range expanded to one row per verse, references mapped to Yada verse ords (Glyssen's English versification); Glyssen's quote type kept and sorted into speaks / uncertain / reported; the delivery note kept as written, with the X of an explicit 'to X' copied beside it. CharacterDetail.txt read as written, empty fields left empty; its Status column is not read (Glyssen's own loader ignores it). '#' comment lines, NarratorOverrides.xml and RelatedCharacters.xml are pinned but not read."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Simplified Text (en_ust)",
+    "version": "7f13e97c5458",
+    "commit_hash": "sha256:7f13e97c54587b30c1b3cb825cc0f1c5bc68db0ef7a45a2616fee8b76b9854ff",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Simplified Text, Copyright © 2026 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from unfoldingword.org/ust.",
+    "url": "https://git.door43.org/unfoldingWord/en_ust",
+    "retrieved_at": "2026-10-12T09:18:19Z",
+    "modifications": "Alignment markup removed; verse text read from USFM, headings and footnotes dropped. The Understand summaries also swap a few UST words by John's approved list (prototypes/data/plain_words.json, e.g. \"apprentices\" -> \"disciples\") and say so in the credit. The unfoldingWord® mark is dropped from the adapted copy, as LICENSE.md requires. Licence read from uw-ust/en_ust/LICENSE.md (rule 3); pinned in content/raw/sources-12oct.sha256."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Translation Notes (en_tn)",
+    "version": "bbd4499b7411",
+    "commit_hash": "sha256:bbd4499b7411695b9be4c56fb7d056d45df74968a9a5cac224c148a3e2be486d",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Translation Notes, Copyright © 2026 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from unfoldingword.org/utn.",
+    "url": "https://git.door43.org/unfoldingWord/en_tn",
+    "retrieved_at": "2026-10-12T09:18:19Z",
+    "modifications": "Translator guidance removed (sentences addressed to a translator, \"Alternate translation\", \"(See: …)\" links); readings set in a fixed sentence; chapter and book outlines and aside tags read as data. Book introductions (build 6): the first paragraph of the front:intro “What is … about?” section, shortened to its whole opening sentences up to 60 words. The unfoldingWord® mark is dropped from the adapted copy. Licence read from uw-tn/en_tn/LICENSE.md (rule 3); pinned in content/raw/sources-12oct.sha256."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Translation Questions (en_tq)",
+    "version": "a8416d4b467b",
+    "commit_hash": "sha256:a8416d4b467bf6566fca8d5eabb876263e0044a03088e1548831d399c97fa9c8",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Translation Questions, Copyright © 2026 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from unfoldingword.org/utq.",
+    "url": "https://git.door43.org/unfoldingWord/en_tq",
+    "retrieved_at": "2026-10-12T09:27:07Z",
+    "modifications": "Questions and answers read as published; trailing verse references removed from answers and spacing tidied. The unfoldingWord® mark is dropped from the adapted copy. Licence read from uw-tq/en_tq/LICENSE.md (rule 3); pinned in content/raw/sources-12oct.sha256."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Translation Words (en_tw)",
+    "version": "78efd237fc98",
+    "commit_hash": "sha256:78efd237fc9868ef44500305f3005b472111fde641af7cdff44cdcb10b1a2318",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Translation Words, Copyright © 2026 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from unfoldingword.org/utw.",
+    "url": "https://git.door43.org/unfoldingWord/en_tw",
+    "retrieved_at": "2026-10-12T09:27:07Z",
+    "modifications": "Only the Definition or Facts section is read, its first paragraph; translation suggestions are dropped. The unfoldingWord® mark is dropped from the adapted copy. Licence read from uw-tw/en_tw/LICENSE.md (rule 3); pinned in content/raw/sources-12oct.sha256."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Translation Word Links (en_twl)",
+    "version": "500089cdbd5d",
+    "commit_hash": "sha256:500089cdbd5dfe5f9fe62b05b3c8fc63e6507a0dcde409061ba20a66a408733c",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Translation Word Links, Copyright © 2026 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from unfoldingword.org/utw.",
+    "url": "https://git.door43.org/unfoldingWord/en_twl",
+    "retrieved_at": "2026-10-12T09:27:07Z",
+    "modifications": "Read as data: which Translation Words article each verse links to. No text of its own is shown. Licence read from uw-twl/en_twl/LICENSE.md (rule 3); pinned in content/raw/sources-12oct.sha256."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Open Bible Stories (en_obs)",
+    "version": "513adfb8513c",
+    "commit_hash": "sha256:513adfb8513c5e517aec8ba47f0ee3933333428d888190ca23d44f5c0d4f1e0b",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Open Bible Stories, Copyright © 2026 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from https://openbiblestories.org.",
+    "url": "https://git.door43.org/unfoldingWord/en_obs",
+    "retrieved_at": "2026-10-12T09:27:07Z",
+    "modifications": "Story sentences used where the book's own text supports every name, number and nearly every word; images removed. The unfoldingWord® mark is dropped from the adapted copy. Licence read from uw-obs/en_obs/LICENSE.md (rule 3); pinned in content/raw/sources-12oct.sha256."
+  },
+  {
+    "source": "Berean Bible / Bible Hub",
+    "dataset": "Berean Standard Bible translation tables (bsb_tables.tsv)",
+    "version": "09bbee6f9fe4",
+    "commit_hash": "sha256:09bbee6f9fe4fa22b5df28e8a9ffa99bf9c33435f4eb8c47c2dc221d855d35cb",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Berean Standard Bible translation tables. The Berean Bible texts are public domain (berean.bible/licensing: “licensing is not required for any use”).",
+    "url": "https://berean.bible/licensing",
+    "retrieved_at": "2026-10-12T09:27:07Z",
+    "modifications": "Read for each original word's BSB rendering and Strong's number, the BSB's section headings and parallel references, and its footnotes ('Or', 'Literally', manuscripts, citations); manuscript footnotes attached to the verses they name; abbreviations put in plain words (TR as Greek editions printed in the 1500s and 1600s). The file has no notice of its own; the licence is the publisher's statement at berean.bible/licensing, to be confirmed with the Berean team (docs/no-ai-understand.md). Pinned in content/raw/sources-12oct.sha256; the URL it was downloaded from is not recorded, so the url here is the licensing statement."
+  },
+  {
+    "source": "T. & T. Clark, Edinburgh",
+    "dataset": "Keil and Delitzsch, Biblical Commentary on the Old Testament (English translation; vols 1, 2, 4, 5 and 6)",
+    "version": "6a9997d0c11e",
+    "commit_hash": "sha256:6a9997d0c11e9742369b5bca2d24b92f63287dea4b8600613a9356bcf679b9f6",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "C. F. Keil and F. Delitzsch, Biblical Commentary on the Old Testament, translated from the German (Edinburgh: T. & T. Clark, 1869–1892). Public domain.",
+    "url": "https://archive.org/details/BiblicalCommentaryOldTestament.KeilAndDelitzsch.6",
+    "retrieved_at": "2026-10-12T14:17:13Z",
+    "modifications": "Read from the archive.org djvu text of each volume, unchanged except scan errors corrected where a debate position quotes it (its credit says so). Title pages as read: vol. 1, The Pentateuch, translated by the Rev. James Martin, T. & T. Clark, Edinburgh, MDCCCLXXXV; vol. 2, Joshua, Judges, Ruth, translated by the Rev. James Martin, MDCCCLXIX; vols 4 and 5, T. & T. Clark, 1892; vol. 6 (Daniel), MDCCCLXXXIV, a Cornell University Library scan (archive.org/details/cu31924070689447, 'no known copyright restrictions in the United States'). Basis: published 1869–1892, so public domain in the US; in the UK by author death date (Keil d. 1888, Delitzsch d. 1890; life + 70). Translators named on the title pages: James Martin (Genesis to Samuel, Ezekiel, Minor Prophets) and Francis Bolton (Psalms), no death dates found, so both rest on CDPA s.57 (translations published 1864–83, reasonable to assume died over 70 years ago); M. G. Easton (Proverbs, d. 1894); David Patrick (Jeremiah, d. 1914). The Google-digitised volumes carry Google's usage guidelines asking for non-commercial use of the scan files, so no quote rests on them where another copy exists: the Micah 5:2 quotes are read from the 1868 T&T Clark printing scanned by the Internet Archive (biblicalcommenta0001cfke_q6u5, content/raw/keil-delitzsch/scan-check/), pinned there. Pinned by content/raw/keil-delitzsch/sha256.txt."
+  },
+  {
+    "source": "Cassell and Company",
+    "dataset": "Ellicott, A Bible Commentary for English Readers, vols VII (Acts to Galatians) and VIII (Ephesians to Revelation)",
+    "version": "31d90cfe22dc",
+    "commit_hash": "sha256:31d90cfe22dc30f2920f3c6a296027272b8c7f13cc0d72942b6894983daac649",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "A Bible Commentary for English Readers, by various writers, edited by Charles John Ellicott (London: Cassell and Company). Public domain.",
+    "url": "https://archive.org/details/biblecommentaryf07elliuoft",
+    "retrieved_at": "2026-10-12T14:17:13Z",
+    "modifications": "Read from the archive.org djvu text (biblecommentaryf07elliuoft and biblecommentaryf08elliuoft, digitised by the Internet Archive in 2007 from the University of Toronto), unchanged except scan errors corrected where a debate position quotes it (its credit says so). Title pages as read: 'Edited by Charles John Ellicott, D.D., late Lord Bishop of Gloucester', Cassell and Company, Limited, London, Paris, New York & Melbourne; no year is printed, and 'late' places this printing after Ellicott's death in 1905. The volumes name their writers (Plumptre, Sanday, Shore, Barry, Mason, Spence, Moulton, Punchard, Plummer, Sinclair, Boyd Carpenter). Basis: UK and US public domain by author death date (life + 70), for the writers quoted: Ellicott (d. 1905), W. Sanday (Romans, d. 1920), W. Boyd Carpenter (Revelation, d. 1918); E. G. Punchard (James), vicar of Christ Church, Luton from 1882, no death date found, rests on CDPA s.57 (reasonable to assume he died over 70 years ago). W. F. Moulton (Hebrews, d. 1898) appears only in an optional line. The printing's year is not printed; 'late Lord Bishop' places it after 1905. Pinned by content/raw/ellicott/sha256.txt."
+  },
+  {
+    "source": "James Parker and Co., Oxford",
+    "dataset": "Driver and Neubauer, The Fifty-third Chapter of Isaiah According to the Jewish Interpreters, vol. II: Translations",
+    "version": "27692caba25d",
+    "commit_hash": "sha256:27692caba25d4275af3801b38c8d079441ea71c655e67cc32d13ed647735c5be",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "S. R. Driver and Ad. Neubauer, The Fifty-third Chapter of Isaiah According to the Jewish Interpreters, II. Translations, with an introduction by E. B. Pusey (Oxford: James Parker and Co., 1877). Public domain.",
+    "url": "https://archive.org/details/fiftythirdchapte02neub",
+    "retrieved_at": "2026-10-12T11:52:17Z",
+    "modifications": "Read from the archive.org djvu text, unchanged except scan errors corrected where a debate position quotes it (its credit says so). Title page as read: 'Translations by S. R. Driver and Ad. Neubauer, with an Introduction to the Translations by Rev. E. B. Pusey', James Parker and Co., 1877, printed at Oxford. Basis: published 1877; UK and US public domain by author death date (Neubauer d. 1907, Driver d. 1914; life + 70). Pinned by content/raw/driver-neubauer/sha256.txt."
+  },
+  {
+    "source": "CrossWire Bible Society",
+    "dataset": "Adam Clarke's Commentary and Critical Notes on the Bible (CrossWire SWORD module Clarke 2.0)",
+    "version": "2739becdc972",
+    "commit_hash": "sha256:2739becdc972695086a6f387265843eed1325ad11c6ba24615b40f6c51935e53",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Adam Clarke, Commentary and Critical Notes on the Bible, from the CrossWire SWORD module Clarke 2.0 (text from Wikisource). Public domain.",
+    "url": "https://en.wikisource.org/wiki/Commentary_and_critical_notes_on_the_Bible",
+    "retrieved_at": "2026-10-12T14:49:14Z",
+    "modifications": "Read from the module's text, unchanged except scan errors corrected where a debate position quotes it (its credit says so). Licence from the module's own clarke.conf: 'DistributionLicense=Public Domain', 'TextSource=https://en.wikisource.org/wiki/Commentary_and_critical_notes_on_the_Bible', Version=2.0, SwordVersionDate=2021-10-19. Clarke died in 1832. Pinned by content/raw/clarke/sha256.txt."
+  },
+  {
+    "source": "Berean Bible / Bible Hub / OpenBible.com",
+    "dataset": "BSB Audio Bible, narrated by Barry Hays (chapters)",
+    "version": "openbible.com/audio/hays, files dated 2025-10-17",
+    "commit_hash": "none (files pinned by sha256: content/raw/audio-check.sha256)",
+    "license": "CC0-1.0",
+    "attribution_text": "Berean Standard Bible audio narrated by Barry Hays, dedicated to the public domain (CC0 1.0).",
+    "url": "https://bereanbible.com/audio/",
+    "retrieved_at": "2026-10-12T00:00:00Z",
+    "modifications": "Licence read from https://bereanbible.com/audio/ (saved as content/raw/audio/bereanbible.com_audio.html, sha256 0587635e8654d41f50483d5afdc835e81ee7a60f03d5d8978d55aad0c5218e0b): 'These audio versions of God's Word have been dedicated to the public domain (CC0 1.0)'. MP3s pinned by sha256 at ingest; re-encoded to mono AAC 48 kbps per chapter; word timings made offline by aligning whisper.cpp output with the BSB text (the recogniser's words are discarded). Souer and Gilbert read an earlier printing and are not used (docs/research/bsb-audio-printing-check.md). Not offered in the app since 13 Oct 2026 (John kept the computer voices Heart and George); the files and pipeline support remain."
+  },
+  {
+    "source": "hexgrad / onnx-community (Hugging Face)",
+    "dataset": "Kokoro-82M v1.0 (ONNX, q8) and voices af_heart, bm_george",
+    "version": "onnx-community/Kokoro-82M-v1.0-ONNX model_quantized.onnx sha256 fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478; voices from kokoro-js 1.2.1 (af_heart d583ccff…, bm_george c4b235a4…)",
+    "commit_hash": "fbae9257e1e05ffc727e951ef9b9c98418e6d79f1c9b6b13bd59f5c9028a1478",
+    "license": "Apache-2.0",
+    "attribution_text": "Computer voices Heart and George made with Kokoro-82M (hexgrad), Apache License 2.0.",
+    "url": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX",
+    "retrieved_at": "2026-10-12T00:00:00Z",
+    "modifications": "Licence read from each model card's own front matter, 'license: apache-2.0' (content/raw/kokoro/README.onnx-community.md sha256 b8fd888b4782f4d4ae85e2f1587cafd727037f4f138f72429ef1bd5908c0e9d8; README.hexgrad.md sha256 91dcabced89db6f109b8786642f50402d3ee87450e8189589b6f85520e7f4d78). Run only on the Mac to read the BSB's own words aloud, verse by verse; nothing runs on the phone. The base card lists CC BY training audio among its data; the weights are Apache-2.0. kokoro-js and @huggingface/transformers are Apache-2.0 and onnxruntime-node MIT (their LICENSE files); the phonemizer package is Apache-2.0 but runs eSpeak NG, which is GPL-3.0: a tool used offline to make audio, never shipped in the app."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Greek Grammar (en_ugg)",
+    "version": "e358acb",
+    "commit_hash": "e358acbf9c86ae0f0c381df0ccf5e1ddd7e54a84",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Greek Grammar, Copyright © 2023 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from unfoldingword.org/uhg.",
+    "url": "https://git.door43.org/unfoldingWord/en_ugg",
+    "retrieved_at": "2026-10-15T08:40:00Z",
+    "modifications": "Shortened to one sentence per grammar term: the first sentence of the article's Summary, or of its Glossary where it has none, with reStructuredText markup removed; nothing else read. The unfoldingWord® mark is dropped from the adapted copy. Licence read from uw-grammar/en_ugg/LICENSE.md (rule 3), which names unfoldingword.org/uhg as the original's address. Archive git.door43.org/unfoldingWord/en_ugg/archive/e358acb….zip, sha256 e823f8411be8db471d1341fbff69a5e4ca15f9dcaf8778131ecc2ab2d609eff4. Yada's table (packages/pipeline/prototypes/data/grammar.json) is shared under CC BY-SA 4.0; only entries John approved ship in the app."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Hebrew Grammar (en_uhg)",
+    "version": "ddad74f",
+    "commit_hash": "ddad74ff2632140569c8ab49cf2950bd4cccf768",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Hebrew Grammar, Copyright © 2019 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from unfoldingword.org/uhg.",
+    "url": "https://git.door43.org/unfoldingWord/en_uhg",
+    "retrieved_at": "2026-10-15T08:40:00Z",
+    "modifications": "Shortened to one sentence per grammar term: the first sentence of the article's Summary, with its included summary files read in place and reStructuredText markup removed; nothing else read. Rare stems with no article of their own show nothing. The unfoldingWord® mark is dropped from the adapted copy. Licence read from uw-grammar/en_uhg/LICENSE.md (rule 3). Archive git.door43.org/unfoldingWord/en_uhg/archive/ddad74f….zip, sha256 58d07d5e5058720dca02f5324596e086f34a46dfdf302a7bb82e766614353993. Yada's table (packages/pipeline/prototypes/data/grammar.json) is shared under CC BY-SA 4.0; only entries John approved ship in the app."
+  },
+  {
+    "source": "unfoldingWord",
+    "dataset": "unfoldingWord Aramaic Grammar (en_uag)",
+    "version": "6babf19",
+    "commit_hash": "6babf1977048702caa3bddf12f57507e318caf0e",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Adapted from unfoldingWord Aramaic Grammar, Copyright © 2021 by unfoldingWord, licensed CC BY-SA 4.0. The original work by unfoldingWord is available from unfoldingword.org/uhg.",
+    "url": "https://git.door43.org/unfoldingWord/en_uag",
+    "retrieved_at": "2026-10-15T08:40:00Z",
+    "modifications": "Shortened to one sentence per grammar term, as for the Hebrew Grammar; en_uag's own includes of the Hebrew Grammar's shared summaries are read from the pinned en_uhg. Its state_determined.rst is a copy of the absolute-state article (anchor and title say state_absolute), so “determined” shows nothing. The unfoldingWord® mark is dropped from the adapted copy. Licence read from uw-grammar/en_uag/LICENSE.md (rule 3). Archive git.door43.org/unfoldingWord/en_uag/archive/6babf19….zip, sha256 07a895083f493f5ff94a39b7f88a085b74a7416daf950cb9c1dc0b8227a43e8f. Only entries John approved ship in the app."
+  },
+  {
+    "source": "Internet Archive",
+    "dataset": "J. Gresham Machen, New Testament Greek for Beginners (Macmillan, 1923)",
+    "version": "archive.org newtestamentgree00mach (1937 printing), djvu text",
+    "commit_hash": "sha256:624879603ae83b3b0aca5b126c719255b71fa0aeb6402b77e8eb01ba951ff9cb",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (Macmillan, 1923). Public domain.",
+    "url": "https://archive.org/details/newtestamentgree00mach",
+    "retrieved_at": "2026-10-15T18:40:00Z",
+    "modifications": "Six sentences chosen verbatim, never written, for Greek grammar terms whose unfoldingWord sentence John rejected (accusative, genitive, dative, middle, perfect, optative; decision 23); each must occur once in the pinned scan with its line-end hyphens joined (packages/pipeline/src/grammar.ts MACHEN_SENTENCES). Public domain status from the book's own copyright page, “Copyright, 1923” by The Macmillan Company, “Reprinted with corrections September, 1927”: in the United States a 1923 or 1927 publication is public domain (the later since 2023), and Machen died in 1937, so the UK term ended in 2007. Only entries John approved ship in the app. Pinned at content/raw/machen/newtestamentgree00mach_djvu.txt."
+  },
+  {
+    "source": "OpenBible.info",
+    "dataset": "OpenBible.info Bible Geocoding Data — ancient places and modern locations (ancient.jsonl, modern.jsonl)",
+    "version": "7eb18a5",
+    "commit_hash": "7eb18a5ee62f27b9b93bd6689ea272d76dd23b8f",
+    "license": "CC-BY-4.0",
+    "attribution_text": "Places and coordinates from OpenBible.info Bible Geocoding Data (https://github.com/openbibleinfo/Bible-Geocoding-Data), licensed CC BY 4.0.",
+    "url": "https://github.com/openbibleinfo/Bible-Geocoding-Data",
+    "retrieved_at": "2026-10-15T08:48:00Z",
+    "modifications": "Licence read from the repository's license.txt (the CC BY 4.0 legal code) and its readme's License section (rule 3). High-confidence identifications only, by the dataset's own measure: the best modern association scores 500 or more of 1000, is the only one at that score, and resolves to a point; regions, circles of uncertainty and settlement-only positions are left out, as are coordinates OpenBible took from OpenStreetMap (ODbL) or Google (commercial). Verses kept where a translation names the place; place names found in the BSB by the dataset's common spellings. Images, geometry files, linked data (including STEPBible TIPNR ids) and source notes are not read. Pinned in content/raw/maps-15oct.sha256 (tarball sha256 edc30458fe73c46920340f49b4f0ac9dd1eddcac9340e6ec0777cbfc51a6ed41; last commit 1 Nov 2021)."
+  },
+  {
+    "source": "Natural Earth",
+    "dataset": "Natural Earth 1:10m land, lakes and rivers (v5.2.0-pre)",
+    "version": "ca96624",
+    "commit_hash": "ca96624a56bd078437bca8184e78163e5039ad19",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com.",
+    "url": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "retrieved_at": "2026-10-15T08:58:00Z",
+    "modifications": "Licence read from the repository's LICENSE.md: 'Everything here is public domain' (rule 3). Land and lake outlines cut to 10°–52° E, 22°–44° N and simplified (about 0.5 km in the Levant, 2.5 km elsewhere); only the Jordan, Nile, Euphrates and Tigris are drawn (Natural Earth's European rivers come from the EU JRC under their own grant). Written into the app as apps/mobile/src/data/basemap.generated.ts by `yada basemap`. Pinned in content/raw/maps-15oct.sha256."
+  },
+  {
+    "source": "CrossWire Bible Society",
+    "dataset": "Matthew Henry's Concise Commentary on the Whole Bible (CrossWire SWORD module MHCC 2.0)",
+    "version": "MHCC 2.0, SwordVersionDate=2021-02-14; MHCC.zip sha256 3e6cc9a1dce644398a03de88e16a563543e4e053bc57cacabafc3783fda3b5ad",
+    "commit_hash": "sha256:e608747c71d2ef8c564023e78b6328f430f21afa4579558cd735070746f6bfda",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Matthew Henry, Concise Commentary on the Whole Bible, from the CrossWire SWORD module MHCC 2.0. Public domain.",
+    "url": "https://www.crosswire.org/ftpmirror/pub/sword/packages/rawzip/MHCC.zip",
+    "retrieved_at": "2026-10-15T14:27:37Z",
+    "modifications": "Read from the module's zCom files (packages/pipeline/src/understand/matthewHenry.ts): split into sections at its 'Verses x-y' markers (a chapter with none is one whole-chapter section, verses 1-999), markup and whitespace removed, words otherwise unchanged; each section paired with its chapter-outline line where the ranges match. Licence from the module's own mods.d/mhcc.conf: 'DistributionLicense=Public Domain', About 'Public Domain--Copy Freely.', 'This text matches the printed edition as published by Moody Press, 28th printing, no Copyright displayed', TextSource=https://ccel.org/ccel/h/henry/mhcc/cache/mhcc.txt, History_2.0 'New source from https://ccel.org'. Henry died in 1714. Host terms: CCEL's own ThML (https://ccel.org/ccel/henry/mhcc.xml, kept as content/raw/matthew-henry/mhcc.xml, not read) says DC.Rights 'Public Domain' but also carries the comment 'Copyright Christian Classics Ethereal Library'; the CrossWire module is used because its file states no host terms. Quotes the KJV (see the KJV entry's UK Crown-patent note); no licensed translation. Pinned by content/raw/matthew-henry.sha256."
+  },
+  {
+    "source": "CrossWire Bible Society",
+    "dataset": "Easton's Bible Dictionary, 1897 (CrossWire SWORD module Easton 2.0.1)",
+    "version": "Easton 2.0.1, SwordVersionDate=2008-11-29; Easton.zip sha256 f6dd054554764e2e97d5d189a697eb26039054578a9ccf98ce668ab810341c6e",
+    "commit_hash": "sha256:79b657dfd617a7ee1b71b433761bc5205eac88c88df30e17b2ebd6fa863b1bf9",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "M. G. Easton, Illustrated Bible Dictionary, third edition (Thomas Nelson, 1897), from the CrossWire SWORD module Easton 2.0.1. Public domain.",
+    "url": "https://www.crosswire.org/ftpmirror/pub/sword/packages/rawzip/Easton.zip",
+    "retrieved_at": "2026-10-15T14:27:40Z",
+    "modifications": "Read from the module's zLD files (packages/pipeline/src/understand/easton.ts): one entry per key, markup removed, references kept as printed, words otherwise unchanged; the first sentence taken verbatim. Licence from the module's own mods.d/easton.conf: 'DistributionLicense=Public Domain', About 'Public Domain -- Copy Freely', 'M.G. Easton M.A., D.D., Illustrated Bible Dictionary, Third Edition, published by Thomas Nelson, 1897', TextSource=CCEL; illustrations not included. Easton died in 1894. Host terms: CCEL's own ThML (https://ccel.org/ccel/easton/ebd2.xml, kept as content/raw/easton/ebd2.xml, not read) says DC.Rights 'Public Domain' but also carries the comment 'Copyright Christian Classics Ethereal Library'; the CrossWire module is used because its file states no host terms. No licensed translation. Pinned by content/raw/easton.sha256."
   }
 ]

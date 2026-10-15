@@ -78,22 +78,34 @@ appId: studio.yada.reader
 - tapOn:
     id: page-back
 - waitForAnimationToEnd
+# IA-11: Sources and licences moved into Settings (Home › ⋯ › Settings).
 - tapOn:
     id: home-more
 - waitForAnimationToEnd
-- tapOn: "Sources"
+- tapOn: "Settings"
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: settings-sources
+    direction: DOWN
+- tapOn:
+    id: settings-sources
 - waitForAnimationToEnd
 - assertVisible: "Built-in texts need no connection.*"
-- assertVisible: "Explained so far.*"
+# ST-04: the Bible's own text first, the LSV's notice in full under its row; then Understand's sources
+# (read from the bundled John file), then Words and people with the SBLGNT.
+- scrollUntilVisible:
+    element: ".*LSV, CC BY-SA 4.0.*"
+    centerElement: true
+    direction: DOWN
+- scrollUntilVisible:
+    element: "Explanations"
+    direction: DOWN
 - scrollUntilVisible:
     element: ".*SBLGNT, CC BY 4.0.*"
     centerElement: true
     direction: DOWN
 - assertNotVisible: ".*EULA.*"
-- scrollUntilVisible:
-    element: ".*LSV, CC BY-SA 4.0.*"
-    centerElement: true
-    direction: DOWN
 # Leave the simulator as it was found.
 - tapOn:
     id: page-back

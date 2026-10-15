@@ -1,89 +1,83 @@
 /**
- * The player's speed-and-voice menu, pure so it can be tested: what it offers, how each row
- * reads, and which voice a choice really gets.
+ * The player's menu, pure so it can be tested (canvas LB-01, LB-02, LB-05, LB-07). One menu from the speed
+ * button, three rows that each open a submenu and show their setting as a second line: Speed, Stop playing,
+ * Repeat. Inline, the three lists were about fifteen rows; Apple Podcasts keeps its stop times in a native menu
+ * from the player's controls, https://mobbin.com/screens/e8c63ed4-2e3a-48cb-a080-7aa53b5524a8, and Matter its
+ * speeds, https://mobbin.com/screens/e76e8878-9a63-45fc-8049-2e7d40cd7930.
  *
- * Personal Voice (iOS 17+) is opt-in and asked for only when the reader picks it here, never at
- * launch. When it is denied, revoked or not made yet, the system voice is shown as chosen and
- * speaks, without an error: the reader asked for a voice, not for a problem to solve.
+ * The voice is chosen in the Voice sheet, Heart or George (John, 13 Oct 2026). Where neither has a reading, the
+ * system voice reads unasked.
  */
 
-import type { PersonalVoiceStatus, Voice } from "../../../modules/yada-speech";
-import { SPEEDS, speedAccessibilityLabel, speedLabel } from "./session";
-
-export type VoiceChoice = "system" | "personal";
-
-export const PERSONAL_VOICE = "Your Personal Voice";
-export const CLEARER_VOICE = "Get a clearer voice";
-
-/** The AU-07 line, also shown on demand from the menu: iOS cannot open that Settings page from an app. */
-export const CLEARER_VOICE_HINT = "For a clearer voice: Settings › Accessibility › Spoken Content › Voices.";
-/** After a denied request: where iOS keeps the per-app switch (Settings › Accessibility › Personal Voice). */
-export const PERSONAL_VOICE_HINT = "To use your Personal Voice: Settings › Accessibility › Personal Voice.";
-
-export function isVoiceChoice(value: string | undefined): value is VoiceChoice {
-  return value === "system" || value === "personal";
-}
-
-/** "Ava (Premium)", "Daniel (Enhanced)", "Samantha": as Settings › Spoken Content › Voices names them. */
-export function voiceLabel(voice: Voice): string {
-  if (voice.quality === "premium") return `${voice.name} (Premium)`;
-  if (voice.quality === "enhanced") return `${voice.name} (Enhanced)`;
-  return voice.name;
-}
-
-/**
- * The Personal Voice row shows wherever the device can have one: not on an unsupported device,
- * and not once authorized with no voice made (there is nothing to pick). Undetermined and denied
- * still show it, since asking (or the Settings line) is how the reader gets there.
- */
-export function offersPersonalVoice(status: PersonalVoiceStatus, personal: Voice | null): boolean {
-  if (status === "unsupported") return false;
-  return !(status === "authorized" && personal === null);
-}
-
-/** The choice that really speaks: Personal Voice only while it is authorized and exists. */
-export function effectiveChoice(choice: VoiceChoice, status: PersonalVoiceStatus, personal: Voice | null): VoiceChoice {
-  return choice === "personal" && status === "authorized" && personal !== null ? "personal" : "system";
-}
-
-/** A clearer voice is worth offering until the best one installed is Premium. */
-export function offersClearerVoice(system: Voice | null): boolean {
-  return system !== null && system.quality !== "premium";
-}
-
-/** VoiceOver for the menu button: "Speed, 1 times. Voice, Samantha". */
-export function menuAccessibilityLabel(speed: number, voiceName: string | null): string {
-  const s = speedAccessibilityLabel(speed);
-  return voiceName === null ? s : `${s}. Voice, ${voiceName}`;
-}
+import { SPEEDS, speedLabel } from "./session";
+import { minutesLeft, type Repeat, repeatChoices, type Stop, type StopChoice, stopChoices } from "./stop";
 
 export interface MenuRow {
   readonly id: string;
   readonly title: string;
   readonly on: boolean;
+  /** A second line under the row's title. */
+  readonly subtitle?: string;
 }
 
 export interface MenuSection {
   readonly id: string;
   readonly title: string;
+  /** The section's setting, shown under its title in the top menu. */
+  readonly subtitle?: string;
   readonly rows: readonly MenuRow[];
 }
 
-/** Speed, then Voice: the system voice, Your Personal Voice, Get a clearer voice. */
-export function playerMenu(
-  speed: number,
-  system: Voice | null,
-  choice: VoiceChoice,
-  personalOffered: boolean,
-  clearerOffered: boolean,
-): MenuSection[] {
-  const speeds: MenuRow[] = SPEEDS.map((s) => ({ id: `speed:${s}`, title: speedLabel(s), on: s === speed }));
-  const voices: MenuRow[] = [];
-  if (system !== null) voices.push({ id: "voice:system", title: voiceLabel(system), on: choice === "system" });
-  if (personalOffered) voices.push({ id: "voice:personal", title: PERSONAL_VOICE, on: choice === "personal" });
-  if (clearerOffered) voices.push({ id: "voice:clearer", title: CLEARER_VOICE, on: false });
+/** The speeds, with the current one ticked. */
+export function speedMenu(speed: number): MenuSection[] {
+  return [{ id: "speed", title: "Speed", subtitle: speedLabel(speed), rows: SPEEDS.map((s) => ({ id: `speed:${s}`, title: speedLabel(s), on: s === speed })) }];
+}
+
+export interface MenuPlace {
+  /** The playing verse, "1:5". */
+  readonly verse: string;
+  /** The playing passage, "1:1–18", or null in a book with no passages. */
+  readonly passage: string | null;
+  /** "John 1". */
+  readonly chapter: string;
+  /** Where a stop at the end of the passage and of the chapter falls: "1:18", "1:51". */
+  readonly passageEnd: string | null;
+  readonly chapterEnd: string;
+}
+
+const STOP_TITLES: Record<StopChoice, string> = {
+  passage: "End of this passage",
+  chapter: "End of this chapter",
+  "time:15": "In 15 minutes",
+  "time:30": "In 30 minutes",
+  "time:60": "In 1 hour",
+};
+
+function stopValue(stop: Stop | null, now: number): string {
+  if (stop === null) return "Off";
+  if (stop.kind === "passage") return "End of this passage";
+  if (stop.kind === "chapter") return "End of this chapter";
+  return `In ${minutesLeft(stop, now)} min`;
+}
+
+const REPEAT_TITLES: Record<Repeat, string> = { verse: "This verse", passage: "This passage", chapter: "This chapter" };
+
+/** LB-01: Speed, Stop playing and Repeat, each with its setting and its rows ticked. */
+export function playerMenu(speed: number, stop: Stop | null, repeat: Repeat | null, place: MenuPlace, now: number): MenuSection[] {
+  const hasPassages = place.passage !== null;
+  const stops = stopChoices(repeat, hasPassages).map((choice): MenuRow => {
+    // A running timer ticks no row: "In 30 minutes" is no longer true after a minute; the row above says what is left.
+    const on = stop !== null && stop.kind !== "time" && choice === stop.kind;
+    const subtitle = choice === "passage" ? `After ${place.passageEnd ?? place.chapterEnd}` : choice === "chapter" ? `After ${place.chapterEnd}` : undefined;
+    return { id: `stop:${choice}`, title: STOP_TITLES[choice], on, ...(subtitle === undefined ? {} : { subtitle }) };
+  });
+  const repeats = repeatChoices(hasPassages).map((r): MenuRow => {
+    const subtitle = r === "verse" ? place.verse : r === "passage" ? (place.passage ?? place.chapter) : place.chapter;
+    return { id: `repeat:${r}`, title: REPEAT_TITLES[r], on: repeat === r, subtitle };
+  });
   return [
-    { id: "speed", title: "Speed", rows: speeds },
-    { id: "voice", title: "Voice", rows: voices },
+    ...speedMenu(speed),
+    { id: "stop", title: "Stop playing", subtitle: stopValue(stop, now), rows: [...stops, { id: "stop:off", title: "Off", on: stop === null }] },
+    { id: "repeat", title: "Repeat", subtitle: repeat === null ? "Off" : REPEAT_TITLES[repeat], rows: [...repeats, { id: "repeat:off", title: "Off", on: repeat === null }] },
   ];
 }

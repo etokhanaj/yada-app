@@ -12,7 +12,7 @@
  */
 
 import { router } from "expo-router";
-import { type AccessibilityActionEvent, Pressable, StyleSheet, View } from "react-native";
+import { type AccessibilityActionEvent, Pressable, StyleSheet, Switch, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "../components/Icon";
@@ -40,6 +40,8 @@ export default function TypeSettings() {
   const textScale = useSettings((s) => s.textScale);
   const setTextScale = useSettings((s) => s.setTextScale);
   const appearance = useSettings((s) => s.appearance);
+  const openFull = useSettings((s) => s.understandOpenFull);
+  const setOpenFull = useSettings((s) => s.setUnderstandOpenFull);
   const setAppearance = useSettings((s) => s.setAppearance);
   const step = Math.max(0, TEXT_SCALES.findIndex((s) => s === textScale));
   const value = `${step + 1} of ${TEXT_SCALES.length}`;
@@ -203,11 +205,19 @@ export default function TypeSettings() {
           })}
         </View>
       )}
+      {/* Understand opens full height rather than half (Phase 1, VS-01/02); one switch, kept per device. */}
+      <View style={styles.switchRow}>
+        <Chrome tone="ink" style={{ flex: 1 }}>
+          Open Understand in full
+        </Chrome>
+        <Switch value={openFull} onValueChange={setOpenFull} accessibilityLabel="Open Understand in full" testID="type-understand-full" />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  switchRow: { flexDirection: "row", alignItems: "center", columnGap: 12, minHeight: 44, marginTop: 20 },
   header: {
     minHeight: 44,
     flexDirection: "row",

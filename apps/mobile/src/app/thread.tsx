@@ -13,7 +13,7 @@
  */
 
 import { ordToParts, verseOrd } from "@yada/schema";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -23,9 +23,9 @@ import { readerHref } from "../components/navigation";
 import { ListRow, PageScreen } from "../components/Page";
 import { Chrome, Prose } from "../components/Type";
 import { useAppData, useCore, useLog, useQuery } from "../data/AppData";
-import { loadOrientation } from "../data/guide";
+import { chooseYourPlan } from "../data/plans";
 import { loadProgress, type Progress } from "../data/startHere";
-import { loadPassageCover } from "../data/understand";
+import { loadOrientation, loadPassageCover } from "../data/understand";
 import { FONTS, useLayout } from "../design/tokens";
 import { rangeInBook } from "../lib/saved";
 import { listMark, nextPassage } from "../lib/startHere";
@@ -35,8 +35,9 @@ export default function ThreadScreen() {
   const { ax } = useLayout();
   const log = useLog();
   const core = useCore();
+  const { from } = useLocalSearchParams<{ from?: string }>();
   // DP-03: the Gospel's opening word heads the thread.
-  const { data: cover } = useQuery(() => loadPassageCover(core, "JHN", verseOrd("JHN", 1, 1)), []);
+  const { data: cover } = useQuery(() => loadPassageCover("JHN", verseOrd("JHN", 1, 1), "greek"), []);
   const [progress, setProgress] = useState<(Progress & { orientation: string | null }) | null>(null);
 
   useFocusEffect(
@@ -61,6 +62,8 @@ export default function ThreadScreen() {
   return (
     <PageScreen
       title="The Gospel of John"
+      // Reached from Reading plans (IA-11) it returns there; from Home's Your plan, to Home.
+      back={from === "plans" ? "Plans" : "Home"}
       // DP-03: the large title, then the Gospel's opening word on one line ending in the count.
       // Not one accessible element: the word keeps its own view so VoiceOver reads it in Greek.
       subtitle={
@@ -93,7 +96,8 @@ export default function ThreadScreen() {
             testID={`thread-${index + 1}`}
             onPress={() => {
               log("thread_step", `${start.book}.${start.chapter}.${start.verse}`, String(index + 1));
-              router.push(readerHref({ book: start.book, chapter: start.chapter, verse: start.verse, resume: true, guide: pericope.pericope_id }));
+              void chooseYourPlan(user, "john");
+              router.push(readerHref({ book: start.book, chapter: start.chapter, verse: start.verse, resume: true, guide: pericope.pericope_id, back: "Plan" }));
             }}
             right={mark === "done" ? <Icon name="check" size={20} tone="accent" /> : undefined}
           >

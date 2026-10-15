@@ -100,6 +100,24 @@ CREATE TABLE IF NOT EXISTS installed_study (
   removed    INTEGER NOT NULL DEFAULT 0,
   saved_at   TEXT NOT NULL
 );
+
+-- When the reader first opened each book: the End page says "Begun 3 September" (MM-08), a date
+-- from the reader's own use, never a guess.
+CREATE TABLE IF NOT EXISTS books_begun (
+  book TEXT PRIMARY KEY,
+  at   TEXT NOT NULL
+);
+
+-- Downloaded Understand bundles, one per book (data/understand.ts), kept the same way.
+CREATE TABLE IF NOT EXISTS installed_understand (
+  book       TEXT PRIMARY KEY,
+  version    INTEGER NOT NULL,
+  file       TEXT NOT NULL,
+  sha256     TEXT NOT NULL,
+  bytes      INTEGER NOT NULL,
+  removed    INTEGER NOT NULL DEFAULT 0,
+  saved_at   TEXT NOT NULL
+);
 ${LICENSED_DDL}`;
 
 /**
@@ -166,6 +184,12 @@ export function savePosition(db: SQLiteDatabase, verseId: string): Promise<void>
   });
 }
 
+/** The reading place and when it was saved (MM-05: back after a gap). */
+export async function loadPositionAt(db: SQLiteDatabase): Promise<{ id: string; at: string } | null> {
+  const row = await db.getFirstAsync<{ verse_id: string; updated_at: string }>("SELECT verse_id, updated_at FROM position WHERE id = 1", []);
+  return row === null ? null : { id: row.verse_id, at: row.updated_at };
+}
+
 export async function loadPosition(db: SQLiteDatabase): Promise<string | null> {
   const row = await db.getFirstAsync<{ verse_id: string }>("SELECT verse_id FROM position WHERE id = 1");
   return row?.verse_id ?? null;
@@ -173,6 +197,12 @@ export async function loadPosition(db: SQLiteDatabase): Promise<string | null> {
 
 export async function isBookmarked(db: SQLiteDatabase, verseId: string): Promise<boolean> {
   return (await db.getFirstAsync("SELECT 1 FROM bookmarks WHERE verse_id = ?", [verseId])) !== null;
+}
+
+/** When the verse was bookmarked, or null (MM-06: "Kept 3 Sep" under Understand's title). */
+export async function keptAt(db: SQLiteDatabase, verseId: string): Promise<string | null> {
+  const row = await db.getFirstAsync<{ created_at: string }>("SELECT created_at FROM bookmarks WHERE verse_id = ?", [verseId]);
+  return row?.created_at ?? null;
 }
 
 /** Returns whether the verse is bookmarked after the toggle. */
@@ -307,4 +337,14 @@ export async function recentlyExplored(
      GROUP BY verse_id ORDER BY at DESC LIMIT ?`,
     [limit],
   );
+}
+
+/** Records the first time a book is opened; later opens keep the first date. */
+export async function markBookBegun(db: SQLiteDatabase, book: string, at = new Date()): Promise<void> {
+  await db.runAsync("INSERT OR IGNORE INTO books_begun (book, at) VALUES (?, ?)", [book, at.toISOString()]);
+}
+
+export async function bookBegun(db: SQLiteDatabase, book: string): Promise<Date | null> {
+  const row = await db.getFirstAsync<{ at: string }>("SELECT at FROM books_begun WHERE book = ?", [book]);
+  return row === null ? null : new Date(row.at);
 }

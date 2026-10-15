@@ -12,6 +12,8 @@
  * Tapping a verse peeks it first, then `Read …` leaves (brief §1 rule 5).
  */
 
+import { useEffect } from "react";
+import { clearFootprints, showFootprints } from "../../state/footprints";
 import { BOOK_CODES, type BookCode, formatDisplayRef, formatVerseId, isBookCode, ordToParts, parseVerseId } from "@yada/schema";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -38,18 +40,37 @@ export default function OccurrencesScreen() {
 
   const { data } = useQuery(async () => {
     const [lexeme, occurrences] = await Promise.all([getLexeme(core, key), getOccurrences(core, key, book, LIMIT)]);
-    const texts = await getTextsForOrds(core, occurrences.map((o) => o.ord), translation);
-    return { lexeme, occurrences, texts };
+    const ords = occurrences.map((o) => o.ord);
+    const own = await getTextsForOrds(core, ords, translation);
+    // A licensed or downloaded version is not in the core bundle, so its verses came back empty here (IA stress
+    // test, 15 Oct 2026). The BSB stands in, and says so, as Peek does.
+    const missing = ords.filter((o) => !own.has(o));
+    const bsb = missing.length > 0 && translation !== "BSB" ? await getTextsForOrds(core, missing, "BSB") : new Map<number, string>();
+    const texts = new Map([...bsb, ...own]);
+    return { lexeme, occurrences, texts, shownInBsb: bsb.size > 0 };
   }, [key, book, translation]);
+
+  // MM-04: the uses in the chapter behind the sheet are ticked there while this page is open.
+  useEffect(() => {
+    if (data === undefined || fromRef === null) return;
+    const here = data.occurrences.map((o) => ordToParts(o.ord)).filter((p) => p.book === fromRef.book && p.chapter === fromRef.chapter);
+    showFootprints(fromRef.book, fromRef.chapter, here.map((p) => p.verse));
+    return clearFootprints;
+  }, [data, from]);
 
   const scope = book === null ? "the Bible" : BOOK_CODES[book].name;
   const display = fromRef === null ? null : formatDisplayRef(fromRef);
   const viaSearch = params.via === "search";
+  const chapters = new Set((data?.occurrences ?? []).map((o) => ordToParts(o.ord).chapter));
+  const n = data?.occurrences.length ?? 0;
+  const countLine =
+    book === null || n === 0 || n >= LIMIT ? null : `${n} ${n === 1 ? "time" : "times"}${chapters.size === 1 && n > 1 ? `, all in chapter ${[...chapters][0]}` : ""}`;
   const title = `${data?.lexeme?.lemma ?? ""} in ${scope}`;
   const shell = (children: React.ReactNode) => (
     <SheetScreen
       title={title}
-      subtitle={display ?? undefined}
+      // MM-04: how often, and whether all in one chapter ("3 times, all in chapter 14"); else the verse.
+      subtitle={countLine ?? display ?? undefined}
       backLabel={display}
       verseId={from}
       backText={viaSearch ? "Back to search" : undefined}
@@ -60,7 +81,7 @@ export default function OccurrencesScreen() {
     </SheetScreen>
   );
   if (data === undefined) return shell(null);
-  const { lexeme, occurrences, texts } = data;
+  const { lexeme, occurrences, texts, shownInBsb } = data;
   const script = lexeme?.script ?? (book === null ? "greek" : scriptOf(book));
   // A psalm title (verse 0) is read with verse 1, so it is marked there.
   const ids = occurrences.map((o) => {
@@ -70,6 +91,11 @@ export default function OccurrencesScreen() {
 
   return shell(
     <>
+      {shownInBsb ? (
+        <Chrome step="note" tone="muted" style={{ marginBottom: 8 }} testID="bsb-basis">
+          Shown in BSB
+        </Chrome>
+      ) : null}
       {occurrences.length >= LIMIT ? (
         <Prose step="note" tone="muted" style={{ marginBottom: 8 }}>
           The first {LIMIT} verses.

@@ -1,0 +1,12 @@
+{
+  "_why": "tN outlines that name no verses (Habakkuk): which verses each numbered item covers, so a passage can say what it is. The words stay tN's; `line` must match tN's item exactly or the build refuses. Nothing here shows until status is 'approved' (rule 2). Approved by John on 13 Oct 2026: 2:1-5 takes item 6 (four of its five verses), and chapter 3 is all item 8.",
+  "status": "approved",
+  "entries": [
+    { "book": "HAB", "item": 2, "from": [1, 1], "to": [1, 4], "line": "Habakkuk’s first complaint: Why does Yahweh tolerate injustice in Judah?" },
+    { "book": "HAB", "item": 3, "from": [1, 5], "to": [1, 11], "line": "Yahweh’s first reply: He is raising up the Chaldeans as his instrument of judgment" },
+    { "book": "HAB", "item": 4, "from": [1, 12], "to": [1, 17], "line": "Habakkuk’s second complaint: Why does Yahweh use a nation more wicked than Judah?" },
+    { "book": "HAB", "item": 6, "from": [2, 1], "to": [2, 5], "line": "Yahweh’s second reply: The vision is certain; the righteous shall live by faith" },
+    { "book": "HAB", "item": 7, "from": [2, 6], "to": [2, 20], "line": "Five woe oracles against the oppressor" },
+    { "book": "HAB", "item": 8, "from": [3, 1], "to": [3, 19], "line": "Habakkuk’s prayer-psalm: a theophany and confession of trust" }
+  ]
+}

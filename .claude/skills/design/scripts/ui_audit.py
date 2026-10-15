@@ -23,6 +23,10 @@ stress = [
     ("X-03", "Longest verse selected, action bar", r("EST", 8, 8, 10, sel=(9,), abar="8:9", offset=-60)),
 ]
 frames = [(f[0], f[1], f[2]) for f in ns["FRAMES"]] + stress
+# AUDIT_ONLY="GD,BA,…" limits the run to those frame-id prefixes (one canvas page instead of all ~200 frames).
+only = tuple(p for p in os.environ.get("AUDIT_ONLY", "").split(",") if p)
+if only:
+    frames = [f for f in frames if f[0].startswith(only)]
 CSS = open(os.path.join(os.path.dirname(G), "style-v2.css")).read()
 os.makedirs(f"{S}/aud_{tag}/html", exist_ok=True)
 AUD = open(os.path.join(os.path.dirname(G), "audit.js")).read()

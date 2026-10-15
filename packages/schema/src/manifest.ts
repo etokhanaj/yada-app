@@ -17,6 +17,8 @@ export const LicenseSchema = z.enum([
   "CC-BY-SA-4.0",
   "OFL-1.1",
   "MIT",
+  // Kokoro-82M, the model behind the computer voices (Phase 4, 12 Oct 2026).
+  "Apache-2.0",
   "CC-BY-NC-ND-4.0",
   /**
    * A bespoke publisher licence, not a standard open one. The SBLGNT *text* is

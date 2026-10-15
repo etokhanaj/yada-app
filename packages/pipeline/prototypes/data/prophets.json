@@ -1,0 +1,269 @@
+{
+  "_why": "John, 12 Oct 2026: tN outline names use translators' words (Oracles, Announcement, Narrative). Each is shown through this table, which John approves once; a name not in the table shows as tN wrote it. Setting lines say when and to whom, one per book section, drawn from the tN book introduction. Nothing here shows until status is 'approved' (rule 2). Approved by John on 12 Oct 2026 with five edits.",
+  "status": "approved",
+  "plain_names": {
+    "Oracles About Judah": "Messages to Judah",
+    "Oracles against the Nations": "Messages about the nations around Judah",
+    "Oracles of Cosmic Judgment": "God judges the whole world",
+    "Oracles Against Judah for Depending on Egypt": "Warnings to Judah for trusting Egypt",
+    "Narrative of the Assyrian Invasion of Judah": "Assyria invades Judah",
+    "Announcement of the End of the Babylonian Exile": "Comfort for the exiles in Babylon",
+    "The Situation in Judea After the Exile": "Back in Judah after the exile",
+    "Third oracle": "Haggai’s third message",
+    "Fourth oracle": "Haggai’s fourth message",
+    "General review": "Judgment on the whole earth",
+    "Yahweh judge the nations and saves his people": "The LORD judges the nations and saves his people"
+  },
+  "settings": [
+    {
+      "book": "ISA",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        39,
+        8
+      ],
+      "line": "Spoken in Judah under the threat of Assyria.",
+      "source": "tN Isaiah intro: the first decision, Assyria (745–701 B.C.)"
+    },
+    {
+      "book": "ISA",
+      "from": [
+        40,
+        1
+      ],
+      "to": [
+        55,
+        13
+      ],
+      "line": "Words of comfort for the exiles in Babylon.",
+      "source": "tN Isaiah intro and outline 7",
+      "why": "John, 12 Oct: who the words are for, not when spoken (the date of Isaiah 40–66 is disputed)"
+    },
+    {
+      "book": "ISA",
+      "from": [
+        56,
+        1
+      ],
+      "to": [
+        66,
+        24
+      ],
+      "line": "Words for the people back in Judah after the exile.",
+      "source": "tN Isaiah outline 8",
+      "why": "John, 12 Oct: same reason"
+    },
+    {
+      "book": "JER",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        52,
+        34
+      ],
+      "line": "Spoken in Judah in the years before Babylon destroyed Jerusalem.",
+      "source": "tN Jeremiah intro (from about 626 B.C.) and outline 52"
+    },
+    {
+      "book": "LAM",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        5,
+        22
+      ],
+      "line": "Written after the Babylonians destroyed Jerusalem in 586 B.C.",
+      "source": "tN Lamentations intro"
+    },
+    {
+      "book": "EZK",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        48,
+        35
+      ],
+      "line": "Spoken to Jewish exiles in Babylonia.",
+      "source": "tN Ezekiel intro (592–573 B.C.)"
+    },
+    {
+      "book": "DAN",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        12,
+        13
+      ],
+      "line": "Set in Babylon, among young men taken from Judah.",
+      "source": "tN Daniel intro"
+    },
+    {
+      "book": "HOS",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        14,
+        9
+      ],
+      "line": "Spoken in the northern kingdom of Israel before Assyria destroyed it.",
+      "source": "tN Hosea intro (from about 753 B.C.)"
+    },
+    {
+      "book": "JOL",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        3,
+        21
+      ],
+      "line": "Spoken in Judah after a plague of locusts.",
+      "source": "tN Joel intro"
+    },
+    {
+      "book": "AMO",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        9,
+        15
+      ],
+      "line": "Spoken to the kingdoms of Israel and Judah by a shepherd from Tekoa.",
+      "source": "tN Amos intro (about 760 B.C.)"
+    },
+    {
+      "book": "OBA",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        1,
+        21
+      ],
+      "line": "Spoken against Edom, Judah’s neighbour.",
+      "source": "tN Obadiah intro",
+      "why": "John, 12 Oct: Obadiah's date is disputed"
+    },
+    {
+      "book": "JON",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        4,
+        11
+      ],
+      "line": "A prophet from northern Israel sent to Nineveh.",
+      "source": "tN Jonah intro"
+    },
+    {
+      "book": "MIC",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        7,
+        20
+      ],
+      "line": "Spoken to Israel and Judah before Assyria attacked them.",
+      "source": "tN Micah intro"
+    },
+    {
+      "book": "NAM",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        3,
+        19
+      ],
+      "line": "Spoken against Nineveh.",
+      "source": "tN Nahum intro"
+    },
+    {
+      "book": "HAB",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        3,
+        19
+      ],
+      "line": "Habakkuk and God talk about injustice in Judah before Babylon comes.",
+      "source": "tN Habakkuk intro"
+    },
+    {
+      "book": "ZEP",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        3,
+        20
+      ],
+      "line": "Spoken to Judah in the time of King Josiah.",
+      "source": "tN Zephaniah intro"
+    },
+    {
+      "book": "HAG",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        2,
+        23
+      ],
+      "line": "Spoken to the people back from exile, about rebuilding the temple.",
+      "source": "tN Haggai intro (520 B.C.)"
+    },
+    {
+      "book": "ZEC",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        14,
+        21
+      ],
+      "line": "Spoken to the people back in Judah from exile in Babylon.",
+      "source": "tN Zechariah intro"
+    },
+    {
+      "book": "MAL",
+      "from": [
+        1,
+        1
+      ],
+      "to": [
+        4,
+        6
+      ],
+      "line": "Spoken to the Jews back in Judah after the new temple was built.",
+      "source": "tN Malachi intro"
+    }
+  ]
+}

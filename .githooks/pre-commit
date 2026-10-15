@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Yada's commit gate (CLAUDE.md "Never commit secrets"; rule 1). Fast on purpose, so nobody skips it.
+set -euo pipefail
+fail=0
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+# Env files and keys never enter git; only .env.example with placeholders does.
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  case "$(basename "$f")" in
+    .env.example) ;;
+    .env|.env.*) echo "pre-commit: $f is an env file; only .env.example is committed." >&2; fail=1 ;;
+    *.p8|*.pem|*.key) echo "pre-commit: $f looks like a private key file." >&2; fail=1 ;;
+  esac
+done <<< "$staged"
+
+# Secret-shaped values in the added lines. The pattern text itself lives only in this hook and the skills.
+added="$(git diff --cached -U0 -- . ':(exclude).githooks' ':(exclude).claude/skills' | grep '^+' | grep -v '^+++' || true)"
+if printf '%s' "$added" | grep -qE 'sk-ant-[A-Za-z0-9_-]{8,}|BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}|(R2_SECRET_ACCESS_KEY|API_BIBLE_KEY|ANTHROPIC_API_KEY)=[^[:space:]<]{8,}'; then
+  echo "pre-commit: a secret-shaped value is staged. Unstage it; keys live only in the ignored .env.local." >&2
+  fail=1
+fi
+
+# Invisible control characters in code: an edit once turned the regex \b into a backspace, and the pattern
+# silently matched nothing (Leviticus framing, 15 Oct 2026).
+while IFS= read -r f; do
+  case "$f" in *.ts|*.tsx|*.js|*.mjs|*.py|*.swift|*.json)
+    if [ -f "$f" ] && LC_ALL=C grep -q $'[\x01-\x08\x0b\x0c\x0e-\x1f]' "$f"; then
+      echo "pre-commit: $f contains an invisible control character." >&2; fail=1
+    fi ;;
+  esac
+done <<< "$staged"
+
+exit $fail

@@ -1,0 +1,79 @@
+{
+  "_why": "John, 12 Oct 2026. Two word lists, each approved once. (1) `ust_substitutions`: words the UST uses that read oddly beside every other English Bible (Mark test: “apprentices” for disciples). Each is changed wherever it occurs in the listed books, and the UST credit says so (“some words changed”), as CC BY-SA requires. Counts are occurrences in the UST Gospels when drafted. (2) `plain_words`: translators' terms in tN outline items and headings (Leviticus 11: “quadrupeds”), shown in plain words. Nothing here is approved until status is 'approved' (rule 2). Approved by John on 12 Oct 2026 with two fixes, each the BSB's own word: “Dwelling” → “tabernacle” (BSB 126 times, Exodus 26:1) and “Box of the Testimony” → “ark of the Testimony” (Exodus 25:22). tN uses “Box of the Testimony” only in Exodus and Numbers, where the BSB also says “ark of the Testimony”.",
+  "status": "approved",
+  "ust_substitutions": [
+    {
+      "from": "apprentices",
+      "to": "disciples",
+      "books": "NT",
+      "count": 327,
+      "why": "BSB, WEB, KJV and LSV all say “disciples”"
+    },
+    {
+      "from": "apprentice",
+      "to": "disciple",
+      "books": "NT",
+      "count": 23,
+      "why": "as above"
+    },
+    {
+      "from": "instructor",
+      "to": "teacher",
+      "books": "NT",
+      "count": 23,
+      "why": "UST’s word for “Teacher” or “Rabbi”; the BSB says “Teacher”"
+    },
+    {
+      "from": "12 representatives",
+      "to": "12 apostles",
+      "books": "MAT MRK LUK JHN ACT",
+      "count": 13,
+      "why": "UST’s word for the apostles; the BSB says “apostles”"
+    },
+    {
+      "from": "11 representatives",
+      "to": "11 apostles",
+      "books": "MAT MRK LUK JHN ACT",
+      "count": 3,
+      "why": "as above"
+    },
+    {
+      "from": "his representatives",
+      "to": "his apostles",
+      "books": "MAT MRK LUK JHN ACT",
+      "count": 2,
+      "why": "as above"
+    },
+    {
+      "from": "the representatives",
+      "to": "the apostles",
+      "books": "MAT MRK LUK JHN ACT",
+      "count": 4,
+      "why": "as above"
+    },
+    {
+      "from": "ruling priests",
+      "to": "chief priests",
+      "books": "MAT MRK LUK JHN ACT",
+      "count": 55,
+      "why": "the BSB says “chief priests”"
+    },
+    {
+      "from": "the ruling evil spirit",
+      "to": "the devil",
+      "books": "MAT MRK LUK JHN ACT",
+      "count": 3,
+      "why": "the BSB says “the devil”"
+    }
+  ],
+  "plain_words": {
+    "quadrupeds": "animals",
+    "quadruped": "animal",
+    "purification offering": "sin offering",
+    "purification offerings": "sin offerings",
+    "Box of the Testimony": "ark of the Testimony",
+    "Dwelling": "tabernacle",
+    "admonitions": "warnings",
+    "Contrastive wise sayings": "Wise sayings that compare two ways"
+  }
+}

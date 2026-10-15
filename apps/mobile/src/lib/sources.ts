@@ -9,7 +9,7 @@
 
 import type { SourceRow } from "../data/queries";
 
-export type SourceGroup = "Bible text" | "Word data";
+export type SourceGroup = "Bible text" | "Words and people" | "Understand";
 
 export interface SourceItem {
   readonly dataset: string;
@@ -18,6 +18,8 @@ export interface SourceItem {
   readonly title: string;
   /** The dataset and its licence: `MorphGNT · CC BY-SA 3.0`. */
   readonly subtitle: string;
+  /** ST-04's trailing value: a translation's licence alone ("Public domain"), else the subtitle. */
+  readonly value: string;
   readonly url: string;
   /** VoiceOver: the row is the link (S19). */
   readonly label: string;
@@ -48,20 +50,71 @@ export function licenceLabel(code: string): string {
  * reader reads as Scripture or word data.
  */
 const ROLE: Readonly<Record<string, { group: SourceGroup; title: string; name: string }>> = {
-  "SBLGNT (Greek text)": { group: "Bible text", title: "Greek New Testament", name: "SBLGNT" },
+  "SBLGNT (Greek text)": { group: "Words and people", title: "Greek New Testament", name: "SBLGNT" },
   "morphhb — Westminster Leningrad Codex text": { group: "Bible text", title: "Hebrew Bible", name: "Westminster Leningrad Codex" },
   "Berean Standard Bible (text)": { group: "Bible text", title: "Berean Standard Bible", name: "English · BSB" },
   "World English Bible, Protestant canon (engwebp)": { group: "Bible text", title: "World English Bible", name: "English · WEB" },
   "King James Version, 1769 standardised text (eng-kjv2006)": { group: "Bible text", title: "King James Version", name: "English · KJV" },
   "Literal Standard Version (englsv)": { group: "Bible text", title: "Literal Standard Version", name: "English · LSV" },
-  "morphgnt/sblgnt (morphological annotations)": { group: "Word data", title: "Greek parsing", name: "MorphGNT" },
-  "morphhb — lemma and morphology data": { group: "Word data", title: "Hebrew parsing", name: "OSHB" },
-  "TAGNT — Translators Amalgamated Greek NT (per-word English glosses)": { group: "Word data", title: "Greek word glosses", name: "STEPBible TAGNT" },
-  "TAHOT — Translators Amalgamated Hebrew OT (per-morpheme English glosses)": { group: "Word data", title: "Hebrew word glosses", name: "STEPBible TAHOT" },
-  "TBESG — brief Greek lexicon of Extended Strongs": { group: "Word data", title: "Greek dictionary forms", name: "STEPBible TBESG" },
-  "TBESH — brief Hebrew lexicon of Extended Strongs": { group: "Word data", title: "Hebrew dictionary forms", name: "STEPBible TBESH" },
-  "TVTMS — versification traditions": { group: "Word data", title: "Verse numbering", name: "STEPBible TVTMS" },
+  "morphgnt/sblgnt (morphological annotations)": { group: "Words and people", title: "Greek parsing", name: "MorphGNT" },
+  "morphhb — lemma and morphology data": { group: "Words and people", title: "Hebrew parsing", name: "OSHB" },
+  "TAGNT — Translators Amalgamated Greek NT (per-word English glosses)": { group: "Words and people", title: "Greek word glosses", name: "STEPBible TAGNT" },
+  "TAHOT — Translators Amalgamated Hebrew OT (per-morpheme English glosses)": { group: "Words and people", title: "Hebrew word glosses", name: "STEPBible TAHOT" },
+  "TBESG — brief Greek lexicon of Extended Strongs": { group: "Words and people", title: "Greek dictionary forms", name: "STEPBible TBESG" },
+  "TBESH — brief Hebrew lexicon of Extended Strongs": { group: "Words and people", title: "Hebrew dictionary forms", name: "STEPBible TBESH" },
+  "TVTMS — versification traditions": { group: "Words and people", title: "Verse numbering", name: "STEPBible TVTMS" },
+  // The syntax and speaker layers (sources.manifest.json, audit item 7, 12 Oct 2026).
+  "MACULA Greek Linguistic Datasets — SBLGNT syntax trees (release 24.06.17)": { group: "Words and people", title: "Syntax", name: "MACULA Greek" },
+  "MACULA Hebrew Linguistic Datasets — WLC syntax trees (release 26.04.13)": { group: "Words and people", title: "Hebrew syntax", name: "MACULA Hebrew" },
+  "Glyssen character data — CharacterVerse.txt and CharacterDetail.txt (control file version 171)": { group: "Words and people", title: "Speakers", name: "Glyssen" },
+  // Understand without AI (docs/no-ai-understand.md): each line's source, as its credit names it.
+  "unfoldingWord Simplified Text (en_ust)": { group: "Understand", title: "In plain words", name: "unfoldingWord Simplified Text" },
+  "unfoldingWord Translation Notes (en_tn)": { group: "Understand", title: "Readers differ, Explained and book introductions", name: "unfoldingWord Translation Notes" },
+  "unfoldingWord Translation Questions (en_tq)": { group: "Understand", title: "Check what you read", name: "unfoldingWord Translation Questions" },
+  "unfoldingWord Translation Words (en_tw)": { group: "Understand", title: "Key words", name: "unfoldingWord Translation Words" },
+  "unfoldingWord Translation Word Links (en_twl)": { group: "Understand", title: "Key word links", name: "unfoldingWord Translation Word Links" },
+  "unfoldingWord Open Bible Stories (en_obs)": { group: "Understand", title: "Passage summaries", name: "unfoldingWord Open Bible Stories" },
+  "Berean Standard Bible translation tables (bsb_tables.tsv)": { group: "Understand", title: "Headings, footnotes and word links", name: "Berean tables" },
+  // MS-01 (build 6): licences read from each repository's own files (rule 3; sources.manifest.json).
+  "OpenBible.info Bible Geocoding Data — ancient places and modern locations (ancient.jsonl, modern.jsonl)": { group: "Understand", title: "Places", name: "OpenBible.info" },
+  "Natural Earth 1:10m land, lakes and rivers (v5.2.0-pre)": { group: "Understand", title: "Map outlines", name: "Natural Earth" },
+  "Keil and Delitzsch, Biblical Commentary on the Old Testament (English translation; vols 1, 2, 4, 5 and 6)": {
+    group: "Understand",
+    title: "Readings on debated passages",
+    name: "Keil and Delitzsch",
+  },
+  "Ellicott, A Bible Commentary for English Readers, vols VII (Acts to Galatians) and VIII (Ephesians to Revelation)": {
+    group: "Understand",
+    title: "Readings on debated passages",
+    name: "Ellicott’s Commentary",
+  },
+  "Driver and Neubauer, The Fifty-third Chapter of Isaiah According to the Jewish Interpreters, vol. II: Translations": {
+    group: "Understand",
+    title: "Readings on debated passages",
+    name: "Driver and Neubauer",
+  },
+  "Adam Clarke's Commentary and Critical Notes on the Bible (CrossWire SWORD module Clarke 2.0)": {
+    group: "Understand",
+    title: "Readings on debated passages",
+    name: "Adam Clarke’s Commentary",
+  },
+  // Build 6 item H: the word screen's grammar terms, one sentence each, credited there too. Listed once
+  // core is packaged from the manifest that names them.
+  "unfoldingWord Greek Grammar (en_ugg)": { group: "Words and people", title: "Greek grammar terms", name: "unfoldingWord Greek Grammar" },
+  "unfoldingWord Hebrew Grammar (en_uhg)": { group: "Words and people", title: "Hebrew grammar terms", name: "unfoldingWord Hebrew Grammar" },
+  "unfoldingWord Aramaic Grammar (en_uag)": { group: "Words and people", title: "Aramaic grammar terms", name: "unfoldingWord Aramaic Grammar" },
+  "J. Gresham Machen, New Testament Greek for Beginners (Macmillan, 1923)": { group: "Words and people", title: "Greek grammar terms, six of them", name: "Machen’s Greek for Beginners" },
+  // A downloaded Old Testament text; listed only once the app handles a text that has no New Testament.
+  "JPS Tanakh 1917, The Holy Scriptures According to the Masoretic Text (engjps)": { group: "Bible text", title: "JPS 1917", name: "English · JPS" },
 };
+
+/**
+ * The app does not yet handle a translation with no New Testament, so JPS 1917 (Old Testament only) stays
+ * off the page until it does (more-translations plan; JPS stays out of the bundle manifest too).
+ */
+export const OT_ONLY_TEXTS_READY = false;
+
+const OT_ONLY: ReadonlySet<string> = new Set(["JPS Tanakh 1917, The Holy Scriptures According to the Masoretic Text (engjps)"]);
 
 const ORDER = Object.keys(ROLE);
 
@@ -86,22 +139,29 @@ export type SourceInput = Pick<SourceRow, "dataset" | "license" | "url"> &
 
 /**
  * Not shown as text sources: the typefaces (their OFL files ship with them),
- * and the pilot WEB excerpt, whose text and licence the full WEB row covers.
+ * the pilot WEB excerpt, whose text and licence the full WEB row covers,
+ * and Matthew Henry and Easton, pinned for build 8 but not yet in any bundle (15 Oct 2026): a source is
+ * credited once its words reach a reader.
  */
 function isOmitted(dataset: string): boolean {
-  return /^(Literata|Gentium Plus|Noto Serif Hebrew)$/.test(dataset) || dataset === "World English Bible — John 1, Genesis 1, 1 Corinthians 14";
+  return (
+    /^(Literata|Gentium Plus|Noto Serif Hebrew|Matthew Henry's Concise Commentary|Easton's Bible Dictionary)\b/.test(dataset) ||
+    dataset === "World English Bible — John 1, Genesis 1, 1 Corinthians 14"
+  );
 }
 
-export function sourceItems(rows: readonly SourceInput[]): SourceItem[] {
+export function sourceItems(rows: readonly SourceInput[], options: { otOnlyTexts?: boolean } = {}): SourceItem[] {
+  const otOnly = options.otOnlyTexts ?? OT_ONLY_TEXTS_READY;
   return rows
     .flatMap((row) => {
       // A dataset not in the table still shows, under its own name: an attribution
       // must never vanish because a manifest string changed (licence rule 3).
       if (isOmitted(row.dataset)) return [];
+      if (!otOnly && (OT_ONLY.has(row.dataset) || row.translation?.code === "JPS")) return [];
       const role =
         row.translation !== undefined
           ? { group: "Bible text" as const, title: row.translation.name, name: `English · ${row.translation.code}` }
-          : (ROLE[row.dataset] ?? { group: "Word data" as const, title: row.dataset, name: row.dataset });
+          : (ROLE[row.dataset] ?? { group: "Words and people" as const, title: row.dataset, name: row.dataset });
       const given = row.attribution?.trim() ?? "";
       const attribution = !SHOWS_ATTRIBUTION.has(row.license)
         ? null
@@ -116,6 +176,7 @@ export function sourceItems(rows: readonly SourceInput[]): SourceItem[] {
           group: role.group,
           title: role.title,
           subtitle: `${role.name} · ${licenceLabel(row.license)}`,
+          value: role.group === "Bible text" ? licenceLabel(row.license) : `${role.name} · ${licenceLabel(row.license)}`,
           url: row.url,
           label: `${role.title}, ${role.name.replace(" · ", ", ")}, ${licenceLabel(row.license)}${attribution === null ? "" : `. ${attribution}`}, opens the source`,
           attribution,

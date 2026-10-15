@@ -1,0 +1,74 @@
+# Phase 3 (SW-01–04, MM-01, MM-07, MM-08, CP-01–06): swipe between chapters, the passage boundary,
+# the End page, and Compare with its line of changes.
+#
+# Launch the app first, outside Maestro (`xcrun simctl launch <udid> studio.yada.reader`), and let it
+# reach its first screen. A dev build that Maestro itself launched froze on the first swipe (JS stuck, no
+# error, idle CPU: 12 Oct 2026); launched any other way, the same flow passes, and dozens of swipes by
+# hand never froze it. Logged in docs/redesign/qa-next-release.md for a device check.
+appId: studio.yada.reader
+---
+- openLink: studio.yada.reader:///read/JHN/1?verse=1
+- openLink: studio.yada.reader:///read/JHN/1?verse=1
+- waitForAnimationToEnd
+# MM-01: the boundary after 1:18 is the next passage's title, heard as the next passage.
+- scrollUntilVisible:
+    element:
+      id: passage-title-JHN.1.19-1.34
+- assertVisible: "Next passage, The testimony of John the Baptist.*"
+# SW-02: past a third of the width the page goes on to John 2, with its first passage's name.
+- swipe:
+    start: "85%,50%"
+    end: "10%,50%"
+    duration: 300
+- waitForAnimationToEnd
+- assertVisible: "John 2, BSB"
+- assertVisible:
+    id: passage-title-JHN.2.1-2.12
+# A selected verse turns the swipe off (SW-04): the page stays.
+- tapOn:
+    id: verse-1
+- swipe:
+    start: "85%,50%"
+    end: "10%,50%"
+    duration: 300
+- waitForAnimationToEnd
+- assertVisible: "John 2, BSB"
+# CP-01: the bar's Compare opens Compare itself, yours first and each version against it.
+- openLink: studio.yada.reader:///read/JHN/3?verse=16&select=1
+- waitForAnimationToEnd
+- tapOn:
+    id: bar-compare
+- waitForAnimationToEnd
+- assertVisible: "Compare"
+- assertVisible: "BSB, your translation"
+- scrollUntilVisible:
+    element:
+      text: "one and only → only born · everyone who → whoever · 1.more change"
+- scrollUntilVisible:
+    direction: UP
+    element:
+      id: compare-choose
+- tapOn:
+    id: compare-choose
+- extendedWaitUntil:
+    visible: "Compare with up to 3"
+    timeout: 5000
+- tapOn:
+    id: sheet-close
+# SW-03, MM-08: after John 21 the swipe stops on the End page, never running into Acts.
+- openLink: studio.yada.reader:///read/JHN/1?verse=1
+- openLink: studio.yada.reader:///read/JHN/21?verse=25
+- waitForAnimationToEnd
+- swipe:
+    start: "85%,50%"
+    end: "10%,50%"
+    duration: 300
+- waitForAnimationToEnd
+- assertVisible:
+    id: end-of-book
+- assertVisible: "End of John"
+- assertVisible: "John 21:25 · Begun.*"
+- tapOn:
+    id: end-next
+- waitForAnimationToEnd
+- assertVisible: "Acts 1, BSB"

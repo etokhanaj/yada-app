@@ -1,0 +1,20 @@
+{
+  "name": "@yada/licensed-proxy",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker holding the API.Bible key: serves allowlisted licensed chapters to the app, display-only (CLAUDE.md rule 9).",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@yada/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260929.1",
+    "wrangler": "4.143.1"
+  }
+}

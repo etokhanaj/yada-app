@@ -38,10 +38,10 @@ import { checkTranslationFile, routeTranslation, type TranslationExpectation, un
 import { loadSettings, saveSetting } from "./user";
 
 /**
- * Where the published manifest lives. Set EXPO_PUBLIC_TRANSLATIONS_MANIFEST_URL
- * at build time; until the R2 publish (ask John first, plan Build 5) a
- * development build reads a local static server, e.g. `npx serve -p 8787`
- * over a folder holding manifest.json and the translation files.
+ * Where the published manifest lives. Release builds pass EXPO_PUBLIC_TRANSLATIONS_MANIFEST_URL at
+ * build time (from build 5: content.yadabible.com, R2 behind John's domain, so the address outlives
+ * any change of storage); it is never a default in source. A development build reads a local static
+ * server, e.g. `npx serve -p 8787` over a folder holding manifest.json and the bundles.
  */
 const DEV_MANIFEST_URL = "http://localhost:8787/manifest.json";
 export const MANIFEST_URL: string = process.env.EXPO_PUBLIC_TRANSLATIONS_MANIFEST_URL ?? (__DEV__ ? DEV_MANIFEST_URL : "");
@@ -74,7 +74,8 @@ interface TranslationsState {
   online: boolean | null;
   downloading: Record<string, DownloadProgress>;
   /** A download that failed its check or its connection, until it is tried again. */
-  failed: Record<string, true>;
+  /** Why the last download of a code failed: no room (US-06), or it didn't download (US-05). */
+  failed: Record<string, "space" | "failed">;
 }
 
 export const useTranslations = create<TranslationsState>(() => ({
@@ -251,7 +252,13 @@ export async function downloadTranslation(core: SQLiteDatabase, user: SQLiteData
   // Still attached from earlier this launch, with other bytes: the file cannot be replaced
   // until the next launch's sweep has deleted it (data/bundles.ts rule 1).
   if (attachedSchemas.has(schema)) {
-    set((s) => ({ failed: { ...s.failed, [entry.code]: true } }));
+    set((s) => ({ failed: { ...s.failed, [entry.code]: "failed" } }));
+    return;
+  }
+
+  // US-06: no room is said before anything is fetched, and the button stays.
+  if (Paths.availableDiskSpace < entry.bytes * 1.1) {
+    set((s) => ({ failed: { ...s.failed, [entry.code]: "space" } }));
     return;
   }
 
@@ -302,7 +309,7 @@ export async function downloadTranslation(core: SQLiteDatabase, user: SQLiteData
     // One that failed its check after ATTACH has no row; the next launch's sweep deletes it.
     if (!attachedSchemas.has(schema)) deleteQuietly(final);
     if (!controller.signal.aborted) {
-      set((s) => ({ failed: { ...s.failed, [entry.code]: true } }));
+      set((s) => ({ failed: { ...s.failed, [entry.code]: "failed" } }));
       // A dropped connection shows as MT-05; a bad file shows only on its row.
       void refreshCatalogue(user);
     }

@@ -4,9 +4,10 @@
 # (studio.yada.reader:///read/<BOOK>/<chapter>?verse=N). Run all with:
 #   maestro test apps/mobile/.maestro/
 #
-# Journey 01: 1 Cor 14 → select 34 → the docked action bar → Understand → Go further → Original →
-# a grammar claim under "In the Greek" → Why → Original →
-# word card → occurrences → back to the exact reading position.
+# Journey 01: 1 Cor 14 → select 34 → the docked action bar → the verse sheet's half view (VS-03) →
+# More on this verse → the full view (VS-04) → Go deeper → Original → word card → occurrences → back
+# to the exact reading position. Understand is read from understand-1co, which downloads from the
+# manifest the first time 1 Corinthians opens: serve content/bundles on 8787 for a dev build.
 appId: studio.yada.reader
 ---
 - launchApp
@@ -30,47 +31,66 @@ appId: studio.yada.reader
 - assertVisible:
     id: understand
 - assertVisible: "1 Corinthians 14:34"
-# The bundled 1 Cor 14:34 entry is human_reviewed (bundles since bc92b9a), so no Unreviewed label.
-- assertNotVisible:
-    id: unreviewed
-- assertVisible: "What we can see"
-# c1 states a parse, so it sits under Original as "In the Greek", not in What we can see (brief §8.19).
-- assertNotVisible:
-    id: claim-1CO.14.34.c1
+# NA-02's header: the reference over its passage (John, 12 Oct 2026: no "· Understand", no codes).
+- assertVisible: "Orderly Worship · 14:26–40"
+# VS-03, half view of a disputed verse: Readers differ with its count and first reading, then the
+# plain line as "One way to read it" with its voice line, then More on this verse.
+# The sheet reopens at the height last chosen, so each line is scrolled to rather than assumed.
 - scrollUntilVisible:
     element:
-      text: "Where readers differ"
+      text: "Readers differ · 2"
+- scrollUntilVisible:
+    element:
+      text: "One way to read it"
+- scrollUntilVisible:
+    element:
+      text: "Paul tells them:"
+- assertNotVisible: "UST"
+# At a large text size the half view runs past the sheet, and scrolling it grows the sheet to the
+# full view on its own; otherwise More on this verse grows it.
+- runFlow:
+    when:
+      visible:
+        id: more-on-verse
+    commands:
+      - tapOn:
+          id: more-on-verse
+- runFlow:
+    when:
+      notVisible:
+        id: verse-repeat
+    commands:
+      - swipe:
+          start: "50%,70%"
+          end: "50%,15%"
+- waitForAnimationToEnd
+# VS-04, the full view: the verse again, every reading, the manuscripts fact, then Go deeper.
+- scrollUntilVisible:
+    direction: UP
+    element:
+      id: verse-repeat
+- scrollUntilVisible:
+    element:
+      text: "Read the full note"
     centerElement: true
 - scrollUntilVisible:
     element:
-      id: toggle-original
-# Left at the sheet's foot it can sit under Back to reading, which took the tap and closed the
-# sheet (simulator, 11 Oct 2026); a short drag lifts it clear. Not centred: at the large detent
-# Original sits near the end, where nothing can scroll it to the middle.
-- swipe:
-    start: "50%,75%"
-    end: "50%,55%"
-- waitForAnimationToEnd
-- assertVisible: "Go further"
-- tapOn:
+      text: "Some manuscripts place verses 34–35 after verse 40."
+    centerElement: true
+- scrollUntilVisible:
+    element:
+      text: "Go deeper"
+    centerElement: true
+- assertVisible:
     id: toggle-original
-- waitForAnimationToEnd
-- scrollUntilVisible:
-    element:
-      text: "In the Greek"
-    centerElement: true
-- scrollUntilVisible:
-    element:
-      id: claim-1CO.14.34.c1
-    centerElement: true
+- assertVisible:
+    id: open-compare
+- assertVisible:
+    id: open-key-words
+- assertVisible:
+    id: open-sources
 - tapOn:
-    id: claim-1CO.14.34.c1
-- waitForAnimationToEnd
-- assertVisible: "Why we say this"
-- assertVisible: "How we know"
-- assertVisible: "From the Greek text and its parsing (MorphGNT)."
-- tapOn:
-    id: back-to-reading
+    id: sheet-close
 - waitForAnimationToEnd
 - assertVisible:
     id: verse-34
@@ -118,10 +138,11 @@ appId: studio.yada.reader
 - assertVisible:
     id: word
 - assertVisible: "Verb, present active imperative, 3rd person plural"
+# Not centred: with the approved grammar rows (Present, Active) the occurrences rows sit near the
+# sheet's end, where nothing can scroll them to the middle (15 Oct 2026).
 - scrollUntilVisible:
     element:
       id: see-occurrences
-    centerElement: true
 - tapOn:
     id: see-occurrences
 - waitForAnimationToEnd

@@ -92,7 +92,7 @@ const ebible = (id: string, sha256: string): SourceFile => ({
 });
 
 const TOSN_ZIP = "https://tyndaleopenresources.com/wp-content/themes/tyndale-openresources/files/tyndale_open-studynotes.zip";
-const TOSN_SHA256 = "7b4d5ae088449d5a6925170c4b89b978acee2f78f73dc6b8a278fa948a7e8498";
+export const TOSN_SHA256 = "7b4d5ae088449d5a6925170c4b89b978acee2f78f73dc6b8a278fa948a7e8498";
 /** The archive members Yada reads. `_README.txt` is the licence; the rest are the notes. */
 export const TOSN_FILES = ["_README.txt", "StudyNotes.xml", "BookIntros.xml", "BookIntroSummaries.xml", "Profiles.xml", "ThemeNotes.xml"];
 
@@ -262,10 +262,12 @@ export const SOURCES: SourceDef[] = [
         url: `https://raw.githubusercontent.com/STEPBible/STEPBible-Data/${STEP_COMMIT}/Lexicons/TBESG%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Greek%20-%20STEPBible.org%20CC%20BY.txt`,
       },
     ],
-    // Read for the lemma -> Strong's mapping only. MorphGNT carries no Strong's
-    // numbers, and this is the citable source that replaces recalling them.
+    // Read for the lemma -> Strong's mapping (MorphGNT carries no Strong's numbers, and this is the
+    // citable source that replaces recalling them) and for its Gloss column (column 6, "a meaning in one
+    // word or as few as possible", the file's header), the fallback gloss for a Greek word no TAGNT gloss
+    // aligns to (glosses.ts loadTbesgGlosses; audit item 7, 12 Oct 2026).
     modifications:
-      "Parsed for the lemma-to-extended-Strong's mapping; definitions not read. Lemma forms normalised to NFC to reconcile polytonic oxia with monotonic tonos.",
+      "Parsed for the lemma-to-extended-Strong's mapping, and for the Gloss column (column 6; its first sense, before any '/'), used as the fallback gloss for a Greek word no TAGNT gloss aligns to. The Abbott-Smith and Middle Liddell definitions are not read. Lemma forms normalised to NFC to reconcile polytonic oxia with monotonic tonos.",
     // Unlike TBESH, the definitions here are Abbott-Smith (1922) and MiddleLiddell
     // rather than BDB via Online Bible, and the header carries no permission
     // clause — so the only live constraint is the shared redistribution request.
@@ -409,6 +411,28 @@ export const SOURCES: SourceDef[] = [
     downloadable: true,
     files: [ebible("engmsb", "342c6dc825677acd5329f05db47703054b8f9729e03c39a38b359de87010cb62")],
     modifications: "Verse text used unaltered apart from whitespace.",
+  },
+  {
+    key: "jps1917",
+    source: "eBible.org / Jewish Publication Society of America",
+    dataset: "JPS Tanakh 1917, The Holy Scriptures According to the Masoretic Text (engjps)",
+    // engjps_about.htm, read 12 Oct 2026: "Public Domain … Translation by: Jewish Publication Society".
+    // The Sword module eBible builds from the same source says "This work is not copyrighted".
+    // UK term (life + 70) checked against the 1917 preface's named editors and translators:
+    // docs/research/jps-1917-licence.md.
+    license: "PUBLIC_DOMAIN",
+    attribution_text:
+      "The Holy Scriptures According to the Masoretic Text (Jewish Publication Society of America, 1917). Public domain. From eBible.org.",
+    homepage: "https://ebible.org/engjps/",
+    commit: "unversioned",
+    pinnedByDigest: true,
+    downloadable: true,
+    // The zip as downloaded on 12 Oct 2026 (eBible built it 8 Oct 2026 from sources dated 12 Dec 2025).
+    files: [ebible("engjps", "12b1812db23e9c10be68f2dd417aa1a190db4c03c6e6f5c29f53f97332b659d7")],
+    modifications:
+      "Old Testament only. Verses placed on English verse numbers through STEPBible's TVTMS from the Hebrew numbers eBible marks, " +
+      "e.g. '(3-1)'; the markers are removed, and a psalm's title joins its English verse 1. The Psalter's five book headings " +
+      "('BOOK I' to 'BOOK V') are removed. Words otherwise unaltered apart from whitespace.",
   },
   // ---------------------------------------------------------------------------
   // Contextual English glosses for the interlinear. STEPBible's own per-word

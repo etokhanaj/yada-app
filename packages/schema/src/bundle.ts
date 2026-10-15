@@ -22,6 +22,7 @@ import { z } from "zod";
 import { LicenseSchema } from "./manifest.js";
 import { BOOK_ORDER, type BookCode, BookCodeSchema, VerseIdSchema } from "./refs.js";
 import { StudyInfoSchema } from "./study.js";
+import { AudioInfoSchema, UnderstandInfoSchema } from "./understand.js";
 
 /** Bumped when a table or column changes in a way an older app cannot read. */
 export const BUNDLE_FORMAT = 2;
@@ -306,8 +307,20 @@ export const TranslationInfoSchema = z
     attribution: z.string().min(1),
     cover: CoverToneSchema,
     verses: z.number().int().positive(),
-    /** Verses of the English versification this translation does not print. */
+    /**
+     * Verses of the English versification this translation does not print. For a translation of
+     * one testament, only that testament's verses are counted.
+     */
     missing: z.array(VerseIdSchema),
+    /**
+     * Present when the translation covers one testament only (the JPS 1917 Tanakh is "OT"). Absent
+     * means the whole Bible. Compare must not offer it for a book outside that testament.
+     */
+    testament: z.enum(["OT", "NT"]).optional(),
+    /** Shown in the row's label when set, e.g. "Jewish Publication Society". */
+    publisher: z.string().min(1).optional(),
+    /** One line saying what kind of text it is, for a version that needs saying. */
+    description: z.string().min(1).optional(),
   })
   // The same guard as bundles: publish uploads `file` from disk by this name.
   .refine((info) => info.file === translationFileName(info.code, info.version), {
@@ -315,6 +328,15 @@ export const TranslationInfoSchema = z
     path: ["file"],
   });
 export type TranslationInfo = z.infer<typeof TranslationInfoSchema>;
+
+/**
+ * A downloadable version's one-line label: "JPS 1917 · Jewish Publication Society · Old
+ * Testament". Only the parts the manifest gives; a whole-Bible version is its name alone.
+ */
+export function translationLabel(info: Pick<TranslationInfo, "name" | "publisher" | "testament">): string {
+  const scope = info.testament === "OT" ? "Old Testament" : info.testament === "NT" ? "New Testament" : undefined;
+  return [info.name, info.publisher, scope].filter((part) => part !== undefined).join(" · ");
+}
 
 export const BundleManifestSchema = z.object({
   format: z.number().int().positive(),
@@ -330,5 +352,12 @@ export const BundleManifestSchema = z.object({
   translations: z.array(TranslationInfoSchema).optional(),
   /** Per-book study bundles (study.ts), downloaded on demand; optional for the same reason. */
   study: z.array(StudyInfoSchema).optional(),
+  /**
+   * Per-book Understand without AI (understand.ts, docs/no-ai-understand.md), downloaded on demand
+   * like study bundles. They replace the AI entries the `understand` kind of `bundles` carried.
+   */
+  understand: z.array(UnderstandInfoSchema).optional(),
+  /** Human-read BSB recordings, per narrator and book (docs/research/bsb-audio-printing-check.md). */
+  audio: z.array(AudioInfoSchema).optional(),
 });
 export type BundleManifest = z.infer<typeof BundleManifestSchema>;

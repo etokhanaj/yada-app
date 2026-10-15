@@ -34,6 +34,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FONTS, SPRING, useLayout, usePalette } from "../design/tokens";
 import { useReduceMotion } from "../lib/motion";
+import type { OriginalLanguage } from "../lib/originalLanguage";
 import { type BarItem, barItems, moreActions } from "../lib/reader";
 import { MediaIcon } from "./audio/MediaIcon";
 import { Icon } from "./Icon";
@@ -53,18 +54,22 @@ export function ActionBar({
   hasEntry,
   bookmarked,
   script,
+  language,
   onUnderstand,
   onOriginal,
   onCompare,
   onMenu,
   onHeight,
   playFrom = null,
+  nowPlaying = null,
 }: {
   /** "14:34" or "14:34–35". */
   verseLabel: string;
   hasEntry: boolean;
   bookmarked: boolean;
   script: "greek" | "hebrew";
+  /** The selection's own language: Daniel 3 is Aramaic, though the book is set in Hebrew script. */
+  language: OriginalLanguage;
   onUnderstand: () => void;
   /** Only offered when the verse has no Understand (lib/reader.ts barItems). */
   onOriginal: () => void;
@@ -74,6 +79,8 @@ export function ActionBar({
   onHeight: (height: number) => void;
   /** The chapter can be read aloud: offer Play from the selection's first verse, first in the row, second in the AX list (AU-03). */
   playFrom?: (() => void) | null;
+  /** While audio plays: the now-playing strip above the actions (ReaderBars NowPlayingStrip). */
+  nowPlaying?: ReactNode;
 }) {
   const palette = usePalette();
   const { ax, pill } = useLayout();
@@ -81,16 +88,23 @@ export function ActionBar({
   const menu = moreActions(hasEntry, ax, bookmarked);
   const firstVerse = verseLabel.split(/[–-]/)[0] ?? verseLabel;
 
-  const originalName = script === "hebrew" ? "Original Hebrew" : "Original Greek";
+  const originalName = `Original ${language}`;
 
   const audio =
     playFrom === null ? null : (
-      <Capsule key="play" auto height={pill} onPress={playFrom} label={`Play from verse ${firstVerse.split(":")[1] ?? firstVerse}`} testID="bar-play-from">
-        {ax ? null : <MediaIcon name="play" size={18} maxScale={1} />}
-        <Chrome tone="ink" style={{ fontWeight: "500", flex: ax ? 1 : undefined }}>
-          {ax ? `Play from ${firstVerse}` : firstVerse}
-        </Chrome>
-        {ax ? <MediaIcon name="play" size={30} maxScale={1} /> : null}
+      // In the row, ▶ alone: "▶ 14:33" beside "Understand 14:33" said the verse twice and cut Understand to
+      // "Understand 1…" (UX pass, 15 Oct 2026). The selected verse is in view; VoiceOver hears which verse.
+      <Capsule key="play" square={!ax} height={pill} onPress={playFrom} label={`Play from verse ${firstVerse.split(":")[1] ?? firstVerse}`} testID="bar-play-from">
+        {ax ? (
+          <>
+            <Chrome tone="ink" style={{ fontWeight: "500", flex: 1 }}>
+              {`Play from ${firstVerse}`}
+            </Chrome>
+            <MediaIcon name="play" size={30} maxScale={1} />
+          </>
+        ) : (
+          <MediaIcon name="play" size={18} maxScale={1} />
+        )}
       </Capsule>
     );
 
@@ -176,6 +190,7 @@ export function ActionBar({
   const [first, ...rest] = items.map(button);
   return (
     <BarFrame onHeight={onHeight} testID="action-bar">
+      {nowPlaying}
       {ax ? (
         <View style={{ rowGap: 8 }}>
           {first}
@@ -273,7 +288,6 @@ export function Capsule({
   primary = false,
   grow = false,
   square = false,
-  auto = false,
   height,
   onPress,
   label,
@@ -284,8 +298,6 @@ export function Capsule({
   primary?: boolean;
   grow?: boolean;
   square?: boolean;
-  /** As wide as its content, at least round: the playing bar's `▶ 1:6`. */
-  auto?: boolean;
   height: number;
   onPress: () => void;
   label: string;
@@ -303,7 +315,7 @@ export function Capsule({
       testID={testID}
       style={({ pressed }) => [
         styles.capsule,
-        ax ? styles.wide : square ? { width: height } : grow ? styles.cell : auto ? { minWidth: height, paddingHorizontal: 14 } : null,
+        ax ? styles.wide : square ? { width: height } : grow ? styles.cell : null,
         ax ? styles.list : { height },
         { minHeight: height, backgroundColor: primary ? palette.ink : palette.fill },
         pressed ? { opacity: 0.72 } : null,

@@ -1,5 +1,6 @@
 /** Paths and settings, each overridable from the environment. */
 
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -44,6 +45,49 @@ export function stagingDbPath(env: Env = process.env): string {
 export function reviewDir(env: Env = process.env): string {
   const override = nonEmpty(env["YADA_REVIEW_DIR"]);
   return override === undefined ? path.join(REPO_ROOT, "review") : path.resolve(override);
+}
+
+/** The debate positions John approves one by one (the "Debate positions" queue). */
+export function debatesPath(env: Env = process.env): string {
+  const override = nonEmpty(env["YADA_DEBATES"]);
+  return override === undefined
+    ? path.join(REPO_ROOT, "packages", "pipeline", "prototypes", "data", "debates.json")
+    : path.resolve(override);
+}
+
+/** John's hand decisions on passage summaries (the "Passage summaries" queue). */
+export function passageReviewsPath(env: Env = process.env): string {
+  const override = nonEmpty(env["YADA_PASSAGE_REVIEWS"]);
+  return override === undefined
+    ? path.join(REPO_ROOT, "packages", "pipeline", "prototypes", "data", "passage_reviews.json")
+    : path.resolve(override);
+}
+
+/** Where book_intros.json and grammar.json live (the "Extracts" queue, build 6). */
+export function extractsDir(env: Env = process.env): string {
+  const override = nonEmpty(env["YADA_EXTRACTS_DIR"]);
+  return override === undefined ? path.join(REPO_ROOT, "packages", "pipeline", "prototypes", "data") : path.resolve(override);
+}
+
+/** The pipeline script that lists the flagged summaries, run as a child process (read-only). */
+export const FLAGGED_SUMMARIES_SCRIPT = path.join(REPO_ROOT, "packages", "pipeline", "src", "understand", "flagged.ts");
+
+/**
+ * The core bundle the debate cards read BSB text from. Defaults to the newest
+ * `core.vN.db` in content/bundles, so a rebuilt bundle needs no config change.
+ */
+export function coreDbPath(env: Env = process.env): string {
+  const override = nonEmpty(env["YADA_CORE_DB"]);
+  if (override !== undefined) return path.resolve(override);
+  const dir = path.join(REPO_ROOT, "content", "bundles");
+  const versions = existsSync(dir)
+    ? readdirSync(dir)
+        .map((file) => /^core\.v(\d+)\.db$/.exec(file)?.[1])
+        .filter((v): v is string => v !== undefined)
+        .map(Number)
+        .sort((a, b) => b - a)
+    : [];
+  return path.join(dir, `core.v${versions[0] ?? 5}.db`);
 }
 
 export function sampleSeed(env: Env = process.env): string {

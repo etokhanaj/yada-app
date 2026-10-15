@@ -13,6 +13,8 @@
 # a pipe (rule 7).
 
 set -euo pipefail
+# CocoaPods (prebuild's pod install) fails with an encoding error in a shell without a UTF-8 locale (15 Oct 2026).
+export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 upload=1
 case "${1:-}" in
@@ -54,6 +56,13 @@ cd "$app"
 source "$app/scripts/licensed-guard.sh"
 if ! refuse_licensed_build "$app"; then
   exit 1
+fi
+# The proxy URL is the one licensed setting a release may carry (12 Oct 2026): not a secret, and
+# app.config.ts refuses one that is not https. Without it the build offers no licensed versions.
+if [ -n "${EXPO_PUBLIC_LICENSED_PROXY_URL:-}" ]; then
+  echo "Licensed translations: through $EXPO_PUBLIC_LICENSED_PROXY_URL"
+else
+  echo "Licensed translations: off (EXPO_PUBLIC_LICENSED_PROXY_URL is not set)"
 fi
 
 redact() {
@@ -104,6 +113,12 @@ if ! /usr/libexec/PlistBuddy -c "Print :com.apple.developer.ubiquity-kvstore-ide
   echo "ios/ predates iCloud sync. Regenerate it: npx expo prebuild --platform ios --clean" >&2
   exit 1
 fi
+# Build 6 added the reminder's long-press view as its own extension (targets/notification, SX-14). An ios/
+# generated before it archives without it, and the long-press shows iOS's plain text instead.
+if ! grep -q "YadaNotification" ios/Yada.xcodeproj/project.pbxproj; then
+  echo "ios/ predates the notification extension. Regenerate it: npx expo prebuild --platform ios --clean" >&2
+  exit 1
+fi
 
 build="$(node -e '
   const fs = require("fs");
@@ -142,13 +157,35 @@ step "archive" "$out/archive.log" env -u YADA_DEV_LICENSED -u API_BIBLE_KEY -u A
   -archivePath "$out/Yada.xcarchive" \
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   CODE_SIGN_STYLE=Automatic \
+  CURRENT_PROJECT_VERSION="$build" \
   "${auth[@]}"
+
+# Every bundle inside must carry the app's build number: build 5 shipped a widget still at 4 (ITMS-90473,
+# 13 Oct 2026), because its Info.plist reads CURRENT_PROJECT_VERSION, fixed when ios/ was generated.
+for plist in "$out"/Yada.xcarchive/Products/Applications/Yada.app/PlugIns/*.appex/Info.plist; do
+  [ -e "$plist" ] || continue
+  if [ "$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$plist")" != "$build" ]; then
+    echo "$(basename "$(dirname "$plist")") is not build $build. Refusing to export." >&2
+    exit 1
+  fi
+done
 
 # And the result is checked: the embedded Expo config must carry no key (review, 10 Oct 2026).
 if ! assert_no_licensed_key "$out/Yada.xcarchive/Products/Applications/Yada.app"; then
   echo "Refusing to export $out/Yada.xcarchive. Delete it; it must not be uploaded." >&2
   exit 1
 fi
+# The key's value, searched for anywhere in the app, under whatever name it might have come in
+# (12 Oct 2026: the proxy made licensed text reach testers, so the key's absence is checked, not
+# assumed). The value is read inside the function and never printed.
+# Both this checkout's .env.local and the main checkout's, since a worktree has none of its own.
+main_root="$(cd "$(git -C "$app" rev-parse --path-format=absolute --git-common-dir)/.." && pwd)"
+for envfile in "$app/../../.env.local" "$main_root/.env.local"; do
+  if ! assert_key_value_absent "$out/Yada.xcarchive/Products/Applications/Yada.app" "$envfile"; then
+    echo "Refusing to export $out/Yada.xcarchive. Delete it; it must not be uploaded." >&2
+    exit 1
+  fi
+done
 
 # Holds the team id, so it lives in the private temp dir, not next to the logs.
 cat >"$private/ExportOptions.plist" <<PLIST

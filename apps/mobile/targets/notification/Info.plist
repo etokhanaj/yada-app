@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>NSExtension</key>
+    <dict>
+      <key>NSExtensionAttributes</key>
+      <dict>
+        <!-- data/reminder.ts CATEGORY: the reminder, with its Read and Listen actions. -->
+        <key>UNNotificationExtensionCategory</key>
+        <string>reading</string>
+        <key>UNNotificationExtensionInitialContentSizeRatio</key>
+        <real>0.6</real>
+        <!-- SX-14: the passage is drawn here, so iOS's own title and body would repeat it. -->
+        <key>UNNotificationExtensionDefaultContentHidden</key>
+        <true/>
+        <key>UNNotificationExtensionUserInteractionEnabled</key>
+        <false/>
+      </dict>
+      <key>NSExtensionPrincipalClass</key>
+      <string>$(PRODUCT_MODULE_NAME).NotificationViewController</string>
+      <key>NSExtensionPointIdentifier</key>
+      <string>com.apple.usernotifications.content-extension</string>
+    </dict>
+  </dict>
+</plist>

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  backAfterGap,
+  bookThread,
   homeLead,
   listMark,
   nextPassage,
@@ -11,7 +13,9 @@ import {
   progressLabel,
   progressLine,
   readIndexes,
+  READ_PREFIX,
   readThread,
+  stepAfter,
 } from "./startHere";
 
 // The first four of John's 46 passages as the John bundle holds them, and the one that crosses a chapter.
@@ -137,5 +141,27 @@ describe("nextRowReached (ON-04)", () => {
   it("does not count before the row or the sheet has been measured", () => {
     expect(nextRowReached(0, 0, 0, 600)).toBe(false);
     expect(nextRowReached(300, 60, 0, 0)).toBe(false);
+  });
+});
+
+describe("progress from the passage boundary (MM-01)", () => {
+  it("finishing passage k leaves step k + 1, the passage after it", () => {
+    expect(stepAfter(0)).toBe(1);
+    expect(stepAfter(4)).toBe(5);
+  });
+
+  it("keeps each book's rows under its own thread; John's stay Start here's", () => {
+    expect(readThread("JHN.1.1-1.18", bookThread("JHN"))).toBe(`${READ_PREFIX}JHN.1.1-1.18`);
+    expect(readThread("MRK.1.1-1.8", bookThread("MRK"))).toBe("book-MRK/read/MRK.1.1-1.8");
+  });
+});
+
+describe("back after a gap (MM-05)", () => {
+  it("is three days or more since the place was saved, and never without one", () => {
+    const now = new Date("2026-10-13T08:00:00Z");
+    expect(backAfterGap("2026-10-10T08:00:00Z", now)).toBe(true);
+    expect(backAfterGap("2026-10-11T08:00:00Z", now)).toBe(false);
+    expect(backAfterGap(null, now)).toBe(false);
+    expect(backAfterGap("not a date", now)).toBe(false);
   });
 });

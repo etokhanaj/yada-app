@@ -31,14 +31,16 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 
 import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-import { BundleManifestSchema, type BundleInfo, type BundleManifest, type StudyInfo, type TranslationInfo } from "@yada/schema";
+import { BundleManifestSchema, type BundleInfo, type BundleManifest, type StudyInfo, type TranslationInfo, type UnderstandInfo } from "@yada/schema";
 
 import { BUNDLES } from "./package.js";
+import { stopped } from "./understand/package.js";
 import { gzipTranslation } from "./translations.js";
 
 export const R2_ENV = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"] as const;
@@ -48,11 +50,34 @@ export class PublishRefused extends Error {}
 
 export type ObjectStore = Pick<S3Client, "send">;
 
+/** One recorded chapter's audio or timings file, from the manifest's `audio` list. */
+interface AudioFile {
+  readonly file: string;
+  readonly sha256: string;
+  readonly bytes: number;
+}
+
+type Listed = BundleInfo | TranslationInfo | StudyInfo | UnderstandInfo | AudioFile;
+
+/** Audio is already compressed; its timings are small: both go up as they are, with their own types. */
+const contentTypeOf = (file: string): string =>
+  file.endsWith(".m4a") ? "audio/mp4" : file.endsWith(".json") ? "application/json" : "application/vnd.sqlite3";
+
 export interface PlannedBundle {
-  info: BundleInfo | TranslationInfo | StudyInfo;
+  info: Listed;
   file: string;
-  /** Translations and study bundles: uploaded as gzipped bytes with Content-Encoding gzip. */
+  /** Translations, study and Understand bundles: uploaded as gzipped bytes with Content-Encoding gzip. */
   gzip: boolean;
+  /** A chapter's audio removed from this Mac after it was published (audio-prune): R2 must still hold it. */
+  pruned?: boolean;
+}
+
+/** bundles/audio/published.json: the audio files `yada audio-prune` removed, each as the bucket held it. */
+export const PRUNED_FILE = path.join("audio", "published.json");
+
+export function readPruned(dir: string): Record<string, { sha256: string; bytes: number }> {
+  const file = path.join(dir, PRUNED_FILE);
+  return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as Record<string, { sha256: string; bytes: number }>) : {};
 }
 
 export interface PublishPlan {
@@ -68,12 +93,13 @@ function sha256(bytes: Uint8Array): string {
 }
 
 /** A file the app downloads on demand (a translation or a book's study notes), served gzipped. */
-function isDownload(info: BundleInfo | TranslationInfo | StudyInfo): info is TranslationInfo | StudyInfo {
-  return "code" in info || "licenses" in info;
+/** Downloads (translations, study and Understand bundles) upload gzipped; core and old bundles do not. */
+function isDownload(info: Listed): info is TranslationInfo | StudyInfo | UnderstandInfo {
+  return "code" in info || "licenses" in info || "passages" in info;
 }
 
 /** The size the manifest promises for the download, when it promises one. */
-function downloadSizeProblem(info: BundleInfo | TranslationInfo | StudyInfo, gzipped: Uint8Array): string | null {
+function downloadSizeProblem(info: Listed, gzipped: Uint8Array): string | null {
   if (!isDownload(info) || info.download_bytes === undefined || gzipped.length === info.download_bytes) return null;
   return `${info.file} gzips to ${gzipped.length} bytes, manifest says ${info.download_bytes}`;
 }
@@ -105,12 +131,26 @@ export function planPublish(dir: string = BUNDLES): PublishPlan {
 
   const problems: string[] = [];
   const bundles: PlannedBundle[] = [];
-  // Translations and study bundles upload with the bundles, before the manifest: a manifest
-  // offering a download that is not yet in the bucket is a broken row on every phone.
-  for (const info of [...manifest.bundles, ...(manifest.translations ?? []), ...(manifest.study ?? [])]) {
+  const pruned = readPruned(dir);
+  // Translations, study and Understand bundles upload with the bundles, before the manifest: a
+  // manifest offering a download that is not yet in the bucket is a broken row on every phone.
+  const audioFiles: AudioFile[] = (manifest.audio ?? []).flatMap((a) => [
+    // The chapter names are shared by a voice's versions: listed once per entry, uploaded once (dedup below).
+    ...(a.titles === undefined ? [] : [{ file: a.titles.file, sha256: a.titles.sha256, bytes: a.titles.bytes }]),
+    ...a.chapters.flatMap((c) => [
+      { file: c.file, sha256: c.sha256, bytes: c.bytes },
+      // A missing timings file is reported by the loop below, not thrown here.
+      { file: c.timings, sha256: c.timings_sha256, bytes: existsSync(path.join(dir, c.timings)) ? statSync(path.join(dir, c.timings)).size : 0 },
+    ]),
+  ]).filter((f, i, all) => all.findIndex((g) => g.file === f.file) === i);
+  for (const info of [...manifest.bundles, ...(manifest.translations ?? []), ...(manifest.study ?? []), ...(manifest.understand ?? []), ...audioFiles]) {
     const file = path.join(dir, info.file);
     if (!existsSync(file)) {
-      problems.push(`${info.file} is listed in the manifest but not on disk`);
+      // Removed after publishing (audio-prune, 13 Oct 2026, to keep the Mac's disk): the ledger must agree
+      // with the manifest, and the HEAD below must find it in the bucket, or the publish is refused.
+      const was = pruned[info.file];
+      if (was !== undefined && was.sha256 === info.sha256 && was.bytes === info.bytes) bundles.push({ info, file, gzip: false, pruned: true });
+      else problems.push(`${info.file} is listed in the manifest but not on disk`);
       continue;
     }
     const bytes = readFileSync(file);
@@ -120,6 +160,13 @@ export function planPublish(dir: string = BUNDLES): PublishPlan {
     const gzip = isDownload(info);
     const sizeProblem = gzip ? downloadSizeProblem(info, gzipTranslation(bytes)) : null;
     if (sizeProblem !== null) problems.push(sizeProblem);
+    // The 15% stop holds at publish too, whatever the manifest says: a hand-edited list must not
+    // ship a stopped book (Joel, Habakkuk and Malachi wrote files with every summary flagged).
+    if ("passages" in info) {
+      const db = new DatabaseSync(file, { readOnly: true });
+      if (stopped(db)) problems.push(`${info.file} is over the 15% flag stop and cannot be published`);
+      db.close();
+    }
     bundles.push({ info, file, gzip });
   }
   if (problems.length > 0) throw new PublishRefused(`refusing the entire publish:\n  ${problems.join("\n  ")}`);
@@ -216,6 +263,7 @@ export async function publish(options: PublishOptions): Promise<PublishReport> {
     } catch (error) {
       if (error instanceof PublishRefused) throw error;
       if (!isNotFound(error)) throw error;
+      if (bundle.pruned === true) throw new PublishRefused(`refusing the entire publish: ${bundle.info.file} was removed from this Mac as published, but the bucket does not have it`);
       toUpload.push(bundle);
     }
   }
@@ -241,7 +289,7 @@ export async function publish(options: PublishOptions): Promise<PublishReport> {
         Bucket: config.bucket,
         Key: bundle.info.file,
         Body: body,
-        ContentType: "application/vnd.sqlite3",
+        ContentType: contentTypeOf(bundle.info.file),
         ...(bundle.gzip ? { ContentEncoding: "gzip" } : {}),
         CacheControl: "public, max-age=31536000, immutable",
         // The decompressed file's digest: what the app checks, and what the HEAD above compares.
@@ -271,5 +319,63 @@ export function formatBytes(bytes: number): string {
 }
 
 export function totalBytes(plan: PublishPlan): number {
-  return plan.bundles.reduce((sum, b) => sum + statSync(b.file).size, 0);
+  return plan.bundles.reduce((sum, b) => sum + (b.pruned === true ? Number(b.info.bytes) : statSync(b.file).size), 0);
+}
+
+export interface PruneReport {
+  /** Removed from this Mac: the bucket held each with the manifest's sha256. */
+  removed: string[];
+  /** Kept: not in the bucket yet, or held there with other content. */
+  kept: string[];
+  bytes: number;
+}
+
+/**
+ * `yada audio-prune`: remove from this Mac the chapters' audio the bucket already holds, to keep the disk
+ * (John, 13 Oct 2026). R2 is the master copy once published; each file is checked there by the sha256 it
+ * was uploaded with before it goes, and the ledger is written before the file is removed. Timings stay:
+ * they are small, and audio-manifest reads them.
+ */
+export async function pruneAudio(options: { confirm: boolean; dir?: string; client?: ObjectStore; env?: NodeJS.ProcessEnv }): Promise<PruneReport> {
+  const dir = options.dir ?? BUNDLES;
+  const manifest = BundleManifestSchema.parse(JSON.parse(readFileSync(path.join(dir, MANIFEST_KEY), "utf8")));
+  const ledger = readPruned(dir);
+  const candidates = (manifest.audio ?? []).flatMap((a) => a.chapters).filter((c) => existsSync(path.join(dir, c.file)));
+  const report: PruneReport = { removed: [], kept: [], bytes: 0 };
+  if (!options.confirm) {
+    report.kept = candidates.map((c) => c.file);
+    return report;
+  }
+  const config = r2Config(options.env);
+  const client =
+    options.client ??
+    new S3Client({
+      region: "auto",
+      endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+      credentials: { accessKeyId: config.accessKeyId, secretAccessKey: config.secretAccessKey },
+    });
+  for (const c of candidates) {
+    const local = path.join(dir, c.file);
+    if (sha256(readFileSync(local)) !== c.sha256) {
+      report.kept.push(c.file);
+      continue;
+    }
+    let held = false;
+    try {
+      const head = (await client.send(new HeadObjectCommand({ Bucket: config.bucket, Key: c.file }))) as { Metadata?: Record<string, string> };
+      held = head.Metadata?.["sha256"] === c.sha256;
+    } catch (error) {
+      if (!isNotFound(error)) throw error;
+    }
+    if (!held) {
+      report.kept.push(c.file);
+      continue;
+    }
+    ledger[c.file] = { sha256: c.sha256, bytes: c.bytes };
+    writeFileSync(path.join(dir, PRUNED_FILE), `${JSON.stringify(ledger, null, 1)}\n`);
+    rmSync(local);
+    report.removed.push(c.file);
+    report.bytes += c.bytes;
+  }
+  return report;
 }

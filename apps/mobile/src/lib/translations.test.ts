@@ -171,7 +171,7 @@ describe("bsbStandsIn", () => {
     expect(bsbStandsIn({ BSB: "b" }, "NIV", false)).toBe(true);
     expect(bsbStandsIn({ BSB: "b", KJV: "k" }, "KJV", false)).toBe(false);
     expect(bsbStandsIn({ BSB: "b" }, "BSB", false)).toBe(false);
-    // A download without the verse says "Not in ASV" instead.
+    // A download without the verse says "Not in the ASV." instead (CP-08).
     expect(bsbStandsIn({ BSB: "b" }, "ASV", true)).toBe(false);
   });
 });
@@ -180,7 +180,7 @@ describe("verseTextIn", () => {
   it("never puts BSB's words under a downloaded version's name", () => {
     expect(verseTextIn({ BSB: "b", ASV: "a" }, "ASV", true)).toBe("a");
     expect(verseTextIn({ BSB: "b" }, "ASV", true)).toBeNull();
-    expect(notInLine("ASV")).toBe("Not in ASV");
+    expect(notInLine("ASV")).toBe("Not in the ASV.");
   });
 
   it("keeps the BSB fallback for a version that is not in these files", () => {
