@@ -10,7 +10,7 @@
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useEffect, useState } from "react";
-import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { Linking, Pressable, StyleSheet, Switch, View } from "react-native";
 
 import { ListRow, PageScreen } from "../components/Page";
 import { Icon } from "../components/Icon";
@@ -19,7 +19,9 @@ import { Chrome, Label } from "../components/Type";
 import { useAppData, useCore } from "../data/AppData";
 import { changeReminder, previewReminder, turnOff, turnOn, useReminder } from "../data/reminder";
 import { useLayout, usePalette } from "../design/tokens";
-import { type ReminderPrefs, type ReminderText, timeLabel } from "../lib/reminder";
+import { loadSettings } from "../data/user";
+import { parsePsalter } from "../lib/dailyPsalms";
+import { DEFAULT_EVENING, type ReminderPrefs, type ReminderText, timeLabel } from "../lib/reminder";
 
 const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -32,6 +34,11 @@ export default function ReminderScreen() {
   const prefs = useReminder((s) => s.prefs);
   const permission = useReminder((s) => s.permission);
   const [preview, setPreview] = useState<ReminderText | null>(null);
+  // The evening time is offered only under the 1662 table, the one with an evening set (DR-04).
+  const [psalter1662, setPsalter1662] = useState(false);
+  useEffect(() => {
+    void loadSettings(user).then((s) => setPsalter1662(parsePsalter(s["dailyPsalms"]) === "1662"));
+  }, [user]);
 
   useEffect(() => {
     let live = true;
@@ -96,6 +103,37 @@ export default function ReminderScreen() {
           );
         })}
       </View>
+
+      {psalter1662 ? (
+        <View style={{ marginTop: 16 }}>
+          <ListRow
+            first
+            title="This evening’s psalms"
+            chevron={false}
+            right={
+              <Switch
+                value={prefs.evening !== null}
+                onValueChange={(on) => change({ ...prefs, evening: on ? DEFAULT_EVENING : null })}
+                accessibilityLabel="This evening’s psalms"
+                testID="reminder-evening"
+              />
+            }
+          />
+          {prefs.evening !== null ? (
+            <View style={[styles.timeRow, ax ? { flexDirection: "column", alignItems: "flex-start" } : null]}>
+              <Chrome tone="ink">Evening</Chrome>
+              <DateTimePicker
+                mode="time"
+                display="compact"
+                value={new Date(2000, 0, 1, prefs.evening.hour, prefs.evening.minute)}
+                onValueChange={(_, date) => change({ ...prefs, evening: { hour: date.getHours(), minute: date.getMinutes() } })}
+                accessibilityLabel="Evening time"
+                testID="reminder-evening-time"
+              />
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>What it says</Label>
       {(

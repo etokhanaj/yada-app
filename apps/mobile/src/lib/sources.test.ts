@@ -4,7 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 
 import type { SourceRow } from "../data/queries";
-import { licenceLabel, sourceItems } from "./sources";
+import { DAILY_LIGHT_DATASET, PICTURES_DATASET, SPURGEON_DATASET, licenceLabel, sourceItems } from "./sources";
 
 const row = (dataset: string, license: string, encumbered: string | null = null): SourceRow => ({
   dataset,
@@ -122,5 +122,20 @@ describe.skipIf(!existsSync(corePath))("sourceItems against the core bundle", ()
     const unmapped = rows.filter((r) => !items.some((i) => i.dataset === r.dataset)).map((r) => r.dataset);
     // Fonts and the early WEB excerpt file only.
     expect(unmapped.every((d) => /Literata|Noto|Gentium|John 1, Genesis 1/.test(d))).toBe(true);
+  });
+});
+
+describe("Today's sources (build 7a)", () => {
+  it("lists Spurgeon, Daily Light and the pictures under Today", () => {
+    const items = sourceItems([
+      { dataset: SPURGEON_DATASET, license: "PUBLIC_DOMAIN", url: "https://www.ccel.org/ccel/spurgeon/morneve.xml" },
+      { dataset: DAILY_LIGHT_DATASET, license: "PUBLIC_DOMAIN", url: "https://www.ccel.org/ccel/anonymous/daily_light.html" },
+      { dataset: PICTURES_DATASET, license: "Public domain and CC0", url: "https://commons.wikimedia.org" },
+    ]);
+    expect(items.map((i) => [i.group, i.title, i.value])).toEqual([
+      ["Today", "Devotional", "Spurgeon, Morning and Evening · Public domain"],
+      ["Today", "The day’s verse", "Daily Light on the Daily Path · Public domain"],
+      ["Today", "Today’s pictures", "Wikimedia Commons · Public domain and CC0"],
+    ]);
   });
 });

@@ -26,7 +26,7 @@ import { exclusiveWrite, loadSettings } from "./user";
 import { parseReminder } from "../lib/reminder";
 
 /** The user.db tables that are the reader's own record; the installed_* tables are handled by Remove. */
-const READER_TABLES = ["bookmarks", "bookmark_removals", "position", "thread_progress", "events", "books_begun", "licensed_chapters"] as const;
+const READER_TABLES = ["bookmarks", "bookmark_removals", "position", "thread_progress", "events", "books_begun", "licensed_chapters", "rhythm_days"] as const;
 /** The settings that are the reader's record rather than a preference: the reminder and the plan. */
 // reminderOffered is build 5's key, still on phones that upgraded.
 const READER_SETTINGS = ["reminder", "reminderUntil", "reminderAsk", "reminderOffered", "yourPlan"] as const;

@@ -46,8 +46,19 @@ export interface ExtractDecisionRecord {
 
 type Json = Record<string, unknown>;
 
-const FILES: Readonly<Record<ExtractKind, string>> = { book_intro: "book_intros.json", grammar: "grammar.json" };
-const TITLES: Readonly<Record<ExtractKind, string>> = { book_intro: "Book introductions", grammar: "Grammar terms" };
+const FILES: Readonly<Record<ExtractKind, string>> = {
+  book_intro: "book_intros.json",
+  grammar: "grammar.json",
+  // Written by scripts/sample-daily-review.mjs (build 7a, plan §0 step 1).
+  devotional: "devotional_samples.json",
+  daily_light: "daily_light_samples.json",
+};
+const TITLES: Readonly<Record<ExtractKind, string>> = {
+  book_intro: "Book introductions",
+  grammar: "Grammar terms",
+  devotional: "Spurgeon, Morning and Evening (sample)",
+  daily_light: "Daily Light references (sample)",
+};
 const LANGUAGE: Readonly<Record<string, string>> = { greek: "Greek", hebrew: "Hebrew", aramaic: "Aramaic" };
 
 function sha256(text: string): string {
@@ -85,7 +96,9 @@ function toItem(kind: ExtractKind, entry: Json): ExtractItem {
       ? isBookCode(book)
         ? BOOK_CODES[book].name
         : id
-      : `${LANGUAGE[str(entry["language"])] ?? str(entry["language"])} · ${str(entry["label"])}`;
+      : kind === "devotional" || kind === "daily_light"
+        ? str(entry["label"])
+        : `${LANGUAGE[str(entry["language"])] ?? str(entry["language"])} · ${str(entry["label"])}`;
   const text = str(entry["text"]);
   const note = str(entry["note"]);
   return {

@@ -19,9 +19,14 @@ export interface ReminderPrefs {
   /** Monday first, as the picker shows them: M T W T F S S. */
   readonly days: readonly boolean[];
   readonly kind: ReminderKind;
+  /** Build 7: a second time, for this evening's psalms (plan §0 step 5). Null is no evening reminder. */
+  readonly evening: { readonly hour: number; readonly minute: number } | null;
 }
 
-export const DEFAULT_REMINDER: ReminderPrefs = { on: false, hour: 7, minute: 30, days: [true, true, true, true, true, true, true], kind: "next" };
+export const DEFAULT_REMINDER: ReminderPrefs = { on: false, hour: 7, minute: 30, days: [true, true, true, true, true, true, true], kind: "next", evening: null };
+
+/** When the evening reminder is first turned on: after the day's work, before Today's evening ends. */
+export const DEFAULT_EVENING = { hour: 19, minute: 0 } as const;
 
 /** Scheduled this far ahead each time Yada opens (NT-09: two weeks away and it has paused). */
 export const HORIZON_DAYS = 14;
@@ -38,6 +43,10 @@ export function parseReminder(stored: string | undefined): ReminderPrefs {
       minute: ok(v.minute, 59) ? (v.minute as number) : DEFAULT_REMINDER.minute,
       days,
       kind: v.kind === "today" ? "today" : "next",
+      evening:
+        typeof v.evening === "object" && v.evening !== null && ok(v.evening.hour, 23) && ok(v.evening.minute, 59)
+          ? { hour: v.evening.hour, minute: v.evening.minute }
+          : null,
     };
   } catch {
     return DEFAULT_REMINDER;
@@ -55,7 +64,7 @@ export function reminderSummary(p: ReminderPrefs): string {
   const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const on = p.days.flatMap((d, i) => (d ? [i] : []));
   const when = on.length === 7 ? "every day" : on.join() === "0,1,2,3,4" ? "weekdays" : on.join() === "5,6" ? "weekends" : on.map((i) => names[i]).join(", ");
-  return `${timeLabel(p)} · ${when}`;
+  return `${timeLabel(p)}${p.evening === null ? "" : ` and ${timeLabel(p.evening)}`} · ${when}`;
 }
 
 /** The moments to schedule from `now`: the chosen days, at the chosen time, up to the horizon. */

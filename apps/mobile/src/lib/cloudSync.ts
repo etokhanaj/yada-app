@@ -49,11 +49,13 @@ export interface SyncState {
   threads: Registers<number>;
   /** A SYNCED_SETTINGS key → its stored text. */
   settings: Registers<string>;
+  /** The streak's counted days (lib/rhythm.ts), "2026-10-16" → true: a union across devices (plan §6). */
+  days: Registers<boolean>;
 }
 
 export type SyncKind = keyof SyncState;
 
-export const SYNC_KINDS: readonly SyncKind[] = ["bookmarks", "position", "threads", "settings"];
+export const SYNC_KINDS: readonly SyncKind[] = ["bookmarks", "position", "threads", "settings", "days"];
 
 /**
  * One iCloud key per kind, versioned so a later format can live beside this one.
@@ -66,6 +68,8 @@ export const CLOUD_KEYS: Readonly<Record<SyncKind, string>> = {
   position: "v1.position",
   threads: "v1.threads",
   settings: "v1.settings",
+  // Build 7: its own key, so a build 6 app, which rewrites only the four kinds it knows, never strips it.
+  days: "v1.days",
 };
 
 export const POSITION_KEY = "reading";
@@ -82,7 +86,7 @@ export function isSyncedSetting(key: string): boolean {
   return (SYNCED_SETTINGS as readonly string[]).includes(key);
 }
 
-export const EMPTY_STATE: SyncState = { bookmarks: {}, position: {}, threads: {}, settings: {} };
+export const EMPTY_STATE: SyncState = { bookmarks: {}, position: {}, threads: {}, settings: {}, days: {} };
 
 /** The stamp for a local write that replaces a value stamped `previous`. */
 export function nextStamp(now: number, previous: number | undefined): number {
@@ -123,6 +127,7 @@ export function mergeState(local: SyncState, remote: SyncState, options: MergeOp
         : mergeRegisters(local.position, remote.position),
     threads: mergeRegisters(local.threads, remote.threads),
     settings: mergeRegisters(local.settings, remote.settings),
+    days: mergeRegisters(local.days, remote.days),
   };
 }
 
@@ -144,6 +149,7 @@ const VALID: { [K in SyncKind]: (key: string, value: unknown) => value is SyncSt
   position: (key, value): value is string => key === POSITION_KEY && typeof value === "string" && parseVerseId(value) !== null,
   threads: (key, value): value is number => key.length > 0 && key.length <= 64 && Number.isInteger(value) && (value as number) >= 0,
   settings: (key, value): value is string => isSyncedSetting(key) && typeof value === "string" && value.length <= 200,
+  days: (key, value): value is boolean => /^\d{4}-\d{2}-\d{2}$/u.test(key) && value === true,
 };
 
 /**

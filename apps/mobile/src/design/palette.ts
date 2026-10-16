@@ -41,38 +41,44 @@ export interface Palette {
   /** Raised sheet ground. */
   readonly sheet: string;
   readonly scrim: string;
+  /** Build 7 cards (CLAUDE.md "cards used right"): one soft fill, no shadow. */
+  readonly card: string;
 }
 
+// Build 7, "we go white" (John, 15 Oct 2026; docs/redesign/polish-2026-10-15.md): white ground and neutral greys;
+// forest stays the accent, chartreuse dark mode's. Values match style-v2.css's system polish block.
 const LIGHT: Palette = {
-  paper: "#F7F8F0",
-  ink: "#16231E",
-  mutedInk: "#526D63",
-  divider: "#DFE5D7",
+  paper: "#FFFFFF",
+  ink: "#111311",
+  mutedInk: "#686B69",
+  divider: "#E9E9E7",
   accent: "#183F35",
-  selection: "#E7EED8",
+  selection: "#EEF3E4",
   highlight: "#DBEC9A",
-  fill: "rgba(22,35,30,0.06)",
-  glass: "rgba(255,255,255,0.74)",
-  glassSolid: "#F7F8F0",
-  edge: "rgba(22,35,30,0.1)",
+  fill: "rgba(17,19,17,0.05)",
+  glass: "rgba(255,255,255,0.9)",
+  glassSolid: "#F2F2F0",
+  edge: "rgba(0,0,0,0.08)",
   sheet: "#FFFFFF",
-  scrim: "rgba(22,35,30,0.26)",
+  scrim: "rgba(0,0,0,0.28)",
+  card: "#F4F4F2",
 };
 
 const DARK: Palette = {
-  paper: "#0E1814",
-  ink: "#ECF0E4",
-  mutedInk: "#9AAFA4",
-  divider: "#22332C",
+  paper: "#0B0C0B",
+  ink: "#F4F5F2",
+  mutedInk: "#9C9F9B",
+  divider: "#262826",
   accent: "#DBEC9A",
-  selection: "#1A2D25",
+  selection: "#1C2418",
   highlight: "#3B4A22",
-  fill: "rgba(236,240,228,0.09)",
-  glass: "rgba(30,45,38,0.74)",
-  glassSolid: "#16231E",
-  edge: "rgba(255,255,255,0.09)",
-  sheet: "#16231E",
-  scrim: "rgba(0,0,0,0.55)",
+  fill: "rgba(244,245,242,0.08)",
+  glass: "rgba(32,34,32,0.86)",
+  glassSolid: "#161716",
+  edge: "rgba(255,255,255,0.1)",
+  sheet: "#161716",
+  scrim: "rgba(0,0,0,0.6)",
+  card: "#171917",
 };
 
 /**
@@ -81,18 +87,18 @@ const DARK: Palette = {
  */
 const LIGHT_IC: Palette = {
   ...LIGHT,
-  mutedInk: "#3F584F",
-  divider: "#7E9187",
-  edge: "rgba(22,35,30,0.35)",
-  fill: "rgba(22,35,30,0.1)",
+  mutedInk: "#4A4D4B",
+  divider: "#8A8D8B",
+  edge: "rgba(0,0,0,0.35)",
+  fill: "rgba(17,19,17,0.1)",
 };
 
 const DARK_IC: Palette = {
   ...DARK,
-  mutedInk: "#B5C6BC",
-  divider: "#5E7369",
+  mutedInk: "#BDC0BC",
+  divider: "#6A6D69",
   edge: "rgba(255,255,255,0.3)",
-  fill: "rgba(236,240,228,0.14)",
+  fill: "rgba(244,245,242,0.14)",
 };
 
 export const PALETTES = { light: LIGHT, dark: DARK, lightIC: LIGHT_IC, darkIC: DARK_IC } as const;

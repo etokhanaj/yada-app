@@ -369,7 +369,8 @@ export interface SummaryDecisionResponse {
 // or rejects it; nothing is edited here. Only approved text reaches the app (rule 2).
 // ---------------------------------------------------------------------------
 
-export const EXTRACT_KINDS = ["book_intro", "grammar"] as const;
+// Build 7a adds samples of the daily texts: Spurgeon's entries and the Daily Light references.
+export const EXTRACT_KINDS = ["book_intro", "grammar", "devotional", "daily_light"] as const;
 export type ExtractKind = (typeof EXTRACT_KINDS)[number];
 
 export function isExtractKind(value: unknown): value is ExtractKind {

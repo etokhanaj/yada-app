@@ -64,7 +64,8 @@
    "status": "rejected",
    "note": "Spelling corrected from the source: “The contruct state” → “The construct state”.",
    "rejected": [
-    "The contruct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state."
+    "The contruct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state.",
+    "The construct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state."
    ]
   },
   {
@@ -75,7 +76,7 @@
    "ref": "en_uag/content/stem_peal.rst Summary",
    "paragraph": "The Pe'al stem is the stem formation that is the simplest of form in Biblical Aramaic. The Pe'al stem is generally used to express either simple action or stative action.",
    "tokens": 652,
-   "status": "draft",
+   "status": "approved",
    "note": "Spelling corrected from the source: “the simplest of form” → “the simplest form”.",
    "rejected": [
     "The Pe'al stem is the stem formation that is the simplest of form in Biblical Aramaic."
@@ -324,7 +325,7 @@
    "ref": "machen/newtestamentgree00mach_djvu.txt §34",
    "paragraph": "The object of a transitive verb is placed in the accusative case.",
    "tokens": 23276,
-   "status": "draft",
+   "status": "approved",
    "source": "machen",
    "rejected": [
     "In Koiné Greek, the accusative case ending of a word indicates either the direct object of a verb (including participles) or the object of a preposition."
@@ -348,7 +349,7 @@
    "ref": "machen/newtestamentgree00mach_djvu.txt §35",
    "paragraph": "The genitive case expresses possession.",
    "tokens": 19569,
-   "status": "draft",
+   "status": "approved",
    "source": "machen",
    "rejected": [
     "In Koiné Greek, the genitive case ending serves a wide variety of functions."
@@ -372,7 +373,7 @@
    "ref": "machen/newtestamentgree00mach_djvu.txt §36",
    "paragraph": "The dative case is the case of the indirect object.",
    "tokens": 12125,
-   "status": "draft",
+   "status": "approved",
    "source": "machen",
    "rejected": [
     "In Koiné Greek, the dative case ending can serve a wide range of functions."
@@ -419,7 +420,7 @@
    "ref": "machen/newtestamentgree00mach_djvu.txt lesson on the middle voice",
    "paragraph": "The middle voice represents the subject as acting in some way that concerns itself, or as acting upon something that belongs to itself.",
    "tokens": 3846,
-   "status": "draft",
+   "status": "approved",
    "source": "machen",
    "rejected": [
     "Middle voice indicates that the action of a verb is done by the subject to itself, or for its benefit (e.g., He washed himself)."
@@ -433,7 +434,7 @@
    "ref": "en_ugg/content/voice_passive.rst Glossary",
    "paragraph": "A verb in the passive voice indicates that the action of the verbs is performed on the subject (e.g., The baby was washed by the mother.)",
    "tokens": 3552,
-   "status": "draft",
+   "status": "approved",
    "note": "Spelling corrected from the source: “the action of the verbs is performed” → “the action of the verb is performed”.",
    "rejected": [
     "A verb in the passive voice indicates that the action of the verbs is performed on the subject (e.g., The baby was washed by the mother.)"
@@ -487,7 +488,7 @@
    "ref": "en_ugg/content/mood_imperative.rst Glossary",
    "paragraph": "The imperative mood is is a mood of direction. It includes commands, and orders, but also requests and directions. It expresses the intentions of the speaker and appeals to the will of the hearer.",
    "tokens": 1618,
-   "status": "draft",
+   "status": "approved",
    "note": "Spelling corrected from the source: “mood is is a mood” → “mood is a mood”.",
    "rejected": [
     "The imperative mood is is a mood of direction."
@@ -501,7 +502,7 @@
    "ref": "machen/newtestamentgree00mach_djvu.txt §452",
    "paragraph": "The Greek perfect tense denotes the present state resultant upon a past action.",
    "tokens": 1572,
-   "status": "draft",
+   "status": "approved",
    "source": "machen",
    "rejected": [
     "Perfect is the verb tense-form used to describe the present state (e.g., you are forgiven) of what is being described or to describe something which took place in the past (e.g., we have eaten, they have traveled)."
@@ -535,7 +536,7 @@
    "ref": "en_ugg/content/tense_pluperfect.rst Glossary",
    "paragraph": "Pluperfect is the verb tense-form a speaker can use to describe the state of a completed action that was in existance at some point in the past. (e.g., we had eaten, they had traveled).",
    "tokens": 88,
-   "status": "draft",
+   "status": "approved",
    "note": "Spelling corrected from the source: “in existance” → “in existence”.",
    "rejected": [
     "Pluperfect is the verb tense-form a speaker can use to describe the state of a completed action that was in existance at some point in the past."
@@ -549,7 +550,7 @@
    "ref": "machen/newtestamentgree00mach_djvu.txt lesson on the optative",
    "paragraph": "The optative is still retained to express a wish.",
    "tokens": 68,
-   "status": "draft",
+   "status": "approved",
    "source": "machen",
    "rejected": [
     "The Optative mood indicates that the speaker is referring to a verbal action as a contingent possibility (even less assured than the subjunctive mood) (e.g., he might eat)."
@@ -599,7 +600,7 @@
    "ref": "en_uhg/content/stem_qal.rst Summary",
    "paragraph": "The Qal stem is the stem formation that is the simplest of form in Biblical Hebrew. The Qal stem is generally used to express either simple action or stative action.",
    "tokens": 50431,
-   "status": "draft",
+   "status": "approved",
    "note": "Spelling corrected from the source: “the simplest of form” → “the simplest form”.",
    "rejected": [
     "The Qal stem is the stem formation that is the simplest of form in Biblical Hebrew."
@@ -939,7 +940,7 @@
    "ref": "en_uhg/content/stem_pulal.rst Summary",
    "paragraph": "The Pulal is a rare stem formation that it similar to the Pual. It expresses the passive voice of the Pilel and/or Palel stems.",
    "tokens": 15,
-   "status": "draft",
+   "status": "approved",
    "note": "Spelling corrected from the source: “that it similar” → “that is similar”.",
    "rejected": [
     "The Pulal is a rare stem formation that it similar to the Pual."

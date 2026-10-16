@@ -42,7 +42,7 @@ export function ReaderHeader({
 }: {
   title: string;
   translation: string;
-  /** null = `‹ Home`. */
+  /** null = `‹ Bible`, the tab under the reader (IA v4, build 7). */
   back: { label: string; accessibility: string } | null;
   collapsed: boolean;
   onBack: () => void;
@@ -80,7 +80,7 @@ export function ReaderHeader({
     <GlassButton
       shape="capsule"
       onPress={onBack}
-      accessibilityLabel={back === null ? "Home" : `Back to ${back.accessibility}`}
+      accessibilityLabel={back === null ? "Bible" : `Back to ${back.accessibility}`}
       testID="reader-back"
       onLayout={(e) => {
         const w = e.nativeEvent.layout.width;
@@ -89,7 +89,7 @@ export function ReaderHeader({
     >
       <Icon name="back" size={18} tone="muted" />
       <Chrome tone="ink" size={16} numberOfLines={1} style={{ fontWeight: "500", marginRight: 2 }}>
-        {back === null ? "Home" : back.label}
+        {back === null ? "Bible" : back.label}
       </Chrome>
     </GlassButton>
   );

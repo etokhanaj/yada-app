@@ -28,10 +28,11 @@ import { loadStudySources, useStudy } from "../data/study";
 import { useTranslations } from "../data/translations";
 import { loadAnyUnderstandSources, useUnderstand } from "../data/understand";
 import { useLayout } from "../design/tokens";
+import { todaySources } from "../data/today";
 import { type SourceGroup, sourceItems, studySourceItem } from "../lib/sources";
 import { useSettings } from "../state/settings";
 
-const GROUPS: readonly SourceGroup[] = ["Bible text", "Words and people", "Understand"];
+const GROUPS: readonly SourceGroup[] = ["Bible text", "Words and people", "Understand", "Today"];
 
 /** A row that opens its source's page, when it has one. */
 const opens = (url: string | undefined) => (url === undefined ? {} : { onPress: () => void Linking.openURL(url) });
@@ -54,7 +55,10 @@ export function SourcesList() {
   const { ax, sectionGap } = useLayout();
   const translation = useSettings((s) => s.translation);
   const installed = useTranslations((s) => s.installed);
-  const { data: sources } = useQuery(async () => [...(await getSources(core)), ...(await getTranslationSources(core))], [installed.map((t) => t.code).join(",")]);
+  const { data: sources } = useQuery(
+    async () => [...(await getSources(core)), ...(await getTranslationSources(core)), ...(await todaySources())],
+    [installed.map((t) => t.code).join(",")],
+  );
   const understandBooks = useUnderstand((s) => Object.keys(s.installed).join(","));
   const { data: explanations } = useQuery(() => loadAnyUnderstandSources(), [understandBooks]);
   const items = sourceItems(sources ?? []);

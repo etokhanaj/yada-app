@@ -32,6 +32,7 @@ import { compareSelection, listAnd } from "../lib/compare";
 import { onPhoneOrder } from "../lib/translations";
 import { BUILT_IN } from "../data/queries";
 import { formatMB } from "../lib/progress";
+import { PSALTER_CHOICES, type PsalterChoice, parsePsalter } from "../lib/dailyPsalms";
 import { reminderSummary } from "../lib/reminder";
 import { useAudio } from "../state/audio";
 import { TEXT_SCALES, useSettings } from "../state/settings";
@@ -57,11 +58,15 @@ export default function SettingsScreen() {
   const study = useStudy((s) => s.installed);
   const understand = useUnderstand((s) => s.installed);
   const [icloud, setIcloud] = useState(true);
+  const [psalter, setPsalter] = useState<PsalterChoice>("1662");
   const [readingBytes, setReadingBytes] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
-      void loadSettings(user).then((s) => setIcloud(s["icloud"] !== "off"));
+      void loadSettings(user).then((s) => {
+        setIcloud(s["icloud"] !== "off");
+        setPsalter(parsePsalter(s["dailyPsalms"]));
+      });
       setReadingBytes(readingsOnPhone().reduce((n, r) => n + r.bytes, 0));
     }, [user]),
   );
@@ -78,7 +83,7 @@ export default function SettingsScreen() {
   const version = `${Constants.expoConfig?.version ?? ""} (${Constants.expoConfig?.ios?.buildNumber ?? ""})`;
 
   const confirmRemove = () => {
-    const what = "bookmarks, your reading place, plan progress, the reminder and downloads";
+    const what = "bookmarks, your reading place, plan progress, your rhythm, the reminder and downloads";
     Alert.alert(
       "Remove your data?",
       downloadUnderWay()
@@ -132,6 +137,23 @@ export default function SettingsScreen() {
       >
         <View pointerEvents="none" accessible accessibilityRole="button" accessibilityLabel={`Speed, ${speed} times`}>
           <ListRow title="Speed" right={value(speedLabel(speed))} chevron={false} />
+        </View>
+      </MenuView>
+
+      {/* DR-04: Today's reading card follows this; a native menu as Voice and Speed above. */}
+      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>Today</Label>
+      <MenuView
+        shouldOpenOnLongPress={false}
+        actions={PSALTER_CHOICES.map((c) => ({ id: c.id, title: c.title, state: c.id === psalter ? ("on" as const) : ("off" as const), imageColor: palette.ink }))}
+        onPressAction={({ nativeEvent }) => {
+          const next = parsePsalter(nativeEvent.event);
+          setPsalter(next);
+          void saveSetting(user, "dailyPsalms", next);
+        }}
+        testID="settings-psalms"
+      >
+        <View pointerEvents="none" accessible accessibilityRole="button" accessibilityLabel={`Daily psalms, ${PSALTER_CHOICES.find((c) => c.id === psalter)?.title ?? ""}`}>
+          <ListRow first title="Daily psalms" right={value(PSALTER_CHOICES.find((c) => c.id === psalter)?.title ?? "")} chevron={false} />
         </View>
       </MenuView>
 

@@ -52,11 +52,14 @@ async function readLocal(db: SQLiteDatabase): Promise<SyncState> {
      WHERE s.key IN (${SYNCED_SETTINGS.map(() => "?").join(", ")})`,
     [...SYNCED_SETTINGS],
   );
+  const days = await db.getAllAsync<{ day: string }>("SELECT day FROM rhythm_days");
   return {
     bookmarks,
     position: place === null ? {} : { [POSITION_KEY]: [place.verse_id, ms(place.updated_at)] },
     threads: Object.fromEntries(threads.map((r) => [r.thread, [r.step, ms(r.updated_at)]])),
     settings: Object.fromEntries(settings.map((r) => [r.key, [r.value, ms(r.at)]])),
+    // A counted day never changes, so its stamp is 0 on every device and the merge is a plain union.
+    days: Object.fromEntries(days.map((r) => [r.day, [true, 0]])),
   };
 }
 
@@ -88,6 +91,9 @@ async function writeLocal(db: SQLiteDatabase, local: SyncState, merged: SyncStat
       "INSERT INTO thread_progress (thread, step, updated_at) VALUES (?, ?, ?) ON CONFLICT(thread) DO UPDATE SET step = excluded.step, updated_at = excluded.updated_at",
       [thread, step, iso(at)],
     );
+  }
+  for (const [day] of changedEntries(local.days, merged.days)) {
+    await db.runAsync("INSERT OR IGNORE INTO rhythm_days (day) VALUES (?)", [day]);
   }
   const settings = changedEntries(local.settings, merged.settings);
   for (const [key, [value, at]] of settings) {
@@ -127,12 +133,14 @@ export function syncWithCloud(db: SQLiteDatabase, store: KeyValueStore, initialS
       position: store.get(CLOUD_KEYS.position),
       threads: store.get(CLOUD_KEYS.threads),
       settings: store.get(CLOUD_KEYS.settings),
+      days: store.get(CLOUD_KEYS.days),
     };
     const remote: SyncState = {
       bookmarks: parseCloud("bookmarks", raw.bookmarks),
       position: parseCloud("position", raw.position),
       threads: parseCloud("threads", raw.threads),
       settings: parseCloud("settings", raw.settings),
+      days: parseCloud("days", raw.days),
     };
     const { merged, settingsChanged } = await exclusiveWrite(async () => {
       const local = await readLocal(db);

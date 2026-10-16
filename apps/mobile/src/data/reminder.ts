@@ -16,6 +16,7 @@ import { loadMcheyne, loadYourPlan } from "./plans";
 import { type Db, getChapter, getTexts } from "./queries";
 import { loadProgress } from "./startHere";
 import { loadSettings, saveSetting } from "./user";
+import { label as psalmsLabel, parsePsalter, setForChoice } from "../lib/dailyPsalms";
 import { MCHEYNE_READINGS, nextPortion, portionLabel } from "../lib/plans";
 import { excerptOf } from "../lib/reader";
 import {
@@ -151,6 +152,21 @@ async function todayText(core: Db, at: Date): Promise<{ text: ReminderText; targ
   };
 }
 
+/** This evening's psalms: the set named, its first verse in the BSB (rule 9), as the morning's "today" text. */
+async function eveningText(core: Db, at: Date): Promise<{ text: ReminderText; target: Target; rich: RichReminder } | null> {
+  const set = setForChoice(at, "evening", "1662");
+  const first = set?.[0];
+  if (set === null || first === undefined) return null;
+  const verses = (await getChapter(core, "PSA", first.psalm, "BSB")).filter((v) => v.verse >= (first.from ?? 1) && v.verse <= (first.to ?? Infinity));
+  const rich = richVerses("PSA", verses);
+  const title = `This evening · ${psalmsLabel(set)}`;
+  return {
+    text: { title, body: rich.verses[0]?.text ?? "" },
+    target: { book: "PSA", chapter: first.psalm, verse: first.from ?? 1 },
+    rich: { overline: "This evening", title: psalmsLabel(set), titleLine: rich.titleLine, ref: "BSB", verses: rich.verses },
+  };
+}
+
 /**
  * One scheduling run at a time: the time picker changes on every tick and a return to the app refreshes,
  * and two interleaved cancel-then-schedule runs left both sets (review, 13 Oct 2026).
@@ -193,6 +209,27 @@ async function scheduleNow(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs)
       content: { title: one.text.title, body: one.text.body, categoryIdentifier: CATEGORY, data: { target: one.target } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
     });
+  }
+  // The evening reminder (build 7a step 5): this evening's 1662 psalms, on the same days. Only under the 1662
+  // table: One a day has no evening set, and Off has none at all.
+  const evening = prefs.evening;
+  const choice = parsePsalter((await loadSettings(user))["dailyPsalms"]);
+  if (evening !== null && choice === "1662") {
+    for (const at of upcomingTimes(new Date(), { ...prefs, hour: evening.hour, minute: evening.minute })) {
+      const one = await eveningText(core, at);
+      if (one === null) continue;
+      const id = `reminder-evening-${at.getFullYear()}-${at.getMonth() + 1}-${at.getDate()}`;
+      if (system !== null) {
+        const request: ReminderRequest = { id, at: at.getTime(), title: one.text.title, body: one.text.body, data: { target: one.target, rich: one.rich } };
+        await system.scheduleReminder(JSON.stringify(request, (_, v: unknown) => (v === null ? undefined : v)));
+        continue;
+      }
+      await Notifications.scheduleNotificationAsync({
+        identifier: id,
+        content: { title: one.text.title, body: one.text.body, categoryIdentifier: CATEGORY, data: { target: one.target } },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
+      });
+    }
   }
   const last = times[times.length - 1];
   if (last !== undefined) await saveSetting(user, "reminderUntil", last.toISOString());

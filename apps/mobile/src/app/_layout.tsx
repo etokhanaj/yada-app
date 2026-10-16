@@ -18,6 +18,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { LaunchStage } from "../components/LaunchOverlay";
 import { type AppData, AppDataProvider, asDb } from "../data/AppData";
 import { initAudio } from "../data/audio";
+import { countListening } from "../data/rhythm";
 import { installBundles, openCore, openUser } from "../data/bundles";
 import { setCloudPaused, startCloudSync } from "../data/cloud";
 import { refreshReminder, targetOf } from "../data/reminder";
@@ -70,6 +71,7 @@ async function start(): Promise<AppData> {
   useSettings.getState().hydrate(stored, [...installed, ...licensed]);
   // After hydrate, so the restored translation is not taken for a switch made while playing.
   initAudio(core, user, stored);
+  countListening(user);
   // The reminder's two weeks are made again from today's progress (lib/reminder.ts); never fails the launch.
   void refreshReminder(user, asDb(core)).catch(() => undefined);
   return { core, user };
@@ -265,7 +267,8 @@ export default function RootLayout() {
         <LaunchStage reduceMotion={reduceMotion}>
         {/* Reduce Motion: pushed pages fade rather than slide, as the sheets already do (QA, 13 Oct 2026). */}
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.paper }, animation: sheetsFade ? "fade" : "default" }}>
-          <Stack.Screen name="index" />
+          {/* IA v4: Today and Bible are tabs beneath every other route (build 7). */}
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen name="read/[book]/[chapter]" />
           <Stack.Screen name="bookmarks" />
           <Stack.Screen name="recent" />
@@ -276,6 +279,7 @@ export default function RootLayout() {
           <Stack.Screen name="reminder" />
           <Stack.Screen name="settings" />
           <Stack.Screen name="downloads" />
+          <Stack.Screen name="devotional" />
           {/* A widget's link (navigation.ts openHref): it hands over at once, so nothing animates. */}
           <Stack.Screen name="open" options={{ animation: "none" }} />
           {/* The full player (AU-04) covers the reader; closed by its down chevron, so no swipe to lose. */}
@@ -294,6 +298,7 @@ export default function RootLayout() {
           <Stack.Screen name="guide" options={sheet} />
           {/* NP-01: the reminder asked for at the first passage's end, at the medium height only. */}
           <Stack.Screen name="remind-ask" options={{ ...sheet, sheetAllowedDetents: ax ? [1] : [SHEET_MEDIUM], sheetInitialDetentIndex: 0 }} />
+          <Stack.Screen name="rhythm" options={{ ...sheet, sheetAllowedDetents: ax ? [1] : [SHEET_MEDIUM], sheetInitialDetentIndex: 0 }} />
           <Stack.Screen name="evidence" options={sheet} />
           {/* Contents and Search open large: lists to scan, not notes beside the text. */}
           <Stack.Screen name="contents" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />

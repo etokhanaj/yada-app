@@ -68,7 +68,7 @@ import { prophetLeads, readerLeadLines } from "../../../lib/passageGuide";
 import { rangeInBook } from "../../../lib/saved";
 import { useGuide } from "../../../state/guide";
 import { useTranslationName } from "../../../data/translations";
-import { listBookmarks, markBookBegun, markPassageRead, savePosition, toggleBookmark } from "../../../data/user";
+import { countDay, listBookmarks, loadSettings, markBookBegun, markPassageRead, savePosition, toggleBookmark } from "../../../data/user";
 import { shouldAsk } from "../../../data/reminder";
 import { bookThread, readThread, stepAfter } from "../../../lib/startHere";
 import { audioTranslation, endSession, listen, next as nextVerse, previous as previousVerse, stopFetching, toggle as togglePlay } from "../../../data/audio";
@@ -77,9 +77,11 @@ import { progressSegments } from "../../../lib/audio/session";
 import { spokenText } from "../../../lib/supplied";
 import { SHEET_MEDIUM, SPACE, useLayout, usePalette } from "../../../design/tokens";
 import { chapterFromParams, nextChapter, prevChapter, type ChapterRef } from "../../../lib/chapters";
+import { label as psalmsLabel, nextInSet, parsePsalter, setForChoice } from "../../../lib/dailyPsalms";
 import { useReduceMotion } from "../../../lib/motion";
 import { barTopIn, chapterTitle, HEADER_START, headerOnScroll, scrollToClearBar, sheetTopIn, shortRef } from "../../../lib/reader";
 import { EMPTY_SELECTION, formatSpan, selectionSpan, spanRef, tapVerse } from "../../../lib/selection";
+import { dayOf, partOf } from "../../../lib/today";
 import { useAccessibility } from "../../../state/accessibility";
 import { useSettings } from "../../../state/settings";
 
@@ -220,6 +222,7 @@ export default function ReaderScreen() {
       finished.current.add(done.pericope_id);
       const thread = bookThread(book);
       // NP-01: the first passage read is when a daily reminder means something; Yada asks then, once.
+      void countDay(user).catch(() => undefined);
       void markPassageRead(user, thread, readThread(done.pericope_id, thread), stepAfter(index - 1))
         .then(() => shouldAsk(user, "passage-end"))
         .then((ask) => {
@@ -266,6 +269,14 @@ export default function ReaderScreen() {
     setPlan({ state: { ...plan.state, read: new Set([...plan.state.read, ...due.map((pi) => keyOf(n.reading, pi))]) }, justRead: true });
     void Promise.all(due.map((pi) => markPortionRead(user, plan.state.round, n.reading, pi))).then(() => loadPlan(true));
   };
+  // The streak (lib/rhythm.ts): a chapter's last verse reached by scrolling counts the day, or the whole
+  // chapter on screen at once (Psalm 117), as RP-04 counts a portion.
+  const markDay = useRef<(visible: ReadonlySet<number>) => void>(() => undefined);
+  markDay.current = (visible) => {
+    const last = verses?.[verses.length - 1]?.verse;
+    if (last === undefined || !visible.has(last)) return;
+    if (readerScrolled.current || visible.has(verses?.[0]?.verse ?? 1)) void countDay(user).catch(() => undefined);
+  };
   // The plan arrives after the first verses are counted: a short chapter already on screen is checked then.
   useEffect(() => {
     if (plan !== null) markPlan.current(visibleVerses.current);
@@ -281,6 +292,29 @@ export default function ReaderScreen() {
     const here = portionsInChapter(reading, book, chapter).length > 0;
     return here || plan.justRead ? portion : null;
   })();
+  // DR-02, DR-03: on one of today's psalms, the next in the set leads above the chapter links, as M'Cheyne's
+  // does; after the morning's last, the evening's set is named and can be opened early. No "done".
+  const [psalmsNext, setPsalmsNext] = useState<{ overline: string; title: string; to: ChapterRef } | null>(null);
+  useEffect(() => {
+    setPsalmsNext(null);
+    if (book !== "PSA") return;
+    let live = true;
+    void loadSettings(user).then((stored) => {
+      const choice = parsePsalter(stored["dailyPsalms"]);
+      const now = new Date();
+      const part = partOf(now);
+      const set = setForChoice(dayOf(now), part, choice);
+      if (!live || choice !== "1662" || set === null || !set.some((r) => r.psalm === chapter)) return;
+      const n = nextInSet(set, chapter);
+      if (n !== null) return setPsalmsNext({ overline: `Next this ${part}`, title: `Psalm ${n.psalm}`, to: { book: "PSA", chapter: n.psalm } });
+      const evening = part === "morning" ? setForChoice(dayOf(now), "evening", choice) : null;
+      const first = evening?.[0];
+      if (evening !== null && first !== undefined) setPsalmsNext({ overline: "This evening", title: psalmsLabel(evening), to: { book: "PSA", chapter: first.psalm } });
+    });
+    return () => {
+      live = false;
+    };
+  }, [user, book, chapter]);
   const [selection, setSelection] = useState(EMPTY_SELECTION);
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [headerHeight, setHeaderHeight] = useState(110);
@@ -441,6 +475,7 @@ export default function ReaderScreen() {
     const visible = viewableItems.filter((v) => v.isViewable).map((v) => v.item);
     visibleVerses.current = new Set(visible.map((v) => v.verse));
     markPlan.current(visibleVerses.current);
+    markDay.current(visibleVerses.current);
     if (visible.length === 0) return;
     // MM-01: the boundary is drawn only mid-chapter (list index above 0), and only that one counts.
     for (const token of viewableItems) {
@@ -742,7 +777,7 @@ export default function ReaderScreen() {
                 line={`${chapterTitle(book, chapter)} couldn’t be opened.`}
                 actions={[
                   { label: "Try again", onPress: () => setAttempt((n) => n + 1), testID: "chapter-retry" },
-                  { label: "Back to Home", onPress: () => router.dismissTo("/"), testID: "chapter-home" },
+                  { label: "Back to Bible", onPress: () => router.dismissTo("/"), testID: "chapter-home" },
                 ]}
               />
             ) : licensed !== undefined && licensed.status !== "ok" ? (
@@ -824,9 +859,19 @@ export default function ReaderScreen() {
           }}
           ListFooterComponent={
             <View style={styles.footer}>
-              {planNext !== null && planNext[0] !== undefined ? (
+              {psalmsNext !== null ? (
                 <ListRow
                   first
+                  overline={psalmsNext.overline}
+                  title={psalmsNext.title}
+                  label={`${psalmsNext.overline}, ${psalmsNext.title}`}
+                  onPress={() => goTo(psalmsNext.to)}
+                  testID="reader-psalms-next"
+                />
+              ) : null}
+              {planNext !== null && planNext[0] !== undefined ? (
+                <ListRow
+                  first={psalmsNext === null}
                   overline="Next in M’Cheyne"
                   title={portionLabel(planNext)}
                   label={`Next in M’Cheyne, ${portionSpoken(planNext)}`}

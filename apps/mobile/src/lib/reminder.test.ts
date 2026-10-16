@@ -11,6 +11,9 @@ describe("the reminder", () => {
 
   it("says its value as Settings shows it (ST-01)", () => {
     expect(reminderSummary({ ...DEFAULT_REMINDER, on: true })).toBe("7:30 · every day");
+    expect(reminderSummary({ ...DEFAULT_REMINDER, on: true, evening: { hour: 19, minute: 0 } })).toBe("7:30 and 19:00 · every day");
+    expect(parseReminder(JSON.stringify({ evening: { hour: 19, minute: 5 } })).evening).toEqual({ hour: 19, minute: 5 });
+    expect(parseReminder(JSON.stringify({ evening: { hour: 30, minute: 0 } })).evening).toBeNull();
     expect(reminderSummary({ ...DEFAULT_REMINDER, on: true, days: [true, true, true, true, true, false, false] })).toBe("7:30 · weekdays");
     expect(reminderSummary(DEFAULT_REMINDER)).toBe("Off");
   });

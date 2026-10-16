@@ -26,27 +26,27 @@ import { router, useFocusEffect } from "expo-router";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 
-import { GlassButton } from "../components/Glass";
-import { useLaunch } from "../components/LaunchOverlay";
-import { Icon } from "../components/Icon";
-import { readerHref } from "../components/navigation";
-import { GlassIcon, ListRow, PageScreen } from "../components/Page";
-import { Chrome, Label, Scripture } from "../components/Type";
-import { DivineText } from "../components/Verse";
-import { useAppData, useCore } from "../data/AppData";
-import { getTexts } from "../data/queries";
-import { loadMcheyne, loadYourPlan, type PlanId } from "../data/plans";
-import { notNow, shouldAsk, turnOff, turnOn, turnOnFromAsk, useReminder } from "../data/reminder";
-import { loadProgress } from "../data/startHere";
-import { loadPericopes } from "../data/understand";
-import { loadPositionAt } from "../data/user";
-import { FONTS, useIsDark, useLayout, usePalette } from "../design/tokens";
-import { pericopeForVerse, type PericopeRow } from "../lib/pericopes";
-import { excerptOf } from "../lib/reader";
-import { rangeInBook, verseLabel } from "../lib/saved";
-import { backAfterGap, homeLead, type HomeLead, progressLabel, progressLine } from "../lib/startHere";
-import { MCHEYNE_TOTAL, nextPortion } from "../lib/plans";
-import { useSettings } from "../state/settings";
+import { GlassButton } from "../../components/Glass";
+import { useLaunch } from "../../components/LaunchOverlay";
+import { Icon } from "../../components/Icon";
+import { readerHref } from "../../components/navigation";
+import { GlassIcon, ListRow, PageScreen } from "../../components/Page";
+import { Chrome, Label, Scripture, SectionTitle } from "../../components/Type";
+import { DivineText } from "../../components/Verse";
+import { useAppData, useCore } from "../../data/AppData";
+import { getTexts } from "../../data/queries";
+import { loadMcheyne, loadYourPlan, type PlanId } from "../../data/plans";
+import { notNow, shouldAsk, turnOff, turnOn, turnOnFromAsk, useReminder } from "../../data/reminder";
+import { loadProgress } from "../../data/startHere";
+import { loadPericopes } from "../../data/understand";
+import { loadPositionAt } from "../../data/user";
+import { FONTS, useIsDark, useLayout, usePalette } from "../../design/tokens";
+import { pericopeForVerse, type PericopeRow } from "../../lib/pericopes";
+import { excerptOf } from "../../lib/reader";
+import { rangeInBook, verseLabel } from "../../lib/saved";
+import { backAfterGap, homeLead, type HomeLead, progressLabel, progressLine } from "../../lib/startHere";
+import { MCHEYNE_TOTAL, nextPortion } from "../../lib/plans";
+import { useSettings } from "../../state/settings";
 
 interface LeadState {
   readonly lead: HomeLead;
@@ -373,8 +373,8 @@ export default function Home() {
         { title: "Old Testament", books: ot },
         { title: "New Testament", books: nt },
       ].map((group) => (
-        <View key={group.title} style={{ marginTop: 28 }}>
-          <Label style={{ marginBottom: 6 }}>{group.title}</Label>
+        <View key={group.title} style={{ marginTop: 40 }}>
+          <SectionTitle style={{ marginBottom: 6 }}>{group.title}</SectionTitle>
           {group.books.map((book, i) => (
             <ListRow
               key={book}
@@ -458,7 +458,7 @@ function Wordmark() {
   const height = 44 * Math.min(Math.max(fontScale, 1), 72 / 44);
   return (
     <Image
-      source={isDark ? require("../../assets/brand/wordmark-chalk.png") : require("../../assets/brand/wordmark-forest.png")}
+      source={isDark ? require("../../../assets/brand/wordmark-chalk.png") : require("../../../assets/brand/wordmark-forest.png")}
       accessible
       accessibilityRole="header"
       accessibilityLabel="Yada"

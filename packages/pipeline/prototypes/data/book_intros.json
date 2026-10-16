@@ -6,7 +6,7 @@
    "text": "Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him.",
    "ref": "tosn-BookIntros.xml GEN intro-overview",
    "paragraph": "Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him. Genesis traces God’s promised blessings from generation to generation, to the time of bondage and the need for redemption from Egypt. It lays the foundation for God’s subsequent revelation, and most other books of the Bible draw on its contents. Genesis is a source of instruction, comfort, and edification.",
-   "status": "draft"
+   "status": "approved"
   },
   {
    "book": "EXO",
@@ -27,7 +27,7 @@
    "text": "The book of Numbers tells the story of Israel in the wilderness, journeying toward the Promised Land from Mount Sinai. As Moses led Israel from Egypt to Canaan, God tested his people in the crucible of the wilderness to see if they would be faithful to him as a unified nation. Numbers documents their successes and failures.",
    "ref": "tosn-BookIntros.xml NUM intro-overview",
    "paragraph": "The book of Numbers tells the story of Israel in the wilderness, journeying toward the Promised Land from Mount Sinai. As Moses led Israel from Egypt to Canaan, God tested his people in the crucible of the wilderness to see if they would be faithful to him as a unified nation. Numbers documents their successes and failures. Israel’s disobedience resulted in the Lord’s judgment, always counterbalanced by his patient persistence in raising a new generation to fulfill his plan. With its many stories and the detailed exposition of God’s laws, Numbers gives us a dramatic account of the Lord’s nature, his covenant, and his plan for his people.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "The book of Numbers tells about the people of Israel as they traveled from Mount Sinai in the wilderness to the Jordan River. While traveling, the Israelites became discouraged. So they rebelled against the leaders whom God had given them. At the Jordan River, the people of Israel refused to enter the Promised Land."
    ]
@@ -51,7 +51,7 @@
    "text": "The book of Judges tells the stories of the inspired leaders who rescued Israel from their enemies time after time. During this period, the people were frequently unfaithful to God’s covenant, and God allowed their enemies to oppress them. Israel repeatedly turned to the Lord for help, and the Lord repeatedly sent charismatic judges to deliver Israel.",
    "ref": "tosn-BookIntros.xml JDG intro-overview",
    "paragraph": "The book of Judges tells the stories of the inspired leaders who rescued Israel from their enemies time after time. During this period, the people were frequently unfaithful to God’s covenant, and God allowed their enemies to oppress them. Israel repeatedly turned to the Lord for help, and the Lord repeatedly sent charismatic judges to deliver Israel. These powerful leaders did amazing things, but they were unable to transcend Israel’s anarchy and lawlessness. Israel needed a leader whose authority could give them national coherence and unity.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "The book of Judges tells of events that occurred after the Israelites settled in the land of Canaan. The events in this book happened over a period of about 150 years. The book continues the biblical narrative directly from the book of Joshua."
    ]
@@ -89,7 +89,7 @@
    "text": "The book of 2 Kings is filled with leaders who did not learn from the past. By virtue of their spiritual failure, these kings brought doom upon themselves and their nation. However, there are also sparkling examples of people who put God and his word first and enjoyed the blessings God promised.",
    "ref": "tosn-BookIntros.xml 2KI intro-overview",
    "paragraph": "The book of 2 Kings is filled with leaders who did not learn from the past. By virtue of their spiritual failure, these kings brought doom upon themselves and their nation. However, there are also sparkling examples of people who put God and his word first and enjoyed the blessings God promised. Reading the accounts of the kings’ lives inspires us to avoid their mistakes and to enjoy the blessings that God promises to those who love and serve him.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "The book of 2 Kings of continues the story that 1 Kings tells about what happened to the people of Israel after King David died. It tells what the kings were like who ruled over the two kingdoms, Israel and Judah, into which David’s kingdom split."
    ]
@@ -106,7 +106,7 @@
    "text": "Second Chronicles gives purpose and hope to a people with an uncertain future. God had promised that David’s descendants would have an everlasting kingdom, but the people of Judah had been exiled to Babylon. Even after returning to Jerusalem, they now lived as Persian subjects.",
    "ref": "tosn-BookIntros.xml 2CH intro-overview",
    "paragraph": "Second Chronicles gives purpose and hope to a people with an uncertain future. God had promised that David’s descendants would have an everlasting kingdom, but the people of Judah had been exiled to Babylon. Even after returning to Jerusalem, they now lived as Persian subjects. Judah had no king descended from David and no hope of becoming a kingdom. Yet God’s promises are certain, so the Chronicler encouraged the Judeans to hope for the future. The words of King Jehoshaphat capture the spirit of the book: “Listen to me, all you people of Judah and Jerusalem! Believe in the Lord your God, and you will be able to stand firm. Believe in his prophets, and you will succeed” (2 Chr 20:20).",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "The Book of 1 Chronicles retells the line of descendants from Adam to Saul. It then gives the history of Israel during the time of David. The Book of 2 Chronicles gives the history of Israel beginning with Solomon. It ends when the Babylonian army attacks Judah and takes some of the people to Babylon."
    ]
@@ -158,7 +158,7 @@
    "text": "Ecclesiastes challenges us to think deeply about basic questions. Life and all it contains appears to be a meaningless vapor, here today and gone tomorrow. Even so, life need not be without purpose. Ecclesiastes recommends wisdom, righteous living, finding purpose in remembering our Creator, and keeping God’s commands. Then we can experience joy in the life God has given us.",
    "ref": "tosn-BookIntros.xml ECC intro-overview",
    "paragraph": "Ecclesiastes challenges us to think deeply about basic questions. Life and all it contains appears to be a meaningless vapor, here today and gone tomorrow. Even so, life need not be without purpose. Ecclesiastes recommends wisdom, righteous living, finding purpose in remembering our Creator, and keeping God’s commands. Then we can experience joy in the life God has given us.",
-   "status": "draft",
+   "status": "rejected",
    "rejected": [
     "Ecclesiastes is a group of short teachings that try to answer questions such as “What profit belongs to humanity in exchange for all his toil that he toils under the sun?” (1:3) Ecclesiastes is a series of thoughts about a variety of subjects, all of them about the purpose and worth of various actions and events."
    ]
@@ -182,7 +182,7 @@
    "text": "When God called Jeremiah to warn the kingdom of Judah of its impending destruction, the kingdom was relatively prosperous, free, and secure. But Judah’s fortunes dramatically changed as Nebuchadnezzar II of Babylon asserted his power in the region. Judah suffered under his heavy hand for twenty years before he destroyed the city of Jerusalem and exiled its citizens to Babylon.",
    "ref": "tosn-BookIntros.xml JER intro-overview",
    "paragraph": "When God called Jeremiah to warn the kingdom of Judah of its impending destruction, the kingdom was relatively prosperous, free, and secure. But Judah’s fortunes dramatically changed as Nebuchadnezzar II of Babylon asserted his power in the region. Judah suffered under his heavy hand for twenty years before he destroyed the city of Jerusalem and exiled its citizens to Babylon. Throughout these events, Jeremiah warned of judgment and destruction while distinctively recording his own experience of the pain and conflict these announcements brought. Jeremiah beautifully conveyed God’s passionate plea for his people to return to him and receive salvation, and he also proclaimed God’s promise to restore Israel.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "The Book of Jeremiah gives the prophesies of a priest named Jeremiah. It also tells how Jeremiah suffered in different ways while he prophesied."
    ]
@@ -199,7 +199,7 @@
    "text": "The prophet Ezekiel’s book contains strange visions, images, and messages that seem far removed from contemporary life. Yet its message remains very relevant: God will purify his people and live among them forever. Even during the darkest days, God insisted that he would restore his people.",
    "ref": "tosn-BookIntros.xml EZK intro-overview",
    "paragraph": "The prophet Ezekiel’s book contains strange visions, images, and messages that seem far removed from contemporary life. Yet its message remains very relevant: God will purify his people and live among them forever. Even during the darkest days, God insisted that he would restore his people. This message offered hope to the exiled people of Judah and provides inspiration to all who put their trust in him.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "The book of Ezekiel contains words that Ezekiel prophesied between 592 B.C. and 573 B.C. The Jewish people were exiled in Babylonia. Ezekiel told them that God had punished them because they sinned against him. However, Ezekiel assured them that God would restore them. God was using Babylon to punish them. But eventually another nation would defeat the Babylonians."
    ]
@@ -251,7 +251,7 @@
    "text": "God’s judgment was coming against false prophets, against Israel’s wayward leaders, and against the rich who oppressed the poor. God’s indictment against his people resulted in their ruin, but after ruin would come restoration. Through Micah, God’s Spirit provided a strong word of hope for Israel’s future.",
    "ref": "tosn-BookIntros.xml MIC intro-overview",
    "paragraph": "God’s judgment was coming against false prophets, against Israel’s wayward leaders, and against the rich who oppressed the poor. God’s indictment against his people resulted in their ruin, but after ruin would come restoration. Through Micah, God’s Spirit provided a strong word of hope for Israel’s future. The Lord promised to rescue the remnant of Israel—they would return to their land as God’s renewed people. God promised to subdue their enemies and send his ruler from Bethlehem. Micah exclaims simply but powerfully that there is no God like the Lord.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "This book contains many of Micah’s prophecies. Micah repeated many similar prophecies as found in Isaiah. Micah warned the kingdoms of Israel and Judah that the Assyrians would soon attack them. Micah condemned those who acted unjustly and immorally. He spoke against those who did not work for a living."
    ]
@@ -285,7 +285,7 @@
    "text": "The Temple still lay in ruins nearly twenty years after the Hebrews returned to the land of Judah from exile in Babylon. Yet the people of Judah themselves were living in comfortable homes. Surely God’s house deserved better! Haggai pointed out this discrepancy and successfully roused the people to rebuild the Lord’s Temple.",
    "ref": "tosn-BookIntros.xml HAG intro-overview",
    "paragraph": "The Temple still lay in ruins nearly twenty years after the Hebrews returned to the land of Judah from exile in Babylon. Yet the people of Judah themselves were living in comfortable homes. Surely God’s house deserved better! Haggai pointed out this discrepancy and successfully roused the people to rebuild the Lord’s Temple. Haggai gave Israel a renewed vision of how their efforts would serve God’s plan for his people.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "In 539 B.C., the Persian emperor Cyrus conquered the Babylonian empire. He permitted peoples whom the Babylonians had exiled to return to their homelands. So the next year, a group of Israelites from the former kingdom of Judah returned home from exile. Within two years, they began to repair Yahweh’s temple in Jerusalem."
    ]
@@ -365,7 +365,7 @@
    "text": "Paul’s letter to the Galatians proclaims that salvation is through faith alone. It also emphasizes freedom in Christ to live by the power of the Spirit, knowing that our relationship with God is not based on our performance but on the finished work of Jesus Christ.",
    "ref": "tosn-BookIntros.xml GAL intro-overview",
    "paragraph": "Is a person saved by faith alone, or by a combination of faith plus works? Paul’s letter to the Galatians proclaims that salvation is through faith alone. It also emphasizes freedom in Christ to live by the power of the Spirit, knowing that our relationship with God is not based on our performance but on the finished work of Jesus Christ. So we are truly free, not to serve our sinful nature, but to love and serve our Lord and others.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "Paul wrote this letter to both Jewish and non-Jewish Christians in the region of Galatia. He wanted to write against the false teachers who said that Christians need to follow the law of Moses. Paul defended the gospel by explaining that Christians only need to believe in Jesus Christ, and they do not need to practice the law of Moses."
    ]
@@ -389,7 +389,7 @@
    "text": "The letter to the Colossians combines some of the deepest and most sublime teaching about Christ with some very basic instructions for life. As strongly as any other book in the New Testament, Colossians reminds us that Christ must always be preeminent in a Christian’s affections and worship.",
    "ref": "tosn-BookIntros.xml COL intro-overview",
    "paragraph": "The letter to the Colossians combines some of the deepest and most sublime teaching about Christ with some very basic instructions for life. As strongly as any other book in the New Testament, Colossians reminds us that Christ must always be preeminent in a Christian’s affections and worship.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "Paul wrote this letter to the believers in city of Colossae, which is in Asia Minor (modern Turkey). When he heard from Epaphras about the believers in Colossae, he wrote to encourage them and to warn them against false teachers."
    ]
@@ -399,7 +399,7 @@
    "text": "As recent converts to Christianity, the Thessalonian church lacked a full understanding of the faith and suffered severe persecution.",
    "ref": "tosn-BookIntros.xml 1TH intro-overview",
    "paragraph": "As recent converts to Christianity, the Thessalonian church lacked a full understanding of the faith and suffered severe persecution. Could the fledgling believers withstand the antagonistic social climate? First Thessalonians reminds us that faithful leaders, good teaching, and obedience help believers remain firm in their faith. The letter presents a clear vision of God as powerfully active in the lives of those he has called through the Good News of Jesus Christ.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "Paul wrote 1 Thessalonians to make his relationship with the Thessalonians stronger and to teach them more about the gospel. He needed to do both of these things because, after he preached the gospel to the Thessalonians, persecution forced him to leave after only a few weeks."
    ]
@@ -437,7 +437,7 @@
    "text": "This brief letter, the shortest and most personal of Paul’s letters, shows how attitudes and relationships are transformed by Christ. It was written on behalf of Onesimus, a runaway slave, who was returning to Philemon, his master. Paul encouraged Philemon to go beyond the traditional master–slave relationship by welcoming Onesimus back as a beloved brother in Christ.",
    "ref": "tosn-BookIntros.xml PHM intro-overview",
    "paragraph": "This brief letter, the shortest and most personal of Paul’s letters, shows how attitudes and relationships are transformed by Christ. It was written on behalf of Onesimus, a runaway slave, who was returning to Philemon, his master. Paul encouraged Philemon to go beyond the traditional master–slave relationship by welcoming Onesimus back as a beloved brother in Christ. With these words of reconciliation, Paul reminds us that all relationships among Christians, regardless of a person’s social standing, are transformed by the love of Christ.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "Paul wrote this letter to a man named Philemon. Philemon was a believer in Jesus who lived in the city of Colossae. He owned a slave named Onesimus. Onesimus had run away from Philemon and possibly stole something from him as well. Onesimus went to Rome and visited Paul in prison there, where Paul brought Onesimus to Jesus."
    ]
@@ -482,7 +482,7 @@
    "text": "Second John is the shortest book in the New Testament, containing only thirteen verses. In antiquity, the entire letter would have fit on one sheet of papyrus.",
    "ref": "tosn-BookIntros.xml 2JN intro-overview",
    "paragraph": "Second John is the shortest book in the New Testament, containing only thirteen verses. In antiquity, the entire letter would have fit on one sheet of papyrus. The first letter of John elaborated the principles of continuing in the truth, loving fellow believers, and watching out for false teachers. This letter gives us an example of applying these principles to a concrete situation.",
-   "status": "draft",
+   "status": "rejected",
    "rejected": [
     "It appears that John addressed this letter to a specific congregation of believers. John’s purposes in writing this letter to them was to encourage them in their faith and to warn them about false teachers. John did not want believers helping or giving money to false teachers."
    ]
@@ -492,7 +492,7 @@
    "text": "This small personal letter provides a window into some issues of leadership and conflict in the early churches. A man named Diotrephes was improperly controlling the church and rejecting the apostle and his emissaries. By contrast, Gaius and Demetrius were two men who remained faithful to the church and to the apostle John.",
    "ref": "tosn-BookIntros.xml 3JN intro-overview",
    "paragraph": "This small personal letter provides a window into some issues of leadership and conflict in the early churches. A man named Diotrephes was improperly controlling the church and rejecting the apostle and his emissaries. By contrast, Gaius and Demetrius were two men who remained faithful to the church and to the apostle John.",
-   "status": "draft",
+   "status": "approved",
    "rejected": [
     "John wrote this letter to a believer named Gaius. He instructed Gaius to be hospitable and helpful to fellow believers who were traveling through his area. These were probably groups of traveling Christian preachers and teachers. John also warned Gaius about a bad leader in the church there named Diotrephes. He also commended a good leader there named Demetrius."
    ]

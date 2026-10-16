@@ -71,7 +71,7 @@ export function GlassText({ label, onPress, testID }: { label: string; onPress: 
 
 export function PageScreen({
   title,
-  back = "Home",
+  back = "Bible",
   right,
   children,
   subtitle,

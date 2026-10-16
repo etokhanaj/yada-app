@@ -66,6 +66,15 @@ def ic(name, size=20):
         "bookmark": '<path d="M7 4h10v16l-5-3.6L7 20z"></path>',
         "bookmarkf": '<path d="M7 4h10v16l-5-3.6L7 20z" fill="currentColor"></path>',
         "copy": '<rect x="8" y="8" width="11" height="12" rx="2.5"></rect><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H14"></path>',
+        "open": '<path d="M12 6c-2-1.4-5-2-8-1.6v13c3-.4 6 .2 8 1.6 2-1.4 5-2 8-1.6v-13c-3-.4-6 .2-8 1.6zM12 6v13"></path>',
+        "lamp": '<path d="M3.5 14.5h12.5c0 2.2-2.4 4-5.4 4H8.6c-2.8 0-5.1-1.8-5.1-4zM16 14.5l4.5-3.2M9.8 11.6c-1.4-1.3-.6-3.2.2-4.6.8 1.4 1.6 3.3-.2 4.6z"></path>',
+        "plus": '<path d="M12 5v14M5 12h14"></path>',
+        "grip": '<path d="M5 9h14M5 15h14"></path>',
+        "clock": '<circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2M4 5v3h3"></path>',
+        "sort": '<rect x="4" y="5" width="16" height="14" rx="3"></rect><path d="M9 9v6M7 13l2 2 2-2M15 15V9M13 11l2-2 2 2"></path>',
+        "list": '<path d="M9 7h11M9 12h11M9 17h11M4.5 6v3M4 12.5h1.5l-1.5 2h1.5"></path>',
+        "copy": '<rect x="8" y="8" width="11" height="11" rx="2.5"></rect><path d="M5 15V6.5A1.5 1.5 0 0 1 6.5 5H15"></path>',
+        "lock": '<rect x="6" y="11" width="12" height="9" rx="2"></rect><path d="M9 11V8a3 3 0 0 1 6 0v3"></path>',
         "share": '<path d="M12 15V4M8 7.5 12 4l4 3.5M6 11v7.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V11"></path>',
         "alpha": '<text x="12" y="17.5" text-anchor="middle" font-size="19" font-family="Gentium Plus, serif" fill="currentColor" stroke="none">α</text>',
         "cols": '<rect x="3.5" y="5" width="17" height="14" rx="3"></rect><path d="M12 5v14"></path>',
@@ -2509,6 +2518,15 @@ if STYLE != "v1":
         line = " · ".join(f"{E(f)} → {E(t)}" for f, t in shown)
         return line + (f" · {rest} more {'change' if rest == 1 else 'changes'}" if rest else "")
 
+    # Each block names its version in full, grey on the right, as YouVersion's Compare does (John's screenshots,
+    # 15 Oct 2026): a new reader doesn't know what "LSV" is.
+    FULLN = {"BSB": "Berean Standard Bible", "WEB": "World English Bible", "KJV": "King James Version", "LSV": "Literal Standard Version",
+             "NKJV": "New King James Version", "NLT": "New Living Translation", "YLT": "Young’s Literal Translation"}
+
+    def cmpn(tr, yours=False):
+        y = ' <span class="muted">· yours</span>' if yours else ""
+        return f'<p class="cmpn"><span>{tr}{y}</span><span class="cmpf">{FULLN.get(tr, "")}</span></p>'
+
     def cmp_block(vid, base_tr="BSB", others=("WEB", "KJV", "LSV"), show_base=True, label_verse=None):
         b_, c_, v_ = vid.split(".")
         get = lambda tr: (t5(b_, int(c_), int(v_), tr=tr) or [(0, "")])[0][1]
@@ -2517,22 +2535,24 @@ if STYLE != "v1":
         if label_verse:
             out += f'<h3 class="lbl cmpv">{label_verse}</h3>'
         if show_base:
-            out += f'<div class="cmpb"><p class="cmpn">{base_tr} <span class="muted">· yours</span></p><p class="scrq0">{scripture(base) if base else ""}</p></div>'
+            out += f'<div class="cmpb">{cmpn(base_tr, True)}<p class="scrq0">{scripture(base) if base else ""}</p></div>'
         for tr in others:
             o = get(tr)
             h, ch = pair_diff(base, o)
             same = not ch
             if same:
-                out += f'<div class="cmpo same" aria-label="{tr}: same words as the {base_tr}"><p class="cmpn">{tr}</p><p class="note muted">Same words as the {base_tr}</p></div>'
+                out += f'<div class="cmpo same" aria-label="{tr}: same words as the {base_tr}">{cmpn(tr)}<p class="note muted">Same words as the {base_tr}</p></div>'
             else:
-                out += (f'<div class="cmpo"><p class="cmpn">{tr}</p><p class="scrq0">{h}</p>'
+                out += (f'<div class="cmpo">{cmpn(tr)}<p class="scrq0">{h}</p>'
                         f'<p class="note muted cmpl">{change_line(ch, base_tr)}</p></div>')
         return out
 
     def cmp_sheet(pos, title, body, scrolled=False):
-        choose = '<button class="tbtn2 cmpc" aria-label="Choose translations to compare">Translations</button>'
+        # "Add or remove" is pinned to the sheet's foot, in thumb reach (YouVersion's "Add Version"; 15 Oct 2026).
+        choose = f'<div class="cmpfoot"><button class="tbtn2 cmpc" aria-label="Add or remove translations to compare">{ic("plus", 18)} Add or remove</button></div>'
         sh = sheet(pos, "Compare", title, body, scrolled=scrolled, foot=False).replace('aria-label="Close"', 'aria-label="Close, back to reading"', 1)
-        return sh.replace('<div class="sbody">', f'<div class="sbody"><div class="cmptop">{choose}</div>', 1)
+        i = sh.rindex("</div>")
+        return sh[:i] + choose + sh[i:]
     j15 = reader("JHN", 1, 1, 6, scrolled=False, rows_override=t4("JHN", 1, 1, 6), sel=(5,))
     F("CP-01", "The bar’s Compare opens Compare itself: yours, then each version against yours", j15 + scrim() + cmp_sheet("med", "John 1:5", cmp_block("JHN.1.5")), "cp")
     under316 = reader("JHN", 3, 14, 18, scrolled=False, rows_override=t5("JHN", 3, 14, 18), sel=(16,)) + scrim()
@@ -2546,11 +2566,13 @@ if STYLE != "v1":
     rng_body = "".join(cmp_block(f"JHN.1.{v}", label_verse=f"1:{v}") for v in (3, 4, 5))
     F("CP-05", "Several verses (1:3–5): verse by verse, the same pattern", reader("JHN", 1, 1, 6, scrolled=False, rows_override=t4("JHN", 1, 1, 6), sel=(3, 4, 5)) + scrim()
       + cmp_sheet("lg", "John 1:3–5", rng_body), "cp")
-    picks = "".join(vrow(n, f, on=on, right=(f'<span class="ck">{ic("check", 22)}</span>' if on else '<span class="ckoff"></span>'))
+    # Chosen versions come first, in the reader's order, each with a handle to drag (YouVersion's Edit; VoiceOver: Move up / Move down).
+    handle = '<span class="hdl" role="img" aria-label="Drag to reorder">' + ic("grip", 20) + '</span>'
+    picks = "".join(vrow(n, f, on=on, right=(f'<span class="ck">{ic("check", 22)}</span>{handle}' if on else '<span class="ckoff"></span>'))
                     for n, f, on in (("WEB", "World English Bible", True), ("KJV", "King James Version", True), ("LSV", "Literal Standard Version", True),
                                      ("YLT", "Young’s Literal Translation · downloaded", False), ("NKJV", "New King James Version · online", False), ("NLT", "New Living Translation · online", False),
                                      ("MSG", "The Message · a paraphrase · online", False)))
-    F("CP-06", "Choose, inside Compare: any one to three, tick to swap", j15 + scrim() + sheet("lg", "Choose", "Compare with up to 3", sec(None, picks, first=True)
+    F("CP-06", "Choose, inside Compare: any one to three, tick to swap", j15 + scrim() + sheet("lg", "Choose", "Up to 3, in your order", sec(None, picks, first=True)
       , back=True, foot=False), "cp")
     nk_body = (f'<div class="cmpb"><p class="cmpn">NKJV <span class="muted">· yours</span></p>{placeholder_text("NKJV text of John 1:5, from API.Bible")}</div>'
                + f'<div class="cmpo"><p class="cmpn">BSB</p>{placeholder_text("BSB text, its changes from the NKJV marked")}<p class="note muted cmpl">{todo_src("one line of changes")}</p></div>'
@@ -2595,6 +2617,8 @@ if STYLE != "v1":
         "A verse missing from yours: 'Not in the BSB' with the manuscripts note, nothing promoted to base (CP-08). "
         "The Message is a paraphrase: a word diff would mark nearly every word, so it is shown whole and unmarked with one line, 'A paraphrase, so it isn't marked word by word' (CP-09). "
         "When The Message is the reader's own version, the others are listed unmarked for the same reason.\n\n"
+        "Build 7 (15 Oct 2026), after YouVersion's Compare (John's screenshots): each block names its version in full on the right; 'Add or remove' is pinned to the sheet's foot; Choose lists the chosen versions first with drag handles, in the reader's order. "
+        "Kept ours where it is better: the marks and the one-line summary of what changed (YouVersion shows the texts unmarked). Not taken: a picker of thousands of versions, the empty-state hint, a black tick to confirm.\n\n"
         f"Refs: MacroFactor 'Changed from' with arrow {M('4e13dfe2-c783-4569-be53-efecd1c9f433')} · Brink highlighted words in running text {M('85897856-0025-41a1-8ed1-87c5b8e8e6dc')}. "
         f"Rejected: GitHub red/green diff {M('9af5c498-4c87-41c3-86ac-8c2153619679')} (colour carries the state; code, not reading).")
 # ================= Notifications (next page, 12 Oct 2026) =================
@@ -3264,8 +3288,16 @@ if STYLE != "v1":
     _env = {**os.environ, "YADA_ROOT": Y}
     _code = ("import sys,json;sys.argv=['x'];sys.path.insert(0,'.');import assemble as a;"
              "r=a.assemble('1CO',14,34);print(json.dumps([d['sentence'] for d in r['beginner']['readers_differ']]))")
-    rd34 = _json.loads(_sp.run([sys.executable, "-I", "-c", _code], cwd=f"{Y}/.claude/worktrees/next-release/packages/pipeline/prototypes",
-                               env=_env, capture_output=True, text=True, check=True).stdout)
+    # The assembler's output is cached beside the script (gitignored): it can take minutes on a busy Mac (15 Oct 2026).
+    def _assembled(name, code):
+        cache = os.path.join(os.path.dirname(os.path.abspath(__file__)), f".{name}.json")
+        if os.path.exists(cache):
+            return _json.load(open(cache))
+        out = _json.loads(_sp.run([sys.executable, "-I", "-c", code], cwd=f"{Y}/.claude/worktrees/next-release/packages/pipeline/prototypes",
+                                  env=_env, capture_output=True, text=True, check=True).stdout)
+        _json.dump(out, open(cache, "w"))
+        return out
+    rd34 = _assembled("rd34", _code)
     u34 = (sec("In short", plain_words("14:34", True), first=True)
            + sec("Readers differ", "".join(f'<div class="rdq"><p class="claim">{E(s_)}</p><button class="more">Read the full note</button></div>' for s_ in rd34[:2]))
            + sec("Read it alongside", along_rows().split('<p class="note muted credit">')[0])
@@ -3311,8 +3343,7 @@ if STYLE != "v1":
         _code3 = ("import sys,json;sys.argv=['x'];sys.path.insert(0,'.');import assemble as a;"
                   "print(json.dumps({f'{b}.{c}.{v}': a.assemble(b,c,v) for b,c,v in "
                   "[('JHN',1,5),('JOB',8,6),('REV',20,2),('ISA',7,14),('1CO',14,34)]}, default=list))")
-        A3 = _json.loads(_sp.run([sys.executable, "-I", "-c", _code3], cwd=f"{Y}/.claude/worktrees/next-release/packages/pipeline/prototypes",
-                                 env=_env, capture_output=True, text=True, check=True).stdout)
+        A3 = _assembled("a3", _code3)
 
         def plain_v3(r):
             p_ = r["beginner"]["plain"]
@@ -3408,8 +3439,7 @@ if STYLE != "v1":
               "  r=a.assemble(b,c,v);o=a.ordinal(b,c,v);r['ntok']=a.core.execute('select count(*) from tokens where ord=?',(o,)).fetchone()[0];"
               "r['all_rd']=r['beginner']['readers_differ'] if r['beginner']['debate'] else a.readers_differ(b,c,v);out[f'{b}.{c}.{v}']=r\n"
               "print(json.dumps(out,default=list))")
-    A4 = _json.loads(_sp.run([sys.executable, "-I", "-c", _code4], cwd=f"{Y}/.claude/worktrees/next-release/packages/pipeline/prototypes",
-                             env=_env, capture_output=True, text=True, check=True).stdout)
+    A4 = _assembled("a4", _code4)
 
     def vs_plain(r, label=None):
         p_ = r["beginner"]["plain"]
@@ -4540,6 +4570,815 @@ if STYLE != "v1":
         "People: Tyndale's profiles, already in People and places.\n\n"
         "Refs: Brink mobbin.com/screens/e6c90cf6-9194-46bc-8b76-a0112d7b3a85 · Insight Timer mobbin.com/screens/5eeebd47-9082-479f-92a3-8997ff4799f1 · "
         "Fly Delta mobbin.com/screens/63d05eda-3a07-4136-a493-35d962a28089 · Rodeo mobbin.com/screens/8d8a9f02-bb21-4372-b031-c4c9538afa2f.")
+# ================= Build 7: a daily rhythm (drafted 15 Oct 2026, for John's review) =================
+# John asked for daily habits (15 Oct 2026). Yada's rules forbid streaks, tallies, "you missed", "behind", day numbers
+# and celebration (RP, NT, MM review), so the rhythm comes from the day itself, not from a score: the Psalms read morning
+# and evening through the month, as the 1662 Prayer Book divides them (table numbers only; the text is the BSB), a
+# second reminder time, the day's psalms on Home, in widgets and in the evening player. Nothing counts days.
+# Calm's Morning / Afternoon / Night as plain rows, mobbin.com/screens/81ffdb2c-2a4a-4e19-9225-9299bac2c266; Waking Up's
+# one time window and one button, mobbin.com/screens/185df7bf-d8ea-48c5-8874-fa9f0cebd2a4. Rejected: Apple Fitness
+# rings, mobbin.com/screens/17983edf-6073-47c5-b072-270002fce54e, and every flame streak (Speak, Mimo, Deepstash).
+if STYLE != "v1":
+    # Day 1 of the month (1662 Psalter): morning Psalms 1–5, evening Psalms 6–8. The full 30-day table is read from a
+    # pinned printing before build (rule 4: no number the source does not hold); the canvas draws only day 1.
+    MORN, EVE = "Psalms 1–5", "Psalms 6–8"
+    TABI = {"today": '<circle cx="12" cy="13" r="4"></circle><path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M3 19h18"></path>',
+            "bible": '<path d="M12 6c-2-1.4-5-2-8-1.6v13c3-.4 6 .2 8 1.6 2-1.4 5-2 8-1.6v-13c-3-.4-6 .2-8 1.6zM12 6v13"></path>'}
+
+    def tsvg(name):
+        return (f'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" '
+                f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{TABI[name]}</svg>')
+
+    def tabbar(active, acc=""):
+        items = "".join(f'<button class="tbi{" on" if k == active else ""}" role="tab" aria-selected="{"true" if k == active else "false"}" '
+                        f'aria-label="{lab}, tab, {i + 1} of 2">{tsvg(k)}<span>{lab}</span></button>'
+                        for i, (k, lab) in enumerate((("today", "Today"), ("bible", "Bible"))))
+        return (f'<div class="tabs">{acc}<div class="tbrow"><div class="tbar" role="tablist">{items}</div>'
+                f'<button class="tbs" aria-label="Search">{ic("search", 24)}</button></div></div>')
+
+    BIBLE_ICONS = glass_btn("bookmark", "Bookmarks") + glass_btn("more", "More: Recent, Reading plans, Settings")
+
+    bible_root = page(None, "Yada", home_cont + allp + sec("Old Testament", ot), right=BIBLE_ICONS)
+
+    ps6 = t5("PSA", 6, 1)[0][1]
+    # The day's picture shows something the day's psalms say (John, 15 Oct 2026: "use the psalm idea"; "pick the best";
+    # "your images dont feel like they are that colorful style the bible app has"). Public-domain US government
+    # photography with one treatment for every picture (scripts/grade_picture.py: 3:4 crop, warm morning or cool evening
+    # grade, more colour), after YouVersion's verse-of-the-day photos. Morning, Psalm 1:3: "Morning fog over the
+    # Yellowstone River", NPS / Jacob W. Frank. Evening, Psalm 8:3: "Moon over Little Bear Peak", NPS / Patrick Myers,
+    # Great Sand Dunes. Licences read from each file's Commons record. No credit line on the picture (John, 15 Oct):
+    # public domain needs none, and the credit stays in About this picture and Sources. DR_IMG / DR_IMG_E for QA renders.
+    IMG = os.environ.get("DR_IMG", "/_blob/9967beeb642b9844bb70da4f6bebee08")
+    IMG_E = os.environ.get("DR_IMG_E", "/_blob/27a307520eb4200f67271f2b6f22401b")
+    P13 = t5("PSA", 1, 3)[0][1].split(",")[0]
+    P83 = ", ".join(t5("PSA", 8, 3)[0][1].split(", ")[:2])
+    ART = "Morning fog over the Yellowstone River · Jacob W. Frank, National Park Service"
+    ART_E = "Moon over Little Bear Peak · Patrick Myers, National Park Service"
+    ALT = "A tall pine in morning sun, fog filling the river valley below."
+    ALT_E = "A rose-coloured full moon over a snowy blue mountain at dusk."
+
+    def dphoto(h=300, evening=False):
+        # The verse sits on the picture over a soft fade (system polish, 15 Oct 2026, after YouVersion's verse of the
+        # day); the credit is one quiet line under it that opens DR-14.
+        src, alt, q, ref, art = (IMG_E, ALT_E, P83, "Psalm 8:3", ART_E) if evening else (IMG, ALT, P13, "Psalm 1:3", ART)
+        return (f'<figure class="dphoto img" style="height:{h}px"><img src="{src}" alt="{alt}">'
+                f'<div class="dpov"><button class="dpq" aria-label="{E(q)}, {ref}. Opens the day’s verse">{E(q)}</button>'
+                f'<span class="dpr">{ref}<span class="dpsep">·</span><button class="sitl" aria-label="Sit with this verse">Sit with this</button></span></div></figure>'
+                )
+
+    def opening(v):
+        # The psalm's own first clause, after its heading (BSB prints "For the choirmaster … A Psalm of David." inside
+        # verse 1; the pipeline will mark it apart, sources ledger). Ends at the verse's punctuation, never "…".
+        m = re.search(r"Psalm of [A-Z][a-z]+\.\s*", v)
+        body = v[m.end():] if m else v
+        clause = re.split(r"[;:.!?]", body, 1)[0]
+        if len(clause) > 70 and "," in clause[20:]:
+            clause = clause[:20 + clause[20:].index(",")]
+        return clause
+
+    def today_lead(when, ps, first, ref):
+        # The reading to do now, as a card: John allowed cards "used right" (15 Oct 2026): one card per thing you tap.
+        # No label repeating the greeting, no ellipsis mid-line (slop pass, 15 Oct 2026): the opening runs two lines.
+        return (f'<div class="card tlead"><p class="cw lit">{ps}</p><p class="excerpt2 tlx">{scripture(opening(first))}</p>'
+                f'<div class="cbtns"><button class="cbp" aria-label="Read {ps}, from {ref}">Read</button>'
+                f'<button class="cbs" aria-label="Listen to {ps}">{ic("play", 14)} Listen</button></div></div>')
+
+    def stk(n, lit=True):
+        # The streak's mark is a lamp (Psalm 119:105), never a flame; a number of days, nothing else. Lit once today
+        # counts, outlined before (UX stress test, 15 Oct 2026: with no ticks, "have I read today?" had no answer).
+        if not n:
+            return ""
+        state = "today counted" if lit else "not yet today"
+        return (f'<button class="stk{" lit" if lit else ""}" aria-label="Streak, {n} {"day" if n == 1 else "days"}, {state}. Opens your rhythm">{ic("lamp", 20)}<span>{n}</span></button>')
+
+    def one_row(main, sub, aria):
+        return (f'<button class="lrow valrow" aria-label="{aria}"><span class="rm"><span class="lmain">{main}</span>'
+                f'<span class="note muted lsub">{sub}</span></span><span class="chev">{ic("right", 18)}</span></button>')
+    plan_row = one_row("The Gospel of John", "Your plan · Continue at 1:39", "Your plan, The Gospel of John. Continue at John 1:39")
+    rem_row = vrow2("Reminders", "7:30 · 21:00")
+    p1f, p6f = t5("PSA", 1, 1)[0][1], ps6
+
+    # Three kinds, three shapes (John, 15 Oct 2026: "they look the same and need a bit more difference or detail").
+    # The devotional is led by its author (Skillshare's teacher row, mobbin.com/screens/5cccd096-a85c-4660-86c9-37682e52046e);
+    # the plan by where you are (Duolingo's "Lesson 4 of 6" unit card, mobbin.com/screens/3ecf07e8-cea8-4414-b5d9-05cd21033429);
+    # Pray by what is on your list. Spurgeon's portrait: Rijksmuseum, about 1881–91, CC0 (Commons record read 15 Oct 2026).
+    SPG = os.environ.get("DR_SPG", "/_blob/54301fa9ed8b6f462b6003ed79243ed0")
+
+    def dev_card(part="morning", src="Spurgeon", offline=False):
+        # Spurgeon, Morning and Evening, 1 November (public domain; read from CCEL 15 Oct 2026, to be re-checked against
+        # the pinned copy). The card is the whole tap target: who, the heading, the verse. Nothing else.
+        if offline:
+            return (f'<button class="card rcard dev" aria-label="Our Daily Bread needs a connection"><span class="devh"><span class="ava ini" aria-hidden="true">ODB</span>'
+                    f'<span class="devwho"><span class="devn">Our Daily Bread</span><span class="note muted">Needs a connection</span></span></span></button>')
+        title, ref = (("“The church in thy house.”", "Philemon 2") if part == "morning"
+                      else ("“So shall also the coming of the Son of man be.”", "Matthew 24:39"))
+        return (f'<button class="card rcard dev" aria-label="Devotional by C. H. Spurgeon: {title} {ref}">'
+                f'<span class="devh"><img class="ava" src="{SPG}" alt=""><span class="devn">C. H. Spurgeon</span></span>'
+                f'<span class="rct">{title}</span><span class="note muted">{ref}</span></button>')
+
+    def plan_card(done=2, total=46):
+        return (f'<button class="card rcard plan" aria-label="Your plan, The Gospel of John: next, The first disciples, John 1:35 to 51, passage 3 of {total}">'
+                f'<span class="planh"><span class="rcl">The Gospel of John</span><span class="note muted">3 of {total}</span></span>'
+                f'<span class="rct">The first disciples</span><span class="note muted">John 1:35–51</span></button>')
+
+    pray_card = ('<button class="card rcard prc" aria-label="Pray: your list of 3, and someone to pray for">'
+                 '<span class="planh"><span class="rcl">Pray</span><span class="note muted">3</span></span>'
+                 '<span class="pli">Peace for my brother while he looks for work</span><span class="pli">Mum’s surgery on Friday</span></button>')
+
+    def mini_card(main, sub, aria):
+        return (f'<button class="card mcard" aria-label="{aria}"><span class="note muted">{sub}</span>'
+                f'<span class="mct">{main}</span></button>')
+
+    def today_page(evening=False, photo=True, streak=6, pray=True):
+        # Good morning / Good evening with no name: Yada has no accounts (John, 15 Oct 2026). Elevated the same day
+        # (John: "knock yourself out"): the day's picture runs edge to edge with the greeting, the lamp and the verse
+        # set on it, and the day's cards rise over it on a sheet, as the App Store's Today and Fitness+ do. At AX sizes,
+        # and with no picture yet, the page is plain type, the reading first.
+        if evening:
+            top = today_lead("This evening", EVE, p6f, "Psalm 6:1")
+            pair = dev_card("evening") + plan_card()
+            rest = sec("Earlier", one_row("This morning", f"{MORN} · Spurgeon", f"This morning: {MORN} and Spurgeon"))
+        else:
+            top = today_lead("This morning", MORN, p1f, "Psalm 1:1")
+            pair = dev_card("morning") + plan_card()
+            rest = sec("Later", one_row(f"This evening · {EVE}", "and Spurgeon for the evening", f"This evening: {EVE} and Spurgeon"))
+        if pray:
+            pair += pray_card
+        hello = "Good evening" if evening else "Good morning"
+        plain = page(None, hello, top + (dphoto(evening=evening) if photo else "") + f'<div class="cstack">{pair}</div>' + rest, sub="Sunday 1 November", right=stk(streak))
+        if not photo:
+            return plain
+        src, alt, q, ref = (IMG_E, ALT_E, P83, "Psalm 8:3") if evening else (IMG, ALT, P13, "Psalm 1:3")
+        hero = (f'<figure class="dphoto img thero"><img src="{src}" alt="{alt}">'
+                f'<div class="thtop"><div><h1 class="thg">{hello}</h1><p class="thd">Sunday 1 November</p></div>{stk(streak)}</div>'
+                f'<div class="dpov"><button class="dpq" aria-label="{E(q)}, {ref}. Opens the day’s verse">{E(q)}</button>'
+                f'<span class="dpr">{ref}<span class="dpsep">·</span><button class="sitl" aria-label="Sit with this verse">Sit with this</button></span></div></figure>')
+        return (f'<div class="tday d">{hero}<div class="tsheet">{top}<div class="cstack">{pair}</div>{rest}</div></div>'
+                f'<div class="a">{plain}</div>')
+
+    # DR-01 (IA v4, 15 Oct 2026): Today is a tab, not a Home row; Bible is the old Home without it.
+    F("DR-01", "Two tabs: Bible keeps your place, Today holds the day; Yada opens on the last one used", [
+        ("Light · Bible, first launch tab", "light", bible_root + tabbar("bible")),
+        ("Dark · Today, after 5 pm", "dark", today_page(True) + tabbar("today")),
+        ("AX5 · Bible", "ax5", bible_root + tabbar("bible"))], "dr")
+
+    def ps_next(rd_html, lbl, nxt):
+        return rd_html.replace('<div class="cfoot">', f'<div class="cfoot"><button class="lead pnext" aria-label="{lbl}, {nxt}"><span class="rm"><span class="lbl">{lbl}</span><span class="leadt">{nxt}</span></span><span class="chev">{ic("right", 18)}</span></button>', 1)
+    p1 = ps_next(reader("PSA", 1, 1, 6, back=("Today", "Back to Today"), scrolled=False, rows_override=t5("PSA", 1, 1, 6), foot=(None, "Psalm 2")), "Next this morning", "Psalm 2")
+    p1ax = ps_next(reader("PSA", 1, 6, 6, back=("Today", "Back to Today"), scrolled=False, rows_override=t5("PSA", 1, 6, 6), foot=(None, "Psalm 2")), "Next this morning", "Psalm 2")
+    F("DR-02", "Reading this morning’s psalms: at the end of each, the next one leads", [
+        ("Light", "light", p1), ("Dark", "dark", p1), ("AX5 · scrolled to the end", "ax5", p1ax)], "dr")
+    p5 = ps_next(reader("PSA", 5, 9, 12, back=("Today", "Back to Today"), scrolled=False, rows_override=t5("PSA", 5, 9, 12), foot=("Psalm 4", "Psalm 6")), "This evening", EVE)
+    p5ax = ps_next(reader("PSA", 5, 12, 12, back=("Today", "Back to Today"), scrolled=False, rows_override=t5("PSA", 5, 12, 12), foot=("Psalm 4", "Psalm 6")), "This evening", EVE)
+    F("DR-03", "The morning’s last psalm: no ‘done’, no confetti; the evening’s psalms are named", [
+        ("Light", "light", p5), ("Dark", "dark", p5), ("AX5 · scrolled to the end", "ax5", p5ax)], "dr")
+
+    dp_body = (sec(None, vrow("Morning and evening", "All 150 in a month, as the 1662 Prayer Book divides them", on=True)
+                   + vrow("One a day", "Psalm 1 to 150, then again")
+                   + vrow("Off", "No psalms on Today or in the widget"), first=True))
+    dp_page = page(("Settings", "Back to Settings"), "Daily psalms", dp_body) + tabbar("bible")
+    st_dp = tabbar("bible") + page(("Bible", "Back to Bible"), "Settings", settings_body.replace(
+        vrow2("Compare with", "WEB, KJV, LSV"), vrow2("Compare with", "WEB, KJV, LSV") + vrow2("Daily psalms", "Morning and evening")))
+    F("DR-04", "Settings › Daily psalms: three choices, each saying what it is", [
+        ("Light · the choice", "light", dp_page), ("Dark · where it lives", "dark", st_dp), ("AX5 · the choice", "ax5", dp_page)], "dr")
+
+    two = (sec("Morning", lrow("Every day", right='<span class="valr">7:30</span>', chev=False, cls="valrow")
+               + vrow("The next passage", "Where you are in John, or your plan", on=True), first=True)
+           + sec("Evening", lrow("Every day", right='<span class="valr">21:00</span>', chev=False, cls="valrow")
+                 + vrow("This evening’s psalms", "From Daily psalms", on=True))
+           + '<p class="note muted">Made on this iPhone. Nothing about your reading is sent anywhere.</p>')
+    F("DR-05", "Decision for John · the reminder, morning and evening: a second time (NT allows one a day)", page(("Settings", "Back to Settings"), "Reminder", two) + tabbar("bible"), "dr")
+
+    F("DR-06", "The evening reminder: the psalms and their first words, nothing about yesterday",
+      lock_with(notif(f"This evening · {EVE}", ps6, when="21:00")).replace("Tuesday 13 October", "Sunday 1 November").replace(">7:30<", ">21:00<", 1), "dr")
+
+    def lsw(when, ps, txt):
+        return (f'<div class="wg md lsw" role="group" aria-label="{when}, {ps}. {E(txt)}"><span class="wgl">{when}</span>'
+                f'<span class="wgq">{scripture(txt)}</span><span class="wgr">{ps} · BSB</span></div>')
+    hs_m = (f'<div class="hscr"><div class="sbar"><span>7:02</span></div>'
+            f'<div class="wgrid">{w_small("John 1:39", j139w)}<div class="apps4">{apps(4, 3)}</div></div>'
+            f'{lsw("This morning", MORN, t5("PSA", 1, 1)[0][1])}<div class="apps4 row4">{apps(4)}</div></div>')
+    ls_e = f'<div class="lscr"><p class="lsd">Sunday 1 November</p><p class="lst">21:40</p>{lsw("This evening", EVE, ps6)}</div>'
+    F("DR-07", "The widget follows the day: this morning’s psalms, then this evening’s", [
+        ("Light · Home Screen, morning", "light", hs_m), ("Dark · Lock Screen, evening", "dark", ls_e), ("AX5 · Home Screen, morning", "ax5", hs_m)], "dr")
+
+    p8 = [(n, t) for n, t in t5("PSA", 8, 1, 9)]
+    ev = lambda st: lfull(p8[2:9], 5, 3, title=f"Evening · {EVE}", sub="Psalm 8 · BSB", voice=HEART, last=9, segs=[(1, 9)], status=st)
+    STOPE = pmenu_([("End of this evening’s psalms", "After Psalm 8", True, False), ("End of this psalm", "After 8:9", False, False),
+                    ("In 15 minutes", None, False, False), ("In 30 minutes", None, False, False), ("Off", None, False, False)], "Stop playing")
+    F("DR-08", "Listening at night: the evening’s psalms play through and stop after the last", [
+        ("Light · Stop playing", "light", ev(None) + '<div class="menuscrim"></div>' + STOPE),
+        ("Dark · set", "dark", ev("Stops after Psalm 8")),
+        ("AX5 · set", "ax5", ev("Stops after Psalm 8"))], "dr")
+
+    gap_dr = page(None, "Yada", home_cont.replace("Continue · John 1:39", "Where you stopped · John 1:39").replace("Continue reading,", "Where you stopped,")
+                  + allp + sec("Old Testament", ot), right=BIBLE_ICONS) + tabbar("bible")
+    F("DR-09", "Back after three weeks: where you stopped, and today’s psalms are today’s; nothing to catch up", [
+        ("Light · Bible", "light", gap_dr), ("Dark · Today is that day’s", "dark", today_page() + tabbar("today")), ("AX5 · Bible", "ax5", gap_dr)], "dr")
+
+    def cal():
+        # A month drawn for the decision only. Dots on the days read; no count, no line between days.
+        read = {2, 3, 5, 6, 7, 9, 12, 13, 14}
+        hd = "".join(f'<span class="dch">{d}</span>' for d in "MTWTFSS")
+        cells = "".join('<span></span>' for _ in range(3)) + "".join(
+            f'<span class="dcd{" r" if d in read else ""}" aria-label="{d} October{", read" if d in read else ""}">{d}</span>' for d in range(1, 32))
+        return f'<div class="dcal" role="grid" aria-label="October">{hd}{cells}</div>'
+    F("DR-10", "Decision for John · ‘Days you read’: a private month with dots; it breaks the no-tallies rule, so not recommended",
+      page(("Settings", "Back to Settings"), "Days you read", sec("October", cal(), first=True)) + tabbar("bible"), "dr")
+
+
+    # ---- Today: the rhythm's home (John, 15 Oct 2026: option 2, with a photo and a daily devotional) ----
+    # John lifted brief §14's "no mood photography" for this page (15 Oct 2026). One photo a day, chosen ahead from
+    # public-domain and CC0 collections, kept on R2 with its credit and downloaded a week ahead, so it shows offline
+    # and no third party sees the reader. The devotional is C. H. Spurgeon's Morning and Evening (1865–69, public
+    # domain), the entry for the date, unchanged and credited. Its text is not ingested yet: a labelled block stands in.
+    # Hallow / Calm put the day first and the sessions under it (Calm's Daily Calm, mobbin.com/screens/
+    # 81ffdb2c-2a4a-4e19-9225-9299bac2c266); TIDE's full-width photo with the date and one quotation over it,
+    # mobbin.com/screens/62fb29ab-36aa-47fd-8420-aaab7360f1bd. Rejected: Bloom's week of empty circles above "Daily Bloom".
+    F("DR-11", "Today: the picture shows a line from this morning’s psalms; one lead, Read or Listen; the rest waits below", [
+        ("Light · morning", "light", today_page() + tabbar("today")), ("Dark · morning", "dark", today_page() + tabbar("today")), ("AX5 · morning", "ax5", today_page() + tabbar("today"))], "dr")
+    F("DR-12", "Today after 5 pm: the evening psalms lead; the morning folds to one line under Earlier, unmarked", [
+        ("Light · evening", "light", today_page(True) + tabbar("today")), ("Dark · evening", "dark", today_page(True) + tabbar("today")), ("AX5 · evening", "ax5", today_page(True) + tabbar("today"))], "dr")
+
+    dev_body = (f'<p class="note muted">1 November · morning</p>'
+                '<p class="dvh">“The church in thy house.”</p><p class="note muted">Philemon 2</p>'
+                '<p class="dvp">Is there a Church in this house?</p>'
+                + placeholder_text("The rest of the entry, unchanged, from the pinned public-domain copy.")
+                + sec(None, lrow("For the evening", sub="Matthew 24:39", cls="valrow"))
+                + '<p class="note muted">C. H. Spurgeon, Morning and Evening. Public domain.</p>')
+    dev_pg = page(("Today", "Back to Today"), "Morning devotional", dev_body) + tabbar("today")
+    F("DR-13", "Spurgeon for the morning: the date’s entry, whole and unchanged, credited once at the end", dev_pg, "dr")
+
+    cred_body = sec(None, '<dl class="dpdl">'
+                    + "".join(f'<dt class="note muted">{k}</dt><dd>{E(v)}</dd>' for k, v in
+                              (("Title", "Morning fog over the Yellowstone River"), ("By", "Jacob W. Frank"), ("From", "Yellowstone National Park, National Park Service"), ("Chosen for", "Psalm 1:3"), ("Licence", "Public domain, a work of the US government"))) + "</dl>", first=True)
+    F("DR-14", "About this picture (⋯ on the day’s verse, or a long press): what it is, who made it, the verse, its licence", today_page() + scrim() + sheet("med", "About this picture", "Sunday 1 November", cred_body, foot=False), "dr")
+    F("DR-15", "No photo yet (first day, or offline before it downloaded): the page without it; no skeleton, no grey box", today_page(photo=False) + tabbar("today"), "dr")
+
+    # ---- IA v4: three tabs (John, 15 Oct 2026: "go with tabs"; docs/build-7-ia-stress-test.md) ----
+    # Today · Bible, with Search as its own button beside the bar (iOS 26). The reader opens full screen over the tabs,
+    # as in Apple Books, mobbin.com/screens/d0fe94af-934c-4966-8935-ca0bcbbdc34b; the mini player sits above the bar on
+    # every tab, as in Brink, mobbin.com/screens/96c7725e-7e81-4c8e-aa2a-6fc7b701d619. A tab only for a daily job.
+    today_root = today_page
+    F("IA-15", "IA v4 · Three doors at the bottom: Today, Bible, and Search on its own", [
+        ("Light · Today", "light", today_root() + tabbar("today")),
+        ("Dark · Bible", "dark", bible_root + tabbar("bible")),
+        ("AX5 · Today", "ax5", today_root() + tabbar("today"))], "i7")
+
+    ps1 = lambda back: reader("PSA", 1, 1, 6, back=back, scrolled=False, rows_override=t5("PSA", 1, 1, 6), foot=(None, "Psalm 2"))
+    from_today = ps_next(ps1(("Today", "Back to Today")), "Next this morning", "Psalm 2")
+    from_bible = reader("JHN", 1, 38, 44, back=("Bible", "Back to Bible"), scrolled=False, rows_override=t5("JHN", 1, 38, 44))
+    F("IA-16", "IA v4 · The reader covers the tabs; its return chip names the tab it came from", [
+        ("Light · from Today", "light", from_today), ("Dark · from Bible", "dark", from_bible), ("AX5 · from Today", "ax5", from_today)], "i7")
+
+    def acc(title, sub):
+        return (f'<div class="tacc" role="region" aria-label="Audio player"><button class="tacl" aria-label="{E(title)}, {E(sub)}. Opens the player">'
+                f'<span class="tact">{E(title)}</span><span class="note muted">{E(sub)}</span></button>'
+                f'<button class="mpb mpp" aria-label="Pause">{ic("pause", 20)}</button>'
+                f'<button class="mpb" aria-label="Next verse">{ic("nextv", 18)}</button></div>')
+    F("IA-17", "IA v4 · Listening: the mini player rides above the bar on every tab", [
+        ("Light · Today, the evening psalms", "light", today_root(True) + tabbar("today", acc("Psalm 6", "Verse 3 · BSB"))),
+        ("Dark · Bible, John", "dark", bible_root + tabbar("bible", acc(JLAB, "Verse 5 · BSB"))),
+        ("AX5 · Today", "ax5", today_root(True) + tabbar("today", acc("Psalm 6", "Verse 3 · BSB")))], "i7")
+
+    NEXT_NOTES["refs_i7"] = (
+        "IA v4 · three tabs (John, 15 Oct 2026: 'go with tabs'; findings in docs/build-7-ia-stress-test.md)\n\n"
+        "Why now: IA v3 had one root because Yada had one job. Build 7 adds a second daily job, the day. Today was a fourth row on Home and fell off the first screen at AX5; the mini player and Search had no home off Home.\n\n"
+        "The bar (IA-15): Today · Bible, and Search as its own round button beside them (iOS 26's search role). Bible is the old Home: Continue as the one lead, Your plan, the books; Bookmarks and ⋯ (Recent, Reading plans, Settings) in its header. Search left the header. "
+        "Rule: a tab only for a daily job; everything else lives under ⋯ or Settings. Yada opens on the last tab used; the first launch opens Bible.\n\n"
+        "The reader (IA-16): full screen over the tabs, no bar while reading. The return chip names the tab: '‹ Today', '‹ Bible', and keeps it across chapter moves and a psalm set (build 6 fix #1).\n\n"
+        "Listening (IA-17): the mini player sits on the bar's accessory on every tab and collapses into it on scroll (iOS 26). In the reader, the reader's own bar keeps Listen. This replaces build 7 item B's root overlay.\n\n"
+        "Doors from outside: content lands on the content (the evening notification opens Psalm 6; the morning widget Psalm 1); 'Today' (Siri, the old Home row) opens the Today tab. Still John's to confirm (stress test, decision 2).\n\n"
+        "VoiceOver: 'Today, tab, 1 of 2'; Search is a button. AX5: labels stay; long-press shows the large-content viewer. Reduce Motion: no tab cross-fade.\n\n"
+        f"Refs: Apple Books, tabs with the book opening full screen {M('d0fe94af-934c-4966-8935-ca0bcbbdc34b')} · Brink, the player under its tabs {M('96c7725e-7e81-4c8e-aa2a-6fc7b701d619')} · Calm, the player above the bar {M('2deebcbc-5868-46ca-9142-39b5a38bfd28')}. "
+        f"Rejected: Apple Books' 'Today's Reading 0:00 of your 5-minute goal' {M('211bc94b-4f3a-4604-8e8d-9d47e1c41c3c')}; a Library tab (Bookmarks and Recent are not a daily job).")
+
+    # ---- After YouVersion (John, 15 Oct 2026: "study their flows … the verse of the day being the image which you
+    # click and shows up as the other screen"). From his 13 YouVersion screenshots: the verse-of-the-day image opens
+    # full screen with a ⋯ menu (Read full chapter, Create image, See past days, Compare versions); Compare stacks
+    # versions in a sheet. Taken: the full-screen day's verse, its menu, share as an image, earlier days. Not taken:
+    # like and comment counts on Scripture, the donation card, badges, the streak and its restore.
+    P13F = t5("PSA", 1, 3)[0][1]
+
+    def imm(menu=False, ax=False):
+        acts = "".join(f'<button class="imb" aria-label="{a}">{ic(i_, 22)}<span>{l_}</span></button>'
+                       for i_, l_, a in (("open", "Read", "Read Psalm 1"), ("play", "Listen", "Listen to Psalm 1"), ("share", "Share", "Share as an image")))
+        m = ""
+        if menu:
+            m = ('<div class="menuscrim"></div><div class="menu immenu" role="menu">'
+                 + "".join(f'<button role="menuitem"><span>{x}</span></button>' for x in ("Read Psalm 1", "Compare translations", "Share as an image", "Earlier days", "About this picture")) + "</div>")
+        return (f'<div class="imm"><img src="{IMG}" alt="{ALT}">'
+                f'<div class="imtop"><button class="imx" aria-label="Close, back to Today">{ic("x", 22)}</button>'
+                f'<button class="imx" aria-label="More: read, compare, share, earlier days">{ic("more", 22)}</button></div>'
+                f'<div class="imtxt"><p class="imref">Today · Psalm 1:3</p><p class="imv">{E(P13F)}</p></div>'
+                f'<div class="imacts">{acts}</div></div>{m}')
+    F("DR-16", "Tap the picture: the day’s verse fills the screen; Read, Listen, Share; no counts", [
+        ("Light", "light", imm()), ("Dark", "dark", imm()), ("AX5", "ax5", imm())], "yv")
+    F("DR-17", "⋯ on the day’s verse: read the psalm, compare, share, earlier days, about the picture", [
+        ("Light", "light", imm(True)), ("Dark", "dark", imm(True)), ("AX5", "ax5", imm(True))], "yv")
+
+    share_card = (f'<div class="shcard"><img src="{IMG}" alt=""><div class="shtx"><p class="shv">{E(P13F)}</p>'
+                  f'<p class="shr">Psalm 1:3 · BSB</p></div></div>'
+                  '<div class="shbtns"><button class="tbtn2" aria-label="Save the image to Photos">Save to Photos</button>'
+                  '<button class="wide" aria-label="Share the image">Share</button></div>')
+    F("DR-18", "Share as an image: the verse on the day’s picture, the text and picture credited", imm() + scrim() + sheet("lg", "Share as an image", "Psalm 1:3", share_card, foot=False), "yv")
+
+    def day_row(img, date_, ps, v):
+        th = f'<img class="dth" src="{img}" alt="">' if img else '<span class="dth" aria-hidden="true"></span>'
+        lab = re.sub("<[^>]+>", "", f"{date_}. {v}. {ps}")
+        return (f'<button class="lrow drow" aria-label="{E(lab)}">{th}<span class="rm"><span class="note muted">{date_} · {ps}</span>'
+                f'<span class="lmain dv">{v}</span></span><span class="chev">{ic("right", 18)}</span></button>')
+    earlier = sec(None, day_row(IMG, "Today", "Psalm 1:3", "“" + E(P13) + "”")
+                  + day_row(IMG_E, "Last night", "Psalm 8:3", "“" + E(P83) + "”"), first=True)
+    F("DR-19", "Earlier days: this month’s pictures and verses, newest first; the psalter repeats each month", page(("Today", "Back to Today"), "Earlier days", earlier) + tabbar("today"), "yv")
+
+    def bk(name, done, total):
+        pc = done / total * 100
+        return (f'<div class="lrow bkrow" role="group" aria-label="{name}, {done} of {total} chapters read"><span class="rm"><span class="lmain bkn">{name}</span>'
+                f'<span class="bkbar"><span style="width:{pc:.0f}%"></span></span></span><span class="valr">{done} of {total}</span></div>')
+    yr = ('<div class="yrh"><p class="yrn">41 days</p><p class="note muted">with Scripture in 2026</p></div>'
+          + sec("Books you have opened", bk("Psalms", 5, 150) + bk("John", 1, 21) + bk("Genesis", 2, 50))
+          + sec("Read through", lrow("Ruth", sub="4 chapters · finished 3 Oct", chev=False)))
+    F("DR-20", "Decision for John · ‘Your reading’: days that only count up, and books filling in; never ‘in a row’, never lost", page(("Bible", "Back to Bible"), "Your reading", yr) + tabbar("bible"), "yv")
+
+    NEXT_NOTES["refs_yv"] = (
+        "After YouVersion (John, 15 Oct 2026: 'study their flows'; his 13 screenshots; Mobbin's monthly cap was reached, so the refs are his screenshots and the earlier Mobbin study)\n\n"
+        "The day's verse, full screen (DR-16): tapping the picture on Today opens it edge to edge: the verse large in Literata over a fade, 'Today · Psalm 1:3', and three labelled actions, Read, Listen, Share. "
+        "× returns to Today. No like, comment or share counts: Scripture is not scored. No credit on the picture: ⋯ › About this picture holds it (John, 15 Oct 2026).\n\n"
+        "⋯ (DR-17): Read Psalm 1, Compare translations (CP), Share as an image, Earlier days, About this picture (DR-14). YouVersion's menu, minus Create image's editor: Yada makes the one image (DR-18).\n\n"
+        "Share as an image (DR-18): the verse on the day's picture, 'Psalm 1:3 · BSB'; Save to Photos or Share; then the iOS share sheet. BSB, WEB, KJV or LSV only (rule 9): a reader on the NKJV shares the BSB.\n\n"
+        "Earlier days (DR-19): this month's pictures and verses, newest first. YouVersion's 'See past days'. The psalter repeats monthly, so it is at most 30 rows. The other rows are placeholders until the table and pictures exist.\n\n"
+        "DECISION, your reading (DR-20): John asked for better gamification than YouVersion's streaks. The gentlest form that still rewards: a count of days with Scripture this year that only counts up (YouVersion's '7 days in YouVersion this year', without its streak), "
+        "books filling in chapter by chapter, and books read through with the date (format '3 Oct'). Never 'in a row', never a best, never lost, no badge art, no notification about it. It lives in Bible › ⋯ › Your reading, not on Today. "
+        "It still breaks the 'no tallies' rule, so it ships only if John says so. Figures on the frame are a sample reader's.\n\n"
+        "Rejected from YouVersion: the streak and 'restore once a month', badges, like and comment counts, the donation card, 'Good morning, John' (no accounts).\n\n"
+        f"Refs: Me+, a quote full screen over a photo with quiet round actions {M('300fe0ea-07f4-495b-bdcc-91ce06541a85')} · Me+, share preview with Download beside Share {M('9ad9887b-c105-4405-a280-a5f66c47fc1d')} · TIDE, a share card with the picture and its line {M('48911723-f2fe-424b-a39f-7322f5a4327e')} · "
+        f"Atoms, a total that only counts up {M('fec5430a-a635-4747-8f05-615e9a6fac58')}. "
+        f"Rejected: Goodreads' '1 book ahead of schedule' and achievement badges {M('c03e1e2a-14b5-405e-92cb-db08ccadca4e')} · Fable's 'Best streak' and yearly goal {M('9e84b392-59be-4a54-8237-d095d16311aa')} · Apple Books' daily reading goal ring {M('00643994-7713-4c56-9d46-e81e10a83ba7')}.")
+
+    # ---- The streak, defined (John, 15 Oct 2026: "lets have streak but lets define it") ----
+    # A day counts when you read or listen to Scripture. One day of rest in any week never breaks it. If it stops it
+    # starts again, quietly, the next day you read: no "lost", no best, no restore, no notification, never on a widget.
+    def wk(days):
+        # days: (letter, state) with state "r" read, "x" rest, "t" today read, "" not yet
+        out = "".join(f'<span class="wkd {st}" aria-label="{full_}{", read" if st in ("r", "t") else (", a day of rest" if st == "x" else "")}">'
+                      f'<span class="wkl">{l_}</span><span class="wkc">{ic("lamp", 16) if st in ("r", "t") else ""}</span></span>'
+                      for (l_, full_), st in zip((("M", "Monday"), ("T", "Tuesday"), ("W", "Wednesday"), ("T", "Thursday"), ("F", "Friday"), ("S", "Saturday"), ("S", "Sunday")), days))
+        return f'<div class="wk" role="group" aria-label="This week">{out}</div>'
+
+    def rhythm(n, days, line):
+        body = (f'<div class="rhy"><p class="rhn">{ic("lamp", 30)}<span>{n} {"day" if n == 1 else "days"}</span></p>'
+                f'<p class="note muted">{line}</p></div>{wk(days)}'
+                + sec("How it works", '<p class="claim">A day counts when you read or listen to Scripture.</p>'
+                      '<p class="claim">One day of rest a week never breaks it.</p>'
+                      '<p class="claim">If it stops, it starts again the next day you read.</p>')
+                + sec(None, vrow2("This year", "41 days")))
+        return body
+    F("DR-21", "The streak, defined: a lamp and a number; read or listen counts; a day of rest each week never breaks it", [
+        ("Light · Today, morning", "light", today_page() + tabbar("today")),
+        ("Dark · the sheet", "dark", today_page() + tabbar("today") + scrim() + sheet("lg", "Your rhythm", None, rhythm(6, ("r", "r", "x", "r", "r", "r", "t"), "in a row, with Wednesday as a rest day"), foot=False)),
+        ("AX5 · the sheet", "ax5", today_page() + scrim() + sheet("lg", "Your rhythm", None, rhythm(6, ("r", "r", "x", "r", "r", "r", "t"), "in a row, with Wednesday as a rest day"), foot=False))], "st7")
+    F("DR-22", "When it stops: it starts again at 1 the next day you read; no ‘lost’, no best, nothing to restore", [
+        ("Light · the sheet", "light", today_page(streak=1) + tabbar("today") + scrim() + sheet("lg", "Your rhythm", None, rhythm(1, ("r", "", "", "", "", "", "t"), "Started again today"), foot=False)),
+        ("Dark · Today", "dark", today_page(streak=1) + tabbar("today")),
+        ("AX5 · the sheet", "ax5", today_page(streak=1) + scrim() + sheet("lg", "Your rhythm", None, rhythm(1, ("r", "", "", "", "", "", "t"), "Started again today"), foot=False))], "st7")
+
+    NEXT_NOTES["refs_st7"] = (
+        "The streak, defined (John, 15 Oct 2026: 'lets have streak but lets define it'; 'we dont have names but we can have good morning'; 'lets have cards but use it right')\n\n"
+        "WHAT COUNTS: a day counts when you read or listen to Scripture: a passage, psalm or chapter read to its end, or two minutes in the reader or player. Opening the app does not count. The day is the iPhone's local day.\n\n"
+        "REST: one day without reading in any seven never breaks it (a day of rest each week). Rest days don't add to the number. Two days missed in a week, and it stops.\n\n"
+        "WHEN IT STOPS: it starts again at 1 the next day you read. The sheet says 'Started again today'. Never 'lost', 'broken' or 'missed'; no best streak; no restore; no freeze to buy or earn.\n\n"
+        "WHERE: a lamp and a number at the top of Today only (Psalm 119:105, not a flame). Tap: 'Your rhythm' sheet: the number, this week's lamps, three lines on how it works, and 'This year: 41 days' (the tally, counting up only; opens Your reading, DR-20). "
+        "Never on the Bible tab, a widget, the Lock Screen, a notification or a share image. No celebration at 7, 30 or 100; the number just changes. Private: on this iPhone and the reader's iCloud.\n\n"
+        "GREETING: 'Good morning' until 12:00, 'Good afternoon' until 17:00, then 'Good evening'. No name: Yada has no accounts.\n\n"
+        "CARDS, used right: one card per self-contained thing you tap (the day's picture, the reading to do now, Spurgeon, your plan). Never a box around text, a list or a section; never nested; 24 pt radius; a soft fill, no shadow, no border. Lists stay lists.\n\n"
+        "VoiceOver: 'Streak, 6 days, opens your rhythm'; each weekday reads 'Monday, read' or 'Wednesday, a day of rest'.\n\n"
+        "Why this shape: YouVersion's own 'Why streaks?' sheet has to explain its streak away, and needs 'restore once a month' because missing a day hurts. A built-in rest day and a quiet restart remove the hurt; there is nothing to restore.")
+
+    # ---- Contents: ⋯ menu (John, 15 Oct 2026, from YouVersion's chapter picker: Recents · Book Order · Verse Selection) ----
+    # A native menu from ⋯ beside the translation switch: Recent at the top, then two settings that show their value.
+    # Book order: Traditional or A to Z (one list, no Testament headings). Choose a verse: off by default; on, a
+    # chapter opens its verses before the reader, so a reader can land on 3:16 in two taps.
+    def ctop(on="BSB"):
+        return (f'<div class="ctop">{seg(on)}<button class="gbtn ctm" aria-label="More: Recent, book order, choose a verse">{ic("more", 22)}</button></div>')
+    BKS = db.execute("select code, name, testament from books order by ord").fetchall()
+    trad = sec("New Testament", "".join(lrow(E(n), cls="book") for c, n, t in BKS if t == "NT")[:6000])
+    def ctmenu(order="Traditional", verse="Off"):
+        return ('<div class="menuscrim"></div><div class="menu ctmenu" role="menu">'
+                f'<button role="menuitem"><span class="mic">{ic("clock", 20)}</span><span>Recent</span></button><div class="msep"></div>'
+                f'<button role="menuitem"><span class="mic">{ic("sort", 20)}</span><span class="mrm"><span>Book order</span><span class="msub">{order}</span></span>{ic("right", 16)}</button>'
+                f'<button role="menuitem"><span class="mic">{ic("list", 20)}</span><span class="mrm"><span>Choose a verse</span><span class="msub">{verse}</span></span>{ic("right", 16)}</button></div>')
+    under3 = reader("JHN", 3, 14, 18, scrolled=False, rows_override=t5("JHN", 3, 14, 18)) + scrim()
+    books_sheet = lambda body: sheet("lg", "Contents", None, ctop() + body, foot=False)
+    F("CT-01", "Contents › ⋯: Recent, Book order and Choose a verse, each showing its setting", under3 + books_sheet(trad) + ctmenu(), "ct")
+    az = sorted((n for c, n, t in BKS), key=lambda n: n.replace("1 ", "").replace("2 ", "").replace("3 ", ""))
+    azl = sec(None, "".join(lrow(E(n), cls="book") for n in az[:14]), first=True)
+    F("CT-02", "Book order › A to Z: one list, no Testament headings; a number sorts by the name (1 John under J)", under3 + books_sheet(azl), "ct")
+    vg = '<div class="chg vgr">' + "".join(f'<button aria-label="Verse {n}">{n}</button>' for n in range(1, 37)) + "</div>"
+    F("CT-03", "Choose a verse on: John › 3 shows its 36 verses; 16 opens the reader at 3:16", under3 + sheet("lg", "John 3", None, ctop() + vg, back=True, foot=False), "ct")
+    NEXT_NOTES["refs_ct"] = (
+        "Contents · ⋯ menu (John, 15 Oct 2026, from YouVersion's chapter picker: 'Recents · Book Order Traditional · Verse Selection Off')\n\n"
+        "Where: ⋯ beside the translation switch at the top of Contents, so the sheet's header keeps its title and ×. A native menu (UIMenu): Recent, a separator, then two rows that show their value as a second line, as the player's menu does (LB-01).\n\n"
+        "Recent (CT-01): opens Recent inside the sheet (‹ back), the same list as Bible › ⋯ › Recent. One door in Contents because that is where a reader goes to jump.\n\n"
+        "Book order (CT-02): Traditional (default) or A to Z. A to Z is one list without Old and New Testament headings; numbered books sort by name ('1 John' under J, then 2 and 3 John). Remembered; only Contents changes.\n\n"
+        "Choose a verse (CT-03): Off by default. On, picking a chapter shows its verses in the same grid; a verse opens the reader at it, selected, as a search result does. The chapter's own row stays the way to open at verse 1.\n\n"
+        "VoiceOver: 'More: Recent, book order, choose a verse'; menu rows read their value ('Book order, Traditional'). AX5: the menu rows wrap; the verse grid becomes 4 across.\n\n"
+        "Not taken: YouVersion's icon-only header buttons; the setting lives in the menu only, not in Settings, since it is about Contents alone.")
+
+    # ---- Build 7 edge cases worth seeing (docs/build-7-plan.md §6) ----
+    def today_custom(lead, pair, extra=""):
+        pic = dphoto()
+        body = f'<div class="d">{pic}{lead}</div><div class="a">{lead}{pic}</div>' + f'<div class="cstack">{pair}</div>' + extra
+        return page(None, "Good morning", body, sub="Sunday 1 November", right=stk(6)) + tabbar("today")
+    choose_plan = ('<div class="card tlead"><p class="lbl">Your plan</p><p class="cw lit">Choose a plan</p>'
+                   '<div class="cbtns"><button class="cbp" aria-label="Open Reading plans">Reading plans</button></div></div>')
+    F("EB-01", "Daily psalms off and no plan: the lead asks for a plan; nothing empty, nothing nagging",
+      today_custom(choose_plan, dev_card("morning")), "eb7")
+    offline_pair = dev_card("morning", "Our Daily Bread", offline=True) + plan_card()
+    F("EB-02", "Our Daily Bread offline: the card says so in one line; Spurgeon is not swapped in silently",
+      today_custom(today_lead("This morning", MORN, p1f, "Psalm 1:1"), offline_pair), "eb7")
+    est = t5("EST", 8, 9)[0][1]
+    longpic = (f'<figure class="dphoto img" style="height:300px"><img src="{IMG}" alt="{ALT}">'
+               f'<button class="dpov" aria-label="{E(est)}, Esther 8:9"><span class="dpq clamp4">“{E(est)}”</span><span class="dpr">Esther 8:9</span></button></figure>')
+    longpage = page(None, "Good morning", f'<div class="d">{longpic}</div><div class="a">{longpic}</div>' + today_lead("This morning", MORN, p1f, "Psalm 1:1"), sub="Sunday 1 November", right=stk(6)) + tabbar("today")
+    F("EB-03", "A long verse (Esther 8:9, the Bible’s longest, as the test): four lines and ‘…’ on Today; whole in the full view", longpage, "eb7")
+    F("EB-04", "Reduce Transparency: the fade under the verse becomes a solid band, so the text keeps its contrast",
+      today_page().replace('class="dphoto img thero"', 'class="dphoto img thero rt"'), "eb7")
+    NEXT_NOTES["refs_eb7"] = (
+        "Build 7 edge cases (the full list is docs/build-7-plan.md §6)\n\n"
+        "EB-01 Daily psalms off and no plan: the reading card becomes 'Your plan · Choose a plan' with Reading plans. With a plan, it is the plan's next reading (Continue's target).\n\n"
+        "EB-02 Our Daily Bread offline: its card says 'Needs a connection'; tapping it says the same in the page. Spurgeon is not swapped in silently, because the reader chose ODB.\n\n"
+        "EB-03 Long verses: Today clamps the verse on the picture at four lines (three at AX5) with '…'; the full view shows it whole and scrolls at AX5. Esther 8:9 is used as the test only; Daily Light picks the real verses.\n\n"
+        "EB-04 Reduce Transparency or Increase Contrast: the fade is replaced by a solid band of the picture's darkest tone under the text; the text stays white at 7:1 or better.\n\n"
+        "Also in §6 and not drawn: the 31st and February, Psalm 119 in parts, time zones and DST, the streak with the clock moved back or two phones, Remove my data clearing the rhythm, leap day, licensed readers.")
+
+    # ---- Your space: highlights, notes, copy, saved, an image for any verse (John, 15 Oct 2026, after YouVersion's
+    # verse actions, its "You" page and its verse images). Private: on this iPhone and the reader's iCloud. No badges,
+    # no likes, no feed, no "You've earned". Four highlight colours, each named for VoiceOver; the colour is the
+    # reader's own meaning, never Yada's (no state by colour alone: a highlighted verse also lists under Saved).
+    HLC = (("y", "Yellow"), ("g", "Green"), ("b", "Blue"), ("p", "Pink"))
+
+    def psbar(v):
+        dots = "".join(f'<button class="hdot {k}" aria-label="Highlight {n.lower()}"></button>' for k, n in HLC)
+        return (f'<div class="abar psb"><div class="d selp"><button class="mpb mpp pfh" aria-label="Play from verse {v.split(":")[1]}">{ic("play", 18)}<span>{v}</span></button>'
+                f'<button class="ab-u">Understand {v}</button>'
+                f'<button class="ab-i" aria-label="Compare translations of {v}">{ic("cols", 18)}<span>Compare</span></button><button class="ab-m" aria-label="More: share as an image, share, bookmark">{ic("more", 22)}</button></div>'
+                f'<div class="psrow d"><div class="hdots" role="group" aria-label="Highlight">{dots}</div>'
+                f'<button class="psa" aria-label="Note on {v}">{ic("note", 18)}<span>Note</span></button>'
+                f'<button class="psa" aria-label="Copy {v}">{ic("copy", 18)}<span>Copy</span></button></div>'
+                f'<div class="a abar-list"><button class="ab-u">Understand {v}</button><div class="hdots" role="group" aria-label="Highlight">{dots}</div>'
+                f'<button class="ab-i">Note{ic("note", 30)}</button><button class="ab-i">Copy{ic("copy", 30)}</button><button class="ab-i">More{ic("more", 30)}</button></div></div>')
+    j3 = t5("JHN", 3, 14, 18)
+    F("PS-01", "Select a verse: highlight in one of four colours, Note and Copy, under Understand and Compare", reader("JHN", 3, 14, 18, back=("Bible", "Back to Bible"), sel=(16,), scrolled=False, rows_override=j3) + psbar("3:16"), "ps")
+
+    def marked(html_, hl=None, note=()):
+        for n, k in (hl or {}).items():
+            html_ = html_.replace(f'<p class="v"><span class="vn">{n}</span>', f'<p class="v hl {k}" aria-label="verse {n}, highlighted {dict(HLC)[k].lower()}"><span class="vn">{n}</span>', 1)
+        for n in note:
+            html_ = html_.replace(f'<span class="vn">{n}</span>', f'<span class="vn">{n}</span><button class="nmk" aria-label="Your note on verse {n}">{ic("note", 13)}</button>', 1)
+        return html_
+    F("PS-02", "In the reader: highlights as a soft wash, a small mark where you left a note", marked(reader("JHN", 3, 14, 18, back=("Bible", "Back to Bible"), scrolled=False, rows_override=j3), {16: "y", 17: "g"}, (16,)), "ps")
+
+    note_body = (f'<p class="scrq0 nq">{scripture(t5("JHN", 3, 16)[0][1])}</p>'
+                 '<div class="seg nseg" role="radiogroup" aria-label="Note on"><button role="radio" aria-checked="true" class="on">John 3:16</button><button role="radio" aria-checked="false">All of John 3</button></div>'
+                 '<div class="ned" role="textbox" aria-multiline="true" aria-label="Your note"><span class="note muted">Write a note</span><span class="caret"></span></div>'
+                 '<p class="note muted">Kept on this iPhone and in your iCloud. Only you see it.</p>')
+    F("PS-03", "A note on the verse, or on the whole chapter; private, kept in iCloud", reader("JHN", 3, 14, 18, back=("Bible", "Back to Bible"), sel=(16,), scrolled=False, rows_override=j3) + scrim() + sheet("lg", "Note", "John 3:16", note_body, foot=False).replace('aria-label="Close"', 'aria-label="Done"', 1), "ps")
+
+    def hl_row(ref, txt, k):
+        return (f'<button class="lrow hrow2" aria-label="{ref}, highlighted {dict(HLC)[k].lower()}. {E(txt)}"><span class="hsw {k}" aria-hidden="true"></span>'
+                f'<span class="rm"><span class="note muted">{ref} · BSB</span><span class="lmain dv clamp2">{scripture(txt)}</span></span><span class="chev">{ic("right", 18)}</span></button>')
+    saved = ('<div class="seg sseg" role="tablist"><button class="on" role="tab" aria-selected="true">Highlights</button><button role="tab">Notes</button><button role="tab">Bookmarks</button><button role="tab">Images</button></div>'
+             + sec(None, one_row("Your reading", "41 days this year · Ruth read through", "Your reading: 41 days this year, Ruth read through"), first=True)
+             + sec(None, hl_row("John 3:16", t5("JHN", 3, 16)[0][1], "y") + hl_row("John 3:17", t5("JHN", 3, 17)[0][1], "g") + hl_row("Psalm 1:3", t5("PSA", 1, 3)[0][1], "b")))
+    F("PS-04", "Saved, from the bookmark in Bible’s header: highlights, notes, bookmarks and images; your reading on top", page(("Bible", "Back to Bible"), "Saved", saved, right=glass_btn("more", "More: export notes and highlights")) + tabbar("bible"), "ps")
+
+    bg = ('<div class="bgpick" role="radiogroup" aria-label="Background">'
+          + f'<button class="bgt on" role="radio" aria-checked="true" aria-label="The day’s picture"><img src="{IMG}" alt=""></button>'
+          + f'<button class="bgt" role="radio" aria-checked="false" aria-label="Evening picture"><img src="{IMG_E}" alt=""></button>'
+          + '<button class="bgt plain" role="radio" aria-checked="false" aria-label="White"></button>'
+          + '<button class="bgt ink" role="radio" aria-checked="false" aria-label="Dark"></button></div>')
+    v316 = t5("JHN", 3, 16)[0][1]
+    card316 = (f'<div class="shcard"><img src="{IMG}" alt=""><div class="shtx"><p class="shv">{E(v316)}</p><p class="shr">John 3:16 · BSB</p></div></div>'
+               + bg + '<div class="shbtns"><button class="tbtn2">Save to Photos</button><button class="wide">Share</button></div>')
+    F("PS-05", "An image for any verse: ⋯ › Share as an image; the day’s pictures or plain, then Save or Share", reader("JHN", 3, 14, 18, back=("Bible", "Back to Bible"), sel=(16,), scrolled=False, rows_override=j3) + scrim() + sheet("lg", "Share as an image", "John 3:16", card316, foot=False), "ps")
+
+    NEXT_NOTES["refs_ps"] = (
+        "Your space (John, 15 Oct 2026: 'personal space, badges and highlighting colours, a note on a verse or a chapter, copy a verse, create an image for each verse')\n\n"
+        "Select a verse (PS-01): the bar keeps Play from, Understand and Compare, and gains a second row: four highlight colours, Note, Copy. ⋯ holds Share as an image, Share, Bookmark. YouVersion puts colours first; Yada keeps Understand first, its reason to exist.\n\n"
+        "Highlights (PS-02): yellow, green, blue, pink, as a soft wash behind the verse (softer in Dark); tap the same colour again to remove. Each colour is named for VoiceOver ('highlighted yellow'). They never collide with Compare's difference mark (wash plus underline) or the selection (wash plus bar).\n\n"
+        "Notes (PS-03): on the verse or on the whole chapter (a two-way switch). A small note mark after the verse number opens it. Private: this iPhone and iCloud; never sent, never used by AI (and on a licensed translation the note is yours, the verse is shown from the BSB).\n\n"
+        "Saved (PS-04): the bookmark in Bible's header becomes Saved: Highlights, Notes, Bookmarks, Images (ones you saved), with Your reading on top (DR-20). ⋯ › Export: notes and highlights as text (Markdown) or PDF, so a reader's notes are never locked in.\n\n"
+        "An image for any verse (PS-05): ⋯ › Share as an image; the background is the day's picture, another from the set, or plain white or dark; Save to Photos or Share. BSB, WEB, KJV or LSV only (rule 9). No Yada watermark beyond 'BSB' and the reference.\n\n"
+        "Badges: not drawn, on purpose. YouVersion gives 'the Highlight Badge' for one highlight; a badge for using a feature trains the habit of collecting, not reading. The milestones that mean something are already here: books read through (DR-20). John to confirm.\n\n"
+        "Not taken: Give, the activity feed, likes and comments, 'Encouragements sent', public notes, a church on the profile.")
+
+    # ---- Pray, inside Today (John approved 15 Oct 2026, via the build-next-release session's brief; amended the same
+    # day: breathing and stillness are in). The loop follows Today's order: the day's verse -> Sit with this -> the
+    # day's reading -> Pray -> tomorrow, where Answered lives. No third tab. Prayer never counts towards the streak.
+    # Refs: Open's meditation timer, one number and a start (mobbin.com/screens/2dd6bcb3-6238-4eda-947e-cd8cb0550ec4);
+    # Alma's "Hold to commit" (mobbin.com/screens/97588293-92fc-4324-b1ae-e9c7ecd95a73); TIDE's quiet hold circle
+    # (mobbin.com/screens/f4901fa6-d8e1-4adb-8970-4d6201f99cb5); IMDb's private list with a lock
+    # (mobbin.com/screens/789616ab-d8ec-4362-8617-eea8734ca1f3). Rejected: Finch's mascot timer and background sounds
+    # (mobbin.com/screens/46e6ec27-2caf-43c9-81cf-faed899b5312); stoic's guided-script preferences.
+    P4610 = t5("PSA", 46, 10)[0][1].strip("“”")
+    P4610_IN, P4610_OUT = P4610.split(";")[0].split(" and ", 1)[0], "and " + P4610.split(";")[0].split(" and ", 1)[1]
+
+
+    today_pray = lambda: today_page() + tabbar("today")
+    scrolled_ = lambda h, y: h.replace('<div class="tday d">', f'<div class="tday d" style="top:-{y}px">', 1).replace('<div class="pg">', f'<div class="pg" style="margin-top:-{min(y + 500, 1150)}px">', 1)
+    F("PR-01", "Today: ‘Sit with this’ on the day’s verse; Pray is one card after the reading", [
+        ("Light · top", "light", today_pray()), ("Dark · scrolled to Pray", "dark", scrolled_(today_pray(), 330)), ("AX5 · scrolled to Pray", "ax5", scrolled_(today_pray(), 1700))], "pr")
+
+    def step_row(n, name, sub):
+        return (f'<button class="lrow valrow" aria-label="{n}. {name}. {sub}"><span class="stn">{n}</span><span class="rm"><span class="lmain">{name}</span>'
+                f'<span class="note muted lsub">{sub}</span></span><span class="chev">{ic("play", 16)}</span></button>')
+    sit_body = (f'<p class="sitv">{scripture(t5("PSA", 1, 3)[0][1])}</p><p class="note muted">Psalm 1:3 · BSB</p>'
+                + sec(None, step_row(1, "Settle", "Breathe, 1–2 min") + step_row(2, "Breathe the verse", "Half on the in-breath, half on the out")
+                      + step_row(3, "Sit with it", "Read slowly, twice") + step_row(4, "Silence", "3, 5, 10 or 20 min"))
+                + '<button class="wide" aria-label="Begin all four, in order, about 9 minutes">Begin · about 9 min</button>')
+    F("PR-02", "Sit with this: four steps, in order with Begin, or any one on its own", page(("Today", "Back to Today"), "Sit with this", sit_body) + tabbar("today"), "pr")
+
+    def pacer(word, size, rm=False):
+        shape = "" if rm else f'<div class="pace" style="width:{size}px;height:{size}px" aria-hidden="true"></div>'
+        return (f'<div class="calm">{"" if rm else ""}<button class="imx calmx" aria-label="End">{ic("x", 22)}</button>'
+                f'<p class="calms">Settle · 1 of 4</p>{shape}<p class="calmw" role="status" aria-live="polite">{word}</p>'
+                f'<p class="calmt">{"In for 4, out for 6" if not rm else "Reduce Motion: no shape, a haptic and the word"}</p></div>')
+    F("PR-03", "Settle: a soft shape grows on the in-breath and shrinks on the out, a haptic on each; Reduce Motion keeps only the word", [
+        ("Light · in", "light", pacer("In", 240)), ("Dark · out", "dark", pacer("Out", 150)), ("AX5 · Reduce Motion", "ax5", pacer("In", 0, rm=True))], "pr")
+
+    def breathe(phase):
+        a_, b_ = (P4610_IN, P4610_OUT)
+        on_in, on_out = ("on", "") if phase == "in" else ("", "on")
+        return (f'<div class="calm"><button class="imx calmx" aria-label="End">{ic("x", 22)}</button><p class="calms">Breathe the verse · 2 of 4</p>'
+                f'<div class="brv"><p class="brl {on_in}"><span class="brk">In</span>{E(a_)}</p><p class="brl {on_out}"><span class="brk">Out</span>{E(b_)}</p></div>'
+                f'<p class="calmt">Psalm 46:10 · BSB</p></div>')
+    F("PR-04", "Breathe the verse: split only where the verse’s own words break (Psalm 46:10); no clean split, no step", [
+        ("Light · in", "light", breathe("in")), ("Dark · out", "dark", breathe("out")), ("AX5 · in", "ax5", breathe("in"))], "pr")
+
+    def sitwith(lic=False):
+        v = t5("PSA", 1, 3)[0][1]; ws = v.split(" ")
+        body = " ".join(E(w) if i < 6 else (f'<span class="au-w">{E(w)}</span>' if i == 6 else f'<span class="au-up">{E(w)}</span>') for i, w in enumerate(ws))
+        line = '<p class="calmt">Read aloud in the BSB</p>' if lic else '<p class="calmt">First reading · then silence · then again</p>'
+        return (f'<div class="calm lite"><button class="imx calmx" aria-label="End">{ic("x", 22)}</button><p class="calms">Sit with it · 3 of 4</p>'
+                f'<p class="sitbig" aria-label="{E(v)} Psalm 1:3">{body}</p>{line}'
+                f'<button class="clink sitorig" aria-label="See the Hebrew words of this verse">Original</button></div>')
+    F("PR-05", "Sit with it: read slowly, twice, silence between; on the NKJV the BSB shows, so the words seen are the words heard", [
+        ("Light", "light", sitwith()), ("Dark · reader on the NKJV", "dark", sitwith(True)), ("AX5", "ax5", sitwith())], "pr")
+
+    chips = lambda on: '<div class="tchips" role="radiogroup" aria-label="Silence for">' + "".join(
+        f'<button role="radio" aria-checked="{"true" if m == on else "false"}" class="{"on" if m == on else ""}">{m} min</button>' for m in (3, 5, 10, 20)) + "</div>"
+    sil_pick = (f'<div class="calm lite"><button class="imx calmx" aria-label="End">{ic("x", 22)}</button><p class="calms">Silence · 4 of 4</p>'
+                f'<p class="sitbig">{scripture(t5("PSA", 1, 3)[0][1])}</p>{chips(5)}<button class="wide silgo">Begin</button></div>')
+    sil_run = (f'<div class="calm"><p class="sitbig quiet">{scripture(t5("PSA", 1, 3)[0][1])}</p><p class="calmt" role="timer" aria-label="4 minutes left">4 min left</p></div>')
+    F("PR-06", "Silence: 3, 5, 10 or 20 min, the timer shared with Stop playing; then only the verse, and a haptic at the end", [
+        ("Light · choose", "light", sil_pick), ("Dark · running", "dark", sil_run), ("AX5 · choose", "ax5", sil_pick)], "pr")
+
+    # Prayer UI, cleaned up (John, 15 Oct 2026: "clean up UI for just prayer and use modern practices"). Pray and its
+    # lists are pages inside Today, so the tab bar stays; praying, asking and Sit with this are focused moments, so they
+    # cover it (a full-screen view or a sheet). Post sits on a bar above the keyboard (iOS Messages, Threads). Holding to
+    # pray is a wide pill at the foot that fills as you hold (Alma's "Hold to commit",
+    # mobbin.com/screens/97588293-92fc-4324-b1ae-e9c7ecd95a73), not a ring with words inside it.
+    def plist(txt, sub):
+        return (f'<button class="lrow valrow" aria-label="{E(re.sub("<[^>]+>", "", txt))}. {sub}"><span class="rm"><span class="lmain">{txt}</span>'
+                f'<span class="note muted lsub">{sub}</span></span><span class="chev">{ic("right", 18)}</span></button>')
+    pfs_card = ('<button class="card rcard" aria-label="Pray for someone: one request at a time">'
+                '<span class="rct">Pray for someone</span><span class="note muted">One request at a time</span></button>')
+    pray_body = (sec("Your list", plist("Peace for my brother while he looks for work", "Added 2 Oct") + plist("Mum’s surgery on Friday", "Answered 12 Oct")
+                     + f'<p class="note muted pfoot">{ic("lock", 13)} Only you see your list.</p>', first=True)
+                 + f'<div class="cstack">{pfs_card}</div>'
+                 + sec(None, one_row("Ask for prayer", "Others pray for it; only you see how many", "Ask for prayer")
+                       + one_row("Your requests", "1 live", "Your requests"))
+                 + sec(None, one_row("Prayers of the Bible", "Prayers in Scripture, to pray with", "Prayers of the Bible")))
+    add_btn = glass_btn("plus", "Add to your list")
+    F("PR-07", "Pray: your private list, then Pray for someone as the one card, asking and your requests, prayers of the Bible", page(("Today", "Back to Today"), "Pray", pray_body, right=add_btn) + tabbar("today"), "pr")
+
+    pob = sec(None, "".join(one_row(n, r, f"{n}, {r}") for n, r in (
+        ("The Lord’s Prayer", "Matthew 6:9–13"), ("Hannah’s prayer", "1 Samuel 2:1–10"), ("Solomon at the temple", "1 Kings 8:22–53"),
+        ("Paul for the Ephesians", "Ephesians 1:15–23"), ("Paul for the Ephesians", "Ephesians 3:14–21"))), first=True)
+    F("PR-08", "Prayers of the Bible: a thread of prayers in Scripture, BSB text; the list ships only once John approves it (rule 2)", page(("Pray", "Back to Pray"), "Prayers of the Bible", pob) + tabbar("today"), "pr")
+
+    def hold(pct, done=False):
+        if done:
+            foot = (f'<p class="prd" role="status">{ic("check", 18)} Prayed</p>'
+                    '<button class="holdp go" aria-label="Next request">Next request</button>')
+        else:
+            foot = (f'<button class="holdp" aria-label="Hold to pray. Press and hold for about 20 seconds while you pray">'
+                    f'<span class="holdf" style="width:{pct}%"></span><span class="holdl">{"Keep holding" if pct else "Hold to pray"}</span></button>'
+                    '<button class="clink holdalt" aria-label="Start a 20 second timer instead of holding">Use a timer instead</button>')
+        return (f'<div class="calm lite pray"><button class="imx calmx" aria-label="Close, back to Pray">{ic("x", 22)}</button>'
+                f'<button class="imx calmm" aria-label="More: report, block">{ic("more", 22)}</button>'
+                f'<div class="preq"><p class="req">I start a new job on Monday and I’m anxious. Please pray for courage and a kind team.</p><p class="note muted">Anna · 2 days ago</p></div>'
+                f'<div class="pfoot2">{foot}</div></div>')
+    F("PR-09", "Pray for someone: the request alone; a pill at the foot fills while you hold (about 20 s), or use a timer", [
+        ("Light · holding", "light", hold(55)), ("Dark · prayed", "dark", hold(100, True)), ("AX5 · start", "ax5", hold(0))], "pr")
+
+    # A real-looking iOS keyboard, so the composer frame doesn't read as a wireframe (UI stress test, 15 Oct 2026).
+    _rows = ("qwertyuiop", "asdfghjkl", "zxcvbnm")
+    kb = ('<div class="kb" aria-hidden="true">'
+          + "".join('<div class="kbr">' + ("<span class=\"kbx wide2\">⇧</span>" if i == 2 else "") + "".join(f'<span class="kbx">{c}</span>' for c in r) + ("<span class=\"kbx wide2\">⌫</span>" if i == 2 else "") + "</div>" for i, r in enumerate(_rows))
+          + '<div class="kbr"><span class="kbx wide2">123</span><span class="kbx space">space</span><span class="kbx wide2">return</span></div></div>')
+    def composer(text=False, keyboard=True):
+        field = ('<div class="cmpx" role="textbox" aria-multiline="true" aria-label="Your request, up to 280 characters">'
+                 + ('<span class="cmpt">My dad is in hospital this week. Please pray he heals well</span><span class="caret"></span>' if text else '<span class="cmpph">What would you like prayer for?</span><span class="caret"></span>')
+                 + '</div>'
+                 + '<div class="cmpmeta"><button class="cmpchip" aria-label="First name, optional">First name · optional</button><span class="note muted">Live for 7 days</span></div>'
+                 + '<p class="note muted cmphint">Leave out other people’s names and details.</p>')
+        bar = (f'<div class="postbar"><span class="note muted">{"64" if text else "0"} / 280</span>'
+               f'<button class="postb{"" if text else " off"}" aria-label="Post{"" if text else ", disabled until you write something"}">Post</button></div>')
+        sh = sheet("lg", "Ask for prayer", None, field, foot=False).replace('aria-label="Close"', 'aria-label="Cancel"', 1)
+        return sh + (bar + kb if keyboard else "")
+    pray_under = page(("Today", "Back to Today"), "Pray", pray_body, right=add_btn) + scrim()
+    F("PR-10", "Ask for prayer: a sheet over Pray; just the words; Post on a bar above the keyboard; first name optional", [
+        ("Light · empty", "light", pray_under + composer()), ("Dark · writing", "dark", pray_under + composer(True)), ("AX5 · empty", "ax5", pray_under + composer())], "pr")
+
+    def yreq(meta, txt="My dad is in hospital this week. Please pray he heals well."):
+        return (f'<div class="lrow yrow"><span class="rm"><span class="lmain dv clamp2">{txt}</span><span class="note muted lsub">{meta}</span></span>'
+                f'<button class="trbtn" aria-label="More: mark answered, renew, delete">{ic("more", 22)}</button></div>')
+    ymenu = ('<div class="menuscrim"></div><div class="menu" role="menu" style="top:250px;bottom:auto;right:20px">'
+             + "".join(f'<button role="menuitem"><span>{x}</span></button>' for x in ("Mark answered", "Renew for 7 days", "Delete")) + "</div>")
+    yours = sec("Live", yreq("3 people prayed · 5 days left"), first=True) + sec("Answered", yreq("Answered 12 Oct · 7 people prayed", "Wisdom for a hard conversation at work."))
+    ypage = page(("Pray", "Back to Pray"), "Your requests", yours) + tabbar("today")
+    F("PR-11", "Your requests: how many prayed (only you see it); ⋯ for Mark answered, Renew, Delete; Answered keeps its date", [
+        ("Light", "light", ypage), ("Dark · ⋯", "dark", ypage + ymenu), ("AX5", "ax5", ypage)], "pr")
+
+    # Helplines worldwide (John, 15 Oct 2026: "yada is used world wide ... whats the plan for like someone in
+    # nigeria?"). No one charity covers every country. Find A Helpline (ThroughLine) lists verified services in 175+
+    # countries (findahelpline.com; throughlinecare.com), so the sheet shows the phone region's main line from a small
+    # bundled list, verified against Find A Helpline before each release and working offline, plus "More helplines" to
+    # findahelpline.com/<country>. Only the country code leaves the phone; never the request. Nigeria: SURPIN, 24 hours,
+    # toll-free 0800 078 7746 (Find A Helpline; Wikipedia's list of crisis lines), to be re-checked before release.
+    def sam(name, about, call, region):
+        return ('<p class="claim">It sounds like you might be going through something very hard. You don’t have to face it alone.</p>'
+                f'<p class="claim">{about}</p>'
+                f'<div class="samb"><button class="wide" aria-label="Call {name} on {call}">Call {name} · {call}</button>'
+                f'<button class="tbtn2" aria-label="More helplines in {region}, opens Find A Helpline">More helplines in {region}</button>'
+                '<button class="tbtn2" aria-label="Back to my request">Back to my request</button></div>')
+    sam_uk = sam("Samaritans", "Samaritans is a free, confidential helpline, open day and night, for anyone who is struggling.", "116 123", "the UK")
+    sam_ng = sam("SURPIN", "SURPIN is a free, 24-hour helpline in Nigeria for anyone who is struggling or thinking of ending their life.", "0800 078 7746", "Nigeria")
+    pr12 = lambda body: pray_under + composer(True, keyboard=False) + scrim("s2") + sheet("lg", "Before you post", None, body, foot=False).replace('class="sheet', 'class="sheet samsh', 1)
+    F("PR-12", "Safety: a request that mentions self-harm shows the phone region’s helpline before it posts, and more from Find A Helpline", [
+        ("Light · UK", "light", pr12(sam_uk)), ("Dark · Nigeria", "dark", pr12(sam_ng)), ("AX5 · UK", "ax5", pr12(sam_uk))], "pr")
+
+    NEXT_NOTES["refs_pr"] = (
+        "Pray, inside Today (John approved 15 Oct 2026; brief from the build-next-release session, amended the same day: breathing and stillness are in)\n\n"
+        "LOOP: the day's verse -> Sit with this -> the day's reading (the psalms; no second psalms plan) -> Pray -> tomorrow, where Answered shows. No third tab.\n\n"
+        "SIT WITH THIS (PR-02 to PR-06): four optional steps, Begin runs them in order, a row runs one alone. Settle: a pacer, in 4 out 6, a haptic each breath; Reduce Motion keeps only 'In'/'Out' and the haptic. "
+        "Breathe the verse: the day's verse split where its own words break (Psalm 46:10: 'Be still' / 'and know that I am God'); no clean split, the step is skipped (rule 4). "
+        "Sit with it: Heart or George reads it slowly, twice, silence between (build 6's repeat); Original one tap away. On the NKJV, NLT or MSG the BSB shows with 'Read aloud in the BSB' (rule 9, EG-03). "
+        "Silence: 3, 5, 10 or 20 min, the same timer as Stop playing; only the verse; a soft haptic at the end. No music, no scripts, no claims about stress or sleep. Counts towards the streak (it is Scripture).\n\n"
+        "YOUR LIST (PR-07): plain text, optional answered date, iCloud, never shared.\n\n"
+        "PRAYERS OF THE BIBLE (PR-08): BSB text of prayers in Scripture; the reference list is a draft in the review queue, shown to no one until John approves (rule 2).\n\n"
+        "PRAY FOR OTHERS, lean v1 (PR-09 to PR-12): ask (280 characters, first name optional, 7 days, renewable); pray one request at a time, press and hold about 20 s or 'Use a timer instead'; "
+        "'N people prayed' only to the asker; Mark answered, Renew, Delete; Answered shows on the next visit. Safety: word filter before posting, Report (3 reports hide it until John checks), Block on this device; a request that mentions self-harm shows a helpline before it posts: Samaritans (116 123, free, confidential, day and night) in the UK and Ireland, 988 in the US, SURPIN 0800 078 7746 in Nigeria, the region's main line from a bundled list verified against Find A Helpline (175+ countries) before each release, plus 'More helplines' to findahelpline.com; only the country code leaves the phone (keywords, no AI). "
+        "Storage: CloudKit public database, iCloud identity, no server, no accounts.\n\n"
+        "UI (15 Oct, John: 'clean up UI for just prayer'): Pray and its lists keep the tab bar (pages inside Today); praying, asking and Sit with this cover it. Post on a bar above the keyboard; Hold to pray is a pill at the foot that fills; Your requests use ⋯ rows, not three buttons per card.\n\n"
+        "BUILT TO GROW (build 8, docs/build-8-plan.md on build-next-release): every request and every prayed mark has a stable record ID; a request's answered state is a field with its date, so notifying those who prayed later needs no redesign; no reminder to pray for others and no circles in v1.\n\n"
+        "PRIVACY: no prayer text in notifications, widgets, Siri, Spotlight or share images; a reminder would say only 'Time to pray' (no third reminder in v1). Remove my data clears the list (phone and iCloud) and deletes your own requests.\n\n"
+        "NEEDS JOHN OUTSIDE THE CODE: CloudKit on the App ID; privacy and terms text with 'I agree' before a first post (UK GDPR special category data); checking reports every few days; the App Store age rating for user content (guideline 1.2).\n\n"
+        f"Refs: Open's timer {M('2dd6bcb3-6238-4eda-947e-cd8cb0550ec4')} · Alma 'Hold to commit' {M('97588293-92fc-4324-b1ae-e9c7ecd95a73')} · TIDE hold circle {M('f4901fa6-d8e1-4adb-8970-4d6201f99cb5')} · IMDb private list {M('789616ab-d8ec-4362-8617-eea8734ca1f3')}. "
+        f"Rejected: Finch's mascot timer and sounds {M('46e6ec27-2caf-43c9-81cf-faed899b5312')} · stoic's guided-script preferences {M('5d026116-1495-4724-98e4-d52e26c4609f')}.")
+
+    # ---- Apple Watch pass (John, 15 Oct 2026: "do an apple watch pass on build 7") ----
+    # What earns a place on the wrist: the day at a glance (Smart Stack widget, complications), the reminders and the
+    # listening Live Activity (both mirror from the iPhone for free), and Sit with this, whose breathing and silence are
+    # better on the wrist than the phone (haptics, no screen to look at). Not on the watch: reading whole chapters,
+    # Understand, the prayer list and pray-for-others (private text and user content on a glanceable screen), the
+    # streak (never on a widget). Text on the watch is BSB, WEB, KJV or LSV only (rule 9). Pattern: Apple's own
+    # Mindfulness app (Breathe) for the pacer; Smart Stack widgets for the glance.
+    def watch(inner):
+        return f'<div class="wch"><div class="wscr">{inner}</div></div>'
+    wtime = '<p class="wtime">9:41</p>'
+    ss_today = (f'<div class="wwid"><p class="wwl">{yicon}Today</p><p class="wwq">“{E(P13)}”</p><p class="wwr">Psalm 1:3</p></div>')
+    ss_read = ('<div class="wwid sm"><p class="wwl">This morning</p><p class="wwt">Psalms 1–5</p></div>')
+    face = (f'<div class="wface"><p class="wbig">9:41</p><div class="wcomp rect"><span class="wcl">Today</span><span class="wct">Psalms 1–5</span><span class="wcs">Psalm 1:3</span></div>'
+            f'<div class="wcircs"><span class="wcirc" aria-label="Yada, opens Today">{yicon}</span></div></div>')
+    F("AW-01", "Apple Watch: the day at a glance; a Smart Stack widget and complications; no streak, BSB only", [
+        ("Smart Stack · morning", "dark watchph", watch(wtime + ss_today + ss_read)),
+        ("Watch face · complications", "dark watchph", watch(face)),
+        ("Larger text", "dark watchph wax", watch(wtime + ss_today))], "aw")
+
+    wnote = (f'<div class="wnt"><p class="wwl">{yicon}Yada</p><p class="wwt">This evening · {EVE}</p><p class="wwq">{E(ps6[:90])}…</p></div>'
+             '<button class="wbtn">Listen</button><button class="wbtn sec">Open on iPhone</button>')
+    wla = (f'<div class="wwid"><p class="wwl">{yicon}Listening</p><p class="wwt">Psalm 8</p><p class="wwr">Verse 5 of 9 · Heart</p>'
+           f'<div class="wctl"><span>{ic("prevv", 16)}</span><span>{ic("pause", 18)}</span><span>{ic("nextv", 16)}</span></div></div>')
+    F("AW-02", "Mirrored from the iPhone for free: the evening reminder with Listen, and the listening Live Activity in the Smart Stack", [
+        ("Notification", "dark watchph", watch(wnote)), ("Live Activity · Smart Stack", "dark watchph", watch(wtime + wla)), ("Larger text", "dark watchph wax", watch(wnote))], "aw")
+
+    wsettle = '<div class="wcalm"><p class="wst">Settle</p><div class="wpace" aria-hidden="true"></div><p class="wword">In</p></div>'
+    wbreathe = f'<div class="wcalm"><p class="wst">Breathe the verse</p><p class="wbr on"><span>In</span>{E(P4610_IN)}</p><p class="wbr"><span>Out</span>{E(P4610_OUT)}</p></div>'
+    wsil = f'<div class="wcalm"><p class="wst">Silence</p><p class="wbr on">“{E(P13)}”</p><p class="wrem">4:12</p></div>'
+    F("AW-03", "Sit with this on the wrist (build 8 candidate): Settle with a tap on each breath, Breathe the verse, Silence", [
+        ("Settle", "dark watchph", watch(wsettle)), ("Breathe the verse", "dark watchph", watch(wbreathe)), ("Silence", "dark watchph", watch(wsil))], "aw")
+
+    NEXT_NOTES["refs_aw"] = (
+        "Apple Watch pass (John, 15 Oct 2026)\n\n"
+        "CORRECTION (UX stress test, 15 Oct): watchOS widgets and complications need a watch app target, so AW-01 moves to build 8 with the watch app; build 7 ships only what mirrors from the iPhone (AW-02).\n\n"
+        "AS FIRST DRAWN:\n"
+        "1. Smart Stack widget 'Today' (AW-01): the day's verse, short, and this morning's or evening's psalms; tap opens the iPhone. WidgetKit accessory families from the same Widgets.swift.\n"
+        "2. Complications: rectangular 'Today · Psalms 1–5 · Psalm 1:3'; circular Yada mark (opens Today). No streak, no lamp count: the streak never goes on a widget.\n"
+        "3. Mirrored for free (AW-02): the morning and evening reminders (Listen plays on the iPhone; Read opens it), and the listening Live Activity in the Smart Stack (watchOS 11 shows iPhone Live Activities). Check the Live Activity's watch layout, and that Listen works from the wrist.\n\n"
+        "BUILD 8 CANDIDATE, a small watch app (AW-03): Sit with this on the wrist, Settle (a pacer with a haptic tap on each breath, as Apple's Breathe), Breathe the verse, Silence with a haptic at the end. It needs a native SwiftUI watch target (Expo has none; expo-apple-targets can add it, as for the widget) and the day's verse passed through the app group or WatchConnectivity. Meditation done on the watch counts toward the streak like on the phone.\n\n"
+        "NOT ON THE WATCH: reading chapters, Understand, Compare, the prayer list and pray-for-others (private and user-written text on a glanceable screen; moderation needs the phone), any licensed translation (rule 9), the streak.\n\n"
+        "Accessibility: watch text follows the watch's own text size (the 'Larger text' frames); VoiceOver reads the widget as one line ('Today. He is like a tree planted by streams of water. Psalm 1:3').")
+
+    # ---- iPad ("tab") and iPhone Duo passes (John, 15 Oct 2026) ----
+    # Both are regular width, so they share one layout family: iOS 26's tab bar becomes a sidebar (iPadOS) and the
+    # reader puts Understand beside the text instead of in a sheet (Apple Books and Notes use the same split). The
+    # Duo's cover screen is compact width, so it is the iPhone layout unchanged. The Duo's sizes are not confirmed:
+    # reports of 9 Sep 2026 give a 7.6" inner and 5.4" cover display; frames use size classes, not fixed points.
+    def sidebar(active):
+        items = "".join(f'<button class="sbi{" on" if k == active else ""}" aria-label="{lab}">{tsvg(k)}<span>{lab}</span></button>'
+                        for k, lab in (("today", "Today"), ("bible", "Bible")))
+        return (f'<nav class="sbar2" aria-label="Yada">{items}<button class="sbi" aria-label="Search">{ic("search", 22)}<span>Search</span></button>'
+                f'<div class="sbsep"></div><p class="sbh">Saved</p><button class="sbi sm"><span>Highlights</span></button><button class="sbi sm"><span>Notes</span></button><button class="sbi sm"><span>Your reading</span></button></nav>')
+
+    def today_wide(evening=False):
+        pic = dphoto(h=440, evening=evening)
+        lead = today_lead("This evening" if evening else "This morning", EVE if evening else MORN, p6f if evening else p1f, "Psalm 6:1" if evening else "Psalm 1:1")
+        right = lead + f'<div class="cstack">{dev_card("evening" if evening else "morning")}{plan_card()}{pray_card}</div>'
+        return (f'<div class="wpg"><div class="wtop"><div><h1 class="ltitle">{"Good evening" if evening else "Good morning"}</h1><p class="note muted pgsub">Sunday 1 November</p></div>{stk(6)}</div>'
+                f'<div class="w2"><div class="wcl">{pic}</div><div class="wcr">{right}</div></div></div>')
+    vsp = vs_half(A4["JHN.3.16"])
+    reader_wide = (f'<div class="wrd"><div class="wrdh"><button class="hb-back" aria-label="Back to Bible">{ic("back", 22)}<span>Bible</span></button>'
+                   f'<span class="tt">John 3 · BSB</span><button class="hb-aa" aria-label="Text and appearance">Aa</button></div>'
+                   f'<div class="w2 rd2"><div class="wcl rcol">{verses_html(t5("JHN", 3, 14, 20), sel=(16,), ch=3, book="JHN")}</div>'
+                   f'<aside class="wcr insp" aria-label="Understand John 3:16"><p class="insph">John 3:16 · Understand<button class="sh-x" aria-label="Close Understand">{ic("x", 18)}</button></p>{vsp}</aside></div></div>')
+    def TOPTABS(active):
+        return ('<div class="toptabs" role="tablist">' + "".join(f'<button class="tbi{" on" if k == active else ""}" role="tab" aria-selected="{"true" if k == active else "false"}">{tsvg(k)}<span>{lab}</span></button>' for k, lab in (("today", "Today"), ("bible", "Bible")))
+                + f'<button class="tbi" role="tab">{ic("search", 22)}<span>Search</span></button></div>')
+    bible_port = (f'<div class="wpg port">{TOPTABS("bible")}'
+                  f'{page(None, "Yada", home_cont + allp + sec("Old Testament", "".join(lrow(E(n), cls="book") for c, n, t in BOOKS if t == "OT")[:9000]), right=BIBLE_ICONS)}</div>')
+    F("TB-01", "iPad: Today in two columns, the picture and the day’s cards; the tab bar becomes a sidebar", [
+        ("Landscape · Light", "light ipadph", sidebar("today") + today_wide()),
+        ("Portrait · Dark · tabs at the top", "dark ipadph port", today_wide().replace('<div class="wpg">', '<div class="wpg port">' + TOPTABS("today"), 1))], "tb")
+    F("TB-02", "iPad: the reader keeps the text in a measure and puts Understand beside it, not over it", [
+        ("Landscape · Light", "light ipadph", reader_wide), ("Portrait · AX5", "ax5 ipadph port", reader_wide)], "tb")
+    F("TB-03", "iPad: the Bible tab, with iPadOS’s tab bar at the top in portrait", [
+        ("Portrait · Light", "light ipadph port", bible_port), ("Landscape · Dark · sidebar", "dark ipadph", sidebar("bible") + f'<div class="wpg">{page(None, "Yada", home_cont + allp + sec("New Testament", "".join(lrow(E(n), cls="book") for c, n, t in BOOKS if t == "NT")[:9000]), right=BIBLE_ICONS)}</div>')], "tb")
+
+    cover = today_page() + tabbar("today")
+    duo_open = sidebar("today").replace('class="sbar2"', 'class="sbar2 duo"', 1) + today_wide()
+    F("DU-01", "iPhone Duo: closed, the cover is the iPhone layout; opened, Today becomes two columns, nothing moves", [
+        ("Cover · Light", "light duoc", cover), ("Open · Light", "light duoo", duo_open)], "du")
+    duo_read = reader_wide.replace('class="w2 rd2"', 'class="w2 rd2 fold"', 1)
+    F("DU-02", "iPhone Duo open: text on the left page, Understand on the right; nothing crosses the fold", [
+        ("Open · Light", "light duoo", duo_read), ("Open · Dark", "dark duoo", duo_read)], "du")
+    NEXT_NOTES["refs_tb"] = (
+        "iPad pass (John, 15 Oct 2026: 'a tab pass')\n\n"
+        "Regular width gets one layout family, shared with the iPhone Duo open: the tab bar becomes iPadOS's sidebar in landscape (Today, Bible, Search, then Saved's lists), and the floating tab bar at the top in portrait. "
+        "Today in two columns: the picture large on the left, the day's cards on the right (TB-01). The reader keeps a reading measure (about 70 characters) and opens Understand in a column beside the text, not a sheet over it (TB-02); Compare and the guide do the same. "
+        "Sheets that are choices (Contents, Translations, Share as an image) stay sheets, as form sheets. Keyboard: arrow keys move verse to verse, Space plays and pauses, ⌘F searches, ⌘[ and ⌘] change chapter. Pointer: hover on verse numbers, a context menu on a verse. Stage Manager: any width from compact to full, the layout switching at regular width. Multiple windows: one reader per window.\n\n"
+        "iPhone Duo (reported 9 Sep 2026: 7.6\" inner, 5.4\" cover; unconfirmed by us): closed, the cover is compact width, so the iPhone layout unchanged (DU-01, left). Opened, it is regular width: the iPad family. "
+        "Folding and unfolding keeps the place, the scroll position, the selection and any sheet (state restoration). Nothing sits across the fold: the reader's two columns meet at the hinge with a gutter (DU-02). Sizes come from size classes, never fixed points; check on the device when it ships.")
+
+    # ---- UX stress test (15 Oct 2026; docs/build-7-ux-stress-test.md): states nobody had drawn ----
+    place = ('<button class="card rcard" aria-label="Start with John, the plan for a first read"><span class="rcl">A place to start</span>'
+             '<span class="rct">The Gospel of John</span><span class="note muted">Passage by passage, explained</span></button>')
+    first_day = today_page(streak=0, pray=False).replace(plan_card(), place) + tabbar("today")
+    F("XT-01", "First day: no streak yet, ‘A place to start’ instead of Your plan, and no Pray card until it is wanted", first_day, "xt")
+    unlit = today_page(streak=6).replace('class="stk lit"', 'class="stk"').replace("today counted", "not yet today")
+    F("XT-02", "Have I read today? The lamp is outlined until today counts, then lit; no tick, no message", [
+        ("Light · not yet today", "light", unlit + tabbar("today")), ("Dark · counted", "dark", today_page() + tabbar("today")), ("AX5 · not yet today", "ax5", unlit + tabbar("today"))], "xt")
+    none_left = (f'<div class="calm lite pray"><button class="imx calmx" aria-label="Close, back to Pray">{ic("x", 22)}</button>'
+                 '<div class="preq"><p class="req">That’s everyone for now.</p><p class="note muted">New requests come in through the day.</p></div>'
+                 '<div class="pfoot2"><button class="holdp go">Ask for prayer</button><button class="clink holdalt">Back to Pray</button></div></div>')
+    F("XT-03", "Pray for someone with no requests left: say so plainly; never repeat a request you prayed for", none_left, "xt")
+    new_req = sec("Live", yreq("Live · 7 days left"), first=True)
+    F("XT-04", "A new request nobody has prayed for yet: no ‘0 prayed’; the count appears from the first", page(("Pray", "Back to Pray"), "Your requests", new_req) + tabbar("today"), "xt")
+    signed_out = ('<p class="claim">Asking for prayer uses your iCloud account, so no one sees who you are and nothing is stored by Yada.</p>'
+                  '<div class="samb"><button class="wide">Open Settings</button><button class="tbtn2">Not now</button></div>')
+    F("XT-05", "Signed out of iCloud: Ask explains in one line and opens Settings; your list still works on this iPhone", pray_under + sheet("med", "Sign in to iCloud", None, signed_out, foot=False).replace('class="sheet', 'class="sheet samsh', 1), "xt")
+    NEXT_NOTES["refs_xt"] = (
+        "UX stress test (15 Oct 2026). The walks and every finding are in docs/build-7-ux-stress-test.md; these are the states that needed drawing.\n\n"
+        "XT-01 first day: no lamp until a day counts; 'A place to start · The Gospel of John' replaces Your plan; no Pray card on the first day (it appears from the second, or when the list has anything).\n"
+        "XT-02 'have I read today?': the lamp is outlined until today counts, then filled. No tick, no 'done', no message.\n"
+        "XT-03 no requests left: 'That's everyone for now.' Requests you have prayed for are not shown again unless renewed.\n"
+        "XT-04 a new request: 'Live · 7 days left', never '0 people prayed'.\n"
+        "XT-05 signed out of iCloud: Ask for prayer needs the iCloud identity; one sentence and Open Settings. The private list keeps working on this iPhone.")
+    NEXT_NOTES["refs_dr"] = (
+        "Build 7 · a daily rhythm (drafted 15 Oct 2026 for John's review; see docs/build-7-plan.md)\n\n"
+        "The idea: a habit comes from a time and a place in the day, not from a score. Yada already has a plan with no dates, one reminder and 'Where you stopped'. "
+        "Build 7 adds the Psalms, read morning and evening, and lets the day carry the rhythm. Nothing counts days, nothing says missed, nothing celebrates.\n\n"
+        "Daily psalms (DR-01–04): 'Morning and evening' reads all 150 in a month by the 1662 Prayer Book's division (day 1: 1–5 morning, 6–8 evening). Only the table's numbers are used; the text is the BSB. "
+        "'One a day' keeps today's psalmForDay (Psalm 1 to 150, then again). The day of the month picks the set, so a reader who opens Yada after a week reads that day's psalms, not last week's (DR-09). "
+        "The Today tab (IA v4) holds them: this morning's set, and after 5 pm this evening's first. At the end of each psalm the next leads (DR-02); after the morning's last, the evening's set is named, no 'done' (DR-03).\n\n"
+        "Reminder (DR-05, DR-06): DECISION. NT allows one notification a day. Morning and evening would be two. Drawn so John can choose; the recommendation is to allow a second time only for the evening psalms, off by default.\n\n"
+        "Widget (DR-07): the 'A passage for today' widget becomes the day's psalms, switching at 5 pm. Lock Screen and StandBy use the same words. BSB only (rule 9).\n\n"
+        "Night listening (DR-08): Stop playing gains 'End of this evening's psalms' when the player holds them; Build 6's status line says 'Stops after Psalm 8'.\n\n"
+        "Today (DR-11–15; John, 15 Oct 2026: option 2, with a photo and a devotional): the rhythm's one home, a tab since IA v4 (IA-15). Siri's 'Today' and the tab open it; a widget or notification that names psalms opens the psalms. "
+        "UX pass (15 Oct 2026): one thing to do. The picture shows a line from the morning's psalms, captioned with the verse (tap: the reader at Psalm 1:3), then one lead, 'This morning · Psalms 1–5', Read (the lead) or Listen. Spurgeon is one row under it; the evening folds to one line under Later; your plan and Reminders sit last. After 5 pm the evening leads and the morning folds under Earlier (DR-12). At AX sizes the lead comes before the picture. Nothing is ticked. "
+        "Pictures follow the psalter, not the calendar: 30 days, so 30 morning pictures (and 30 evening ones if John wants them) are reused each month. "
+        "The photo: John lifted brief §14's 'no mood photography' for this page (15 Oct 2026). One a day from public-domain or CC0 collections, chosen ahead and approved by John, kept on R2 with its credit, downloaded a week ahead, so it shows offline and no third party sees the reader. "
+        "No credit line on the picture; ⋯ › About this picture (DR-14) and Sources hold it. Not there yet: the page has no photo and no placeholder (DR-15). "
+        "The devotional (DR-13): Spurgeon's Morning and Evening (1865–69, public domain), the date's entry whole and unchanged, credited once. Its verses are KJV as Spurgeon printed them (the open CUP question covers it).\n\n"
+        "Days you read (DR-10): DECISION, not recommended. A private month with dots is a tally and breaks the RP, NT and MM rules. A streak (a count of days in a row) is not drawn: it would break them more, and 'you missed' follows from it.\n\n"
+        "VoiceOver: 'This morning, Psalms 1 to 5'. AX5: the line wraps to two rows; the widget clamps the verse to two lines.\n\n"
+        f"Refs: Calm, Morning / Afternoon / Night as plain rows {M('81ffdb2c-2a4a-4e19-9225-9299bac2c266')} · Waking Up, one time window and one button {M('185df7bf-d8ea-48c5-8874-fa9f0cebd2a4')} · "
+        f"5 Minute Journal, morning and evening as two entries {M('9edb4775-e95b-4d58-a3ae-bc75ac7203f3')} · Journal, a month with dots and no count {M('26ddbf34-3a78-4967-8550-f2157492d96f')} (DR-10 only). "
+        f"TIDE, a full-width photo with the date {M('62fb29ab-36aa-47fd-8420-aaab7360f1bd')} · Calm, the day first {M('81ffdb2c-2a4a-4e19-9225-9299bac2c266')}. "
+        f"Rejected: Apple Fitness rings and a daily goal {M('17983edf-6073-47c5-b072-270002fce54e')} · Speak '1 day streak!' {M('7acbb2fc-3817-408f-9db3-25380bb43706')} · "
+        f"Deepstash streak freezes {M('b6ff9a48-6196-4bcb-9997-66807ced786c')} · Bloom's week of empty circles {M('9458998c-7b18-4f31-886e-a71801105625')}.")
 # ---------- write files + index ----------
 W, H, GX, GY = 1430, 1026, 80, 120
 names, boards = [], {}
@@ -4548,16 +5387,16 @@ notes = {}
 GROUPS = (("j01", "Journey 01 · 1 Corinthians 14"), ("jn", "John 1:1"), ("gn", "Genesis 1:1")) + ((("dl", "Delight"), ("hs", "Home, Search, Contents"), ("ss", "Settings and saved"), ("es", "Edge states"), ("so", "Sources"), ("dp", "Depth"), ("sp", "Splash"), ("uv", "Simpler Understand (variant)"), ("mt", "More translations")) if STYLE != "v1" else ())
 # Passage guide and audio live on their own canvas page ("guide"), laid out from y = 0 there.
 if STYLE != "v1":
-    GROUPS += (("pg", "Passage guide"), ("au", "Audio read-along"), ("ia", "App-wide IA after the passage shift"), ("on", "A clear way to start"), ("sn", "Open study notes and See also"), ("td", "People"), ("ic", "iCloud"), ("gd", "1 · John’s guides, all 46"), ("ba", "2 · Human-read BSB audio"), ("sw", "3 · Swipe between chapters"), ("wl", "4 · Widget and Live Activity"), ("rp", "5 · Reading plans with no dates"), ("pd", "6 · People and places, dictionary, manuscripts"), ("lt", "7 · NKJV and NLT for testers"), ("ms", "8 · Maps, Siri and Spotlight, the UST"), ("ty", "9 · Tyndale: three items"), ("dc", "Decisions on the open questions"), ("gs", "A1 · Glyssen: who is speaking"), ("mc", "A2 · MACULA evidence marks"), ("uw", "B5 · Translation Words and Questions"), ("th", "B6 · Themes in this passage"), ("tl", "B4 · A timeline"), ("wa", "B7 · WEB and KJV human audio"), ("hl", "A3 · Large, small and raised Hebrew letters"), ("ux", "Understand, UX pass: beginner first, deeper on demand"), ("cp", "Compare, redesigned"), ("nt", "Notifications: what, when and how"), ("na", "No AI: Understand assembled from sources · 1 Corinthians 14:34–35"), ("st", "Settings"), ("i3", "IA v3: the whole app after this release"), ("di", "Dictionary: how it shows up"), ("eg", "UX pass: edge states and depth"), ("jr", "John’s round: Psalms, prophets, one order for every screen"), ("dn", "Decided, now drawn"), ("vs", "Verse sheet: one sheet, half and full"), ("us", "States the app shows but nobody drew"), ("mm", "Magic moments"), ("lb", "Build 6 · listening: stop, repeat, chapter names, WEB, KJV and LSV voices"), ("ld", "Build 6 · Download for the NKJV, NLT and The Message (on hold)"), ("np", "Build 6 · Asking for notifications"), ("ul", "Build 6 · Understand and Listen"), ("ig", "Build 6 · Book introductions and grammar terms"), ("wm", "Build 6 · Words and places: the BSB partner of a word (MM-03), a map of places (MS-01)"), ("sx", "System surfaces: widgets, Lock Screen, StandBy, Control Center, Siri, notifications, Live Activity"))
-PAGE_OF = {"pg": "guide", "au": "guide", "ia": "guide", "on": "guide", "sn": "guide", "td": "guide", "ic": "guide", **{g: "next" for g in ("gd", "ba", "sw", "wl", "rp", "pd", "lt", "ms", "ty", "dc", "gs", "mc", "uw", "th", "tl", "wa", "hl", "ux", "cp", "nt", "na", "st", "i3", "di", "eg", "jr", "dn", "vs", "us", "mm")}, "lb": "b6", "ld": "b6", "np": "b6", "ul": "b6", "ig": "b6", "wm": "b6", "sx": "sys"}
+    GROUPS += (("pg", "Passage guide"), ("au", "Audio read-along"), ("ia", "App-wide IA after the passage shift"), ("on", "A clear way to start"), ("sn", "Open study notes and See also"), ("td", "People"), ("ic", "iCloud"), ("gd", "1 · John’s guides, all 46"), ("ba", "2 · Human-read BSB audio"), ("sw", "3 · Swipe between chapters"), ("wl", "4 · Widget and Live Activity"), ("rp", "5 · Reading plans with no dates"), ("pd", "6 · People and places, dictionary, manuscripts"), ("lt", "7 · NKJV and NLT for testers"), ("ms", "8 · Maps, Siri and Spotlight, the UST"), ("ty", "9 · Tyndale: three items"), ("dc", "Decisions on the open questions"), ("gs", "A1 · Glyssen: who is speaking"), ("mc", "A2 · MACULA evidence marks"), ("uw", "B5 · Translation Words and Questions"), ("th", "B6 · Themes in this passage"), ("tl", "B4 · A timeline"), ("wa", "B7 · WEB and KJV human audio"), ("hl", "A3 · Large, small and raised Hebrew letters"), ("ux", "Understand, UX pass: beginner first, deeper on demand"), ("cp", "Compare, redesigned"), ("nt", "Notifications: what, when and how"), ("na", "No AI: Understand assembled from sources · 1 Corinthians 14:34–35"), ("st", "Settings"), ("i3", "IA v3: the whole app after this release"), ("di", "Dictionary: how it shows up"), ("eg", "UX pass: edge states and depth"), ("jr", "John’s round: Psalms, prophets, one order for every screen"), ("dn", "Decided, now drawn"), ("vs", "Verse sheet: one sheet, half and full"), ("us", "States the app shows but nobody drew"), ("mm", "Magic moments"), ("lb", "Build 6 · listening: stop, repeat, chapter names, WEB, KJV and LSV voices"), ("ld", "Build 6 · Download for the NKJV, NLT and The Message (on hold)"), ("np", "Build 6 · Asking for notifications"), ("ul", "Build 6 · Understand and Listen"), ("ig", "Build 6 · Book introductions and grammar terms"), ("wm", "Build 6 · Words and places: the BSB partner of a word (MM-03), a map of places (MS-01)"), ("sx", "System surfaces: widgets, Lock Screen, StandBy, Control Center, Siri, notifications, Live Activity"), ("dr", "Build 7 · a daily rhythm: psalms morning and evening, no streaks"), ("i7", "Build 7 · IA v4: three tabs"), ("yv", "Build 7 · the day’s verse, sharing, earlier days, your reading (after YouVersion)"), ("st7", "Build 7 · the streak, defined; greeting; cards used right"), ("ct", "Build 7 · Contents: Recent, book order, choose a verse"), ("eb7", "Build 7 · edge cases"), ("ps", "Build 7 · your space: highlights, notes, saved, an image for any verse"), ("pr", "Build 7 · Pray, inside Today: sit with this, your list, prayers of the Bible, pray for others"), ("aw", "Build 7 · Apple Watch"), ("tb", "Build 7 · iPad"), ("du", "Build 7 · iPhone Duo (foldable)"), ("xt", "Build 7 · UX stress test: states nobody had drawn"))
+PAGE_OF = {"pg": "guide", "au": "guide", "ia": "guide", "on": "guide", "sn": "guide", "td": "guide", "ic": "guide", **{g: "next" for g in ("gd", "ba", "sw", "wl", "rp", "pd", "lt", "ms", "ty", "dc", "gs", "mc", "uw", "th", "tl", "wa", "hl", "ux", "cp", "nt", "na", "st", "i3", "di", "eg", "jr", "dn", "vs", "us", "mm")}, "lb": "b6", "ld": "b6", "np": "b6", "ul": "b6", "ig": "b6", "wm": "b6", "sx": "sys", "dr": "b7", "i7": "b7", "yv": "b7", "st7": "b7", "ct": "b7", "eb7": "b7", "ps": "b7", "pr": "b7", "aw": "b7", "tb": "b7", "du": "b7", "xt": "b7"}
 ys = {}
 for gi, (grp, label) in enumerate(GROUPS):
     pg = PAGE_OF.get(grp, STYLE)
     y = ys.get(pg, 0)
     fr = [f for f in FRAMES if f[3] == grp]
     notes[f"t_{grp}" + ("" if STYLE == "v1" else f"_{pg}")] = {"x": 0, "y": y, "text": label, "kind": "title1", "maxW": 4 * W + 3 * GX, **({"page": pg} if pg != STYLE else {})}
-    if grp in ("pg", "au", "ia", "on", "sn", "td", "ic") or pg in ("next", "b6", "sys"):
-        src = NEXT_NOTES if pg in ("next", "b6", "sys") else GUIDE_NOTES
+    if grp in ("pg", "au", "ia", "on", "sn", "td", "ic") or pg in ("next", "b6", "sys", "b7"):
+        src = NEXT_NOTES if pg in ("next", "b6", "sys", "b7") else GUIDE_NOTES
         for j, key in enumerate([k for k in src if k.endswith(grp)]):
             notes[key] = {"x": 4 * (W + GX), "y": y + 260 + j * 1180, "w": 560, "maxH": 1120, "size": "m", "page": pg, "fill": "gray", "text": src[key]}
     y += 260
@@ -4588,6 +5427,9 @@ if STYLE != "v1":
     sb = {k: v for k, v in boards.items() if v["page"] == "sys"}
     json.dump({"boards": sb, "order": [n for n in names if n in sb], "notes": {k: v for k, v in notes.items() if v["page"] == "sys"}},
               open(f"{OUT}/canvas.sys.json", "w"), ensure_ascii=False, indent=1)
+    b7 = {k: v for k, v in boards.items() if v["page"] == "b7"}
+    json.dump({"boards": b7, "order": [n for n in names if n in b7], "notes": {k: v for k, v in notes.items() if v["page"] == "b7"}},
+              open(f"{OUT}/canvas.b7.json", "w"), ensure_ascii=False, indent=1)
     print(len(names), "boards"); sys.exit()
 idx = {"v": 3, "createdOnFiles": {"v": 1, "at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")},
        "title": "Yada Redesign", "launch": {"view": "canvas"}, "pages": [], "boards": boards, "order": names, "notes": notes, "designSystems": []}

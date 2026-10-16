@@ -14,7 +14,7 @@
  *   POST /api/summaries/:passageId/(approve|reject)   { text_sha256 }
  *   POST /api/summaries/:passageId/fix   { text_sha256, note }
  *   GET  /api/extracts
- *   POST /api/extracts/(book_intro|grammar)/:id/(approve|reject|undo)     { text_sha256 }
+ *   POST /api/extracts/(book_intro|grammar|devotional|daily_light)/:id/(approve|reject|undo)     { text_sha256 }
  *
  * Loopback binding keeps other machines out. The Host check keeps out a web
  * page that rebinds its own hostname to 127.0.0.1, and requiring a JSON content

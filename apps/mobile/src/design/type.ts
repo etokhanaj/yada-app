@@ -26,7 +26,7 @@ export interface TypeSpec {
   /** Multiplied by the reader's Aa step. */
   readonly step: boolean;
   readonly ax5: number;
-  readonly weight?: "500" | "600";
+  readonly weight?: "500" | "600" | "700";
 }
 
 export const TYPE = {
@@ -41,6 +41,10 @@ export const TYPE = {
   sheetTitle: { font: undefined, size: 17, ratio: 1.25, tracking: 0, step: false, ax5: 34, weight: "600" },
   chrome: { font: undefined, size: 17, ratio: 1.25, tracking: 0, step: false, ax5: 34, weight: "500" },
   note: { font: undefined, size: 13, ratio: 1.4, tracking: 0, step: false, ax5: 40 },
+  /** Build 7 section titles (polish-2026-10-15.md): bold sans in ink carries the hierarchy, not a grey label. */
+  sectionTitle: { font: undefined, size: 22, ratio: 1.2, tracking: -0.4, step: false, ax5: 40, weight: "700" },
+  /** Build 7 page titles and Today's greeting: bold sans, tight. */
+  pageTitle: { font: undefined, size: 34, ratio: 1.1, tracking: -0.8, step: false, ax5: 58, weight: "700" },
   /** Section labels: sentence case, semibold, untracked (canvas `.lbl`). */
   label: { font: undefined, size: 13, ratio: 1.3, tracking: 0, step: false, ax5: 37, weight: "600" },
 } as const satisfies Record<string, TypeSpec>;
@@ -76,7 +80,7 @@ export interface ScaledType {
   readonly size: number;
   readonly lineHeight: number;
   readonly tracking: number;
-  readonly weight: "400" | "500" | "600";
+  readonly weight: "400" | "500" | "600" | "700" | "700";
   readonly maxFontSizeMultiplier: number;
 }
 

@@ -396,10 +396,16 @@ These supersede the sections they name. Reasons and evidence: `v2-review.md`.
     passage title in small caps above verse 1. Start here passages are numbered in Literata. The word
     card keeps the large headword (the word is its subject). No illustration, mood photography or
     background watermark; manuscript photography only after image rights clear PRD 0E.
+    **Changed by John, 15 Oct 2026:** "break that rule from 9 oct". A photo of the day is allowed on Today
+    (canvas DR-11–15, `docs/build-7-plan.md`). Other places for imagery are proposed in that plan, §2a, for John
+    to choose; the reader, the verse sheet and the guide stay text only.
 15. **Brand** (kit v1.0, 9 Oct; details `brand/README.md`): palette moves from warm paper + navy to chalk
     + forest, chartreuse as the dark-mode accent and the difference highlighter. Home title is the
     outlined wordmark. App icon, dark and tinted icons, splash symbol and web favicons from the kit.
     Kit fonts (Inter, Fraunces) and mobile UI concepts not adopted.
+    **Changed by John, 15 Oct 2026 ("we go white"):** the ground is white (#FFFFFF; dark #0B0C0B) with neutral greys;
+    forest stays the accent and the wordmark's colour, chartreuse stays dark mode's. Spacing, titles and controls in
+    `docs/redesign/polish-2026-10-15.md`.
 16. **Splash** (canvas SP-01 · Dark, chosen by John 9 Oct): the chartreuse symbol (#DBEC9A), 76 pt,
     centred on the dark ground (#0E1814), in both light and dark appearance. In light mode the reader
     (chalk) follows it: fade the splash out over 150 ms so the change from dark to chalk is a dissolve,

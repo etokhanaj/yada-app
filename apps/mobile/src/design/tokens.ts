@@ -57,8 +57,9 @@ export const SPACE = {
 
 /** Layout tokens from brief §3, values from style-v2.css. Index by `ax ? 1 : 0`. */
 export const LAYOUT = {
-  gutter: [24, 16],
-  sectionGap: [28, 24],
+  // Build 7 polish: 20 pt margins, 40 between sections (polish-2026-10-15.md).
+  gutter: [20, 16],
+  sectionGap: [40, 24],
   /** Action-bar capsules and primary buttons. */
   pill: [48, 64],
   /** Round sheet and header controls. */

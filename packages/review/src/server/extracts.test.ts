@@ -35,7 +35,7 @@ function setup(): ExtractsContext {
 describe("the Extracts queue (build 6)", () => {
   it("lists book introductions and grammar terms with the paragraph each was cut from", () => {
     const { groups } = buildExtracts(setup());
-    expect(groups.map((g) => [g.kind, g.items.length, g.approved])).toEqual([["book_intro", 1, 0], ["grammar", 1, 0]]);
+    expect(groups.map((g) => [g.kind, g.items.length, g.approved])).toEqual([["book_intro", 1, 0], ["grammar", 1, 0], ["devotional", 0, 0], ["daily_light", 0, 0]]);
     expect(groups[0]?.items[0]).toMatchObject({ id: "ROM", title: "Romans", note: "Weak.", context: expect.stringContaining("More.") });
     expect(groups[1]?.items[0]).toMatchObject({ id: "greek:aorist", title: "Greek · aorist" });
   });

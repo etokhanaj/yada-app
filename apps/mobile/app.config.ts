@@ -89,6 +89,9 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
       // kept in the reader's own iCloud. The App ID needs the iCloud capability to match.
       entitlements: {
         "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)",
+        // CloudKit (iCloud.studio.yada.reader) for build 8's Pray for others is left out until then: the build 7
+        // archive failed because the provisioning profile did not carry the container (16 Oct 2026), and nothing
+        // in build 7 uses it. Re-add "com.apple.developer.icloud-services": ["CloudKit"] and the container with Pray.
         // Shared with the widgets (WL-01): the reading place and today's psalm, nothing else. The App ID
         // needs the App Groups capability with this group for a device build.
         "com.apple.security.application-groups": ["group.studio.yada.reader"],

@@ -37,7 +37,7 @@ export default function McheyneScreen() {
   useFocusEffect(reload);
   // As the John plan: from Home's Your plan it returns to Home, not "Plans" (IA stress test, 15 Oct 2026).
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const back = from === "plans" ? "Plans" : "Home";
+  const back = from === "plans" ? "Plans" : from === "today" ? "Today" : "Bible";
 
   if (state === null) return <PageScreen title="M’Cheyne" back={back} testID="mcheyne">{null}</PageScreen>;
   const next = nextPortion(state);

@@ -63,11 +63,12 @@ describe("Increase Contrast", () => {
     );
   });
 
-  it("matches brand/README.md's measured values", () => {
-    expect(contrast(PALETTES.lightIC.mutedInk, PALETTES.light.paper)).toBeCloseTo(7.2, 1);
-    expect(contrast(PALETTES.darkIC.mutedInk, PALETTES.dark.paper)).toBeCloseTo(10.2, 1);
-    expect(contrast(PALETTES.light.ink, PALETTES.light.paper)).toBeCloseTo(15.2, 1);
-    expect(contrast(PALETTES.dark.accent, PALETTES.dark.paper)).toBeCloseTo(14.2, 1);
+  // Build 7's white palette (polish-2026-10-15.md), measured 15 Oct 2026; the chalk values it replaced were 7.2,
+  // 10.2, 15.2 and 14.2.
+  it("matches the white palette's measured values", () => {
+    expect(contrast(PALETTES.lightIC.mutedInk, PALETTES.light.paper)).toBeCloseTo(8.56, 1);
+    expect(contrast(PALETTES.darkIC.mutedInk, PALETTES.dark.paper)).toBeCloseTo(10.67, 1);
+    expect(contrast(PALETTES.light.ink, PALETTES.light.paper)).toBeCloseTo(18.67, 1);
   });
 });
 

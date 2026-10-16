@@ -20,7 +20,7 @@
 import { type BundleInfo } from "@yada/schema";
 import { deleteDatabaseAsync, importDatabaseFromAssetAsync, openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 
-import { BUNDLED_ASSETS, BUNDLED_MANIFEST, BUNDLED_STUDY, BUNDLED_UNDERSTAND } from "./bundled.generated";
+import { BUNDLED_ASSETS, BUNDLED_DAILY, BUNDLED_MANIFEST, BUNDLED_STUDY, BUNDLED_UNDERSTAND } from "./bundled.generated";
 import { USER_DB, USER_DDL } from "./user";
 
 export const CORE_BUNDLE: BundleInfo | undefined = BUNDLED_MANIFEST.bundles.find((b) => b.kind === "core");
@@ -50,7 +50,7 @@ export async function installBundles(user: SQLiteDatabase): Promise<void> {
   );
   // John's study and Understand bundles ship too (build 3, 11 Oct; Phase 0, 12 Oct): copied and
   // refreshed like the rest.
-  const shipped = [...BUNDLED_MANIFEST.bundles, ...BUNDLED_STUDY, ...BUNDLED_UNDERSTAND];
+  const shipped = [...BUNDLED_MANIFEST.bundles, ...BUNDLED_STUDY, ...BUNDLED_UNDERSTAND, ...BUNDLED_DAILY];
   const wanted = new Set(shipped.map((b) => b.file));
 
   for (const [file] of installed) {
@@ -84,4 +84,19 @@ export function openCore(): Promise<SQLiteDatabase> {
     });
   }
   return corePromise;
+}
+
+let devotionalPromise: Promise<SQLiteDatabase | null> | null = null;
+
+/** Spurgeon's Morning and Evening (build 7), or null when this build shipped without it. */
+export function openDevotional(): Promise<SQLiteDatabase | null> {
+  const file = BUNDLED_DAILY[0]?.file;
+  if (file === undefined) return Promise.resolve(null);
+  if (devotionalPromise === null) {
+    devotionalPromise = openDatabaseAsync(file);
+    devotionalPromise.catch(() => {
+      devotionalPromise = null;
+    });
+  }
+  return devotionalPromise;
 }

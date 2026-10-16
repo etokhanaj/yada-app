@@ -30,8 +30,11 @@ Start from `docs/handoff-2026-09-13.md` for current state. Governing docs (froze
 
 - Design decisions come from the Mobbin MCP, cited in a code comment. Use `/design` to
   draft before building screens.
-- Typography carries hierarchy: no cards, no coloured category labels, no AI visual
-  language, no "coming later", no skeleton loaders in reading.
+- Typography carries hierarchy: no coloured category labels, no AI visual language, no
+  "coming later", no skeleton loaders in reading.
+- Cards only as John allowed them (15 Oct 2026, `docs/redesign/polish-2026-10-15.md`): one
+  card per self-contained thing you tap (the day's picture, the reading to do now, a plan),
+  never a box around text or a list, never nested, one 24 pt radius, a soft fill, no shadow.
 - Accessibility is a requirement, not a pass: VoiceOver labels and order, Dynamic Type to
   AX5, contrast in both themes, reduce-motion respected, 44pt targets.
 - Every word on screen earns its place. Cut subtitles, helper text and labels that restate

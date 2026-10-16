@@ -217,3 +217,14 @@ export function Chrome({
     </Text>
   );
 }
+
+/** Build 7: a section's title, bold sans in ink (polish-2026-10-15.md). */
+export function SectionTitle({ children, style, ...rest }: BaseProps) {
+  const key = useFontScaleKey();
+  const t = useTypeStyle("sectionTitle", "ink");
+  return (
+    <Text key={key} accessibilityRole="header" maxFontSizeMultiplier={t.maxFontSizeMultiplier} {...rest} style={[LTR_PROSE, t.style, style]}>
+      {children}
+    </Text>
+  );
+}

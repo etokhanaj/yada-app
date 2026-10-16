@@ -76,8 +76,22 @@
      "text": "The text tells us he was the work of Elohim, the Divine Plurality, marked here more distinctly by the plural pronouns Us and Our; and to show that he was the masterpiece of God's creation, all the persons in the Godhead are represented as united in counsel and effort to produce this astonishing creature.",
      "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
      "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Gen 1:26",
-     "status": "draft",
-     "side_suggested": "Trinity"
+     "status": "approved",
+     "side": "Trinity"
+    },
+    {
+     "text": "God’s speaking to the heavenly court, however, is well-attested in the Old Testament (see Gen 3:22; 11:7; 1 Kgs 22:19-22; Job 1:6-12; 2:1-6; 38:7; Ps 89:5-6; Isa 6:1-8; Dan 10:12-13).",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 1:26",
+     "status": "approved",
+     "side": "God addresses the heavenly court"
+    },
+    {
+     "text": "The concept of the Trinity—one true God who exists eternally in three distinct persons—was revealed at a later stage in redemptive history, making it unlikely that the human author intended that here.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 1:26",
+     "status": "rejected",
+     "side_suggested": "not the Trinity"
     }
    ],
    "kind": "positions"
@@ -404,16 +418,16 @@
      "text": "His firm hope is here supposed to be that, before his death, he should, with his bodily eyes, see God appearing and vindicating his character.",
      "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
      "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Job 19:29",
-     "status": "draft",
+     "status": "approved",
      "held_by": "Dr. Kennicott",
-     "side_suggested": "vindicated in this life"
+     "side": "vindicated in this life"
     },
     {
      "text": "Job was taught of God to believe in a living Redeemer; to look for the resurrection of the dead, and the life of the world to come; he comforted himself with the expectation of these.",
      "source": "Matthew Henry, Concise Commentary on the Whole Bible",
      "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Job 19:23-29",
-     "status": "draft",
-     "side_suggested": "resurrection of the body"
+     "status": "approved",
+     "side": "vindicated after death"
     }
    ],
    "kind": "tn-readings"
@@ -565,8 +579,8 @@
      "text": "The Son of God declares himself to have been engaged in the creation of the world.",
      "source": "Matthew Henry, Concise Commentary on the Whole Bible",
      "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Prov 8:22-31",
-     "status": "draft",
-     "side_suggested": "the Son of God"
+     "status": "approved",
+     "side": "wisdom is the Son of God"
     }
    ],
    "kind": "positions"
@@ -811,14 +825,14 @@
      "text": "The day of the new covenant was realized when Jesus Christ accomplished his redemptive mission on earth (see Heb 8:8-12).",
      "source": "Tyndale Open Study Notes",
      "ref": "TYN 31:31",
-     "status": "draft",
+     "status": "rejected",
      "side_suggested": "fulfilled in the church"
     },
     {
      "text": "In Heb. 8:8,9, this place is quoted as the sum of the covenant of grace made with believers in Jesus Christ.",
      "source": "Matthew Henry, Concise Commentary on the Whole Bible",
      "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Jer 31:27-34",
-     "status": "draft",
+     "status": "rejected",
      "side_suggested": "fulfilled in the church"
     }
    ],
@@ -1131,8 +1145,8 @@
      "text": "The apostle enlarges on the conflict he daily maintained with the remainder of his original depravity.",
      "source": "Matthew Henry, Concise Commentary on the Whole Bible",
      "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Rom 7:14-17",
-     "status": "draft",
-     "side_suggested": "Paul as a believer"
+     "status": "approved",
+     "side": "Paul as a believer"
     }
    ],
    "kind": "positions"
@@ -1205,14 +1219,14 @@
      "text": "Whatever the persons in authority over us themselves may be, yet the just power they have, must be submitted to and obeyed.",
      "source": "Matthew Henry, Concise Commentary on the Whole Bible",
      "ref": "matthew-henry (CrossWire SWORD module MHCC 2.0) on Rom 13:1-7",
-     "status": "draft",
-     "side_suggested": "obedience without qualification"
+     "status": "approved",
+     "side": "obedience has limits"
     },
     {
      "text": "The duty of obedience is grounded upon the fact that the power wielded by the magistrate is derived from God, and that duty itself is stated without qualification.",
      "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
      "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:43766",
-     "status": "draft",
+     "status": "rejected",
      "side_suggested": "obedience without qualification"
     }
    ],
@@ -1433,7 +1447,7 @@
      "text": "Luther, supposing that James did actually teach the doctrine of justification by works, which his good sense showed him to be absolutely insufficient for salvation, was led to condemn the epistle in toto, as a production unauthenticated by the Holy Spirit, and consequently worthy of no regard; he therefore termed it epistola straminea, a chaffy epistle, an epistle of straw, fit only to be burnt.",
      "source": "Adam Clarke, Commentary and Critical Notes (1810–26)",
      "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Jas 2:14",
-     "status": "draft",
+     "status": "rejected",
      "held_by": "Luther",
      "side_suggested": "a real conflict with Paul"
     }
@@ -1635,7 +1649,7 @@
      "text": "Some think that Peter is primarily important because of what he confessed about Jesus.",
      "source": "unfoldingWord Translation Notes",
      "ref": "tN 16 intro",
-     "status": "draft"
+     "status": "rejected"
     },
     {
      "text": "Others think that Peter and his successors have authority over the church.",
@@ -1814,8 +1828,25 @@
      "text": "Gog, in the land of Magog, prince of Rosh, Meshech, and Tubal, will invade the restored land of Israel from the far distant northern land by the appointment of God in the last times, and with a powerful army of numerous nations (ch. xxxviii. 1-9), with the intention of plundering Israel, now dwelling in security, that the Lord may sanctify Himself upon him before all the world (vers. 10-16).",
      "source": "Keil and Delitzsch, Commentary on the Old Testament (1864–92) (scan errors corrected)",
      "ref": "keil-delitzsch/05.BCOT.KD.PropheticalBooks.A.vol.5.GreaterProphets._djvu.txt:121235",
-     "status": "draft",
+     "status": "rejected",
      "side_suggested": "a literal battle in the last times"
+    },
+    {
+     "text": "The biblical Gog, however, transcends historical categories; the text is less concerned with Gog’s identity than with the universal threat caused by the nations of the world.",
+     "source": "Tyndale Open Study Notes",
+     "ref": "TYN 38:1-39:29",
+     "status": "approved",
+     "axis_suggested": "who Gog is",
+     "side": "a universal threat, not one person"
+    },
+    {
+     "text": "The Rev. David Martin, pastor of the Waloon church at Utrecht, concludes, after examining all previous opinions, that Antiochus Epiphanes, the great enemy of the Israelites, is alone intended here; and that Gog, which signifies covered, is an allusion to the well-known character of Antiochus, whom historians describe as an artful, cunning, and dissembling man.",
+     "source": "Adam Clarke, Commentary and Critical Notes (1810–26; text checked against the 1846 edition)",
+     "ref": "clarke (CrossWire SWORD module Clarke 2.0) on Ezek 38:2",
+     "status": "approved",
+     "held_by": "David Martin",
+     "axis_suggested": "who Gog is",
+     "side": "Antiochus Epiphanes"
     }
    ],
    "kind": "positions"
@@ -1859,8 +1890,8 @@
      "text": "Antiochus IV thought himself equal to God (2 Maccabees 9:1–10:12), but God would hem him in until the time of wrath was completed.",
      "source": "Tyndale Open Study Notes",
      "ref": "TYN 11:36",
-     "status": "draft",
-     "side_suggested": "Antiochus IV"
+     "status": "approved",
+     "side": "Antiochus IV"
     }
    ],
    "kind": "positions"
@@ -1946,8 +1977,8 @@
      "text": "When this ingathering of the Gentiles is complete, then the turn of Israel will come round again, and the prophecies of their conversion will be fulfilled.",
      "source": "Ellicott's Bible Commentary for English Readers (scan errors corrected)",
      "ref": "ellicott/biblecommentaryf07elliuoft_djvu.txt:42965",
-     "status": "draft",
-     "side_suggested": "the Jewish people"
+     "status": "approved",
+     "side": "the Jewish people"
     }
    ],
    "kind": "positions"
@@ -2017,8 +2048,8 @@
      "text": "In favor of their wives, 3:8-13 is a discussion of male deacons; switching to “women deacons” would disrupt the flow of thought.",
      "source": "Tyndale Open Study Notes",
      "ref": "TYN 3:11",
-     "status": "draft",
-     "side_suggested": "deacons' wives"
+     "status": "approved",
+     "side": "deacons' wives"
     }
    ],
    "kind": "positions"
@@ -2138,8 +2169,8 @@
      "text": "The witnesses, then, stand as the typical representatives of those who, in the strength of God, have, through the long ages, borne witness for Christ against all wrong and falsehood, against a world in arms or a Church in error, or against a nominal Christianity in danger of becoming as corrupt and as cruel as heathenism.",
      "source": "Ellicott's Bible Commentary for English Readers",
      "ref": "ellicott/biblecommentaryf08elliuoft_djvu.txt:93248",
-     "status": "draft",
-     "side_suggested": "the witnessing church"
+     "status": "approved",
+     "side": "the witnessing church"
     }
    ],
    "kind": "positions"

@@ -14,19 +14,29 @@ export const GRAMMAR_SENTENCES: Readonly<Record<string, string>> = {
   "aramaic:pael": "The Pa'el stem generally expresses resultative action in active voice.",
   "aramaic:participle": "An active participle is a non-finite verbal form with active voice that can function as a verb (either a main verb or a verbal complement), an adjective, or a noun.",
   "aramaic:passive participle": "A passive participle is a non-finite verbal form with passive or reflexive voice that can function as a verb (or verbal complement), an adjective, or a noun.",
+  "aramaic:peal": "The Pe'al stem is the stem formation that is the simplest form in Biblical Aramaic.",
   "aramaic:peil": "The Pe'il is the passive form of the Pe'al stem.",
   "aramaic:perfect": "A Perfect verb usually expresses a completed action in the past.",
   "aramaic:pronominal suffix": "Pronominal suffixes refer to a person(s) or thing(s) and can be attached to nouns, verbs, prepositions, participles, infinitives, even some particles.",
   "aramaic:saphel": "The Saphel stem is a rare stem formation that is similar to the Haphel stem and generally expresses causative action in active voice.",
   "aramaic:shaphel": "The Shaphel stem is a rare stem formation that is similar to the Haphel stem and generally expresses causative action in active voice.",
+  "greek:accusative": "The object of a transitive verb is placed in the accusative case.",
   "greek:active": "A verb in the active voice indicates that the subject performs the action (e.g., He washed the baby).",
   "greek:comparative": "Adjectives can have three degrees, called positive (e.g., good), comparative (e.g., better) and superlative (e.g., best).",
+  "greek:dative": "The dative case is the case of the indirect object.",
   "greek:future": "Future tense is a tense form the speaker uses to refer to an action which will take place at a point in the future from when he is speaking (e.g., she will sleep, I will run, they will eat).",
+  "greek:genitive": "The genitive case expresses possession.",
+  "greek:imperative": "The imperative mood is a mood of direction.",
   "greek:imperfect": "Imperfect is a verb tense-form in which the speaker describes an action as imperfective, (describing the action as a process or incomplete).",
   "greek:indicative": "The indicative mood indicates that the speaker is portraying or speaking as if the verbal action he is referring to is real (rather than only potential).",
   "greek:infinitive": "An infinitive is a verbal noun (e.g., to eat, to run, to go).",
+  "greek:middle": "The middle voice represents the subject as acting in some way that concerns itself, or as acting upon something that belongs to itself.",
   "greek:nominative": "In Koiné Greek, the nominative case ending usually indicates the subject of the sentence.",
+  "greek:optative": "The optative is still retained to express a wish.",
   "greek:participle": "A participle is a verbal adjective (e.g. eating, going, running).",
+  "greek:passive": "A verb in the passive voice indicates that the action of the verb is performed on the subject (e.g., The baby was washed by the mother.)",
+  "greek:perfect": "The Greek perfect tense denotes the present state resultant upon a past action.",
+  "greek:pluperfect": "Pluperfect is the verb tense-form a speaker can use to describe the state of a completed action that was in existence at some point in the past.",
   "greek:present": "Present is a verb tense-form which a speaker uses to describe an action as imperfective (either continuous or incomplete), and is often used to depict an action as being in process (e.g., I am running, she is reading, they are sleeping).",
   "greek:subjunctive": "The subjunctive mood indicates that the speaker is referring to the verbal action as a possibility or probability.",
   "greek:superlative": "Superlative is a degree, expressed by an adjective, indicating that something is the most or greatest in comparison with other entities.",
@@ -67,6 +77,8 @@ export const GRAMMAR_SENTENCES: Readonly<Record<string, string>> = {
   "hebrew:polpal": "The Polpal is a rare stem formation that is similar to the Pual.",
   "hebrew:pronominal suffix": "Pronominal suffixes refer to a person(s) or thing(s) and can be attached to nouns, verbs, prepositions, participles, infinitives, even some particles.",
   "hebrew:pual": "The Pual stem is the passive form of the Piel, and it generally expresses the passive voice of the meaning of a verb in the Piel stem.",
+  "hebrew:pulal": "The Pulal is a rare stem formation that is similar to the Pual.",
+  "hebrew:qal": "The Qal stem is the stem formation that is the simplest form in Biblical Hebrew.",
   "hebrew:qal passive": "The Qal Passive is a passive form of the Qal stem.",
   "hebrew:sequential imperfect": "A Sequential Imperfect verb functions generally like a verb with Perfect conjugation, but it also connects to an earlier verb to form either a sequence of time or a sequence of thought.",
   "hebrew:sequential perfect": "A Sequential Perfect verb often expresses the same kinds of action as the Imperfect conjugation, but it also connects to an earlier verb to form either a sequence of time or a sequence of thought."
@@ -79,4 +91,11 @@ export const GRAMMAR_CREDITS = {
 } as const;
 
 /** Terms whose sentence is Machen's, not the unfoldingWord grammar's. */
-export const GRAMMAR_ENTRY_CREDITS: Readonly<Record<string, string>> = {};
+export const GRAMMAR_ENTRY_CREDITS: Readonly<Record<string, string>> = {
+  "greek:accusative": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
+  "greek:dative": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
+  "greek:genitive": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
+  "greek:middle": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
+  "greek:optative": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
+  "greek:perfect": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain"
+};

@@ -13,6 +13,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
 import { isSyncedSetting, nextStamp } from "../lib/cloudSync";
+import { todayKey } from "../lib/rhythm";
 import { LICENSED_DDL } from "./licensed";
 
 export const USER_DB = "user.db";
@@ -106,6 +107,11 @@ CREATE TABLE IF NOT EXISTS installed_study (
 CREATE TABLE IF NOT EXISTS books_begun (
   book TEXT PRIMARY KEY,
   at   TEXT NOT NULL
+);
+
+-- The days that count towards the streak (build 7, lib/rhythm.ts): a local date on Today's clock, once.
+CREATE TABLE IF NOT EXISTS rhythm_days (
+  day TEXT PRIMARY KEY
 );
 
 -- Downloaded Understand bundles, one per book (data/understand.ts), kept the same way.
@@ -347,4 +353,16 @@ export async function markBookBegun(db: SQLiteDatabase, book: string, at = new D
 export async function bookBegun(db: SQLiteDatabase, book: string): Promise<Date | null> {
   const row = await db.getFirstAsync<{ at: string }>("SELECT at FROM books_begun WHERE book = ?", [book]);
   return row === null ? null : new Date(row.at);
+}
+
+/** Reading or listening counts today (lib/rhythm.ts). Today reads it on focus; a second call the same day does nothing. */
+export async function countDay(db: SQLiteDatabase, now = new Date()): Promise<void> {
+  const result = await db.runAsync("INSERT OR IGNORE INTO rhythm_days (day) VALUES (?)", [todayKey(now)]);
+  // A new day goes to iCloud, so a second device's lamp counts it too.
+  if (result.changes > 0) onChange();
+}
+
+export async function loadDays(db: SQLiteDatabase): Promise<string[]> {
+  const rows = await db.getAllAsync<{ day: string }>("SELECT day FROM rhythm_days");
+  return rows.map((r) => r.day);
 }

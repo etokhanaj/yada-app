@@ -1,16 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  changedEntries,
-  EMPTY_STATE,
-  mergeRegisters,
-  mergeState,
-  nextStamp,
-  parseCloud,
-  POSITION_KEY,
-  serializeRegisters,
-  type SyncState,
-} from "./cloudSync";
+import { changedEntries, EMPTY_STATE, mergeRegisters, mergeState, nextStamp, parseCloud, POSITION_KEY, serializeRegisters, type SyncState } from "./cloudSync";
 
 const state = (partial: Partial<SyncState>): SyncState => ({ ...EMPTY_STATE, ...partial });
 
@@ -166,5 +156,16 @@ describe("reading iCloud's values", () => {
   it("round-trips what it serializes", () => {
     const bookmarks = { "JHN.3.16": [true, 100] as const, "ROM.8.28": [false, 200] as const };
     expect(parseCloud("bookmarks", serializeRegisters(bookmarks))).toEqual(bookmarks);
+  });
+});
+
+describe("the streak's days (build 7)", () => {
+  it("merges two devices' days as a union", () => {
+    const phone = { ...EMPTY_STATE, days: { "2026-10-14": [true, 0] as const } };
+    const ipad = { ...EMPTY_STATE, days: { "2026-10-15": [true, 0] as const } };
+    expect(Object.keys(mergeState(phone, ipad).days).sort()).toEqual(["2026-10-14", "2026-10-15"]);
+  });
+  it("reads only dates marked true", () => {
+    expect(parseCloud("days", JSON.stringify({ "2026-10-16": [true, 0], nonsense: [true, 0], "2026-10-17": [false, 0] }))).toEqual({ "2026-10-16": [true, 0] });
   });
 });

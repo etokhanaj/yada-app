@@ -9,7 +9,7 @@
 
 import type { SourceRow } from "../data/queries";
 
-export type SourceGroup = "Bible text" | "Words and people" | "Understand";
+export type SourceGroup = "Bible text" | "Words and people" | "Understand" | "Today";
 
 export interface SourceItem {
   readonly dataset: string;
@@ -43,6 +43,10 @@ const LICENCE: Readonly<Record<string, string>> = {
 export function licenceLabel(code: string): string {
   return LICENCE[code] ?? code.replace(/[_-]/g, " ");
 }
+
+export const SPURGEON_DATASET = "Morning and Evening: Daily Readings, C. H. Spurgeon (CCEL ThML)";
+export const DAILY_LIGHT_DATASET = "Daily Light on the Daily Path (CCEL ThML)";
+export const PICTURES_DATASET = "Today’s pictures (Wikimedia Commons)";
 
 /**
  * Keyed on the dataset name the pipeline writes from sources.manifest.json.
@@ -105,6 +109,10 @@ const ROLE: Readonly<Record<string, { group: SourceGroup; title: string; name: s
   "unfoldingWord Aramaic Grammar (en_uag)": { group: "Words and people", title: "Aramaic grammar terms", name: "unfoldingWord Aramaic Grammar" },
   "J. Gresham Machen, New Testament Greek for Beginners (Macmillan, 1923)": { group: "Words and people", title: "Greek grammar terms, six of them", name: "Machen’s Greek for Beginners" },
   // A downloaded Old Testament text; listed only once the app handles a text that has no New Testament.
+  // Build 7a: Today's own sources, rows made by data/today.ts's todaySources().
+  [SPURGEON_DATASET]: { group: "Today", title: "Devotional", name: "Spurgeon, Morning and Evening" },
+  [DAILY_LIGHT_DATASET]: { group: "Today", title: "The day’s verse", name: "Daily Light on the Daily Path" },
+  [PICTURES_DATASET]: { group: "Today", title: "Today’s pictures", name: "Wikimedia Commons" },
   "JPS Tanakh 1917, The Holy Scriptures According to the Masoretic Text (engjps)": { group: "Bible text", title: "JPS 1917", name: "English · JPS" },
 };
 

@@ -62,8 +62,8 @@ export default function ThreadScreen() {
   return (
     <PageScreen
       title="The Gospel of John"
-      // Reached from Reading plans (IA-11) it returns there; from Home's Your plan, to Home.
-      back={from === "plans" ? "Plans" : "Home"}
+      // Reached from Reading plans (IA-11) it returns there; from Today, to Today; from the Bible tab, to Bible.
+      back={from === "plans" ? "Plans" : from === "today" ? "Today" : "Bible"}
       // DP-03: the large title, then the Gospel's opening word on one line ending in the count.
       // Not one accessible element: the word keeps its own view so VoiceOver reads it in Greek.
       subtitle={
