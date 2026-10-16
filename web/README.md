@@ -1,7 +1,7 @@
 # Yada website
 
-Static home page with `/privacy`, `/terms` and `/support`, packaged for Episode's "import zipped
-website".
+Static home page with `/privacy`, `/terms` and `/support`. Episode was dropped on 16 Oct 2026, so
+the page may use scripts; each one enhances a page that already reads and works without it.
 
 ```
 src/index.html            home
@@ -9,7 +9,9 @@ src/privacy/index.html    /privacy (App Store Connect privacy policy URL)
 src/terms/index.html      /terms
 src/support/index.html    /support (App Store Connect support URL)
 src/assets/site.css       the one stylesheet
-src/brand, fonts, phones, story, wall, photos
+src/assets/site.js        the read-along in Listen; Read it your way starting in view and on a chosen case
+src/audio/                George reading John 1:1–2 (Kokoro-82M, Apache-2.0; BSB, public domain)
+src/brand, fonts, phones, story, wall, photos, bento
 scripts/verse-data.ts     shipping bundles → data/site-data.json
 scripts/render.ts         data/site-data.json → the marked blocks in index.html and site.css
 ```
@@ -31,21 +33,6 @@ home page is read from the release bundles named in `content/bundles/manifest.js
 entry that is not `human_reviewed`. Edit the template around the `data:` markers, never
 inside them; `render.ts` rewrites them.
 
-## Episode's import rules
-
-From `episode-api/src/services/designImport`:
-
-- A page is a top-level `.html` or `<dir>/index.html`; the directory is the slug.
-- Each top-level `header`, `section`, `article` and `footer` (inside `main` too) becomes
-  one section, named by its `aria-label`. A ported section's CSS must stay under 32 KB.
-- Scripts are dropped, so the page has none. Word cards switch with `:has()` on hover and
-  focus; FAQ answers are `<details>`.
-- A rule pairing `opacity: 0` with a `transition` is forced visible on import, so scroll
-  reveals use keyframes on a `view()` timeline instead.
-- Tokens are read from `:root` by name (`--paper`, `--ink`, `--accent`, `--cta`, `--muted`,
-  `--divider`, `--font-display`, `--font-body`); dark values come from the
-  `prefers-color-scheme: dark` block.
-
 ## Fonts
 
 Literata and Gentium Plus, subset to what the page uses, with their OFL files. Gentium's licence reserves its name for unmodified copies, so the subset is renamed
@@ -53,9 +40,15 @@ Literata and Gentium Plus, subset to what the page uses, with their OFL files. G
 
 ## Screens
 
-Real screens from the iPhone 17 Pro simulator (build-next-release, 13 Oct 2026), status bar 9:41 and
-full. `src/phones/` sets them in Apple's iPhone 17 Pro Silver product bezel (Apple Design Resources);
-`src/story/` holds the bare screens and the bezel for the pinned story; `src/wall/` holds small copies
-for the closing wall. Show the iPhone straight on and unaltered (Apple's marketing guidelines).
-`src/photos/` holds two Unsplash photographs (Unsplash Licence), one with Yada's Home composited
-onto the phone. Recapture when the screens change.
+Frames from the design canvas (`.claude/skills/design/scripts/build_canvas.py` on `master`, 16 Oct 2026),
+rendered with the real day pictures (`content/pictures`, public domain) and captured at 3× without the
+canvas's bezel, island or Placeholder notes. `src/phones/` sets them in Apple's iPhone 17 Pro Silver product
+bezel (Apple Design Resources); `src/story/` holds the bare screens for the hero phone and Read it your way;
+`src/wall/` holds small copies for the closing wall. Show the iPhone straight on and unaltered (Apple's
+marketing guidelines). `src/photos/walk.webp` is an Unsplash photograph (Unsplash Licence).
+
+The brand pattern is the Yada symbol (`brand/logos/yada-symbol-chartreuse.svg`) tiled in CSS. Icons in Read it
+your way are Untitled UI's, the set the app uses.
+
+`src/bento/` holds Made for every day: crops of the canvas's AU-04 player and DR-02 reader (light, dark, AX5),
+and two day pictures, `day-04` and `day-11` from `content/pictures` (public domain).

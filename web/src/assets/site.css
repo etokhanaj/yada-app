@@ -505,7 +505,8 @@ figure { margin: 0; }
 }
 
 /* Capped so the 17 words wrap into two even lines rather than running edge to edge. */
-.vh-greek { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; margin-top: 18px; max-width: min(100%, 560px); }
+/* One line on a desktop: at 560px the last clause broke, leaving four words alone. */
+.vh-greek { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; margin-top: 18px; max-width: min(100%, 800px); }
 .vh-w { display: flex; flex-direction: column; align-items: center; }
 .vh-w .orig { font-size: clamp(1rem, 1.6vw, 1.25rem); line-height: 1.2; color: var(--night-muted); }
 .vh-w .gl { font-size: 0.6875rem; color: var(--night-muted); opacity: 0.8; }
@@ -681,171 +682,22 @@ figure { margin: 0; }
   }
 }
 
-/* A photograph: the app in someone's hand. */
-.photo { margin: 0; }
-
-.photo img {
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-  border-radius: 28px;
-  box-shadow: var(--shadow);
-}
-
 /* Listen opens with a full-bleed photograph, then the copy and the player overlap its foot. */
 .listen { padding-top: 0; }
 
-.listen-photo { margin: 0 0 56px; }
+/* The whole frame, not a strip: at 400 px tall the strip cut off her head and the phone in her hand.
+   The app's mini player (canvas AU-02) floats by her phone. */
+.listen-photo { position: relative; margin: 0 0 64px; border-radius: 24px; overflow: hidden; }
+.listen-photo > img:first-child { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.lp-player { position: absolute; right: 6%; bottom: 8%; width: clamp(220px, 30%, 380px); height: auto; padding: 10px 6px; border-radius: 18px; background: #fff; box-shadow: 0 24px 48px rgba(10, 18, 14, 0.28); }
 
-.listen-photo img {
-  width: 100%;
-  height: clamp(220px, 30vw, 400px);
-  object-fit: cover;
-  object-position: 50% 35%;
+@media (max-width: 599px) {
+  .listen-photo > img:first-child { aspect-ratio: 4 / 5; object-position: 52% 50%; }
+  .lp-player { right: 5%; width: 90%; bottom: 5%; }
 }
 
 .listen .feature-grid { position: relative; }
 
-
-
-/* ---------- The story: one phone held while the steps scroll ---------- */
-/* Each step names a view timeline; the pinned phone's screens cross-fade on those timelines.
-   Without scroll-driven animations (or on a phone) every step shows its own phone instead. */
-
-.story { padding: 96px 0 48px; overflow-x: clip; }
-
-
-.story-step { padding: 48px 0; }
-
-.story-step h3 {
-  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  max-width: 16ch;
-}
-
-.story-step p {
-  margin-top: 16px;
-  max-width: 40ch;
-  font-size: 1.1875rem;
-  color: var(--muted);
-}
-
-
-.story-inline { --pw: min(72vw, 300px); margin-top: 32px; }
-
-.story-pin { display: none; }
-
-@supports (animation-timeline: view()) and (timeline-scope: --a) {
-  @media (min-width: 960px) {
-    .story-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 72px;
-      timeline-scope: --step-1, --step-2, --step-3, --step-4;
-    }
-
-    .story-step {
-      min-height: 72vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      view-timeline-name: var(--step);
-      view-timeline-axis: block;
-    }
-
-    .story-inline { display: none; }
-
-    .story-pin {
-      display: block;
-      position: sticky;
-      top: 6vh;
-      height: 88vh;
-    }
-
-    .story-phone {
-      position: relative;
-      height: 100%;
-      aspect-ratio: 675 / 1380;
-      margin: 0 auto;
-      filter: drop-shadow(0 30px 40px rgba(10, 18, 14, 0.22)) drop-shadow(0 4px 8px rgba(10, 18, 14, 0.12));
-    }
-
-    .story-bezel { position: absolute; inset: 0; width: 100%; height: 100%; }
-
-    /* The screen hole in Apple's bezel: 1206 × 2622 at (72, 69) in 1350 × 2760, corners about
-       230 px round. */
-    .story-screens {
-      position: absolute;
-      left: 5.333%;
-      top: 2.5%;
-      width: 89.333%;
-      height: 95%;
-      border-radius: 19% / 8.8%;
-      overflow: hidden;
-      background: var(--paper);
-    }
-
-    .story-screen {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      animation: screen-in linear both;
-      animation-range: cover 30% cover 42%;
-    }
-
-    .s-1 { animation: none; }
-    .s-2 { animation-timeline: --step-2; }
-    .s-3 { animation-timeline: --step-3; }
-    .s-4 { animation-timeline: --step-4; }
-
-    /* The phone itself rises as its first step arrives. */
-    .story-pin { animation: reveal linear both; animation-timeline: --step-1; animation-range: entry 0% entry 60%; }
-  }
-}
-
-@keyframes screen-in {
-  0% { opacity: 0; transform: scale(1.04); }
-  100% { opacity: 1; transform: none; }
-}
-
-/* Behind the phone: a glow that changes colour with each step, and a giant word drifting across
-   (hims & hers). Both ride the steps' view timelines, like the screens. */
-.story .section-intro { margin-bottom: 24px; }
-
-.story .section-intro h2 {
-  font-size: clamp(2rem, 4.2vw, 3.25rem);
-  line-height: 1.08;
-  letter-spacing: -0.02em;
-  max-width: 16ch;
-}
-
-.story-glows { display: none !important; }
-
-@supports (animation-timeline: view()) and (timeline-scope: --a) {
-  @media (min-width: 960px) {
-    .story-pin { overflow: visible; }
-
-    .story-glows { display: block; position: absolute; inset: -10% -30%; pointer-events: none; }
-
-    .story-glow {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      filter: blur(40px);
-      animation: screen-in linear both;
-      animation-range: cover 30% cover 42%;
-    }
-
-    .g-1 { background: radial-gradient(closest-side, rgba(219, 236, 154, 0.9), transparent); animation: none; }
-    .g-2 { background: radial-gradient(closest-side, rgba(185, 217, 195, 0.9), transparent); animation-timeline: --step-2; }
-    .g-3 { background: radial-gradient(closest-side, rgba(231, 238, 216, 1), rgba(219, 236, 154, 0.35) 60%, transparent); animation-timeline: --step-3; }
-    .g-4 { background: radial-gradient(closest-side, rgba(24, 63, 53, 0.55), transparent); animation-timeline: --step-4; }
-
-    .story-phone { z-index: 1; }
-  }
-}
 
 
 /* ---------- Readers differ ---------- */
@@ -952,52 +804,40 @@ figure { margin: 0; }
   to { opacity: 1; }
 }
 
-/* ---------- One fact, given room: a ring that draws and digits that roll ---------- */
+/* ---------- One fact, made human: 57 of 100 ---------- */
 
-.fact { padding: 96px 0; text-align: center; }
+.fact { padding: clamp(80px, 10vw, 128px) 0; }
 
-.fact-centre { display: flex; flex-direction: column; align-items: center; }
+.fact-grid { display: grid; gap: 48px; align-items: center; }
+@media (min-width: 900px) {
+  .fact-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 96px; }
+}
 
-.ring { position: relative; width: clamp(200px, 30vw, 280px); aspect-ratio: 1; }
-
-.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-
-.ring-track, .ring-fill { fill: none; stroke-width: 6; }
-.ring-track { stroke: var(--divider); }
-.ring-fill { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 326.7; stroke-dashoffset: 140.5; }
-
-.ring-number {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.fact-number {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(3.5rem, 7vw, 5rem);
-  letter-spacing: -0.04em;
-  line-height: 1;
+  font-size: clamp(5.5rem, 13vw, 10rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
+.fact-number .pct { font-size: 0.4em; letter-spacing: 0; margin-left: 6px; vertical-align: 0.95em; }
 
-.ring-number .pct { font-size: 0.45em; margin-left: 4px; align-self: center; }
+.fact-line { margin-top: 20px; font-family: var(--font-display); font-size: clamp(1.5rem, 2.8vw, 2.25rem); line-height: 1.2; max-width: 22ch; }
+.fact-answer { margin-top: 20px; font-size: 1.25rem; font-weight: 600; color: var(--accent); }
+.fact-source { margin-top: 24px; font-size: 0.875rem; color: var(--muted); }
 
+.fact-dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: clamp(8px, 1.1vw, 14px); width: min(100%, 420px); justify-self: center; }
+.fact-dots i { aspect-ratio: 1; border-radius: 50%; background: var(--divider); }
+.fact-dots i.on { background: var(--accent); }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .ring { view-timeline-name: --ring; }
-    .ring-fill { animation: ring-draw linear both; animation-timeline: --ring; animation-range: entry 40% cover 50%; }
-  }
+@media (prefers-reduced-motion: no-preference) {
+  .fact-dots i.on { transition: background-color 240ms ease calc(var(--i) * 16ms), scale 420ms var(--ease-spring) calc(var(--i) * 16ms); }
+  .js-moments .fact:not(.is-in) .fact-dots i.on { background: var(--divider); scale: 0.6; }
 }
 
-@keyframes ring-draw { from { stroke-dashoffset: 326.7; } }
-@keyframes roll { from { transform: translateY(0); } }
-
-.fact-line { margin-top: 32px; font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.25rem); line-height: 1.2; max-width: 24ch; }
-
-.fact-answer { margin-top: 16px; font-size: 1.25rem; font-weight: 600; color: var(--accent); }
-
-.fact-source { margin-top: 20px; font-size: 0.875rem; color: var(--muted); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* ---------- Original Greek: a night band ---------- */
 /* The card follows the app's word card (evidence/word.tsx), itself drawn from
@@ -1085,6 +925,12 @@ figure { margin: 0; }
 
 .study:not(:has(.word:is(:hover, :focus-visible))) .wc[data-default] { display: grid; }
 
+/* With site.js a click or tap picks a word: its card becomes the default and it keeps the highlight. */
+.study-jn:has(.word.is-picked):not(:has(.word:is(:hover, :focus-visible))) .w-4:not(.is-picked) { background: none; }
+.study-jn:has(.word.is-picked):not(:has(.word:is(:hover, :focus-visible))) .w-4:not(.is-picked) .orig { color: inherit; }
+.study-jn:not(:has(.word:is(:hover, :focus-visible))) .word.is-picked { background: rgba(219, 236, 154, 0.12); }
+.study-jn:not(:has(.word:is(:hover, :focus-visible))) .word.is-picked .orig { color: var(--chartreuse); }
+
 /* data:study-rules */
 .study-jn:has(.w-0:is(:hover, :focus-visible)) #jn-0,
 .study-jn:has(.w-1:is(:hover, :focus-visible)) #jn-1,
@@ -1136,20 +982,27 @@ figure { margin: 0; }
 .further .covers { margin-top: 36px; }
 /* The results in front of you, the profile they lead to stepping forward from behind. */
 
-.search-pair {
-  position: relative;
-  display: flex;
-  justify-content: center;
+.search-demo { display: grid; justify-items: center; }
+
+.sd-phone { position: relative; width: clamp(240px, 24vw, 310px); aspect-ratio: 675 / 1380; filter: drop-shadow(0 30px 40px rgba(10, 18, 14, 0.22)) drop-shadow(0 4px 8px rgba(10, 18, 14, 0.12)); }
+.sd-bezel { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* The screen hole of Apple's bezel, as in .yw-screens. */
+.sd-screen { position: absolute; left: 5.333%; top: 2.5%; width: 89.333%; height: 95%; border-radius: 19% / 8.8%; overflow: hidden; background: #fff; container-type: inline-size; }
+.sd-shot { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.sd-shot.is-on { opacity: 1; }
+
+/* Over the frame's own field text (x 75–470, y 128–178 of 603 × 1311) and its results (from y 195). */
+.sd-field, .sd-cover { display: none; }
+.search-demo.is-live .sd-field { display: flex; align-items: center; position: absolute; left: 12.4%; top: 9.76%; width: 64%; height: 3.81%; background: rgb(242, 243, 240); font: 400 5.2cqw/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; color: #16231E; }
+.sd-caret { width: 0.5cqw; height: 1.15em; margin-left: 0.4cqw; background: #2f6fde; border-radius: 1px; }
+.search-demo.is-live .sd-cover { display: block; position: absolute; left: 0; right: 0; top: 14.9%; bottom: 0; background: #fff; clip-path: inset(0 0 0 0); }
+.search-demo.is-live .sd-cover.is-open { clip-path: inset(100% 0 0 0); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sd-caret { animation: sd-blink 1s steps(1) infinite; }
+  .sd-cover.is-open { transition: clip-path 900ms var(--ease-out); }
 }
-
-.search-pair .phone { --pw: clamp(200px, 21vw, 290px); }
-
-.search-front { margin: 80px 0 0 calc(var(--pw) * -0.08); position: relative; }
-
-@media (max-width: 599px) {
-  .search-pair .phone { --pw: 48vw; }
-  .search-front { margin-left: -8vw; margin-top: 48px; }
-}
+@keyframes sd-blink { 50% { opacity: 0; } }
 
 /* ---------- Translations: covers and Compare ---------- */
 /* Portrait covers in five fixed brand tones, one per version (docs/more-translations-plan.md,
@@ -1357,7 +1210,7 @@ figure { margin: 0; }
 .site-foot {
   background: var(--night);
   color: var(--night-muted);
-  padding: 0 0 56px;
+  padding: 0;
   font-size: 0.9375rem;
 }
 
@@ -1366,6 +1219,7 @@ figure { margin: 0; }
   display: grid;
   gap: 24px;
   padding-top: 40px;
+  padding-bottom: 56px;
 }
 
 /* The rule spans the text column, not the gutters. */
@@ -1401,12 +1255,239 @@ figure { margin: 0; }
 
 .foot-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
+
+/* ---------- Brand pattern: the Yada symbol, repeated (after pocketapp.com's patterned blocks) ---------- */
+/* A staggered grid of the page-turn mark in chartreuse at low opacity on forest. It drifts slowly,
+   and a little faster under the pointer. */
+
+.pattern {
+  background-color: var(--forest);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22 viewBox=%220 0 120 120%22%3E%3Cg fill=%22%23DBEC9A%22 fill-opacity=%220.16%22%3E%3Cpath transform=%22translate%288 8%29 scale%280.17%29%22 d=%22M 34 42 C 62 40 80 44 94 64 C 104 79 115 101 131 133 L 144 161 C 146 139 146 119 151 101 C 158 77 181 53 221 40 L 221 94 C 191 94 174 103 164 119 C 157 131 154 152 150 172 C 145 198 128 221 99 227 C 75 232 49 226 42 208 C 34 190 43 171 61 169 C 80 167 94 179 91 196 C 90 204 86 210 81 214 C 97 214 108 205 112 191 C 115 180 112 169 105 155 L 60 76 C 50 57 43 47 34 42 Z%22/%3E%3Cpath transform=%22translate%2868 68%29 scale%280.17%29%22 d=%22M 34 42 C 62 40 80 44 94 64 C 104 79 115 101 131 133 L 144 161 C 146 139 146 119 151 101 C 158 77 181 53 221 40 L 221 94 C 191 94 174 103 164 119 C 157 131 154 152 150 172 C 145 198 128 221 99 227 C 75 232 49 226 42 208 C 34 190 43 171 61 169 C 80 167 94 179 91 196 C 90 204 86 210 81 214 C 97 214 108 205 112 191 C 115 180 112 169 105 155 L 60 76 C 50 57 43 47 34 42 Z%22/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 120px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pattern { animation: pattern-drift 40s linear infinite; }
+  .pattern:hover { animation-duration: 12s; }
+}
+
+@keyframes pattern-drift { to { background-position: 120px 120px; } }
+
+/* ---------- Today on its patterned panel ---------- */
+
+.today-panel {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0;
+  min-height: 560px;
+  padding: 48px 24px 0;
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.today-panel .phone { --pw: clamp(190px, 22vw, 270px); flex: none; transition: translate 400ms var(--ease-out); }
+.today-back { margin-right: -40px; margin-bottom: -120px; opacity: 0.95; }
+.today-front { position: relative; margin-bottom: -60px; }
+.today-panel:hover .today-front { translate: 0 -12px; }
+.today-panel:hover .today-back { translate: 0 -6px; }
+
+/* ---------- Read it your way ---------- */
+/* Five cases, 6 s each, in a 30 s loop. Within a case its two or three screens share the 6 s.
+   Each screen is shown by one keyframe run (d2 for 3 s, d3 for 2 s), delayed to its slot. */
+
+.yw-grid { display: grid; gap: 40px; align-items: center; }
+
+@media (min-width: 1000px) {
+  .yw-grid { grid-template-columns: minmax(0, 0.9fr) auto minmax(0, 1fr); gap: 56px; }
+}
+
+.yw-title { font-size: clamp(2.5rem, 5.5vw, 4.5rem); line-height: 1; letter-spacing: -0.03em; max-width: 8ch; }
+
+.yw-stage { position: relative; display: grid; place-items: center; padding: 40px clamp(32px, 6vw, 72px); }
+
+.yw-backdrop { position: absolute; inset: 12% 0; border-radius: 40px; }
+
+.yw-phone { position: relative; width: clamp(230px, 22vw, 290px); aspect-ratio: 675 / 1380; filter: drop-shadow(0 30px 40px rgba(10, 18, 14, 0.35)); }
+.yw-bezel { position: absolute; inset: 0; width: 100%; height: 100%; }
+.yw-screens { position: absolute; left: 5.333%; top: 2.5%; width: 89.333%; height: 95%; border-radius: 19% / 8.8%; overflow: hidden; background: var(--paper); }
+.yw-screen { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.yw-screen.ys-1[style*="--k: 0"] { opacity: 1; }
+
+.yw-cases { display: grid; gap: 6px; }
+
+.yw-case {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+
+.yw-case:hover, .yw-case:focus-visible { background: var(--selection); }
+
+.yw-icon { position: relative; flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; color: var(--muted); box-shadow: inset 0 0 0 1px var(--divider); }
+.yw-icon > svg:first-child { width: 22px; height: 22px; }
+.yw-ring { position: absolute; inset: 0; width: 48px; height: 48px; transform: rotate(-90deg); fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 138.2; stroke-dashoffset: 138.2; }
+
+.yw-text { display: grid; gap: 2px; }
+.yw-name { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.25rem, 2vw, 1.625rem); color: var(--muted); transition: color 200ms ease; }
+.yw-line { font-size: 0.9375rem; color: var(--muted); max-height: 0; overflow: hidden; opacity: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .yw-screen { animation-duration: 30s; animation-iteration-count: infinite; animation-fill-mode: both; animation-timing-function: linear; }
+  .yw-screen.d3 { animation-name: yw-d3; animation-delay: calc(var(--c) * 6s - var(--yw-o, 0s) + var(--k) * 2s); }
+  .yw-screen.d2 { animation-name: yw-d2; animation-delay: calc(var(--c) * 6s - var(--yw-o, 0s) + var(--k) * 3s); }
+  .yw-screen.ys-1[style*="--k: 0"] { opacity: 0; }
+  .yw-ring { animation: yw-ring 30s linear infinite both; animation-delay: calc(var(--c) * 6s - var(--yw-o, 0s)); }
+  .yw-case .yw-name { animation: yw-on 30s linear infinite both; animation-delay: calc(var(--c) * 6s - var(--yw-o, 0s)); }
+  .yw-case .yw-icon { animation: yw-icon 30s linear infinite both; animation-delay: calc(var(--c) * 6s - var(--yw-o, 0s)); }
+  .yw-case .yw-line { animation: yw-line 30s ease infinite both; animation-delay: calc(var(--c) * 6s - var(--yw-o, 0s)); }
+}
+
+/* Without motion, every case shows its line and the first screen stays up. */
+@media (prefers-reduced-motion: reduce) {
+  .yw-line { max-height: none; opacity: 1; }
+}
+
+@keyframes yw-d3 { 0% { opacity: 0; } 1% { opacity: 1; } 6.67% { opacity: 1; } 7.67% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes yw-d2 { 0% { opacity: 0; } 1% { opacity: 1; } 10% { opacity: 1; } 11% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes yw-ring { 0% { stroke-dashoffset: 138.2; opacity: 1; } 20% { stroke-dashoffset: 0; opacity: 1; } 21%, 100% { stroke-dashoffset: 138.2; opacity: 0; } }
+@keyframes yw-on { 0%, 20% { color: var(--ink); } 21%, 100% { color: var(--muted); } }
+@keyframes yw-icon { 0%, 20% { color: var(--accent); } 21%, 100% { color: var(--muted); } }
+@keyframes yw-line { 0% { max-height: 0; opacity: 0; } 2%, 19% { max-height: 3em; opacity: 1; } 21%, 100% { max-height: 0; opacity: 0; } }
+
+/* With site.js: the loop waits until the section is on screen, and a chosen case restarts it
+   there by shifting every delay by --yw-o. */
+.yw.yw-wait :is(.yw-screen, .yw-ring, .yw-name, .yw-icon, .yw-line) { animation-name: none; }
+.yw.yw-wait .ys-1[style*="--k: 0"] { opacity: 1; }
+.yw.yw-reset :is(.yw-screen, .yw-ring, .yw-name, .yw-icon, .yw-line) { animation-name: none; }
+
+/* Hover or focus a case to hold its first screen. */
+.yw:has(.yw-case:is(:hover, :focus-visible)) .yw-screen { animation: none; opacity: 0; }
+.yw:has(.yc-1:is(:hover, :focus-visible)) .ys-1[style*="--k: 0"],
+.yw:has(.yc-2:is(:hover, :focus-visible)) .ys-2[style*="--k: 0"],
+.yw:has(.yc-3:is(:hover, :focus-visible)) .ys-3[style*="--k: 0"],
+.yw:has(.yc-4:is(:hover, :focus-visible)) .ys-4[style*="--k: 0"],
+.yw:has(.yc-5:is(:hover, :focus-visible)) .ys-5[style*="--k: 0"] { opacity: 1; }
+
+@media (max-width: 999px) {
+  .yw-title { max-width: none; text-align: center; }
+  .yw-cases { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter); scrollbar-width: none; }
+  .yw-line { display: none; }
+  .yw-name { font-size: 1.0625rem; }
+  .yw-case { gap: 10px; padding: 8px 14px 8px 8px; }
+  .yw-icon { width: 40px; height: 40px; }
+  .yw-ring { width: 40px; height: 40px; }
+  .today-panel { min-height: 460px; }
+}
+
+/* ---------- Read-along in Listen ---------- */
+/* The word being read sits in a dark pill, as in the app's player (canvas AU-02). */
+
+.readalong { margin-top: 32px; display: grid; gap: 14px; justify-items: start; }
+.ra-play { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 20px 0 14px; border: 0; border-radius: 999px; background: var(--ink); color: var(--paper); font: inherit; font-weight: 600; cursor: pointer; }
+.ra-play svg { width: 20px; height: 20px; fill: currentColor; }
+.ra-play .ra-icon-pause, .ra-play[aria-pressed="true"] .ra-icon-play { display: none; }
+.ra-play[aria-pressed="true"] .ra-icon-pause { display: block; }
+.ra-text { margin: 0; font-family: var(--font-display); font-size: clamp(1.25rem, 2.2vw, 1.5rem); line-height: 1.6; max-width: 30ch; }
+.ra-text sup { font-family: var(--font-body); font-size: 0.6em; color: var(--muted); }
+.ra-text span { padding: 0.08em 0.2em; margin: 0 -0.2em; border-radius: 0.4em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.ra-text span.ra-on { background: var(--ink); color: var(--paper); }
+.readalong figcaption { font-size: 0.875rem; color: var(--muted); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ra-text span { transition: background-color 120ms ease, color 120ms ease; }
+}
+
+/* ---------- Made for every day: the bento ---------- */
+/* John's card rule (15 Oct 2026): one card per thing, a soft fill, one 24 px radius, no shadow,
+   never nested. The app pieces inside float on a shadow of their own, as they do on a phone. */
+
+.bento-title { font-size: clamp(2.25rem, 4.5vw, 3.5rem); line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 40px; }
+.bento { display: grid; gap: 16px; list-style: none; padding: 0; margin: 0; }
+
+@media (min-width: 900px) {
+  .bento { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bc-plans, .bc-size { grid-column: span 2; }
+}
+
+.bc { display: flex; flex-direction: column; padding: 12px 12px 28px; border-radius: 24px; background: var(--selection); }
+.bc h3 { margin: 22px 16px 0; font-size: 1.375rem; line-height: 1.2; }
+.bc > p { margin: 6px 16px 0; color: var(--muted); max-width: 46ch; }
+
+.bc-art { position: relative; height: clamp(220px, 24vw, 300px); border-radius: 16px; overflow: hidden; display: grid; place-items: center; }
+
+.bc-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
+.bc-rows { position: relative; display: grid; gap: 8px; width: min(86%, 380px); }
+.bc-rows p { display: grid; gap: 2px; padding: 14px 18px; border-radius: 14px; background: var(--sheet); color: var(--ink); box-shadow: var(--shadow); font-size: 0.875rem; }
+.bc-rows b { font-weight: 500; font-size: 1rem; }
+.bc-rows span { color: var(--muted); }
+
+.bc-ui { width: min(88%, 420px); height: auto; padding: 14px 16px 10px; border-radius: 18px; background: #fff; box-shadow: 0 18px 40px rgba(10, 18, 14, 0.3); }
+
+.bc-toggle { position: relative; display: flex; align-items: center; justify-content: space-between; width: min(84%, 300px); padding: 16px 18px; border-radius: 14px; background: var(--sheet); box-shadow: var(--shadow); font-size: 1.0625rem; color: var(--ink); }
+.bc-toggle i { position: relative; width: 51px; height: 31px; border-radius: 999px; background: var(--accent); }
+.bc-toggle i::after { content: ""; position: absolute; top: 2px; right: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
+
+.bc-size .bc-art { background: var(--forest); place-items: end center; }
+.bc-shot { position: absolute; bottom: -24px; width: clamp(120px, 15vw, 190px); height: auto; border-radius: 14px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); }
+.bc-shot.s-1 { left: 50%; translate: -165% 0; rotate: 0deg; }
+.bc-shot.s-2 { left: 50%; translate: -50% -14px; z-index: 1; }
+.bc-shot.s-3 { left: 50%; translate: 65% 0; }
+
+@media (max-width: 599px) {
+  .bc-shot { width: 29%; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bc-ui, .bc-rows, .bc-toggle { transition: transform 500ms var(--ease-out); }
+  .bc:hover .bc-ui, .bc:hover .bc-rows, .bc:hover .bc-toggle { transform: translateY(-6px); }
+  .bc-photo { transition: scale 900ms var(--ease-out); }
+  .bc:hover .bc-photo { scale: 1.04; }
+}
+
+/* ---------- Depth: things that float move at their own pace ---------- */
+/* As a card or the photo crosses the screen, what floats on it drifts against it, so it reads as a
+   layer above. Scroll-driven, so it costs no script and simply stays put where unsupported. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .bc-rows, .bc-ui, .bc-toggle, .lp-player { animation: float-up linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+    .bc-photo, .listen-photo > img:first-child { animation: settle linear both; animation-timeline: view(); animation-range: entry 0% cover 60%; }
+  }
+}
+@keyframes float-up { from { translate: 0 28px; } to { translate: 0 -28px; } }
+@keyframes settle { from { scale: 1.12; } to { scale: 1; } }
+
+/* Moments when a card arrives (site.js adds .is-in): the iCloud switch turns on, the three reader
+   screens fan out from a stack, the plan rows come in one after the other. */
+.bc-toggle i { transition: background-color 300ms ease 450ms; }
+.bc-toggle i::after { transition: translate 350ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) 450ms; }
+.js-moments .bc-cloud:not(.is-in) .bc-toggle i { background: #c9cfc4; }
+.js-moments .bc-cloud:not(.is-in) .bc-toggle i::after { translate: -20px 0; }
+.bc-shot { transition: translate 900ms var(--ease-out) 200ms, rotate 900ms var(--ease-out) 200ms, transform 600ms var(--ease-out); }
+.js-moments .bc-size:not(.is-in) .bc-shot { translate: -50% 40px; }
+.bc-size.is-in .bc-shot.s-1 { rotate: -4deg; }
+.bc-size.is-in .bc-shot.s-3 { rotate: 4deg; }
+/* Hover: the three screens straighten and rise together, one move, no stagger. */
+.bc-size.is-in:hover .bc-shot { rotate: 0deg; transform: translateY(-6px); transition: rotate 600ms var(--ease-out), transform 600ms var(--ease-out), translate 900ms var(--ease-out); }
+.bc-rows p { transition: opacity 500ms ease, transform 600ms var(--ease-out); }
+.bc-rows p:nth-child(2) { transition-delay: 150ms; }
+.js-moments .bc-plans:not(.is-in) .bc-rows p { opacity: 0; transform: translateY(16px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bc-toggle i, .bc-toggle i::after, .bc-shot, .bc-rows p { transition: none; }
+}
+
 /* ---------- Scroll reveal ---------- */
 
 /* Headings rise out of a mask as they come into view. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .section-head h2, .feature-copy h2, .story-step h3, .closing-card h2 {
+    .section-head h2, .feature-copy h2, .yw-title, .closing-card h2 {
       animation: heading-rise linear both;
       animation-timeline: view();
       animation-range: entry 10% entry 70%;

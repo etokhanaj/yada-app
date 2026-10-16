@@ -68,7 +68,7 @@
       </div>
       <div class="vh-rail" aria-hidden="true"><span class="r-1"></span><span class="r-2"></span></div>
       <div class="hero-fan" aria-hidden="true">
-        <img class="phone fan-left" src="/phones/home-continue.webp" width="675" height="1380" alt="">
+        <img class="phone fan-left" src="/phones/dr-12.webp" width="675" height="1380" alt="">
         <div class="phone fan-centre fan-live">
           <div class="fan-screens">
             <img class="fan-screen fs-1" src="/story/reader.webp" width="603" height="1311" alt="">
@@ -76,66 +76,77 @@
           </div>
           <img class="fan-bezel" src="/story/bezel.webp" width="675" height="1380" alt="">
         </div>
-        <img class="phone fan-right" src="/phones/search.webp" width="675" height="1380" alt="">
+        <img class="phone fan-right" src="/phones/s-03.webp" width="675" height="1380" alt="">
       </div>
     </section>
 
-    <section id="start" class="section feature start" aria-label="Start here">
+    <section id="start" class="section today" aria-label="Today">
       <div class="wrap feature-grid">
         <div class="feature-copy reveal">
-          <h2>Start with John, and always know what comes next</h2>
-          <p>Yada starts you in the Gospel of John, 46 passages long, and opens where you stopped. Progress counts the passages you have read, not days in a row, so a missed week loses nothing.</p>
+          <h2>Every day starts on Today</h2>
+          <p>Each morning opens with the day’s psalms, a line from them on a photograph, and Spurgeon’s <i>Morning and Evening</i> for the date. After 5 pm, the evening’s psalms lead.</p>
+          <p>A lamp keeps your streak. A day counts when you read or listen to Scripture. One day of rest a week never breaks it. If it stops, it starts again the next day you read.</p>
         </div>
-        <figure class="photo reveal">
-          <img src="/photos/hand-home.webp" width="1100" height="1650" loading="lazy" alt="A hand holding an iPhone outdoors. On screen, Yada’s Home: Continue at John 1:8, The Word became flesh, then the books of the Old Testament.">
-        </figure>
+        <div class="today-panel pattern reveal">
+          <img class="phone today-back" src="/phones/dr-22.webp" width="675" height="1380" loading="lazy" alt="Your rhythm: the lamp and 1 day, the week’s dots, and How it works: a day counts when you read or listen to Scripture; one day of rest a week never breaks it; if it stops, it starts again the next day you read.">
+          <img class="phone today-front" src="/phones/dr-11.webp" width="675" height="1380" loading="lazy" alt="Today in the morning: Good morning over a photograph of fog on a river, the line ‘He is like a tree planted by streams of water’ from Psalm 1:3, then Psalms 1–5 with Read and Listen, and C. H. Spurgeon.">
+        </div>
       </div>
     </section>
 
     <!-- One phone held in place while the steps scroll past and its screen changes, after the
          hims & hers home page John shared (13 Oct). CSS only (scroll-driven animations): where
          those are unsupported, each step shows its own phone instead. -->
-    <section id="story" class="story" aria-label="How Yada explains a passage">
-      <div class="wrap story-grid">
-        <ol class="story-steps">
-          <li class="story-step" style="--step: --step-1">
-            <h3>Each passage opens with the point, in plain words</h3>
-            <p>Tap a passage’s title for its guide. It starts with what the passage says, in a few short lines, before you read a word of it.</p>
-            <img class="phone story-inline" src="/phones/guide.webp" width="675" height="1380" loading="lazy" alt="The guide to John 1:1–18, The Word became flesh. In short: Jesus is God in the flesh. The Word was with God.">
-          </li>
-          <li class="story-step" style="--step: --step-2">
-            <h3>Then every verse, in everyday English</h3>
-            <p>The plain words come from unfoldingWord’s Simplified Text. Words it adds to make the meaning clear show in grey, so you can see what is not in the original.</p>
-            <img class="phone story-inline" src="/phones/verse-by-verse.webp" width="675" height="1380" loading="lazy" alt="Verse by verse for John 1:1–18. Verse 1: The Word existed before the universe existed. The Word was with God. The Word also was God.">
-          </li>
-          <li class="story-step" style="--step: --step-3">
-            <h3>Tap a verse to understand it</h3>
-            <p>The verse opens in plain words, with the Greek or Hebrew, Compare, study notes and key words a tap below.</p>
-            <img class="phone story-inline" src="/phones/understand.webp" width="675" height="1380" loading="lazy" alt="John 1:1 opened: the verse, In plain words, then Go deeper with Original Greek, Compare, Study notes, Key words and Sources.">
-          </li>
-          <li class="story-step" style="--step: --step-4">
-            <h3>See what the text itself shows</h3>
-            <p>Notice points out patterns counted from the text: John uses the word for “world” 78 times, more than any other book of the Bible. Where translations or readers differ, Yada says so.</p>
-            <img class="phone story-inline" src="/phones/notice-dark.webp" width="675" height="1380" loading="lazy" alt="John 1:9 in dark mode. Notice: John uses the word for world more than any other book, 78 of its 185 uses in the Bible. Translations differ: gives light (BSB), enlightens (WEB).">
-          </li>
-        </ol>
-        <div class="story-pin" aria-hidden="true">
-          <div class="story-glows">
-            <span class="story-glow g-1"></span>
-            <span class="story-glow g-2"></span>
-            <span class="story-glow g-3"></span>
-            <span class="story-glow g-4"></span>
-          </div>
-          <div class="story-phone">
-            <div class="story-screens">
-              <img class="story-screen s-1" src="/story/guide.webp" width="603" height="1311" loading="lazy" alt="">
-              <img class="story-screen s-2" src="/story/verse-by-verse.webp" width="603" height="1311" loading="lazy" alt="">
-              <img class="story-screen s-3" src="/story/understand.webp" width="603" height="1311" loading="lazy" alt="">
-              <img class="story-screen s-4" src="/story/notice-dark.webp" width="603" height="1311" loading="lazy" alt="">
+    <!-- Read it your way, after pocketapp.com's "Send your way": a phone plays each case's real
+         screens (the design canvas's frames) in turn, and the list beside it fills a ring for the case
+         playing. 30 s loop, 6 s a case; hover or focus a case to hold it. CSS only. -->
+    <section id="story" class="section yw" aria-label="What Yada does">
+      <div class="wrap yw-grid">
+        <h2 class="yw-title reveal">Read it your way</h2>
+        <div class="yw-stage">
+          <div class="yw-backdrop pattern" aria-hidden="true"></div>
+          <div class="yw-phone" role="img" aria-label="Yada on iPhone, showing Today, reading and listening, Understand, the original Greek and Hebrew, and Search in turn">
+            <div class="yw-screens">
+              <img class="yw-screen ys-1 d3" style="--c: 0; --k: 0" src="/story/dr-11.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-1 d3" style="--c: 0; --k: 1" src="/story/dr-13.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-1 d3" style="--c: 0; --k: 2" src="/story/dr-12.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-2 d3" style="--c: 1; --k: 0" src="/story/dr-02.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-2 d3" style="--c: 1; --k: 1" src="/story/au-02.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-2 d3" style="--c: 1; --k: 2" src="/story/au-04.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-3 d3" style="--c: 2; --k: 0" src="/story/vs-01.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-3 d3" style="--c: 2; --k: 1" src="/story/vs-03.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-3 d3" style="--c: 2; --k: 2" src="/story/sn-02.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-4 d2" style="--c: 3; --k: 0" src="/story/sn-09.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-4 d2" style="--c: 3; --k: 1" src="/story/dp-06.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-5 d3" style="--c: 4; --k: 0" src="/story/s-03.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-5 d3" style="--c: 4; --k: 1" src="/story/s-04.webp" width="603" height="1311" loading="lazy" alt="">
+              <img class="yw-screen ys-5 d3" style="--c: 4; --k: 2" src="/story/td-03.webp" width="603" height="1311" loading="lazy" alt="">
             </div>
-            <img class="story-bezel" src="/story/bezel.webp" width="675" height="1380" alt="">
+            <img class="yw-bezel" src="/story/bezel.webp" width="675" height="1380" alt="">
           </div>
         </div>
+        <ol class="yw-cases">
+          <li class="yw-case yc-1" style="--c: 0" tabindex="0">
+            <span class="yw-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2m0 16v2M4 12H2m4.314-5.686L4.9 4.9m12.786 1.414L19.1 4.9M6.314 17.69 4.9 19.104m12.786-1.414 1.414 1.414M22 12h-2m-3 0a5 5 0 1 1-10 0 5 5 0 0 1 10 0Z"/></svg><svg class="yw-ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/></svg></span>
+            <span class="yw-text"><span class="yw-name">Today</span><span class="yw-line">The day’s psalms, a devotional and your place.</span></span>
+          </li>
+          <li class="yw-case yc-2" style="--c: 1" tabindex="0">
+            <span class="yw-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 21-.1-.15c-.695-1.042-1.042-1.563-1.5-1.94a4 4 0 0 0-1.378-.737C8.453 18 7.827 18 6.575 18H5.2c-1.12 0-1.68 0-2.108-.218a2 2 0 0 1-.874-.874C2 16.48 2 15.92 2 14.8V6.2c0-1.12 0-1.68.218-2.108a2 2 0 0 1 .874-.874C3.52 3 4.08 3 5.2 3h.4c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C12 6.04 12 7.16 12 9.4M12 21V9.4M12 21l.1-.15c.695-1.042 1.042-1.563 1.5-1.94a3.999 3.999 0 0 1 1.378-.737C15.547 18 16.173 18 17.425 18H18.8c1.12 0 1.68 0 2.108-.218a2 2 0 0 0 .874-.874C22 16.48 22 15.92 22 14.8V6.2c0-1.12 0-1.68-.218-2.108a2 2 0 0 0-.874-.874C20.48 3 19.92 3 18.8 3h-.4c-2.24 0-3.36 0-4.216.436a4 4 0 0 0-1.748 1.748C12 6.04 12 7.16 12 9.4"/></svg><svg class="yw-ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/></svg></span>
+            <span class="yw-text"><span class="yw-name">Read and listen</span><span class="yw-line">Read any book, or listen as each word lights up.</span></span>
+          </li>
+          <li class="yw-case yc-3" style="--c: 2" tabindex="0">
+            <span class="yw-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8.5h5M7 12h8m-8 6v2.335c0 .533 0 .8.11.937a.5.5 0 0 0 .39.188c.176 0 .384-.167.8-.5l2.385-1.908c.487-.39.731-.585 1.002-.724.241-.122.497-.212.762-.267.299-.061.61-.061 1.235-.061H16.2c1.68 0 2.52 0 3.162-.327a3 3 0 0 0 1.311-1.311C21 15.72 21 14.88 21 13.2V7.8c0-1.68 0-2.52-.327-3.162a3 3 0 0 0-1.311-1.311C18.72 3 17.880 3 16.2 3H7.8c-1.68 0-2.52 0-3.162.327a3 3 0 0 0-1.311 1.311C3 5.28 3 6.12 3 7.8V14c0 .93 0 1.395.102 1.777a3 3 0 0 0 2.122 2.12C5.605 18 6.07 18 7 18Z"/></svg><svg class="yw-ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/></svg></span>
+            <span class="yw-text"><span class="yw-name">Understand</span><span class="yw-line">Plain words first, then where readers differ.</span></span>
+          </li>
+          <li class="yw-case yc-4" style="--c: 3" tabindex="0">
+            <span class="yw-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.913 17h7.174m-7.174 0L11 21m1.913-4 2.865-5.991c.231-.483.347-.724.505-.8a.5.5 0 0 1 .434 0c.158.076.274.317.505.8L20.087 17m0 0L22 21M2 5h6m0 0h3.5M8 5V3m3.5 2H14m-2.5 0c-.496 2.957-1.647 5.636-3.334 7.884M10 14a9.396 9.396 0 0 1-1.834-1.116m0 0C6.813 11.848 5.603 10.427 5 9m3.166 3.884A17.295 17.295 0 0 1 2 18"/></svg><svg class="yw-ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/></svg></span>
+            <span class="yw-text"><span class="yw-name">Original</span><span class="yw-line">Every word in Greek or Hebrew, with its form.</span></span>
+          </li>
+          <li class="yw-case yc-5" style="--c: 4" tabindex="0">
+            <span class="yw-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg><svg class="yw-ring" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/></svg></span>
+            <span class="yw-text"><span class="yw-name">Search</span><span class="yw-line">A person, a word or a verse, all at once.</span></span>
+          </li>
+        </ol>
       </div>
     </section>
 
@@ -166,15 +177,17 @@
       </div>
     </section>
 
+    <!-- One fact, made human: a hundred churchgoers, 57 of them lit, and the number counting up as
+         they fill (site.js). Without the script, or with reduced motion, both simply show 57. -->
     <section id="why" class="fact" aria-label="Why Yada">
-      <div class="wrap fact-centre">
-        <div class="ring" role="img" aria-label="57 percent">
-          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-track" cx="60" cy="60" r="52"/><circle class="ring-fill" cx="60" cy="60" r="52"/></svg>
-          <p class="ring-number" aria-hidden="true">57<span class="pct">%</span></p>
+      <div class="wrap fact-grid">
+        <div class="fact-copy">
+          <p class="fact-number" aria-hidden="true"><span class="fact-count">57</span><span class="pct">%</span></p>
+          <p class="fact-line"><span class="visually-hidden">57% </span>of Protestant churchgoers find the Bible hard to make sense of on their own.</p>
+          <p class="fact-answer">Yada starts with the point, in plain words.</p>
+          <p class="fact-source">Lifeway Research, 2020</p>
         </div>
-        <p class="fact-line">of Protestant churchgoers find the Bible hard to make sense of on their own.</p>
-        <p class="fact-answer">Yada starts with the point, in plain words.</p>
-        <p class="fact-source">Lifeway Research, 2020</p>
+        <div class="fact-dots" aria-hidden="true"><i class="on" style="--i: 0"></i><i class="on" style="--i: 1"></i><i class="on" style="--i: 2"></i><i class="on" style="--i: 3"></i><i class="on" style="--i: 4"></i><i class="on" style="--i: 5"></i><i class="on" style="--i: 6"></i><i class="on" style="--i: 7"></i><i class="on" style="--i: 8"></i><i class="on" style="--i: 9"></i><i class="on" style="--i: 10"></i><i class="on" style="--i: 11"></i><i class="on" style="--i: 12"></i><i class="on" style="--i: 13"></i><i class="on" style="--i: 14"></i><i class="on" style="--i: 15"></i><i class="on" style="--i: 16"></i><i class="on" style="--i: 17"></i><i class="on" style="--i: 18"></i><i class="on" style="--i: 19"></i><i class="on" style="--i: 20"></i><i class="on" style="--i: 21"></i><i class="on" style="--i: 22"></i><i class="on" style="--i: 23"></i><i class="on" style="--i: 24"></i><i class="on" style="--i: 25"></i><i class="on" style="--i: 26"></i><i class="on" style="--i: 27"></i><i class="on" style="--i: 28"></i><i class="on" style="--i: 29"></i><i class="on" style="--i: 30"></i><i class="on" style="--i: 31"></i><i class="on" style="--i: 32"></i><i class="on" style="--i: 33"></i><i class="on" style="--i: 34"></i><i class="on" style="--i: 35"></i><i class="on" style="--i: 36"></i><i class="on" style="--i: 37"></i><i class="on" style="--i: 38"></i><i class="on" style="--i: 39"></i><i class="on" style="--i: 40"></i><i class="on" style="--i: 41"></i><i class="on" style="--i: 42"></i><i class="on" style="--i: 43"></i><i class="on" style="--i: 44"></i><i class="on" style="--i: 45"></i><i class="on" style="--i: 46"></i><i class="on" style="--i: 47"></i><i class="on" style="--i: 48"></i><i class="on" style="--i: 49"></i><i class="on" style="--i: 50"></i><i class="on" style="--i: 51"></i><i class="on" style="--i: 52"></i><i class="on" style="--i: 53"></i><i class="on" style="--i: 54"></i><i class="on" style="--i: 55"></i><i class="on" style="--i: 56"></i><i style="--i: 57"></i><i style="--i: 58"></i><i style="--i: 59"></i><i style="--i: 60"></i><i style="--i: 61"></i><i style="--i: 62"></i><i style="--i: 63"></i><i style="--i: 64"></i><i style="--i: 65"></i><i style="--i: 66"></i><i style="--i: 67"></i><i style="--i: 68"></i><i style="--i: 69"></i><i style="--i: 70"></i><i style="--i: 71"></i><i style="--i: 72"></i><i style="--i: 73"></i><i style="--i: 74"></i><i style="--i: 75"></i><i style="--i: 76"></i><i style="--i: 77"></i><i style="--i: 78"></i><i style="--i: 79"></i><i style="--i: 80"></i><i style="--i: 81"></i><i style="--i: 82"></i><i style="--i: 83"></i><i style="--i: 84"></i><i style="--i: 85"></i><i style="--i: 86"></i><i style="--i: 87"></i><i style="--i: 88"></i><i style="--i: 89"></i><i style="--i: 90"></i><i style="--i: 91"></i><i style="--i: 92"></i><i style="--i: 93"></i><i style="--i: 94"></i><i style="--i: 95"></i><i style="--i: 96"></i><i style="--i: 97"></i><i style="--i: 98"></i><i style="--i: 99"></i></div>
       </div>
     </section>
 
@@ -334,17 +347,33 @@
     </section>
 
     <section id="listen" class="section listen" aria-label="Listen">
-      <figure class="listen-photo">
-        <img src="/photos/walk.webp" width="1600" height="900" loading="lazy" alt="A young woman in a yellow raincoat walks down a city street with earphones in, smiling at her phone.">
-      </figure>
+      <div class="wrap">
+        <figure class="listen-photo">
+          <img src="/photos/walk.webp" width="1600" height="900" loading="lazy" alt="A young woman in a yellow raincoat walks down a city street with earphones in, smiling at her phone.">
+          <img class="lp-player" src="/photos/mini-player.webp" width="600" height="97" loading="lazy" alt="">
+        </figure>
+      </div>
       <div class="wrap feature-grid flip">
         <div class="feature-copy reveal">
           <h2>Listen as each word lights up</h2>
           <p>Yada reads the Berean Standard Bible aloud and follows along word by word. Listen on a walk, in the car, or when reading is hard. Download a book to listen offline.</p>
+          <!-- The app's read-along, for real: George's reading (Kokoro-82M bm_george, Apache-2.0) of the
+               public-domain BSB, cut from the published John 1 (content.yadabible.com/audio/george/
+               jhn-001.m4a, 0–9.4 s), lit word by word from the same file's word times (jhn-001.json).
+               The verse is core's BSB text. Without scripts the verse still reads; the button stays hidden. -->
+          <figure class="readalong" data-src="/audio/john-1-george.m4a">
+            <button class="ra-play" type="button" hidden aria-pressed="false">
+              <svg class="ra-icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.6-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>
+              <svg class="ra-icon-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              <span class="ra-label">Hear it</span>
+            </button>
+            <blockquote class="ra-text"><p><sup>1</sup>&nbsp;<span data-t="0.15">In</span> <span data-t="0.28">the</span> <span data-t="0.37">beginning</span> <span data-t="1.09">was</span> <span data-t="1.29">the</span> <span data-t="1.48">Word,</span> <span data-t="2.16">and</span> <span data-t="2.18">the</span> <span data-t="2.4">Word</span> <span data-t="2.7">was</span> <span data-t="2.92">with</span> <span data-t="3.22">God,</span> <span data-t="3.83">and</span> <span data-t="4.03">the</span> <span data-t="4.42">Word</span> <span data-t="4.92">was</span> <span data-t="5.05">God.</span> <sup>2</sup>&nbsp;<span data-t="6.12">He</span> <span data-t="6.4">was</span> <span data-t="6.69">with</span> <span data-t="7.21">God</span> <span data-t="7.49">in</span> <span data-t="7.72">the</span> <span data-t="8.28">beginning.</span></p></blockquote>
+            <figcaption>John 1:1–2, BSB, read by George, a computer voice</figcaption>
+          </figure>
         </div>
         <div class="feature-phones single">
           <figure class="reveal">
-            <picture><source srcset="/phones/listen-dark.webp" media="(prefers-color-scheme: dark)"><img class="phone" src="/phones/listen.webp" width="675" height="1380" loading="lazy" alt="John 1 playing aloud: the word being read, There, sits in a dark pill in verse 6; the mini player shows The Word became flesh, verse 6, BSB."></picture>
+            <picture><img class="phone" src="/phones/au-02.webp" width="675" height="1380" loading="lazy" alt="John 1 playing aloud: the word being read, There, sits in a dark pill in verse 6; the mini player shows The Word became flesh, verse 6, BSB."></picture>
           </figure>
         </div>
       </div>
@@ -367,10 +396,70 @@
             <li class="reveal"><span class="cov cov-msb" aria-hidden="true"><b>MSB</b><i></i></span><span class="cov-name">Majority Standard Bible</span></li>
           </ul>
         </div>
-        <div class="search-pair">
-          <img class="phone search-back reveal" src="/phones/search.webp" width="675" height="1380" loading="lazy" alt="Search for Nicodemus: People, Nicodemus, from Tyndale; Words, the Greek Nikodēmos, 5 times; then five passages from John 3:1 to John 19:39.">
-          <img class="phone search-front reveal" src="/phones/people.webp" width="675" height="1380" loading="lazy" alt="Nicodemus: Tyndale’s profile of the Pharisee who came to Jesus at night, citing John 3, 7 and 19.">
+        <!-- Search, as in the app: the query types into the phone's own field and the results come in
+             down the screen. The canvas's result screens for "nicodemus" (TD-03) and "λόγος" (S-03), with
+             the dimmed screen behind the sheet painted out. site.js types and reveals; without it the
+             phone shows the Nicodemus results as captured. -->
+        <div class="search-demo">
+          <div class="sd-phone">
+            <div class="sd-screen">
+              <img class="sd-shot is-on" data-q="nicodemus" src="/search/td-03.webp" width="603" height="1311" loading="lazy" alt="Search for nicodemus: People, Nicodemus, who he was, from Tyndale; then the verses, from John 3:1.">
+              <img class="sd-shot" data-q="λόγος" src="/search/s-03.webp" width="603" height="1311" loading="lazy" alt="Search for λόγος: the Greek words logos, word, 330 times; legō, saying; logizomai, I reckon.">
+              <span class="sd-field" aria-hidden="true"><span class="sd-q"></span><span class="sd-caret"></span></span>
+              <span class="sd-cover" aria-hidden="true"></span>
+            </div>
+            <img class="sd-bezel" src="/story/bezel.webp" width="675" height="1380" alt="">
+          </div>
         </div>
+      </div>
+    </section>
+
+    <!-- The everyday things, as a bento after pocketapp.com's "Your money moves even better": one card
+         per thing, a soft fill, one 24 px radius, no shadow, none nested (John's card rule, 15 Oct 2026).
+         The UI pieces are cut from the design canvas's frames (AU-04, DR-02 light, dark and AX5); the
+         plan rows are the app's own wording (plans.tsx). Photos: Sunrise over the Madison River,
+         YellowstoneNPS, and Sunset over a still lake, Everglades NPS, both public domain (content/pictures
+         day-04 and day-11). -->
+    <section id="everyday" class="section everyday" aria-label="Everyday">
+      <div class="wrap">
+        <h2 class="bento-title reveal">Made for every day</h2>
+        <ul class="bento">
+          <li class="bc bc-plans reveal">
+            <div class="bc-art">
+              <img class="bc-photo" src="/bento/madison.webp" width="1200" height="1600" loading="lazy" alt="">
+              <div class="bc-rows" aria-hidden="true">
+                <p><b>The Gospel of John</b><span>Passage by passage, explained</span></p>
+                <p><b>M’Cheyne</b><span>The whole Bible, four chapters at a sitting · 1842</span></p>
+              </div>
+            </div>
+            <h3>Two plans, no dates</h3>
+            <p>John passage by passage, or the whole Bible with M’Cheyne. Each waits where you stopped.</p>
+          </li>
+          <li class="bc bc-offline reveal">
+            <div class="bc-art pattern">
+              <img class="bc-ui" src="/bento/player.webp" width="600" height="191" loading="lazy" alt="">
+            </div>
+            <h3>No signal needed</h3>
+            <p>The Bible text lives on your iPhone. Download a book’s reading to listen offline.</p>
+          </li>
+          <li class="bc bc-cloud reveal">
+            <div class="bc-art">
+              <img class="bc-photo" src="/bento/clouds.webp" width="1000" height="1333" loading="lazy" alt="">
+              <p class="bc-toggle" aria-hidden="true"><span>iCloud</span><i></i></p>
+            </div>
+            <h3>Kept in your iCloud</h3>
+            <p>Bookmarks, your reading place and settings, in your own iCloud. We never see them.</p>
+          </li>
+          <li class="bc bc-size reveal">
+            <div class="bc-art">
+              <img class="bc-shot s-1" src="/bento/reader.webp" width="420" height="566" loading="lazy" alt="">
+              <img class="bc-shot s-2" src="/bento/reader-dark.webp" width="420" height="566" loading="lazy" alt="">
+              <img class="bc-shot s-3" src="/bento/reader-ax5.webp" width="420" height="566" loading="lazy" alt="">
+            </div>
+            <h3>Your size, your light</h3>
+            <p>Text up to the largest accessibility size, in light or dark.</p>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -412,15 +501,15 @@
 
     <section id="join" class="closing" aria-label="Join the beta">
       <div class="wall" aria-hidden="true">
-          <div class="wall-col c-1"><img src="/wall/home-continue.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/people.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/reader.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/home-continue.webp" width="300" height="652" loading="lazy" alt=""></div>
-          <div class="wall-col c-2"><img src="/wall/listen-dark.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/understand.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/listen.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/listen-dark.webp" width="300" height="652" loading="lazy" alt=""></div>
-          <div class="wall-col c-3"><img src="/wall/verse-by-verse.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/understand-dark.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/guide.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/verse-by-verse.webp" width="300" height="652" loading="lazy" alt=""></div>
-          <div class="wall-col c-4"><img src="/wall/selected-dark.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/home.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/original.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/selected-dark.webp" width="300" height="652" loading="lazy" alt=""></div>
-          <div class="wall-col c-5"><img src="/wall/home-continue-dark.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/search.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/notice-dark.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/home-continue-dark.webp" width="300" height="652" loading="lazy" alt=""></div>
-          <div class="wall-col c-6"><img src="/wall/home-continue.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/people.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/reader.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/home-continue.webp" width="300" height="652" loading="lazy" alt=""></div>
-          <div class="wall-col c-7"><img src="/wall/listen-dark.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/understand.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/listen.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/listen-dark.webp" width="300" height="652" loading="lazy" alt=""></div>
-          <div class="wall-col c-8"><img src="/wall/verse-by-verse.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/understand-dark.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/guide.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/verse-by-verse.webp" width="300" height="652" loading="lazy" alt=""></div>
-          <div class="wall-col c-9"><img src="/wall/selected-dark.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/home.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/original.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/selected-dark.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-1"><img src="/wall/dr-11.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/vs-01.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/s-04.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dr-11.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-2"><img src="/wall/au-04.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/sn-09.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dr-13.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/au-04.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-3"><img src="/wall/dr-02.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dp-06.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/vs-03.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dr-02.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-4"><img src="/wall/dr-12.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/understand.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/td-03.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dr-12.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-5"><img src="/wall/au-02.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/s-03.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/sn-02.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/au-02.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-6"><img src="/wall/vs-03.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dr-13.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/s-03.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/vs-03.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-7"><img src="/wall/sn-02.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dr-11.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/au-02.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/sn-02.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-8"><img src="/wall/td-03.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dp-06.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/dr-12.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/td-03.webp" width="300" height="652" loading="lazy" alt=""></div>
+          <div class="wall-col c-9"><img src="/wall/understand.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/au-04.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/vs-01.webp" width="300" height="652" loading="lazy" alt=""><img src="/wall/understand.webp" width="300" height="652" loading="lazy" alt=""></div>
       </div>
       <div class="wrap closing-card">
         <img class="app-icon" src="/brand/app-icon.webp" width="120" height="120" alt="Yada app icon">
@@ -447,5 +536,6 @@
       </nav>
     </div>
   </footer>
+  <script src="/assets/site.js" defer></script>
 </body>
 </html>

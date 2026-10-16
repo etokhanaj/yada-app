@@ -1,0 +1,26 @@
+# yadabible.com: the static site in web/src, served as it is. The base is web/src so Netlify finds
+# no package.json there and installs nothing from the monorepo; there is no build step.
+[build]
+  base = "web/src"
+  publish = "."
+  command = ""
+
+# The page loads only its own files: no third-party scripts, fonts or analytics (privacy policy).
+# Inline style attributes carry layout variables (--i, --c), hence 'unsafe-inline' for styles only.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; media-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
