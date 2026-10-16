@@ -1518,31 +1518,55 @@ figure { margin: 0; }
 
 /* ---------- Legal pages ---------- */
 
-.legal { padding: 64px 0 112px; }
+/* Privacy, terms and support: the summary on a night band continuing the header, then the text
+   with a sticky list of its sections (MasterClass's Privacy Center, cited in the pages). */
 
-.legal .wrap { max-width: 760px; }
+.doc-hero { background: var(--night); color: var(--night-ink); padding: 24px 0 clamp(56px, 8vw, 88px); }
 
-.legal h1 { font-size: clamp(2.5rem, 6vw, 3.5rem); line-height: 1.05; letter-spacing: -0.02em; }
+.doc-tabs { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: clamp(40px, 6vw, 64px); border-radius: 999px; background: var(--night-raised); }
+.doc-tabs a { min-height: 40px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 999px; color: var(--night-muted); text-decoration: none; font-size: 0.9375rem; font-weight: 500; }
+.doc-tabs a:hover { color: var(--night-ink); }
+.doc-tabs a[aria-current="page"] { background: var(--chartreuse); color: var(--night); }
 
-.legal .updated { margin-top: 12px; color: var(--muted); font-size: 0.9375rem; }
+.doc-hero h1 { font-size: clamp(2.75rem, 7vw, 4.5rem); line-height: 1; letter-spacing: -0.03em; }
+.doc-summary { margin-top: 24px; max-width: 36ch; font-family: var(--font-display); font-size: clamp(1.25rem, 2.4vw, 1.625rem); line-height: 1.4; color: var(--night-ink); }
+.doc-date { margin-top: 20px; font-size: 0.9375rem; color: var(--night-muted); }
 
-.legal .summary {
-  margin-top: 36px;
-  padding: 22px 24px;
-  border-radius: 18px;
-  background: var(--selection);
-  font-family: var(--font-display);
-  font-size: 1.1875rem;
-  line-height: 1.5;
+.doc { display: grid; gap: 48px; padding-top: clamp(48px, 7vw, 80px); padding-bottom: 112px; }
+@media (min-width: 900px) {
+  .doc { grid-template-columns: 220px minmax(0, 68ch); gap: 80px; }
 }
 
-.legal h2 { font-size: 1.5rem; line-height: 1.25; margin-top: 52px; }
+.doc-toc { display: none; }
+@media (min-width: 900px) {
+  .doc-toc { display: block; position: sticky; top: 32px; align-self: start; }
+}
+.doc-toc > p { font-size: 0.8125rem; font-weight: 600; color: var(--muted); margin-bottom: 12px; }
+.doc-toc ol { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--divider); }
+.doc-toc a { display: block; padding: 6px 0 6px 16px; margin-left: -1px; border-left: 2px solid transparent; color: var(--muted); text-decoration: none; font-size: 0.9375rem; line-height: 1.35; }
+.doc-toc a:hover { color: var(--ink); }
+.doc-toc a[aria-current="true"] { color: var(--ink); border-left-color: var(--accent); font-weight: 500; }
 
-.legal p,
-.legal ul { margin-top: 14px; }
+.doc-body h2 { font-size: 1.375rem; line-height: 1.25; margin-top: 48px; padding-top: 48px; border-top: 1px solid var(--divider); scroll-margin-top: 24px; }
+.doc-body h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.doc-body p, .doc-body ul { margin-top: 14px; font-size: 1.0625rem; line-height: 1.65; }
+.doc-body ul { list-style: disc; padding-left: 1.25em; }
+.doc-body li + li { margin-top: 8px; }
+.doc-body a, .doc-summary a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+.doc-summary a { text-decoration-color: var(--chartreuse); }
 
-.legal ul { list-style: disc; padding-left: 1.25em; }
+/* Support: two ways to reach us, then the common questions. One card per thing you tap (John's card rule). */
+.support { padding-top: clamp(40px, 6vw, 64px); padding-bottom: 112px; }
+.help-cards { display: grid; gap: 16px; list-style: none; padding: 0; margin: 0; }
+@media (min-width: 720px) { .help-cards { grid-template-columns: 1fr 1fr; } }
+.help-card { display: grid; gap: 8px; height: 100%; padding: 28px; border-radius: 24px; background: var(--selection); color: var(--ink); text-decoration: none; transition: background-color 200ms ease; }
+.help-card:hover { background: var(--highlight); }
+.help-icon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 12px; border-radius: 50%; background: var(--accent); color: var(--paper); }
+.help-icon svg { width: 22px; height: 22px; }
+.help-title { font-family: var(--font-display); font-size: 1.375rem; font-weight: 600; }
+.help-line { color: var(--muted); }
 
-.legal li + li { margin-top: 8px; }
-
-.legal a { color: var(--ink); text-decoration-color: var(--accent); text-underline-offset: 3px; }
+.doc-faq { display: grid; gap: 24px; margin-top: clamp(64px, 9vw, 112px); }
+@media (min-width: 900px) { .doc-faq { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 64px; } }
+.doc-faq h2 { font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.05; letter-spacing: -0.02em; }
+.doc-faq .faq-list { margin-top: 0; }

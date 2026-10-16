@@ -179,3 +179,16 @@ if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
     }, { rootMargin: "0px 0px -25% 0px" }).observe(fact);
   }
 }
+
+// Privacy and terms: the section list marks the section being read.
+for (const toc of document.querySelectorAll(".doc-toc")) {
+  const links = new Map([...toc.querySelectorAll("a")].map((a) => [a.hash.slice(1), a]));
+  const mark = (id) => {
+    for (const [key, a] of links) a.setAttribute("aria-current", String(key === id));
+  };
+  const observer = new IntersectionObserver((entries) => {
+    const top = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+    if (top !== undefined) mark(top.target.id);
+  }, { rootMargin: "0px 0px -70% 0px" });
+  for (const id of links.keys()) observer.observe(document.getElementById(id));
+}

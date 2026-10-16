@@ -41,31 +41,54 @@
   </header>
 
   <main id="content">
-    <article class="legal" aria-label="Support">
+    <!-- Contact first, then the common questions, after Loops' support settings
+         (mobbin.com/screens/e75e4643-22e0-4060-ad20-dec10546df55) and Magnific's two-column questions
+         (mobbin.com/screens/f93a5b36-fef9-4b1c-81e6-e3d959977301). -->
+    <section class="doc-hero" aria-label="Support">
       <div class="wrap">
+        <nav class="doc-tabs" aria-label="Legal and support"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/support" aria-current="page">Support</a></nav>
         <h1>Support</h1>
-
-        <p class="summary">Email <a href="mailto:creotok@gmail.com?subject=Yada%20support">creotok@gmail.com</a>. Tell us your iPhone model, its iOS version, and what happened. A screenshot helps.</p>
-
-        <h2>Something in an explanation looks wrong</h2>
-        <p>Email us the verse and what you noticed. Yada’s explanations come from named sources, and we would rather hear about a mistake than leave it in.</p>
-
-        <h2>A download did not finish</h2>
-        <p>Check your connection, then try again: open the Translations sheet and tap Download, or, for a book’s explanations and study notes, open the book again and tap Try again.</p>
-
-        <h2>Moving to a new iPhone</h2>
-        <p>If you are signed in to iCloud, your bookmarks, reading place, Start here progress and settings follow you. If you are not, they stay on the old iPhone.</p>
-
-        <h2>The text is too small</h2>
-        <p>Tap Aa in the reader to change the text size. Yada also follows Larger Text in the Settings app, under Accessibility.</p>
-
-        <h2>Joining the beta</h2>
-        <p>Yada is in beta on Apple’s TestFlight. <a href="https://testflight.apple.com/join/JMS9787C">Open the invitation</a> on your iPhone to install it.</p>
-
-        <h2>Privacy and terms</h2>
-        <p>Read the <a href="/privacy">privacy policy</a> and the <a href="/terms">terms of use</a>.</p>
       </div>
-    </article>
+    </section>
+    <div class="wrap support">
+      <ul class="help-cards">
+        <li>
+          <a class="help-card" href="mailto:creotok@gmail.com?subject=Yada%20support">
+            <span class="help-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 8.165 5.715c.661.463.992.695 1.351.784a2 2 0 0 0 .968 0c.36-.09.69-.32 1.351-.784L22 7M6.8 20h10.4c1.68 0 2.52 0 3.162-.327a3 3 0 0 0 1.311-1.311C22 17.72 22 16.88 22 15.2V8.8c0-1.68 0-2.52-.327-3.162a3 3 0 0 0-1.311-1.311C19.72 4 18.88 4 17.2 4H6.8c-1.68 0-2.52 0-3.162.327a3 3 0 0 0-1.311 1.311C2 6.28 2 7.12 2 8.8v6.4c0 1.68 0 2.52.327 3.162a3 3 0 0 0 1.311 1.311C4.28 20 5.12 20 6.8 20Z"/></svg></span>
+            <span class="help-title">Email creotok@gmail.com</span>
+            <span class="help-line">Tell us your iPhone model, its iOS version, and what happened. A screenshot helps.</span>
+          </a>
+        </li>
+        <li>
+          <a class="help-card" href="https://testflight.apple.com/join/JMS9787C">
+            <span class="help-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.5h.01M8.2 22h7.6c1.12 0 1.68 0 2.108-.218a2 2 0 0 0 .874-.874C19 20.48 19 19.92 19 18.8V5.2c0-1.12 0-1.68-.218-2.108a2 2 0 0 0-.874-.874C17.48 2 16.92 2 15.8 2H8.2c-1.12 0-1.68 0-2.108.218a2 2 0 0 0-.874.874C5 3.52 5 4.08 5 5.2v13.6c0 1.12 0 1.68.218 2.108a2 2 0 0 0 .874.874C6.52 22 7.08 22 8.2 22Zm4.3-4.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/></svg></span>
+            <span class="help-title">Join the beta</span>
+            <span class="help-line">Yada is in beta on Apple’s TestFlight. Open the invitation on your iPhone to install it.</span>
+          </a>
+        </li>
+      </ul>
+      <section class="doc-faq" aria-labelledby="common">
+        <h2 id="common">Common questions</h2>
+        <div class="faq-list doc-qs">
+          <details>
+            <summary>Something in an explanation looks wrong</summary>
+            <div class="answer"><p>Email us the verse and what you noticed. Yada’s explanations come from named sources, and we would rather hear about a mistake than leave it in.</p></div>
+          </details>
+          <details>
+            <summary>A download did not finish</summary>
+            <div class="answer"><p>Check your connection, then try again: open the Translations sheet and tap Download, or, for a book’s explanations and study notes, open the book again and tap Try again.</p></div>
+          </details>
+          <details>
+            <summary>Moving to a new iPhone</summary>
+            <div class="answer"><p>If you are signed in to iCloud, your bookmarks, reading place, Start here progress and settings follow you. If you are not, they stay on the old iPhone.</p></div>
+          </details>
+          <details>
+            <summary>The text is too small</summary>
+            <div class="answer"><p>Tap Aa in the reader to change the text size. Yada also follows Larger Text in the Settings app, under Accessibility.</p></div>
+          </details>
+        </div>
+      </section>
+    </div>
   </main>
 
   <footer class="site-foot" aria-label="Yada site footer">
