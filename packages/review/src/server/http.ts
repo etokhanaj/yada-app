@@ -15,6 +15,8 @@
  *   POST /api/summaries/:passageId/fix   { text_sha256, note }
  *   GET  /api/extracts
  *   POST /api/extracts/(book_intro|grammar|devotional|daily_light)/:id/(approve|reject|undo)     { text_sha256 }
+ *   GET  /api/reports
+ *   POST /api/reports/:requestId/(keep|remove)   {}
  *
  * Loopback binding keeps other machines out. The Host check keeps out a web
  * page that rebinds its own hostname to 127.0.0.1, and requiring a JSON content
@@ -32,9 +34,12 @@ import type {
   MetaResponse,
   ExtractDecisionResponse,
   PositionDecisionResponse,
+  ReportDecisionResponse,
   SummaryDecisionResponse,
 } from "../shared/api.js";
-import { isExtractAction, isExtractKind, isPositionAction, isReviewQueue, isSummaryAction } from "../shared/api.js";
+import { isExtractAction, isExtractKind, isPositionAction, isReportAction, isReviewQueue, isSummaryAction } from "../shared/api.js";
+import type { CloudKitClient } from "./cloudkit.js";
+import { buildReports, decideReport, reportsLogPath } from "./reports.js";
 import { buildExtracts, decideExtract } from "./extracts.js";
 import { approve, decisionsPath, RefusedError, reject, type DecisionContext } from "./actions.js";
 import { buildDebates, decidePosition } from "./debates.js";
@@ -51,6 +56,8 @@ export interface ServerContext extends DecisionContext {
   passageReviewsPath: string;
   summaries: SummarySource;
   extractsDir: string;
+  /** The public database client for the Reports queue, or why there isn't one. */
+  cloudkit: CloudKitClient | { missing: string };
 }
 
 const LOCAL_HOSTNAMES = new Set(["127.0.0.1", "localhost", "[::1]"]);
@@ -200,6 +207,21 @@ async function handle(ctx: ServerContext, req: IncomingMessage, res: ServerRespo
         const body = await readJsonBody(req);
         const item = decideExtract(ctx, kind, id, action, body);
         sendJson(res, 200, { item, logged_to: decisionsPath(ctx.reviewDir) } satisfies ExtractDecisionResponse);
+        return;
+      }
+    }
+
+    if (parts[1] === "reports") {
+      if (method === "GET" && parts.length === 2) {
+        sendJson(res, 200, await buildReports(ctx.cloudkit));
+        return;
+      }
+      const [, , id, action] = parts;
+      if (method === "POST" && parts.length === 4 && id !== undefined && isReportAction(action)) {
+        requireJson(req);
+        if ("missing" in ctx.cloudkit) throw new RefusedError(ctx.cloudkit.missing, 503);
+        const item = await decideReport(ctx.cloudkit, id, action, ctx.reviewDir, ctx.reviewer);
+        sendJson(res, 200, { item, logged_to: reportsLogPath(ctx.reviewDir) } satisfies ReportDecisionResponse);
         return;
       }
     }

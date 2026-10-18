@@ -17,7 +17,7 @@ async function serve(): Promise<{ t: TempStaging; running: RunningServer }> {
   const running = await startReviewServer({
     port: 0,
     staticDir: null,
-    env: { YADA_STAGING_DB: t.dbPath, YADA_REVIEW_DIR: t.reviewDir, YADA_REVIEWER: "tester" },
+    env: { YADA_STAGING_DB: t.dbPath, YADA_REVIEW_DIR: t.reviewDir, YADA_REVIEWER: "tester", YADA_ENV_FILE: "/nonexistent/.env.local" },
   });
   cleanups.push(() => new Promise<void>((resolve) => running.server.close(() => resolve())));
   return { t, running };
@@ -32,6 +32,14 @@ function post(url: string, body: unknown): Promise<Response> {
 }
 
 describe("review server", () => {
+  it("serves the Reports queue's reason when there is no CloudKit key, and refuses a decision", async () => {
+    const { running } = await serve();
+    const reports = (await (await fetch(`${running.url}/api/reports`)).json()) as { state: string; reason: string };
+    expect(reports).toEqual({ state: "unavailable", reason: expect.stringContaining("Production") });
+    expect((await post(`${running.url}/api/reports/abc/keep`, {})).status).toBe(503);
+    expect((await post(`${running.url}/api/reports/abc/delete`, {})).status).toBe(404);
+  });
+
   it("binds to loopback and serves the queues and entries", async () => {
     const { t, running } = await serve();
     expect(running.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);

@@ -2,6 +2,7 @@
 
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
@@ -11,6 +12,7 @@ import {
   extractsDir,
   HOST,
   passageReviewsPath,
+  REPO_ROOT,
   reviewDir,
   reviewerName,
   reviewPort,
@@ -18,6 +20,7 @@ import {
   sampleSeed,
   stagingDbPath,
 } from "./config.js";
+import { CloudKitClient, cloudKitConfig, readEnvLocal } from "./cloudkit.js";
 import { openReviewDb } from "./db.js";
 import { createHandler, type ServerContext } from "./http.js";
 import { pipelineLoader, SummarySource, type SummaryLoader } from "./summaries.js";
@@ -37,6 +40,13 @@ export interface RunningServer {
   ctx: ServerContext;
 }
 
+/** The CloudKit lines of .env.local (YADA_ENV_FILE overrides, for a worktree), then the process env on top. */
+function reportsClient(env: Record<string, string | undefined>): CloudKitClient | { missing: string } {
+  const file = env["YADA_ENV_FILE"] ?? path.join(REPO_ROOT, ".env.local");
+  const config = cloudKitConfig({ ...readEnvLocal(file), ...env });
+  return "missing" in config ? config : new CloudKitClient(config);
+}
+
 export async function startReviewServer(options: StartOptions = {}): Promise<RunningServer> {
   const env = options.env ?? process.env;
   const dbPath = stagingDbPath(env);
@@ -54,6 +64,7 @@ export async function startReviewServer(options: StartOptions = {}): Promise<Run
     coreDbPath: coreDbPath(env),
     passageReviewsPath: passageReviewsPath(env),
     summaries: new SummarySource(options.summaryLoader ?? pipelineLoader()),
+    cloudkit: reportsClient(env),
   };
 
   const server = createServer(createHandler(ctx));
@@ -76,6 +87,7 @@ export function describe(running: RunningServer): string {
     `  extracts     ${ctx.extractsDir}`,
     `  BSB from     ${ctx.coreDbPath}`,
     `  summaries    ${ctx.passageReviewsPath}`,
+    `  reports      ${"missing" in ctx.cloudkit ? ctx.cloudkit.missing : `CloudKit ${ctx.cloudkit.environment}`}`,
     `  sample seed  ${ctx.sampleSeed} (${Math.round(ctx.sampleRate * 100)}% per book, at least one)`,
   ].join("\n");
 }

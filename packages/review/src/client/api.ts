@@ -12,6 +12,9 @@ import type {
   PositionDecisionRequest,
   PositionDecisionResponse,
   QueueResponse,
+  ReportAction,
+  ReportDecisionResponse,
+  ReportsResponse,
   ReviewQueue,
   SummariesResponse,
   SummaryAction,
@@ -66,6 +69,18 @@ export function postExtract(kind: ExtractKind, id: string, action: PositionActio
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
+  });
+}
+
+export function fetchReports(): Promise<ReportsResponse> {
+  return request<ReportsResponse>("/api/reports");
+}
+
+export function postReport(id: string, action: ReportAction): Promise<ReportDecisionResponse> {
+  return request<ReportDecisionResponse>(`/api/reports/${encodeURIComponent(id)}/${action}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: "{}",
   });
 }
 

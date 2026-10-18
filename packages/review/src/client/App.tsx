@@ -29,6 +29,7 @@ import { fetchDebates, fetchEntry, fetchMeta, fetchQueue, fetchExtracts, fetchSu
 import { DebatesView, passageAnchor } from "./DebatesView";
 import { EntryView } from "./EntryView";
 import { ExtractsView, extractAnchor } from "./ExtractsView";
+import { ReportsView } from "./ReportsView";
 import { FixesList, STATUS_LABEL, SummariesView } from "./SummariesView";
 import { entryShortcut, hashFor, routeFromHash, type Route } from "./route";
 
@@ -79,6 +80,8 @@ export function App() {
   const summariesOpen = view === "summaries";
   // Build 6: book introductions and grammar terms, each a source's own words cut by rule (rule 2).
   const extractsOpen = view === "extracts";
+  // Build 11a: reported prayer requests from CloudKit's public database.
+  const reportsOpen = view === "reports";
   const [extracts, setExtracts] = useState<ExtractsResponse | null>(null);
   /** Debates or summaries: no staging entry is on screen. */
   const sideOpen = view !== "queue";
@@ -98,6 +101,10 @@ export function App() {
       }
       if (route.view === "extracts") {
         setView("extracts");
+        return;
+      }
+      if (route.view === "reports") {
+        setView("reports");
         return;
       }
       if (route.view === "summaries") {
@@ -233,7 +240,7 @@ export function App() {
 
   useEffect(() => {
     const hash = hashFor(
-      view === "debates" || view === "extracts"
+      view === "debates" || view === "extracts" || view === "reports"
         ? { view }
         : view === "summaries"
           ? { view: "summaries", passageId: summaryItem?.id ?? summaryId }
@@ -423,6 +430,17 @@ export function App() {
             <span>Extracts</span>
             <span className="count">{extracts?.groups.reduce((n, g) => n + g.items.length, 0) ?? ""}</span>
           </button>
+          <button
+            type="button"
+            className="queue"
+            aria-current={reportsOpen ? "true" : undefined}
+            onClick={() => {
+              setNotice(null);
+              setView("reports");
+            }}
+          >
+            <span>Reports</span>
+          </button>
         </nav>
 
         {extractsOpen ? (
@@ -563,7 +581,9 @@ export function App() {
 
       <main className="main">
         <div className="scroll" ref={scrollRef}>
-          {extractsOpen ? (
+          {reportsOpen ? (
+            <ReportsView />
+          ) : extractsOpen ? (
             extracts !== null ? (
               <ExtractsView groups={extracts.groups} onDecided={replaceExtract} />
             ) : (

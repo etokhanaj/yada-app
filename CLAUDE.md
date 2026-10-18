@@ -7,6 +7,25 @@ Start from `docs/handoff-2026-09-13.md` for current state. Governing docs (froze
 
 - **Deslop before any upload or PR.** Run `/deslop` over the diff before a TestFlight upload,
   `git push` of a release, or `gh pr create`. Then `/review-code` and `/security-check`.
+- **QA against the plan and the frames before any upload or PR** (from Build 10 on; John, 18 Oct 2026, after
+  build 7's planned screens were left unbuilt through builds 8 and 9 without anyone saying so). List every item in
+  that build's plan and every canvas frame assigned to it, and mark each one built, or moved with John's yes and
+  where to. Then check each built screen against its frame in Light, Dark and AX5 (layout, copy, states,
+  VoiceOver order). Put the list in the PR or upload notes. Anything not built and not moved blocks the upload.
+- **Design system pass before any upload or PR** (from Build 10 on; John, 18 Oct 2026). Compare what the diff adds
+  with what already exists in `apps/mobile/src/design/` and `apps/mobile/src/components/`. A new screen uses
+  the existing tokens, type steps and components (`PageScreen`, `ListRow`, `Prose`, `Chrome`). It has no literal
+  colours, sizes or one-off buttons when a token or component already covers them. Each new token or component
+  says why in a comment and is used in more than one place, or is folded back into an existing one. Tokens and
+  components the build leaves unused are removed. Note the additions and removals in the PR or upload notes.
+- **No polling** (John, 18 Oct 2026). Never ask a server or a store for changes on a timer. Subscribe: CloudKit
+  subscriptions and pushes, Zustand `subscribe`, AppState and focus events. A timer is allowed only for a countdown
+  on screen, and it stops when that screen closes.
+- **Replace, don't layer** (John, 18 Oct 2026). A changed feature replaces the old one in the same commit: no
+  "v2" beside a v1, no fallback to the old path, no compatibility shim for code nobody calls. The one exception is
+  data already on readers' phones or in their iCloud: read it once through a tested migration, then delete the old
+  reader in a later build. A product fallback the design calls for (BSB where a licensed text can't load) is not
+  this.
 - Ask John before `git push` and before `gh pr create`. Commit locally freely.
 - `pnpm -r typecheck` and `pnpm -r test` green before any commit that touches code.
 

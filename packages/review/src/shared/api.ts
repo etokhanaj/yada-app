@@ -409,3 +409,32 @@ export interface ExtractDecisionResponse {
   item: ExtractItem;
   logged_to: string;
 }
+
+// Reports (Build 11a): public prayer requests readers reported, from CloudKit's public database. Three reports hide a
+// request in the app until John looks. Keep clears its reports, so it shows again; Remove hides it for good.
+export const REPORT_ACTIONS = ["keep", "remove"] as const;
+export type ReportAction = (typeof REPORT_ACTIONS)[number];
+
+export function isReportAction(value: unknown): value is ReportAction {
+  return typeof value === "string" && (REPORT_ACTIONS as readonly string[]).includes(value);
+}
+
+export interface ReportItem {
+  /** The request's CloudKit record name. */
+  id: string;
+  text: string;
+  first_name: string;
+  reports: number;
+  reasons: string[];
+  /** Epoch ms of the newest report. */
+  last_reported: number;
+  /** Removed already (hidden = 1). */
+  removed: boolean;
+}
+
+export type ReportsResponse = { state: "ready"; environment: string; items: ReportItem[] } | { state: "unavailable"; reason: string };
+
+export interface ReportDecisionResponse {
+  item: ReportItem;
+  logged_to: string;
+}

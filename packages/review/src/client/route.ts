@@ -8,10 +8,12 @@ import { isReviewQueue, type ReviewQueue } from "../shared/api";
 export const DEBATES_HASH = "#/debates";
 export const SUMMARIES_HASH = "#/summaries";
 export const EXTRACTS_HASH = "#/extracts";
+export const REPORTS_HASH = "#/reports";
 
 export type Route =
   | { view: "debates" }
   | { view: "extracts" }
+  | { view: "reports" }
   | { view: "summaries"; passageId: string | null }
   | { view: "queue"; queue: ReviewQueue; verseId: string | null };
 
@@ -19,6 +21,7 @@ export function routeFromHash(hash: string): Route {
   const [, first, second] = hash.replace(/^#/, "").split("/");
   if (first === "debates") return { view: "debates" };
   if (first === "extracts") return { view: "extracts" };
+  if (first === "reports") return { view: "reports" };
   let id: string | null = null;
   if (second !== undefined && second !== "") {
     try {
@@ -34,6 +37,7 @@ export function routeFromHash(hash: string): Route {
 export function hashFor(route: Route): string {
   if (route.view === "debates") return DEBATES_HASH;
   if (route.view === "extracts") return EXTRACTS_HASH;
+  if (route.view === "reports") return REPORTS_HASH;
   if (route.view === "summaries") {
     return route.passageId === null ? SUMMARIES_HASH : `${SUMMARIES_HASH}/${encodeURIComponent(route.passageId)}`;
   }
