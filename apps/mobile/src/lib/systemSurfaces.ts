@@ -13,7 +13,12 @@ import { BOOK_CODES, type BookCode, ordToParts } from "@yada/schema";
 
 import type { Repeat, Stop } from "./audio/stop";
 import { type Segment, segmentFill } from "./audio/session";
+import { verseFor } from "./dailyLight";
+import { label as psalmsLabel, type PsalmSet, type PsalterChoice, setForChoice } from "./dailyPsalms";
 import { chapterTitle } from "./reader";
+import { verseLabel } from "./saved";
+import { breathSplit } from "./sit";
+import { type Part, partSpan, whenLabel } from "./today";
 
 const SYSTEM_TEXT: ReadonlySet<string> = new Set(["BSB", "WEB", "KJV", "LSV"]);
 
@@ -132,15 +137,49 @@ export interface ContinueData {
   readonly url: string;
 }
 
-/** SX-03, SX-04, SX-07, SX-08: one day's psalm, BSB. */
+/**
+ * DR-07, SX-03, SX-04, SX-07, SX-08: the Today widget's reading for one day and part, BSB. It follows Settings ›
+ * Daily psalms as Today does: the 1662 morning set until 17:00, then the evening's; One a day all day. Off and Daily
+ * prayer have no psalms on Today's reading card, so the widget carries the day's verse, Today's headline, instead.
+ */
 export interface TodayData {
+  /** "2026-11-01": Today's day (lib/today.ts dayOf), which turns at 03:00. */
   readonly date: string;
-  readonly psalm: number;
-  /** The BSB's title for the psalm, "Of David.", or null. */
+  readonly part: Part;
+  /** "This morning", "This evening". */
+  readonly overline: string;
+  /** "Psalms 1–5", "Psalm 119:33–72", "Psalm 138"; the day's verse's reference, "Matthew 6:13". */
+  readonly label: string;
+  /** SX-03 small: the psalms' figures set large under their noun, "Psalms" over "1–5"; null for the day's verse. */
+  readonly figure: { readonly over: string; readonly big: string } | null;
+  /** Where Read and Listen begin. */
+  readonly book: BookCode;
+  readonly chapter: number;
+  readonly verse: number;
+  /** The chapters it covers, so its Listen shows Pause while any of them plays (SX-05). */
+  readonly chapters: readonly number[];
+  /** The BSB's title for a psalm read from verse 1, "Of David.", or null. */
   readonly titleLine: string | null;
-  /** The first three verses, verse 1 without its title. */
+  /** The first three verses, verse 1 of a psalm without its title. */
   readonly verses: readonly SurfaceVerse[];
   readonly url: string;
+}
+
+export type TodayReading = Pick<TodayData, "part" | "overline" | "label" | "figure" | "book" | "chapter" | "verse" | "chapters">;
+
+/** What the Today widget, its Listen and Siri's "today's psalm" point at, for a day (lib/today.ts dayOf) and part. */
+export function todayReading(day: Date, part: Part, choice: PsalterChoice): TodayReading {
+  const overline = part === "morning" ? "This morning" : "This evening";
+  const set = setForChoice(day, part, choice);
+  const first = set?.[0];
+  if (set !== null && first !== undefined) {
+    const label = psalmsLabel(set);
+    const over = set.length > 1 ? "Psalms" : "Psalm";
+    return { part, overline, label, figure: { over, big: label.slice(over.length + 1) }, book: "PSA", chapter: first.psalm, verse: first.from ?? 1, chapters: set.map((r) => r.psalm) };
+  }
+  const ref = verseFor(day, part);
+  const place = { book: ref.book, chapter: ref.chapter, verse: ref.verse };
+  return { part, overline, label: verseLabel(place), figure: null, ...place, chapters: [place.chapter] };
 }
 
 /** What the Listen buttons and the Control Center toggle show (SX-05, SX-09). */
@@ -163,6 +202,8 @@ export interface ActivityState {
   readonly title: string;
   /** "1:5". */
   readonly ref: string;
+  /** SX-22's overline in StandBy, where the book is not on screen: "John 1:5". */
+  readonly reference: string;
   /** The verse being read, in the text being heard (one of the four open texts), or "" while the name is said. */
   readonly verse: string;
   /** SX-19: "John, chapter 2" while the chapter's name is said; else null. */
@@ -200,6 +241,7 @@ export function activityState(a: ActivityInput): ActivityState {
   return {
     title: a.passage ?? chapterTitle(a.book, a.chapter),
     ref: `${a.chapter}:${a.verse}`,
+    reference: verseLabel({ book: a.book, chapter: a.chapter, verse: a.verse }),
     verse: a.titling ? "" : surfaceText(a.translation, a.text),
     spoken: a.titling ? spokenName(a.book, a.chapter) : null,
     line: a.line,
@@ -216,7 +258,7 @@ export function spokenName(book: BookCode, chapter: number): string {
 }
 
 /**
- * Decision 7 (build-6-decisions.md): a stop that fires ends the Live Activity at once. data/audio.ts advance()
+ * SX-23: a stop that fires leaves the Live Activity paused on "Stopped after 1:18". data/audio.ts advance()
  * fires one as two updates: the stop goes back to Off while still playing, then the reading pauses. A stop
  * cleared by hand leaves it playing, and the next update disarms the watch.
  */
@@ -230,6 +272,23 @@ export function watchStop(prev: StopWatch, next: { readonly stop: Stop | null; r
   const cleared = prev.stop !== null && next.stop === null;
   const paused = prev.playing && !next.playing;
   return { fired: paused && (cleared || prev.armed), watch: { ...next, armed: cleared && next.playing } };
+}
+
+/** SX-23: the verse a stop came after, and the verse the place then moved on to (null until it has). */
+export interface StopHold {
+  readonly ord: number;
+  readonly landed: number | null;
+}
+
+/**
+ * Whether "Stopped after 1:18" still holds: until the reading plays or ends, or the reader moves the place anywhere
+ * but where the stop moved it on to (1:19, or the next chapter's first verse).
+ */
+export function holdAfterStop(hold: StopHold | null, now: { readonly playing: boolean; readonly ord: number | null }): StopHold | null {
+  if (hold === null || now.playing || now.ord === null) return null;
+  if (now.ord === hold.ord) return hold;
+  if (hold.landed === null) return { ...hold, landed: now.ord };
+  return now.ord === hold.landed ? hold : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -267,5 +326,41 @@ export function richVerses(book: BookCode, verses: ReadonlyArray<{ verse: number
   return {
     titleLine: split.title,
     verses: two.map((v, i) => ({ n: v.verse, text: surfaceText("BSB", i === 0 ? split.body : v.text) })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// The Apple Watch (AW-01, AW-03): sent over WatchConnectivity (modules/yada-system setWatchData), decoded by
+// targets/watch-widget/WatchData.swift `WatchPart`
+// ---------------------------------------------------------------------------
+
+/** One morning or evening on the watch: the day's verse and that part's psalms. */
+export interface WatchPart {
+  /** When the part begins and ends, milliseconds since 1970 (lib/today.ts partSpan). */
+  readonly from: number;
+  readonly until: number;
+  /** "Today" or "This evening", as DR-16 labels the day's verse. */
+  readonly when: string;
+  readonly verse: {
+    readonly text: string;
+    /** "Psalm 1:3". */
+    readonly ref: string;
+    /** Breathe the verse's two halves (AW-03), or null where the verse has no break of its own (lib/sit.ts). */
+    readonly breathe: readonly [string, string] | null;
+  } | null;
+  /** "This morning", "Psalms 1–5"; null when Settings › Daily psalms is Off or Daily prayer. */
+  readonly psalms: { readonly when: string; readonly label: string } | null;
+}
+
+/** The watch shows the BSB whatever the reader reads (rule 9), as the widgets do. */
+export function watchPart(day: Date, part: Part, verse: { text: string; ref: string } | null, set: PsalmSet | null): WatchPart {
+  const span = partSpan(day, part);
+  const text = verse === null ? "" : surfaceText("BSB", verse.text);
+  return {
+    from: span.from.getTime(),
+    until: span.until.getTime(),
+    when: whenLabel(day, part, day),
+    verse: verse === null || text === "" ? null : { text, ref: verse.ref, breathe: breathSplit(text) },
+    psalms: set === null ? null : { when: part === "morning" ? "This morning" : "This evening", label: psalmsLabel(set) },
   };
 }

@@ -277,7 +277,7 @@ export function MiniPlayer({
 }
 
 /** BA-02's ring: the share fetched, around a stop square (canvas `.pring`). */
-function StopRing({ share, size }: { share: number; size: number }) {
+export function StopRing({ share, size }: { share: number; size: number }) {
   const palette = usePalette();
   const r = 15;
   const length = 2 * Math.PI * r;

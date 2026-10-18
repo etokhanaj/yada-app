@@ -15,7 +15,7 @@ import { Linking, Pressable, StyleSheet, Switch, View } from "react-native";
 import { ListRow, PageScreen } from "../components/Page";
 import { Icon } from "../components/Icon";
 import { ReminderPreview } from "../components/ReminderPreview";
-import { Chrome, Label } from "../components/Type";
+import { SectionTitle, Chrome } from "../components/Type";
 import { useAppData, useCore } from "../data/AppData";
 import { changeReminder, previewReminder, turnOff, turnOn, useReminder } from "../data/reminder";
 import { useLayout, usePalette } from "../design/tokens";
@@ -66,7 +66,7 @@ export default function ReminderScreen() {
         <ReminderPreview text={preview} time={timeLabel(prefs)} />
       ) : null}
 
-      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>Time</Label>
+      <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>Time</SectionTitle>
       <View style={[styles.timeRow, ax ? { flexDirection: "column", alignItems: "flex-start" } : null]}>
         <Chrome tone="ink">{everyDay ? "Every day" : `${prefs.days.filter(Boolean).length} days a week`}</Chrome>
         <DateTimePicker
@@ -137,7 +137,7 @@ export default function ReminderScreen() {
 
       {/* NB-04 (build 8, John 17 Oct 2026): Sunday's week in review, off until turned on; it rides on Sunday's
           reminder, or comes alone at 18:00 when none is set that day, so never two in a day. */}
-      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>Sunday</Label>
+      <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>Sunday</SectionTitle>
       <ListRow
         first
         title="Week in review"
@@ -148,7 +148,7 @@ export default function ReminderScreen() {
         }
       />
 
-      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>What it says</Label>
+      <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>What it says</SectionTitle>
       {(
         [
           ["next", "The next passage", "Where you are in John, or your plan"],

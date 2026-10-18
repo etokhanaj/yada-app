@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PSALTER, label, nextInSet, parsePsalter, setFor, setForChoice } from "./dailyPsalms";
+import { PSALTER, label, nextInSet, parsePsalter, setFor, setForChoice, setHolding } from "./dailyPsalms";
 import { psalmForDay } from "./reminder";
 
 const L = (m: number, d: number, p: "morning" | "evening", y = 2026) => label(setFor(new Date(y, m - 1, d), p));
@@ -57,5 +57,25 @@ describe("Settings › Daily psalms (DR-04) and next in the set (DR-02)", () => 
     expect(nextInSet(set, 75)).toEqual({ psalm: 76 });
     expect(nextInSet(set, 77)).toBeNull();
     expect(nextInSet(set, 1)).toBeNull();
+  });
+});
+
+describe("the set being heard (DR-08)", () => {
+  const nov1 = new Date(2026, 10, 1);
+
+  it("titles a psalm of the evening's set by the set, ending after its last psalm", () => {
+    expect(setHolding(nov1, "evening", "1662", 7, 3)).toEqual({ label: "Psalms 6–8", end: { part: "evening", psalm: 8, to: null } });
+    expect(setHolding(nov1, "evening", "1662", 9, 1)).toBeNull();
+  });
+
+  it("holds a section of Psalm 119 only within its verses", () => {
+    const nov25 = new Date(2026, 10, 25);
+    expect(setHolding(nov25, "evening", "1662", 119, 80)?.end).toEqual({ part: "evening", psalm: 119, to: 104 });
+    expect(setHolding(nov25, "evening", "1662", 119, 105)).toBeNull();
+  });
+
+  it("is the 1662 table's only: One a day's set is one psalm", () => {
+    expect(setHolding(nov1, "evening", "one", 6, 1)).toBeNull();
+    expect(setHolding(nov1, "evening", "off", 6, 1)).toBeNull();
   });
 });

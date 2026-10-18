@@ -7,7 +7,7 @@ import { type Passage, type PassageRow, type VerseLayers, isMissingVerse, parseP
 import { describe, expect, it } from "vitest";
 
 import { halves, inShort, passagesTouched, prophetLeads, readerLeadLines, repeats, versesLabel } from "./passageGuide";
-import { halfView, parseUnderstandCatalogue, plainSegments, readerLines, readersLead, spokenPlain, translatorNotes } from "./understand";
+import { behindLine, factsFor, halfView, offlineLine, parseUnderstandCatalogue, plainSegments, readerLines, readersLead, spokenPlain, translatorNotes } from "./understand";
 
 const bundles = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../content/bundles");
 
@@ -201,6 +201,60 @@ describe.skipIf(latest("1co") === null)("the readers-differ marker (review, 12 O
     const v = verse("1co", "1CO.6.9");
     expect(v.beginner.debate?.kind).toBe("held");
     expect(readerLines(v)).toEqual([]);
+  });
+});
+
+function layers(over: { facts?: string[]; translators?: VerseLayers["beginner"]["translators"]; plain?: boolean; studyNote?: boolean; manuscripts?: string[] } = {}): VerseLayers {
+  return {
+    verse: "1CO.14.34",
+    where: { frame: null, section: null, range: null },
+    beginner: {
+      order: ["plain", "readers_differ"],
+      voice: null,
+      plain: over.plain === true ? { text: "Wives should keep quiet.", added: [], bracketed: false, credit: "c", one_reading: false, label: "In plain words" } : null,
+      translators: over.translators ?? [],
+      readers_differ: [],
+      manuscripts: over.manuscripts ?? [],
+      debate: null,
+      readers_half: 0,
+      readers_more: 0,
+      readers_lead: null,
+    },
+    facts: over.facts ?? [],
+    alongside: [],
+    deeper: { explained: [], key_words: [], study_note: over.studyNote === true ? { range: [1, 1], text: "t", named_refs: [], credit: "c" } : null, check: [] },
+  };
+}
+
+describe("BSB-bound lines on another version (UX-11)", () => {
+  const counted = "“Are to be silent” translates a word used 3 times in 1 Corinthians, all in this chapter: 14:28, 14:30 and here.";
+  const differ = "Translations differ: “submission” (BSB) · “under obedience” (KJV).";
+  const v = layers({ facts: [differ, counted], translators: [{ kind: "literally", on: "silent", text: "Literally be quiet" }] });
+
+  it("keeps everything on the BSB, the footnotes first", () => {
+    expect(factsFor(v, "BSB")).toEqual(["The BSB’s own footnote: Literally be quiet.", differ, counted]);
+  });
+
+  it("says “In the BSB” where a fact quotes its words, and lets its footnotes step aside", () => {
+    expect(factsFor(v, "KJV")).toEqual([differ, `In the BSB, ${counted}`]);
+  });
+});
+
+describe("what lies behind each verse (UX-09)", () => {
+  it("names what the verse's Understand holds, in the sheet's order", () => {
+    expect(behindLine(layers({ plain: true, studyNote: true }))).toBe("In plain words · Study note");
+    expect(behindLine(layers({ manuscripts: ["Some manuscripts place verses 34–35 after verse 40."] }))).toBe("Manuscripts");
+  });
+
+  it("says words and translations when there is nothing else", () => {
+    expect(behindLine(layers())).toBe("Words and translations");
+    expect(behindLine({ verse: "JHN.5.4", missing: true, manuscripts: [], plain: null })).toBe("Words and translations");
+  });
+});
+
+describe("Understand offline (EG-02)", () => {
+  it("says it downloads when online", () => {
+    expect(offlineLine("Luke")).toBe("Understand for Luke downloads when you’re online.");
   });
 });
 

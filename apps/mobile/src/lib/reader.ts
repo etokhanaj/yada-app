@@ -63,7 +63,10 @@ export function splitDivineName(text: string): TextSegment[] {
   return out;
 }
 
-const SUPERSCRIPTION = /^((?:For the choirmaster[^.]*\.\s+)?A (?:Psalm|Song|Maskil|Miktam|Prayer|Shiggaion)\b[^.]*\.)\s+/u;
+// After "For the choirmaster." may come a tune or instrument, as a sentence ("According to Gittith.") or a quoted name that
+// ends inside its quotes (Psalm 80: “The Lilies of the Covenant.”); without them the calm close (RT-03) showed the
+// superscription as Psalm 80's first words (simulator, 18 Oct 2026).
+const SUPERSCRIPTION = /^((?:For the choirmaster[^.]*\.(?:\s+(?!A (?:Psalm|Song|Maskil|Miktam|Prayer|Shiggaion)\b)(?:[^.“]*“[^”]*”|[^.“]+\.))*\s+)?A (?:Psalm|Song|Maskil|Miktam|Prayer|Shiggaion)\b[^.]*\.)\s+/u;
 
 /**
  * List excerpts drop a psalm's superscription, which the BSB prints inside
@@ -130,9 +133,14 @@ export function barItems(hasEntry: boolean, ax: boolean): BarItem[] {
   return hasEntry ? ["understand", "compare", "more"] : ["original", "compare", "more"];
 }
 
-/** What `More` holds: at AX sizes it also carries Compare, which the list dropped. */
-export function moreActions(hasEntry: boolean, ax: boolean, bookmarked: boolean): string[] {
-  const shared = ["Copy", "Share", bookmarked ? "Remove bookmark" : "Bookmark"];
+/**
+ * What `More` holds (HM-02): Share as an image, Share, Bookmark. Copy moved to the bar's second row beside the
+ * colours and Note (PS-01). At AX sizes it also carries Compare, which the list dropped. No image of a licensed
+ * translation's words: its rights holder's terms cover quoting text with the notice, not making pictures of it
+ * (CLAUDE.md rule 9, docs/licensed-translations.md).
+ */
+export function moreActions(ax: boolean, bookmarked: boolean, imageable: boolean): string[] {
+  const shared = [...(imageable ? ["Share as an image"] : []), "Share", bookmarked ? "Remove bookmark" : "Bookmark"];
   return ax ? ["Compare", ...shared] : shared;
 }
 

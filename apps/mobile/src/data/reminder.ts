@@ -15,10 +15,11 @@ import { system } from "../../modules/yada-system";
 import { loadMcheyne, loadYourPlan } from "./plans";
 import { type Db, getChapter, getTexts } from "./queries";
 import { loadProgress } from "./startHere";
-import { loadDays, loadSettings, saveSetting } from "./user";
+import { loadDays, loadPosition, loadSettings, saveSetting } from "./user";
 import { label as psalmsLabel, parsePsalter, setForChoice } from "../lib/dailyPsalms";
 import { MCHEYNE_READINGS, nextPortion, portionLabel } from "../lib/plans";
-import { excerptOf } from "../lib/reader";
+import { quietUntil, remindersBeforeWelcome, welcomeBackAt, welcomeBackTitle } from "../lib/lapse";
+import { chapterTitle, excerptOf } from "../lib/reader";
 import {
   afterNotNow,
   type AskState,
@@ -193,7 +194,10 @@ async function scheduleNow(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs)
     // NT-05: Listen reads the BSB, whatever the reader's translation (IA-13).
     { identifier: "listen", buttonTitle: "Listen", options: { opensAppToForeground: true } },
   ]);
-  const times = upcomingTimes(new Date(), prefs);
+  const start = new Date();
+  // Build 10a: the ordinary reminders run for the week after this open, then one welcome back, then silence.
+  const times = remindersBeforeWelcome(start, prefs);
+  const welcomeAt = welcomeBackAt(start, prefs);
   const next = prefs.kind === "next" ? await nextText(user, core) : null;
   const days = await loadDays(user);
   const rhythm = rhythmLine(rhythmOf(days, todayKey(new Date())));
@@ -225,7 +229,7 @@ async function scheduleNow(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs)
   const evening = prefs.evening;
   const choice = parsePsalter((await loadSettings(user))["dailyPsalms"]);
   if (evening !== null && choice === "1662") {
-    for (const at of upcomingTimes(new Date(), { ...prefs, hour: evening.hour, minute: evening.minute })) {
+    for (const at of upcomingTimes(new Date(), { ...prefs, hour: evening.hour, minute: evening.minute }).filter((t) => t < welcomeAt)) {
       const one = await eveningText(core, at);
       if (one === null) continue;
       const id = `reminder-evening-${at.getFullYear()}-${at.getMonth() + 1}-${at.getDate()}`;
@@ -245,7 +249,7 @@ async function scheduleNow(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs)
   // besides the evening psalms (John, 17 Oct 2026).
   if (prefs.weekly) {
     const sundays = upcomingTimes(new Date(), { ...prefs, ...WEEKLY_AT, days: [false, false, false, false, false, false, true] });
-    for (const at of sundays) {
+    for (const at of sundays.filter((t) => t < welcomeAt)) {
       if (times.some((t) => t.toDateString() === at.toDateString())) continue;
       const line = weekLine(days, at);
       if (line === null) continue;
@@ -257,8 +261,28 @@ async function scheduleNow(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs)
       });
     }
   }
-  const last = times[times.length - 1];
-  if (last !== undefined) await saveSetting(user, "reminderUntil", last.toISOString());
+  await welcomeBack(user, welcomeAt);
+  if (times.length > 0) await saveSetting(user, "reminderUntil", quietUntil(start).toISOString());
+}
+
+/**
+ * RT-06: one "welcome back" a week after the last open, the place and nothing more (no notes, no count of days, rule 9).
+ * Opening Yada schedules everything again, so it only rings for a reader who stayed away; a tap opens the reader at the
+ * saved place, not RT-01 (docs/build-10-ux-pass.md rule 2).
+ */
+async function welcomeBack(user: SQLiteDatabase, at: Date): Promise<void> {
+  const saved = await loadPosition(user);
+  const place = saved === null ? null : parseVerseId(saved);
+  if (place === null) return;
+  await Notifications.scheduleNotificationAsync({
+    identifier: "welcome-back",
+    content: {
+      title: welcomeBackTitle(chapterTitle(place.book, place.chapter)),
+      categoryIdentifier: CATEGORY,
+      data: { target: { book: place.book, chapter: place.chapter, verse: place.verse } },
+    },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
+  });
 }
 
 /** NT-02's preview: what the next reminder would say, for the words chosen. */

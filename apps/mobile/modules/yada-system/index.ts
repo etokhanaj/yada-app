@@ -10,13 +10,16 @@ declare class YadaSystemModule extends NativeModule<{ onOpen: () => void; onCont
   takePendingOpen(): string | null;
   /** lib/systemSurfaces.ts ContinueData and TodayData, as JSON. */
   setWidgetData(json: string): void;
+  /** AW-01, AW-03: `{ parts: WatchPart[] }` (lib/systemSurfaces.ts) as JSON, for the watch app and its widgets. */
+  setWatchData(json: string): void;
   /** lib/systemSurfaces.ts ListeningData as JSON, or "" when nothing plays. */
   setListening(json: string): void;
   /** lib/systemSurfaces.ts ActivityState as JSON. */
   startReading(json: string): Promise<void>;
   endReading(): Promise<void>;
   indexVerses(items: Array<{ id: string; title: string; text: string; keywords: string }>): Promise<void>;
-  indexChapters(items: Array<{ id: string; title: string; text: string; keywords: string }>): Promise<void>;
+  /** SX-12: `name` is the first passage's, "The Lord is my shepherd", or "" where the book's passages are not here. */
+  indexChapters(items: Array<{ id: string; title: string; name: string; text: string; keywords: string }>): Promise<void>;
   clearIndex(): Promise<void>;
   /** SX-11: tells Siri the chapters "Read Psalm 23 in Yada" may name. */
   updateShortcuts(): void;

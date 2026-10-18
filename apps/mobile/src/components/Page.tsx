@@ -22,15 +22,17 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { transparent } from "../design/contrast";
-import { RADIUS, useLayout, usePalette, useType } from "../design/tokens";
+import { useLayout, usePalette, useType, WIDE } from "../design/tokens";
+import { useTabBarClearance } from "./TabBar";
 import { GlassButton } from "./Glass";
 import { Icon, type IconName } from "./Icon";
 import { Chrome, useFontScaleKey } from "./Type";
 
 
+/** Page titles in SF bold with tight tracking; serif stays for Scripture, passage titles and book names (polish-2026-10-15.md). */
 function LargeTitle({ children }: { children: ReactNode }) {
   const palette = usePalette();
-  const t = useType("display");
+  const t = useType("pageTitle");
   const key = useFontScaleKey();
   return (
     <Text
@@ -42,7 +44,7 @@ function LargeTitle({ children }: { children: ReactNode }) {
         fontSize: t.size,
         lineHeight: t.lineHeight,
         letterSpacing: t.tracking,
-        fontWeight: "600",
+        fontWeight: "700",
         color: palette.ink,
       }}
     >
@@ -59,16 +61,6 @@ export function GlassIcon({ icon, label, onPress, testID }: { icon: IconName; la
   );
 }
 
-export function GlassText({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
-  return (
-    <GlassButton shape="capsule" onPress={onPress} accessibilityLabel={label} testID={testID}>
-      <Chrome tone="ink" style={{ fontWeight: "600", paddingHorizontal: 2 }}>
-        {label}
-      </Chrome>
-    </GlassButton>
-  );
-}
-
 export function PageScreen({
   title,
   back = "Bible",
@@ -77,8 +69,11 @@ export function PageScreen({
   subtitle,
   testID,
   titleNode,
+  clearTabBar = false,
 }: {
   title: string;
+  /** BH-01: the last row scrolls clear of the native tab bar (Today sat over Deuteronomy in the TestFlight build). */
+  clearTabBar?: boolean;
   /** Drawn in place of the large title: Home's wordmark. `title` still names the page in the bar. */
   titleNode?: ReactNode;
   /** null on Home itself. */
@@ -91,8 +86,14 @@ export function PageScreen({
 }) {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
-  const { gutter } = useLayout();
-  const [barHeight, setBarHeight] = useState(insets.top + 60);
+  const tabClearance = useTabBarClearance();
+  const { gutter: phoneGutter, regular, tabs } = useLayout();
+  // TB-03: a regular-width page keeps TB-01's 36 pt margin and its rows to a column, centred when the window is wider.
+  const gutter = regular ? WIDE.gutter : phoneGutter;
+  const column = regular ? ({ width: "100%", maxWidth: WIDE.page + 2 * gutter, alignSelf: "center" } as const) : null;
+  // A tab page under iPadOS's top tabs (TB-03 portrait): the capsule has already taken the status bar's room.
+  const top = clearTabBar && tabs === "top" ? 0 : insets.top;
+  const [barHeight, setBarHeight] = useState(top + 60);
   const [titleBottom, setTitleBottom] = useState(120);
   const [scrolled, setScrolled] = useState(false);
   // The bar's title sits centred clear of the wider side. Fixed 100 pt insets let it run under
@@ -117,8 +118,8 @@ export function PageScreen({
       {/* Drawn first so VoiceOver meets the controls before the page, as the eye does (ON-06);
           zIndex keeps it above the scrolling content. */}
       <View pointerEvents="box-none" style={styles.bar} onLayout={(e) => setBarHeight(e.nativeEvent.layout.height - 22)}>
-        <View style={{ paddingTop: insets.top + 4, paddingHorizontal: 12, paddingBottom: 6, backgroundColor: palette.paper }}>
-          <View style={styles.row} onLayout={measure("row")}>
+        <View style={{ paddingTop: top + 4, paddingHorizontal: regular ? gutter - 8 : 12, paddingBottom: 6, backgroundColor: palette.paper }}>
+          <View style={[styles.row, regular ? { width: "100%", maxWidth: WIDE.page + 16, alignSelf: "center" } : null]} onLayout={measure("row")}>
             <View onLayout={measure("left")}>
               {back !== null ? (
                 <GlassButton
@@ -128,7 +129,7 @@ export function PageScreen({
                   testID="page-back"
                 >
                   <Icon name="back" size={18} tone="muted" />
-                  <Chrome tone="ink" size={16} style={{ fontWeight: "500", marginRight: 2 }}>
+                  <Chrome tone="ink" style={{ fontWeight: "500", marginRight: 2 }}>
                     {back}
                   </Chrome>
                 </GlassButton>
@@ -150,7 +151,9 @@ export function PageScreen({
       <ScrollView
         onScroll={onScroll}
         scrollEventThrottle={32}
-        contentContainerStyle={{ paddingTop: barHeight + 14, paddingHorizontal: gutter, paddingBottom: insets.bottom + 48 }}
+        // The tab bar's clearance already reaches past the home indicator (TabBar pads its own foot by insets.bottom),
+        // so a tab page pads by it alone, as Today does; adding insets.bottom left a tab page 34 pt taller at the foot.
+        contentContainerStyle={[{ paddingTop: barHeight + 14, paddingHorizontal: gutter, paddingBottom: clearTabBar ? tabClearance : insets.bottom + 48 }, column]}
         keyboardDismissMode="on-drag"
       >
         <View onLayout={(e) => setTitleBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}>
@@ -188,6 +191,8 @@ export function ListRow({
   testID,
   chevron = true,
   children,
+  actions,
+  onAction,
 }: {
   title?: ReactNode;
   subtitle?: ReactNode;
@@ -212,6 +217,9 @@ export function ListRow({
   testID?: string;
   chevron?: boolean;
   children?: ReactNode;
+  /** VoiceOver's way to do what a drag does: Compare's Choose moves a version up or down (CP-06). */
+  actions?: ReadonlyArray<{ name: string; label: string }>;
+  onAction?: (name: string) => void;
 }) {
   const palette = usePalette();
   const { ax } = useLayout();
@@ -223,10 +231,12 @@ export function ListRow({
       accessibilityRole={onPress === undefined ? undefined : "button"}
       accessibilityLabel={label}
       accessibilityState={chosen ? { selected: true } : undefined}
+      accessibilityActions={actions}
+      onAccessibilityAction={onAction === undefined ? undefined : (e) => onAction(e.nativeEvent.actionName)}
       testID={testID}
       style={({ pressed }) => [
         styles.listRow,
-        first ? null : { boxShadow: `0 -1px 0 ${palette.divider}` },
+        first ? null : { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.divider },
         pressed ? { backgroundColor: palette.fill } : null,
       ]}
     >
@@ -301,7 +311,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     columnGap: 12,
-    minHeight: 52,
-    paddingVertical: 12,
+    // 56 pt rows (polish-2026-10-15.md: "more air").
+    minHeight: 56,
+    paddingVertical: 15,
   },
 });

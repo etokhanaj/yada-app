@@ -79,6 +79,15 @@ describe("chartreuse is never text on chalk (brand/README.md)", () => {
   });
 });
 
+describe("highlights (PS-02)", () => {
+  it.each(Object.entries(PALETTES))("%s: ink and the muted verse number read on every wash", (_name, p) => {
+    for (const wash of Object.values(p.highlights)) {
+      expect(contrast(p.ink, wash)).toBeGreaterThanOrEqual(TEXT);
+      expect(contrast(p.mutedInk, wash)).toBeGreaterThanOrEqual(MARK);
+    }
+  });
+});
+
 describe("selection is never carried by its wash alone", () => {
   it("the wash is too close to paper to read as a state (so the bar is required)", () => {
     for (const p of Object.values(PALETTES)) expect(contrast(p.selection, p.paper)).toBeLessThan(MARK);

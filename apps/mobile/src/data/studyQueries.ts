@@ -35,6 +35,17 @@ export async function getStudyNotes(db: Db, ord: number): Promise<StudyNoteRow[]
   return notesForVerse(rows, ord);
 }
 
+/**
+ * Every note touching a passage, for the guide's Study notes row (WM-05, "Tyndale on 11:1–44"): before, the
+ * row opened the first verse's notes only. In reading order, a note on the wider range before a verse's own.
+ */
+export async function getStudyNotesInRange(db: Db, lo: number, hi: number): Promise<StudyNoteRow[]> {
+  return db.getAllAsync<StudyNoteRow>(
+    `SELECT ${COLUMNS} FROM notes WHERE kind = 'note' AND ord_start <= ? AND ord_end >= ? ORDER BY ord_start, ord_end DESC, id`,
+    [hi, lo],
+  );
+}
+
 /** Tyndale's passage note for a pericope range (lib/study.ts passageNoteFor), for the guide's opener. */
 export async function getPassageNote(db: Db, startOrd: number, endOrd: number): Promise<StudyNoteRow | null> {
   const rows = await db.getAllAsync<StudyNoteRow>(

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { compareLine, originalLine, passageLine, studyNotesLine } from "./goFurther";
 import {
   covers,
+  namedInVerse,
   failedLine,
   fetchingLine,
   guideNote,
@@ -289,5 +290,22 @@ describe("guideNote", () => {
   it("is null when only a heading or nothing is left", () => {
     expect(guideNote("<b>1:1-18</b>")).toBeNull();
     expect(guideNote("<h>Heading</h>")).toBeNull();
+  });
+});
+
+describe("people and places in one line (PD-01)", () => {
+  const bsb = "Now a man named Lazarus was sick. He was from Bethany, the village of Mary and her sister Martha.";
+  const at = (word: string): [number, number] => [bsb.indexOf(word), bsb.indexOf(word) + word.length];
+
+  it("orders profiles and places as the verse names them, one each", () => {
+    const named = namedInVerse(bsb, [{ id: 7, title: "Martha, Mary, and Lazarus" }], [{ place: "bethany_1", spans: [at("Bethany"), at("Bethany")] }]);
+    expect(named).toEqual([
+      { kind: "person", id: "7", name: "Martha, Mary, and Lazarus" },
+      { kind: "place", id: "bethany_1", name: "Bethany" },
+    ]);
+  });
+
+  it("drops a place whose span runs past the text", () => {
+    expect(namedInVerse("Bethany", [], [{ place: "x", spans: [[0, 40]] }])).toEqual([]);
   });
 });

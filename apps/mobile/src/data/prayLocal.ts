@@ -1,11 +1,12 @@
 /**
- * What Pray keeps on this iPhone, in the settings store (which iCloud key-value storage carries to the reader's other
- * devices): the private prayer list (PR-07), the requests prayed for, so none comes round again (XT-03), and the askers
- * blocked. Nothing here is posted anywhere.
+ * What Pray keeps on this iPhone, in the settings store. These keys are not SYNCED_SETTINGS (lib/cloudSync.ts), so
+ * iCloud does not carry them to the reader's other devices: the private prayer list with the dates each was added and answered (PR-07), the requests prayed for, so
+ * none comes round again (XT-03), and the askers blocked. Nothing here is posted anywhere.
  */
 
 import type { SQLiteDatabase } from "expo-sqlite";
 
+import { type ListItem, parseList } from "../lib/pray";
 import { loadSettings, saveSetting } from "./user";
 
 const LIST = "prayList";
@@ -22,14 +23,21 @@ function strings(raw: string | undefined): string[] {
   }
 }
 
-export async function loadPrayLocal(user: SQLiteDatabase): Promise<{ list: string[]; prayed: Set<string>; blocked: Set<string>; hidden: Set<string> }> {
+export async function loadPrayLocal(user: SQLiteDatabase): Promise<{ list: ListItem[]; prayed: Set<string>; blocked: Set<string>; hidden: Set<string> }> {
   const s = await loadSettings(user);
-  return { list: strings(s[LIST]), prayed: new Set(strings(s[PRAYED])), blocked: new Set(strings(s[BLOCKED])), hidden: new Set(strings(s[HIDDEN])) };
+  return { list: parseList(s[LIST]), prayed: new Set(strings(s[PRAYED])), blocked: new Set(strings(s[BLOCKED])), hidden: new Set(strings(s[HIDDEN])) };
 }
 
-export async function addToList(user: SQLiteDatabase, item: string): Promise<void> {
+/** PR-07's "Added 2 Oct": each new item keeps the moment it was added. */
+export async function addToList(user: SQLiteDatabase, text: string, now = Date.now()): Promise<void> {
   const { list } = await loadPrayLocal(user);
-  await saveSetting(user, LIST, JSON.stringify([item, ...list]));
+  await saveSetting(user, LIST, JSON.stringify([{ text, added: now }, ...list]));
+}
+
+/** PR-07's "Answered 12 Oct": the reader marks it; the item stays on the list with its date. */
+export async function markListAnswered(user: SQLiteDatabase, index: number, now = Date.now()): Promise<void> {
+  const { list } = await loadPrayLocal(user);
+  await saveSetting(user, LIST, JSON.stringify(list.map((item, i) => (i === index ? { ...item, answered: now } : item))));
 }
 
 export async function removeFromList(user: SQLiteDatabase, index: number): Promise<void> {

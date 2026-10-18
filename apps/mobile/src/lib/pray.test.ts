@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { daysLeft, helplineFor, inviteLine, mentionsSelfHarm, offerable, peopleLine, prayedLine, requestLine } from "./pray";
+import { askedLine, daysLeft, helplineFor, inviteLine, listItemLine, mentionsSelfHarm, mineLine, offerable, parseList, peopleLine, prayedLine, regionName, requestLine } from "./pray";
 
 const day = 86_400_000;
 
@@ -41,5 +41,48 @@ describe("circles", () => {
     expect(inviteLine(5)).toBe("5 of 12");
     expect(inviteLine(11)).toBe("11 of 12");
     expect(inviteLine(12)).toBeNull();
+  });
+});
+
+describe("Pray for someone and Your requests (PR-09, PR-11, PR-12)", () => {
+  const DAY = 86_400_000;
+  const now = Date.UTC(2026, 9, 18, 12);
+  it("says who asked and when, only what is known", () => {
+    expect(askedLine("Anna", now - 2 * DAY, now)).toBe("Anna · 2 days ago");
+    expect(askedLine("", now - 1 * DAY, now)).toBe("Yesterday");
+    expect(askedLine("Anna", undefined, now)).toBe("Anna");
+    expect(askedLine(" ", undefined, now)).toBeNull();
+  });
+  it("puts how many prayed first on a live request, the date first on an answered one, never 0", () => {
+    expect(mineLine({ expiresAt: now + 5 * DAY, prayed: 3 }, now)).toBe("3 people prayed · 5 days left");
+    expect(mineLine({ expiresAt: now + 5 * DAY, prayed: 0 }, now)).toBe("5 days left");
+    expect(mineLine({ expiresAt: now + 5 * DAY, prayed: 1 }, now)).toBe("1 person prayed · 5 days left");
+    expect(mineLine({ expiresAt: now, answeredAt: Date.UTC(2026, 9, 12, 12), prayed: 7 }, now)).toBe("Answered 12 Oct · 7 people prayed");
+  });
+  it("names the region for More helplines", () => {
+    expect(regionName("GB")).toBe("the UK");
+    expect(regionName("NG")).toBe("Nigeria");
+    expect(regionName(null)).toBeNull();
+  });
+});
+
+describe("your private list (PR-07)", () => {
+  it("dates each item by when it was added or answered, and invents no date for an old one", () => {
+    const added = new Date(2026, 9, 2).getTime();
+    const answered = new Date(2026, 9, 12).getTime();
+    expect(listItemLine({ text: "Peace for my brother", added })).toBe("Added 2 Oct");
+    expect(listItemLine({ text: "Mum’s surgery", added, answered })).toBe("Answered 12 Oct");
+    expect(listItemLine({ text: "Saved before build 10" })).toBeNull();
+  });
+
+  it("reads lists saved as plain strings and as dated items, dropping anything else", () => {
+    expect(parseList(JSON.stringify(["Old", { text: "New", added: 5 }, { text: "Done", added: 1, answered: 9 }, 7, { added: 3 }]))).toEqual([
+      { text: "Old" },
+      { text: "New", added: 5 },
+      { text: "Done", added: 1, answered: 9 },
+    ]);
+    expect(parseList(undefined)).toEqual([]);
+    expect(parseList("not json")).toEqual([]);
+    expect(parseList(JSON.stringify({ text: "x" }))).toEqual([]);
   });
 });

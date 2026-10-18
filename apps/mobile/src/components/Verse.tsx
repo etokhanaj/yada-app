@@ -8,6 +8,8 @@
  *   range drawn as one block (brief §3: never colour alone). Matter
  *   (https://mobbin.com/screens/058e54c1-2c6e-4568-939e-72ca0bd6ef85).
  * - A bookmarked verse shows a filled bookmark beside its number.
+ * - A highlighted verse sits on its colour's soft wash, its number in ink at 80% (PS-02); a verse with the reader's
+ *   note carries the accent note mark after its number, which opens the note (44 pt target).
  * - A verse with an explanation ends in a small muted note glyph bound to its
  *   last word (amendment 10, YouVersion's note marker; v2-review U9).
  * - LORD in small capitals, the BSB's convention (amendment 12).
@@ -23,6 +25,7 @@ import { Pressable, StyleSheet, Text, type TextLayoutLine, useWindowDimensions, 
 
 import { FONTS, RADIUS, useAXLevel, usePalette, useType } from "../design/tokens";
 import type { VerseMark } from "../lib/audio/text";
+import { type HighlightColor, highlightSpoken } from "../lib/highlights";
 import { useReduceMotion } from "../lib/motion";
 import { markSegments, splitSuperscription, type TextSegment } from "../lib/reader";
 import { scriptureSegments, spokenText } from "../lib/supplied";
@@ -38,7 +41,7 @@ export function DivineText({ text, translation = "" }: { text: string; translati
 /** Where this verse sits in a selected range, so the range draws as one block. */
 export type SelectionPlace = "none" | "only" | "first" | "middle" | "last";
 
-export type VerseAction = "understand" | "original" | "compare" | "copy" | "share" | "bookmark";
+export type VerseAction = "understand" | "original" | "compare" | "copy" | "share" | "bookmark" | "note";
 
 const WASH_INSET = 14;
 const BAR_LEFT = 8;
@@ -108,6 +111,9 @@ export function Verse({
   hasEntry,
   differs = false,
   footprint = false,
+  highlight = null,
+  noted = false,
+  onNote,
   onPress,
   onAction,
   mark = null,
@@ -133,6 +139,11 @@ export function Verse({
   differs?: boolean;
   /** MM-04: this verse uses the word open over the reader; a short ink tick in the margin. */
   footprint?: boolean;
+  /** The reader's highlight on this verse (PS-02). */
+  highlight?: HighlightColor | null;
+  /** The reader left a note on this verse (PS-02): the mark after its number opens it. */
+  noted?: boolean;
+  onNote?: () => void;
   onPress: () => void;
   onAction: (action: VerseAction) => void;
   /** Audio is reading this chapter and has not yet passed this verse. */
@@ -189,7 +200,9 @@ export function Verse({
         fontFamily: "System",
         fontSize: number.size,
         fontWeight: "600",
-        color: playing ? palette.ink : palette.mutedInk,
+        // PS-02: on a highlight the number is ink at 80%, so it stays clear of the wash.
+        color: playing || (highlight !== null && !selected) ? palette.ink : palette.mutedInk,
+        opacity: highlight !== null && !selected && !playing ? 0.8 : 1,
         fontVariant: ["tabular-nums"],
         letterSpacing: 0,
       }}
@@ -197,6 +210,15 @@ export function Verse({
       {through > verse ? `${verse}–${through}` : verse}
     </Text>
   );
+
+  const note = noted ? (
+    <>
+      {JOIN}
+      <Pressable onPress={onNote} hitSlop={12} accessible={false} style={styles.inline} testID={`note-mark-${verse}`}>
+        <Icon name="note" size={16} tone="accent" maxScale={2.2} />
+      </Pressable>
+    </>
+  ) : null;
 
   const bookmark = bookmarked ? (
     <>
@@ -215,6 +237,8 @@ export function Verse({
         : `Verse ${verse}`,
     playing ? "playing" : null,
     bookmarked ? "bookmarked" : null,
+    highlight !== null ? highlightSpoken(highlight) : null,
+    noted ? "has your note" : null,
     differs ? "readers differ here" : null,
     footprint ? "uses this word" : null,
   ]
@@ -228,6 +252,7 @@ export function Verse({
     { name: "copy", label: "Copy" },
     { name: "share", label: "Share" },
     { name: "bookmark", label: bookmarked ? "Remove bookmark" : "Bookmark" },
+    { name: "note", label: noted ? "Open your note" : "Note" },
   ];
 
   return (
@@ -249,7 +274,9 @@ export function Verse({
           paddingTop: opensBlock ? 10 : 0,
           paddingBottom: !selected ? 0 : closesBlock ? 10 : GAP,
           marginBottom: !selected || closesBlock ? GAP : 0,
-          backgroundColor: selected ? palette.selection : pressed ? palette.fill : "transparent",
+          backgroundColor: selected ? palette.selection : highlight !== null ? palette.highlights[highlight] : pressed ? palette.fill : "transparent",
+          // PS-02's `.hl`: a highlight is its own small block, 4 pt above and below the words.
+          ...(highlight !== null && !selected ? { paddingTop: 4, paddingBottom: 4, marginTop: -4, marginBottom: GAP - 4 } : null),
           borderTopLeftRadius: opensBlock || !selected ? RADIUS.wash : 0,
           borderTopRightRadius: opensBlock || !selected ? RADIUS.wash : 0,
           borderBottomLeftRadius: closesBlock || !selected ? RADIUS.wash : 0,
@@ -292,12 +319,14 @@ export function Verse({
           weight={weight}
         >
           {bookmark}
+          {note}
           {marker}
         </ChapterOpening>
       ) : (
         <Scripture style={weight}>
           {numberLabel}
           {bookmark}
+          {note}
           {" "}
           <DivineName segments={segments} spoken={spokenAt(bodyOffset)} />
           {marker}

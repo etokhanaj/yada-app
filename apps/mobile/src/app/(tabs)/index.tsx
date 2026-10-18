@@ -31,27 +31,24 @@ import { useLaunch } from "../../components/LaunchOverlay";
 import { Icon } from "../../components/Icon";
 import { readerHref } from "../../components/navigation";
 import { GlassIcon, ListRow, PageScreen } from "../../components/Page";
-import { Chrome, Label, Scripture, SectionTitle } from "../../components/Type";
-import { DivineText } from "../../components/Verse";
+import { Chrome } from "../../components/Type";
 import { useAppData, useCore } from "../../data/AppData";
 import { getTexts } from "../../data/queries";
-import { loadMcheyne, loadYourPlan, type PlanId } from "../../data/plans";
 import { notNow, shouldAsk, turnOff, turnOn, turnOnFromAsk, useReminder } from "../../data/reminder";
 import { loadProgress } from "../../data/startHere";
 import { loadPericopes } from "../../data/understand";
+import { decideReturn, stampOpen } from "../../data/lapse";
 import { loadPositionAt } from "../../data/user";
 import { FONTS, useIsDark, useLayout, usePalette } from "../../design/tokens";
 import { pericopeForVerse, type PericopeRow } from "../../lib/pericopes";
-import { excerptOf } from "../../lib/reader";
+import { chapterTitle, excerptOf } from "../../lib/reader";
 import { rangeInBook, verseLabel } from "../../lib/saved";
-import { backAfterGap, homeLead, type HomeLead, progressLabel, progressLine } from "../../lib/startHere";
-import { MCHEYNE_TOTAL, nextPortion } from "../../lib/plans";
+import { backAfterGap, homeLead, type HomeLead } from "../../lib/startHere";
 import { useSettings } from "../../state/settings";
 
 interface LeadState {
   readonly lead: HomeLead;
   readonly passages: readonly PericopeRow[];
-  readonly readCount: number;
   /** Continue's place. */
   readonly place: { readonly book: BookCode; readonly chapter: number; readonly verse: number; readonly label: string } | null;
   /** The passage holding the place, in its own book, when that book has passages. */
@@ -61,8 +58,6 @@ interface LeadState {
   readonly excerptBsb: boolean;
   /** MM-05: back after a gap; the lead says "Where you stopped", never how long. */
   readonly away: boolean;
-  /** IA-14: "Your plan", the plan last read in, with its count when it is M'Cheyne. */
-  readonly plan: { readonly id: PlanId; readonly reading: number | null };
 }
 
 const spokenRange = (range: string) => range.replace("–", " to ");
@@ -96,11 +91,21 @@ export default function Home() {
   // remount (Page's back falls back to `replace("/")`), and that must not throw the reader
   // forward again. A warm resume never remounts anything, so it keeps whatever was on screen.
   useEffect(() => {
-    if (useLaunch.getState().routed) return;
+    if (useLaunch.getState().routed) {
+      // A door chose the place (widget, link): the open still counts as the last time Yada was in use.
+      void stampOpen(user).catch(() => undefined);
+      return;
+    }
     useLaunch.getState().markRouted();
     if (!returning) useSettings.getState().markLaunched();
-    void loadPositionAt(user).then((saved) => {
+    void loadPositionAt(user).then(async (saved) => {
       const position = saved === null ? null : parseVerseId(saved.id);
+      // RT-01: back after a month or more, on a plain icon open only. Decided before anything else is pushed.
+      if (saved !== null && position !== null && (await decideReturn(user, true).catch(() => false))) {
+        router.push({ pathname: "/return", params: { place: saved.id } });
+        return;
+      }
+      if (position === null) void stampOpen(user).catch(() => undefined);
       if (position !== null) {
         // Someone who read before this build skips the first-visit hint.
         if (!returning) useSettings.getState().markHintSeen();
@@ -127,9 +132,8 @@ export default function Home() {
     useCallback(() => {
       let live = true;
       void (async () => {
-        const [saved, progress, yourPlan, mcheyne] = await Promise.all([loadPositionAt(user), loadProgress(user), loadYourPlan(user), loadMcheyne(user)]);
+        const [saved, progress] = await Promise.all([loadPositionAt(user), loadProgress(user)]);
         const id = saved?.id ?? null;
-        const mNext = nextPortion(mcheyne);
         const ref = id === null ? null : parseVerseId(id);
         const ord = ref === null ? null : verseOrd(ref.book, ref.chapter, ref.verse);
         const lead = homeLead({
@@ -158,12 +162,10 @@ export default function Home() {
         setState({
           lead,
           passages: progress.passages,
-          readCount: progress.read.size,
           place: ref === null ? null : { ...ref, label: verseLabel(ref) },
           placePassage,
           excerpt,
           excerptBsb,
-          plan: { id: yourPlan, reading: yourPlan === "mcheyne" && mNext !== null ? mNext.reading + 1 : null },
           away: backAfterGap(saved?.at ?? null, new Date()),
         });
       })();
@@ -187,8 +189,7 @@ export default function Home() {
 
   const right = (
     <>
-      <GlassIcon icon="search" label="Search" onPress={() => router.push("/search")} testID="home-search" />
-      <GlassIcon icon="bookmark" label="Bookmarks" onPress={() => router.push("/bookmarks")} testID="home-bookmarks" />
+      <GlassIcon icon="bookmark" label="Saved" onPress={() => router.push("/saved")} testID="home-saved" />
       <MenuView
         shouldOpenOnLongPress={false}
         actions={[
@@ -212,77 +213,54 @@ export default function Home() {
     </>
   );
 
+  /**
+   * BH-01: one way to start. A serif heading over one card (the next passage where you are); the plan lives on Today
+   * only, so there is no second row for it here and no passage count (UX pass, "Cleaner: one start, one verse").
+   * Taken from Apple Books Home (https://mobbin.com/screens/ef25171d-f4a6-43ed-a0a2-375e835230f8): a serif heading
+   * over one compact card, quiet shelves below.
+   */
   const lead = (): ReactNode => {
     if (state === null) return null;
     const { lead: l, passages } = state;
-    const total = passages.length;
     const first = passages[0];
     if (l.kind === "start") {
       return first === undefined ? null : (
-        <Lead
-          overline="Start here"
+        <StartCard
+          heading="Start here"
           title="The Gospel of John"
-          excerpt="One passage at a time, explained."
+          subtitle="One passage at a time, explained."
           label="Start here. The Gospel of John, one passage at a time, explained. Opens the first passage"
           onPress={() => openGuided(first)}
           testID="home-start-here"
         />
       );
     }
-    // IA-14: the plan in one line, "The Gospel of John · Your plan", in medium (`.valrow`): a way in, not
-    // a book. It replaces "All passages in John": John passage by passage is now a plan (IA-11).
-    const planName = state.plan.id === "mcheyne" ? "M’Cheyne" : "The Gospel of John";
-    const all = (
-      <ListRow
-        first
-        onPress={() => router.push(state.plan.id === "mcheyne" ? "/mcheyne" : "/thread")}
-        title={<Chrome tone="ink" style={{ fontWeight: "500" }}>{planName}</Chrome>}
-        subtitle="Your plan"
-        label={`Your plan, ${planName}${state.plan.reading === null ? "" : `, reading ${state.plan.reading} of ${MCHEYNE_TOTAL}`}`}
-        testID="home-your-plan"
-      />
-    );
-    const count = (shown: boolean) =>
-      state.plan.id === "mcheyne" ? (
-        state.plan.reading === null ? null : (
-          <Chrome step="note" tone="muted" style={styles.progress} testID="home-progress">
-            {`Reading ${state.plan.reading} of ${MCHEYNE_TOTAL}`}
-          </Chrome>
-        )
-      ) : shown ? (
-        <Chrome step="note" tone="muted" style={styles.progress} accessibilityLabel={progressLabel(state.readCount, total)} testID="home-progress">
-          {progressLine(state.readCount, total)}
-        </Chrome>
-      ) : null;
     if (l.kind === "next") {
       const p = passages[l.passage];
       if (p === undefined) return null;
       const range = rangeInBook(p.pericope_id);
       return (
-        <>
-          <Lead
-            // Under a licensed version the excerpt is the BSB's, and says so (IA stress test, 15 Oct 2026).
-            overline={`Next · John ${range}${state.excerptBsb ? " · BSB" : ""}`}
-            title={p.label}
-            excerpt={state.excerpt}
-            label={`Next, ${p.label}, John ${spokenRange(range)}. Opens its guide`}
-            onPress={() => openGuided(p)}
-            testID="home-next"
-          />
-          {count(true)}
-          {all}
-        </>
+        <StartCard
+          heading="Continue"
+          title={`John ${range}`}
+          subtitle={p.label}
+          label={`Continue, next, ${p.label}, John ${spokenRange(range)}. Opens its guide`}
+          onPress={() => openGuided(p)}
+          testID="home-next"
+        />
       );
     }
     const place = state.place;
     if (place === null) return null;
-    const johnNext = l.johnNext === null ? null : passages[l.johnNext];
+    const heading = state.away ? "Where you stopped" : "Continue";
     return (
       <>
-        <Lead
-          overline={`${state.away ? "Where you stopped" : "Continue"} · ${place.label}${state.excerptBsb ? " · BSB" : ""}`}
-          title={state.placePassage ?? place.label}
-          excerpt={state.excerpt}
+        <StartCard
+          heading={heading}
+          // Under a licensed version the excerpt is the BSB's and says so; a passage heading is Yada's own, so no label.
+          // BH-01 names the chapter ("Psalm 79"); the reader lands on the verse and holds it after a gap (MM-05).
+          title={`${chapterTitle(place.book, place.chapter)}${state.placePassage === null && state.excerptBsb ? " · BSB" : ""}`}
+          subtitle={state.placePassage ?? state.excerpt}
           // One element to VoiceOver: "Continue reading, The first disciples, John 1:39. “Come and see,”…" (brief §5).
           label={`${state.away ? "Where you stopped" : "Continue reading"}, ${state.placePassage === null ? "" : `${state.placePassage}, `}${place.label}. ${state.excerpt}`}
           onPress={() =>
@@ -298,26 +276,12 @@ export default function Home() {
           }
           testID="home-continue"
         />
-        {johnNext !== null && johnNext !== undefined ? (
-          // Edge case 1: reading outside John, the thread waits as one quiet row, not a second lead.
-          <ListRow
-            first
-            onPress={() => openGuided(johnNext)}
-            overline={`Next in John · ${rangeInBook(johnNext.pericope_id)}`}
-            title={johnNext.label}
-            label={`Next in John, ${johnNext.label}, John ${spokenRange(rangeInBook(johnNext.pericope_id))}. Opens its guide`}
-            testID="home-john-next"
-          />
-        ) : null}
-        {/* No "0 of 46": a count starts once there is one to show (UX pass, 15 Oct 2026). */}
-        {count(state.readCount > 0)}
-        {all}
       </>
     );
   };
 
   return (
-    <PageScreen title="Yada" titleNode={<Wordmark />} back={null} right={right} testID="home">
+    <PageScreen title="Yada" titleNode={<Wordmark />} back={null} right={right} clearTabBar testID="home">
       {/* No padding under the lead: the books' label sits 28 pt below its hairline, as ON-01/05/07
           space it (canvas `.lbl` margin-top); 12 more opened a gap the frames don't have (QA). */}
       {paused ? (
@@ -373,8 +337,8 @@ export default function Home() {
         { title: "Old Testament", books: ot },
         { title: "New Testament", books: nt },
       ].map((group) => (
-        <View key={group.title} style={{ marginTop: 40 }}>
-          <SectionTitle style={{ marginBottom: 6 }}>{group.title}</SectionTitle>
+        <View key={group.title} style={{ marginTop: 26 }}>
+          <Heading style={{ marginBottom: 6 }}>{group.title}</Heading>
           {group.books.map((book, i) => (
             <ListRow
               key={book}
@@ -397,22 +361,30 @@ export default function Home() {
   );
 }
 
+/** A serif section heading (BH-01): "Continue", "Old Testament". */
+function Heading({ children, style }: { children: string; style?: object }) {
+  return (
+    <Chrome tone="ink" accessibilityRole="header" maxFontSizeMultiplier={2} style={[styles.heading, style]}>
+      {children}
+    </Chrome>
+  );
+}
+
 /**
- * The lead (canvas `.lead.coverlead`): a small overline that says what it is,
- * the title in Literata semibold, one muted line of excerpt, a chevron. One
- * element to VoiceOver whose label names where it goes (WCAG 2.4.4).
+ * The one card (BH-01): what to read next, a tappable thing, so a card: 24 pt radius, a soft fill, no shadow
+ * (CLAUDE.md, John 15 Oct 2026). One element to VoiceOver whose label names where it goes (WCAG 2.4.4).
  */
-function Lead({
-  overline,
+function StartCard({
+  heading,
   title,
-  excerpt,
+  subtitle,
   label,
   onPress,
   testID,
 }: {
-  overline: string;
+  heading: string;
   title: string;
-  excerpt: string;
+  subtitle: string;
   label: string;
   onPress: () => void;
   testID: string;
@@ -420,30 +392,28 @@ function Lead({
   const palette = usePalette();
   const { ax } = useLayout();
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      testID={testID}
-      style={({ pressed }) => [
-        styles.leadRow,
-        { boxShadow: `0 1px 0 ${palette.divider}` },
-        pressed ? { backgroundColor: palette.fill } : null,
-      ]}
-    >
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Label accessibilityRole="text">{overline}</Label>
-        <Chrome tone="ink" style={styles.leadTitle} maxFontSizeMultiplier={2}>
-          <DivineText text={title} />
-        </Chrome>
-        {excerpt !== "" ? (
-          <Scripture step="claim" tone="muted" numberOfLines={ax ? 3 : 1} style={{ fontFamily: FONTS.scripture }}>
-            {excerpt}
-          </Scripture>
-        ) : null}
-      </View>
-      <Icon name="forward" size={18} tone="muted" />
-    </Pressable>
+    <View>
+      <Heading>{heading}</Heading>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        testID={testID}
+        style={({ pressed }) => [styles.card, { backgroundColor: palette.card, opacity: pressed ? 0.85 : 1 }]}
+      >
+        <View style={{ flex: 1, minWidth: 0, rowGap: 4 }}>
+          <Chrome tone="ink" style={styles.cardTitle} maxFontSizeMultiplier={2}>
+            {title}
+          </Chrome>
+          {subtitle !== "" ? (
+            <Chrome tone="muted" numberOfLines={ax ? 3 : 1}>
+              {subtitle}
+            </Chrome>
+          ) : null}
+        </View>
+        <Icon name="forward" size={18} tone="muted" />
+      </Pressable>
+    </View>
   );
 }
 
@@ -471,23 +441,9 @@ function Wordmark() {
 const styles = StyleSheet.create({
   paused: { rowGap: 4, marginBottom: 20 },
   pausedAction: { minHeight: 44, justifyContent: "center" },
-  leadRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    columnGap: 12,
-    paddingTop: 14,
-    paddingBottom: 22,
-    marginBottom: 6,
-  },
-  leadTitle: {
-    fontFamily: FONTS.scripture,
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: "600",
-    letterSpacing: -0.4,
-    marginTop: 6,
-    marginBottom: 4,
-  },
+  heading: { fontFamily: FONTS.scripture, fontSize: 24, lineHeight: 30, fontWeight: "600", letterSpacing: -0.4, marginBottom: 10 },
+  card: { flexDirection: "row", alignItems: "center", columnGap: 12, borderRadius: 24, paddingVertical: 18, paddingHorizontal: 20, minHeight: 44 },
+  cardTitle: { fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 29, fontWeight: "600", letterSpacing: -0.4 },
   progress: {
     marginTop: 4,
     marginBottom: 2,

@@ -300,6 +300,37 @@ export function peopleInVerse<T extends Pick<StudyNoteRow, "kind" | "title" | "o
   );
 }
 
+export interface Named {
+  readonly kind: "person" | "place";
+  /** A profile's id, or a place's id. */
+  readonly id: string;
+  readonly name: string;
+}
+
+/**
+ * PD-01: the verse's people and places in one line, in the order the verse names them. People are the Tyndale
+ * profiles it names (by title: "Martha, Mary, and Lazarus" is one profile); places are OpenBible's, named as
+ * the BSB writes them at their first span. One per id; nothing the data does not name (TIPNR is not on disk).
+ */
+export function namedInVerse(
+  bsb: string,
+  people: ReadonlyArray<Pick<StudyNoteRow, "id" | "title">>,
+  places: ReadonlyArray<{ place: string; spans: ReadonlyArray<readonly [number, number]> }>,
+): Named[] {
+  const at = (title: string) => {
+    const hits = matchNames(title).map((n) => bsb.search(new RegExp(`(^|[^\\p{L}])${escapeRegExp(n)}(?=$|[^\\p{L}])`, "u")));
+    const found = hits.filter((h) => h >= 0);
+    return found.length === 0 ? Number.MAX_SAFE_INTEGER : Math.min(...found);
+  };
+  const out: Array<Named & { at: number }> = people.flatMap((p) => (typeof p.title === "string" && p.title !== "" ? [{ kind: "person" as const, id: String(p.id), name: p.title, at: at(p.title) }] : []));
+  for (const p of places) {
+    const span = [...p.spans].sort((a, b) => a[0] - b[0])[0];
+    if (span === undefined || span[1] > bsb.length || out.some((o) => o.kind === "place" && o.id === p.place)) continue;
+    out.push({ kind: "place", id: p.place, name: bsb.slice(span[0], span[1]), at: span[0] });
+  }
+  return out.sort((a, b) => a.at - b.at).map(({ kind, id, name }) => ({ kind, id, name }));
+}
+
 /** A search that is a book's name ("John") is looking for the book, never a person first (edge case 1). */
 export function isBookQuery(query: string): boolean {
   return lookupBook(query.trim()) !== null;

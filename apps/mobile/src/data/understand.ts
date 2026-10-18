@@ -55,11 +55,15 @@ export function ensureUnderstand(user: SQLiteDatabase, book: BookCode, retry = f
   return files.ensure(user, book, retry);
 }
 
-/** Whether the book's Understand file is here, coming, or not offered; fetching it the first time. */
-export function useUnderstandFile(book: BookCode): "ready" | "fetching" | "none" {
+/**
+ * Whether the book's Understand file is here, coming, waiting for a connection, or not offered; fetching it the
+ * first time. "offline" says so in one line (EG-02: "Understand for Luke downloads when you’re online.").
+ */
+export function useUnderstandFile(book: BookCode): "ready" | "fetching" | "offline" | "none" {
   const { user } = useAppData();
   const installed = files.useStore((s) => s.installed[book] !== undefined);
   const offered = files.useStore((s) => s.catalogue[book] !== undefined);
+  const known = files.useStore((s) => Object.keys(s.catalogue).length > 0);
   const online = files.useStore((s) => s.online);
   const downloading = files.useStore((s) => s.downloading[book] !== undefined);
   const failed = files.useStore((s) => s.failed[book] === true);
@@ -68,6 +72,8 @@ export function useUnderstandFile(book: BookCode): "ready" | "fetching" | "none"
   }, [installed, user, book]);
   if (installed) return "ready";
   if (downloading || (offered && online !== false && !failed)) return "fetching";
+  // Offline before the manifest is known, the book may well be offered: say what waits for a connection.
+  if (online === false && (offered || !known)) return "offline";
   return "none";
 }
 

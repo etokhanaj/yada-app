@@ -55,7 +55,7 @@ appId: studio.yada.reader
     timeout: 5000
 - tapOn:
     id: sheet-close
-# SW-03, MM-08: after John 21 the swipe stops on the End page, never running into Acts.
+# SW-03, RT-04 (MM-08 merged): after John 21 the swipe stops on the end of the book, never running into Acts.
 - openLink: studio.yada.reader:///read/JHN/1?verse=1
 - openLink: studio.yada.reader:///read/JHN/21?verse=25
 - waitForAnimationToEnd
@@ -66,8 +66,9 @@ appId: studio.yada.reader
 - waitForAnimationToEnd
 - assertVisible:
     id: end-of-book
-- assertVisible: "End of John"
-- assertVisible: "John 21:25 · Begun.*"
+# John 21 was opened, not read to its end, so the screen makes no claim (CLAUDE.md rule 4).
+- assertVisible: "End of John."
+- assertNotVisible: "You’ve read John."
 - tapOn:
     id: end-next
 - waitForAnimationToEnd

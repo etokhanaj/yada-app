@@ -78,10 +78,44 @@ const CUT_LINE = /\b(?:through|to|of|by|for|with|and|the|a|an|in|on|from)\.?$|^[
 const LABEL_LINE = /^(?:the\s+)?(?:greeting|greetings|introduction|conclusion|closing|heading|superscription|title|complaint|lament|prayer|praise|hymn|song|oracle|blessing|benediction)\b/i;
 
 /**
- * Passages Henry's outline steers, one by one as John accepts the change (16 Oct 2026: Acts 9:23–25 accepted;
- * Daniel 6, Ezra 2, Acts 2, Judges 2 and Hebrews 11 rejected). Steering every passage changed 284 summaries.
+ * Passages Henry's outline steers, only those John chose. Steering every passage changed 284 summaries
+ * (docs/research/henry-steer-2026-10-16.txt); on 18 Oct 2026 John read all 284 and chose the new summary for these
+ * 66 and kept the old for 218 (docs/review-2026-10-18-henry-prayers.md). Acts 9:23–25 was accepted on 16 Oct.
  */
-const STEERED: ReadonlySet<string> = new Set(["ACT.9.23-9.25"]);
+const STEERED: ReadonlySet<string> = new Set([
+  "GEN.8.13-8.19", "GEN.22.1-22.10", "GEN.50.15-50.21",
+  "EXO.14.1-14.14", "EXO.15.1-15.21",
+  "NUM.5.1-5.4", "NUM.22.1-22.21", "NUM.24.1-24.9", "NUM.26.63-26.65",
+  "DEU.33.1-33.29",
+  "JDG.3.12-3.30", "JDG.7.15-7.25", "JDG.10.6-10.18",
+  "2SA.5.6-5.11", "2SA.10.9-10.19",
+  "1KI.21.8-21.16", "1KI.22.1-22.12",
+  "2KI.15.32-15.38", "2KI.21.19-21.26", "2KI.22.14-22.20", "2KI.24.6-24.9",
+  "1CH.20.1-20.3", "1CH.23.24-23.32",
+  "2CH.30.13-30.27",
+  "NEH.1.1-1.11", "NEH.4.1-4.8",
+  "EST.1.1-1.8",
+  "JOB.13.1-13.28", "JOB.38.1-38.41",
+  "ISA.59.1-59.17",
+  "JER.12.5-12.13",
+  "EZK.1.4-1.14", "EZK.1.22-1.28", "EZK.10.1-10.22", "EZK.13.1-13.16", "EZK.22.17-22.22",
+  "OBA.1.1-1.14",
+  "MIC.6.1-6.8",
+  "NAM.2.1-2.13",
+  "ZEC.8.1-8.23",
+  "MAT.5.1-5.12",
+  "ACT.4.1-4.12", "ACT.5.33-5.42", "ACT.9.23-9.25", "ACT.19.21-19.41", "ACT.20.7-20.12", "ACT.23.1-23.11",
+  "ACT.23.12-23.22", "ACT.26.1-26.23",
+  "ROM.15.1-15.6", "ROM.15.14-15.22",
+  "GAL.2.11-2.21", "GAL.3.1-3.9",
+  "EPH.2.1-2.10", "EPH.5.21-5.33", "EPH.6.5-6.9",
+  "PHP.2.12-2.18",
+  "2TH.3.1-3.5", "2TH.3.16-3.18",
+  "2TI.3.10-3.17",
+  "1JN.1.1-1.4",
+  "3JN.1.9-1.14",
+  "REV.5.1-5.10", "REV.11.15-11.19", "REV.16.1-16.16", "REV.20.7-20.10",
+]);
 
 export function summariseBook(data: PassageBookData, budget = BUDGET): PassageResult[] {
   const book = data.book;

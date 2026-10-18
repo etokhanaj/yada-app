@@ -10,7 +10,7 @@
  */
 
 import { SPEEDS, speedLabel } from "./session";
-import { minutesLeft, type Repeat, repeatChoices, type Stop, type StopChoice, stopChoices } from "./stop";
+import { minutesLeft, type Repeat, repeatChoices, type SetEnd, setEndLabel, type Stop, type StopChoice, stopChoices } from "./stop";
 
 export interface MenuRow {
   readonly id: string;
@@ -43,9 +43,13 @@ export interface MenuPlace {
   /** Where a stop at the end of the passage and of the chapter falls: "1:18", "1:51". */
   readonly passageEnd: string | null;
   readonly chapterEnd: string;
+  /** DR-08: "End of this psalm" where the chapter is a psalm. */
+  readonly psalm?: boolean;
+  /** DR-08: today's set of psalms, while one of them plays; null otherwise. */
+  readonly set?: SetEnd | null;
 }
 
-const STOP_TITLES: Record<StopChoice, string> = {
+const STOP_TITLES: Record<Exclude<StopChoice, "set">, string> = {
   passage: "End of this passage",
   chapter: "End of this chapter",
   "time:15": "In 15 minutes",
@@ -53,10 +57,19 @@ const STOP_TITLES: Record<StopChoice, string> = {
   "time:60": "In 1 hour",
 };
 
-function stopValue(stop: Stop | null, now: number): string {
+/** DR-08: "End of this evening's psalms". */
+const setTitle = (part: SetEnd["part"]) => `End of this ${part}’s psalms`;
+
+function stopTitle(choice: StopChoice, place: MenuPlace): string {
+  if (choice === "set") return setTitle(place.set?.part ?? "evening");
+  if (choice === "chapter" && place.psalm === true) return "End of this psalm";
+  return STOP_TITLES[choice];
+}
+
+function stopValue(stop: Stop | null, place: MenuPlace, now: number): string {
   if (stop === null) return "Off";
-  if (stop.kind === "passage") return "End of this passage";
-  if (stop.kind === "chapter") return "End of this chapter";
+  if (stop.kind === "set") return setTitle(stop.part);
+  if (stop.kind === "passage" || stop.kind === "chapter") return stopTitle(stop.kind, place);
   return `In ${minutesLeft(stop, now)} min`;
 }
 
@@ -65,11 +78,19 @@ const REPEAT_TITLES: Record<Repeat, string> = { verse: "This verse", passage: "T
 /** LB-01: Speed, Stop playing and Repeat, each with its setting and its rows ticked. */
 export function playerMenu(speed: number, stop: Stop | null, repeat: Repeat | null, place: MenuPlace, now: number): MenuSection[] {
   const hasPassages = place.passage !== null;
-  const stops = stopChoices(repeat, hasPassages).map((choice): MenuRow => {
+  const set = place.set ?? null;
+  const stops = stopChoices(repeat, hasPassages, set !== null).map((choice): MenuRow => {
     // A running timer ticks no row: "In 30 minutes" is no longer true after a minute; the row above says what is left.
     const on = stop !== null && stop.kind !== "time" && choice === stop.kind;
-    const subtitle = choice === "passage" ? `After ${place.passageEnd ?? place.chapterEnd}` : choice === "chapter" ? `After ${place.chapterEnd}` : undefined;
-    return { id: `stop:${choice}`, title: STOP_TITLES[choice], on, ...(subtitle === undefined ? {} : { subtitle }) };
+    const subtitle =
+      choice === "set" && set !== null
+        ? `After ${setEndLabel(set)}`
+        : choice === "passage"
+          ? `After ${place.passageEnd ?? place.chapterEnd}`
+          : choice === "chapter"
+            ? `After ${place.chapterEnd}`
+            : undefined;
+    return { id: `stop:${choice}`, title: stopTitle(choice, place), on, ...(subtitle === undefined ? {} : { subtitle }) };
   });
   const repeats = repeatChoices(hasPassages).map((r): MenuRow => {
     const subtitle = r === "verse" ? place.verse : r === "passage" ? (place.passage ?? place.chapter) : place.chapter;
@@ -77,7 +98,7 @@ export function playerMenu(speed: number, stop: Stop | null, repeat: Repeat | nu
   });
   return [
     ...speedMenu(speed),
-    { id: "stop", title: "Stop playing", subtitle: stopValue(stop, now), rows: [...stops, { id: "stop:off", title: "Off", on: stop === null }] },
+    { id: "stop", title: "Stop playing", subtitle: stopValue(stop, place, now), rows: [...stops, { id: "stop:off", title: "Off", on: stop === null }] },
     { id: "repeat", title: "Repeat", subtitle: repeat === null ? "Off" : REPEAT_TITLES[repeat], rows: [...repeats, { id: "repeat:off", title: "Off", on: repeat === null }] },
   ];
 }

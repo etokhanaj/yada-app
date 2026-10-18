@@ -7,24 +7,31 @@
 import { BOOK_CODES, type BookCode, type TranslationWord, formatDisplayRef, formatVerseId, isMissingVerse, ordToParts } from "@yada/schema";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { useCore, useQuery } from "../data/AppData";
-import { bookBounds, getTextsForOrds } from "../data/queries";
+import { bookBounds, getTextsForOrds, readableTranslations } from "../data/queries";
 import { loadPassageFor, loadVersesInRange } from "../data/understand";
 import { usePalette } from "../design/tokens";
+import { FONTS } from "../design/type";
 import { resolveRef } from "../lib/chapters";
+import { DICTIONARY_CREDIT } from "../lib/dictionary";
+import { passageSubtitle } from "../lib/passageGuide";
 import { mergeSeeAlso, OPENBIBLE_LINE } from "../lib/study";
-import { plainSegments } from "../lib/understand";
+import { spokenText } from "../lib/supplied";
+import { notInLine } from "../lib/translations";
+import { behindLine } from "../lib/understand";
+import { useSettings } from "../state/settings";
+import { Icon } from "./Icon";
 import { useSheetBase } from "./navigation";
-import { passageSubtitle } from "./UnderstandViews";
 import { Row, RowNote, Section, SheetScreen, UNDERSTAND_EXIT } from "./Sheet";
 import { SeeAlsoRow, useShownSeeAlso, useVerseStudy } from "./StudyLayer";
 import { Chrome, Prose, Scripture } from "./Type";
+import { DivineText } from "./Verse";
 
-const TW_CREDIT = "Translation Words, adapted from unfoldingWord (definition only) · CC BY‑SA 4.0";
 const TQ_CREDIT = "Translation Questions, adapted from unfoldingWord · CC BY‑SA 4.0";
 const TN_CREDIT = "Translation Notes, adapted from unfoldingWord · CC BY‑SA 4.0 · Berean Standard Bible, public domain";
+const BSB_FOOTNOTES_CREDIT = "The Berean Standard Bible’s own footnotes · public domain";
 
 const idOf = (ord: number): string => formatVerseId(ordToParts(ord));
 
@@ -67,7 +74,7 @@ export function KeyWordsPage({ refText }: { refText: string }) {
         </Row>
       ))}
       <Chrome step="note" tone="muted" style={{ marginTop: 16 }}>
-        {TW_CREDIT}
+        {DICTIONARY_CREDIT}
       </Chrome>
     </SheetScreen>
   );
@@ -115,7 +122,7 @@ export function TermPage({ refText, term }: { refText: string; term: string }) {
         </Section>
       ) : null}
       <Chrome step="note" tone="muted" style={{ marginTop: 16 }}>
-        {TW_CREDIT}
+        {DICTIONARY_CREDIT}
       </Chrome>
     </SheetScreen>
   );
@@ -123,7 +130,6 @@ export function TermPage({ refText, term }: { refText: string; term: string }) {
 
 export function CheckPage({ refText }: { refText: string }) {
   const span = resolveRef(refText);
-  const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
   const { data } = useQuery(async () => {
     if (span === null) return [];
     return (await loadVersesInRange(span.book, span.startOrd, span.endOrd)).flatMap(({ ord, verse }) =>
@@ -133,31 +139,100 @@ export function CheckPage({ refText }: { refText: string }) {
   if (span === null) return null;
   return (
     <SheetScreen title="Check what you read" subtitle={refText.includes("-") ? undefined : formatDisplayRef(ordToParts(span.startOrd))} backLabel={null} testID="check" {...UNDERSTAND_EXIT}>
-      {(data ?? []).map((c, i) => {
-        const shown = open.has(c.q);
-        return (
-          <Row
-            key={`${c.ord}-${c.q}`}
-            first={i === 0}
-            chevron={false}
-            onPress={() => setOpen((s) => new Set(shown ? [...s].filter((x) => x !== c.q) : [...s, c.q]))}
-            label={shown ? `${c.q} ${c.a}` : c.q}
-            hint={shown ? undefined : "Shows the answer"}
-          >
-            <Chrome step="note" tone="muted">
-              {shortRef(c.ord)}
-            </Chrome>
-            <Prose step="claim">{c.q}</Prose>
-            {shown ? (
-              <Prose step="claim" tone="muted">
-                {c.a}
-              </Prose>
-            ) : null}
-          </Row>
-        );
-      })}
+      {(data ?? []).map((c) => (
+        <CheckQuestion key={`${c.ord}-${c.q}`} q={c.q} a={c.a} where={shortRef(c.ord)} />
+      ))}
       <Chrome step="note" tone="muted" style={{ marginTop: 16 }}>
         {TQ_CREDIT}
+      </Chrome>
+    </SheetScreen>
+  );
+}
+
+/**
+ * One question (UW-02 `.qrow`): the question, then a visible "Show the answer" / "Hide the answer" in accent
+ * with its chevron, the answer indented under it. Before, the whole row was the control and nothing on screen
+ * said an answer was there (design QA, 18 Oct 2026).
+ */
+export function CheckQuestion({ q, a, where }: { q: string; a: string; where?: string }) {
+  const palette = usePalette();
+  const [shown, setShown] = useState(false);
+  return (
+    <View style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: palette.divider }}>
+      {where !== undefined ? (
+        <Chrome step="note" tone="muted">
+          {where}
+        </Chrome>
+      ) : null}
+      <Prose step="claim">{q}</Prose>
+      <Pressable
+        onPress={() => setShown((v) => !v)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: shown }}
+        accessibilityLabel={shown ? "Hide the answer" : "Show the answer"}
+        style={({ pressed }) => [{ minHeight: 44, flexDirection: "row", alignItems: "center", columnGap: 6 }, pressed ? { opacity: 0.6 } : null]}
+      >
+        <Chrome tone="accent" size={15} style={{ fontWeight: "600" }}>
+          {shown ? "Hide the answer" : "Show the answer"}
+        </Chrome>
+        <Icon name={shown ? "up" : "down"} size={16} tone="accent" />
+      </Pressable>
+      {shown ? (
+        <Prose step="claim" tone="muted" style={{ paddingLeft: 12, paddingBottom: 4 }}>
+          {a}
+        </Prose>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * What the manuscripts differ on (VS-04's Go deeper "Manuscripts" row): the BSB's own manuscript footnotes on
+ * this verse, then on the other verses of its passage, each under its verse. Offered only where the verse has
+ * one; nothing here that the footnotes don't say (rule 4).
+ */
+export function ManuscriptsPage({ refText }: { refText: string }) {
+  const span = resolveRef(refText);
+  const { data } = useQuery(async () => {
+    if (span === null) return null;
+    const passage = await loadPassageFor(span.book, span.startOrd);
+    const lo = passage?.startOrd ?? span.startOrd;
+    const hi = passage?.endOrd ?? span.startOrd;
+    const notes = (await loadVersesInRange(span.book, lo, hi)).flatMap(({ ord, verse }) => {
+      const lines = isMissingVerse(verse) ? verse.manuscripts : verse.beginner.manuscripts;
+      return lines.length === 0 ? [] : [{ ord, lines }];
+    });
+    return { notes };
+  }, [refText]);
+  if (span === null) return null;
+  const display = formatDisplayRef(ordToParts(span.startOrd));
+  const here = (data?.notes ?? []).filter((n) => n.ord === span.startOrd);
+  const around = (data?.notes ?? []).filter((n) => n.ord !== span.startOrd);
+  return (
+    <SheetScreen title="Manuscripts" subtitle={display} backLabel={shortRef(span.startOrd)} testID="manuscripts" {...UNDERSTAND_EXIT}>
+      {here.flatMap((n) => n.lines).map((line) => (
+        <Prose key={line} step="claim" style={{ marginBottom: 10 }}>
+          {line}
+        </Prose>
+      ))}
+      {around.length > 0 ? (
+        <Section title="Elsewhere in this passage">
+          {around.map((n) => (
+            <View key={n.ord} style={{ marginBottom: 12 }}>
+              <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
+                {shortRef(n.ord)}
+              </Chrome>
+              {n.lines.map((line) => (
+                <Prose key={line} step="claim">
+                  {line}
+                </Prose>
+              ))}
+            </View>
+          ))}
+        </Section>
+      ) : null}
+      <Chrome step="note" tone="muted" style={{ marginTop: 16 }}>
+        {BSB_FOOTNOTES_CREDIT}
       </Chrome>
     </SheetScreen>
   );
@@ -189,46 +264,48 @@ export function AboutPsalmPage({ refText }: { refText: string }) {
   );
 }
 
-/** Verse by verse (UX-09): each verse's plain line, and its Understand one push away. */
+/**
+ * Verse by verse (UX-09 `.row.vbv`): each verse's number, its words in the version being read, and one muted line
+ * of what its Understand holds; the verse's Understand one push away. Before, each row was the UST plain line,
+ * which said nothing of what lay behind it.
+ */
 export function VersesPage({ refText }: { refText: string }) {
+  const core = useCore();
   const span = resolveRef(refText);
   const base = useSheetBase();
-  const palette = usePalette();
+  const translation = useSettings((s) => s.translation);
+  // The reader's own version where the phone has it; a licensed one is read through the BSB here, as in Understand.
+  const code = readableTranslations().includes(translation) ? translation : "BSB";
   const { data } = useQuery(async () => {
     if (span === null) return null;
     const [verses, passage] = await Promise.all([loadVersesInRange(span.book, span.startOrd, span.endOrd), loadPassageFor(span.book, span.startOrd)]);
-    return { verses, passage };
-  }, [refText]);
+    const texts = await getTextsForOrds(core, verses.map((v) => v.ord), code);
+    return { verses, passage, texts };
+  }, [refText, code]);
   if (span === null) return null;
   return (
     <SheetScreen title="Verse by verse" subtitle={data?.passage == null ? undefined : passageSubtitle(data.passage)} backLabel={null} testID="verses" {...UNDERSTAND_EXIT}>
       {(data?.verses ?? []).map(({ ord, verse }, i) => {
-        const plain = isMissingVerse(verse) ? null : (verse.beginner.plain?.text ?? null);
         const p = ordToParts(ord);
+        const text = data?.texts.get(ord) ?? "";
+        const shown = text === "" ? notInLine(code) : text;
+        const behind = behindLine(verse);
         return (
-          <Row key={ord} first={i === 0} onPress={() => router.push({ pathname: `${base}/verse`, params: { ref: idOf(ord) } })} label={`${p.chapter}:${p.verse}${plain === null ? "" : `, ${plain.replace(/[{}]/gu, "")}`}`} testID={`verses-row-${p.verse}`}>
-            <Prose step="claim">
-              <Text style={{ color: palette.mutedInk, fontSize: 12 }}>{`${p.verse} `}</Text>
-              {plain === null
-                ? isMissingVerse(verse)
-                  ? (verse.manuscripts[0] ?? "")
-                  : ""
-                : plainSegments(plain).map((s, j) =>
-                    s.added ? (
-                      <Text key={j} style={{ fontStyle: "italic", color: palette.mutedInk }}>
-                        {s.text}
-                      </Text>
-                    ) : (
-                      s.text
-                    ),
-                  )}
-            </Prose>
+          <Row key={ord} first={i === 0} onPress={() => router.push({ pathname: `${base}/verse`, params: { ref: idOf(ord) } })} label={`Verse ${p.verse}. ${spokenText(shown, code)}. ${behind}. Opens Understand ${p.verse}`} testID={`verses-row-${p.verse}`}>
+            <View style={{ flexDirection: "row", columnGap: 12, alignItems: "flex-start" }}>
+              <Chrome step="note" tone="muted" style={{ minWidth: 18, marginTop: 3, fontVariant: ["tabular-nums"] }}>
+                {p.verse}
+              </Chrome>
+              <View style={{ flex: 1, rowGap: 4 }}>
+                <Scripture step="claim" style={{ fontFamily: FONTS.scripture }} tone={text === "" ? "muted" : "ink"}>
+                  {text === "" ? shown : <DivineText text={text} translation={code} />}
+                </Scripture>
+                <RowNote>{behind}</RowNote>
+              </View>
+            </View>
           </Row>
         );
       })}
-      <View style={{ marginTop: 16 }}>
-        <RowNote>Simplified Text, adapted from unfoldingWord (alignment markup removed) · CC BY‑SA 4.0</RowNote>
-      </View>
     </SheetScreen>
   );
 }

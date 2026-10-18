@@ -3,6 +3,8 @@
  * `Cancel`, as Apple Books' in-book search. Groups under sentence-case labels:
  *
  *   Go to       "jn 3 16", "1 cor 14:34", "Genesis" — the forgiving parser
+ *   Dictionary  Translation Words' terms, before the verses (DI-03, PD-04)
+ *   Guides      a passage title finds its guide (IA-06)
  *   Words       Greek/Hebrew forms via word_forms, or English via glosses (5, then Show all)
  *   Passages    FTS5 over the reader's translation, every term quoted
  *
@@ -12,18 +14,24 @@
  * Search follows the translation (John, 12 Oct 2026). A licensed version is searched through the proxy
  * (EG-06): its verses, the way to the BSB's own search with Words, and the notice (§7). Offline, or if
  * that search fails, the BSB is searched and one line says so (EG-07). Nothing found there is stored.
+ *
+ * Before anything is typed, Search offers the dictionary to browse (DI-04). VM-01 draws six moments there (Anxious,
+ * Afraid…); their verse lists need a vetted source and John's review (build-7-plan.md, "Verses for a moment"), and no
+ * bundle holds them, so they are not drawn.
  */
 
 import { BOOK_CODES, formatDisplayRef, formatVerseId, ordToParts, parseVerseId, verseOrd } from "@yada/schema";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "../components/Icon";
-import { useSheetNav } from "../components/navigation";
+import { useTabBarClearance } from "../components/TabBar";
+import { readerHref, useSheetNav } from "../components/navigation";
 import { ListRow } from "../components/Page";
 import { SheetScreen, TextLink } from "../components/Sheet";
-import { Chrome, Label, Original, Prose, Scripture } from "../components/Type";
+import { SectionTitle, Chrome, Original, Prose, Scripture } from "../components/Type";
 import { useCore, useLog, useQuery } from "../data/AppData";
 import {
   countPassages,
@@ -39,6 +47,8 @@ import { searchProfiles } from "../data/study";
 import { licensedEnabled, useLicensedSearch } from "../data/useLicensedChapter";
 import { useLayout, usePalette } from "../design/tokens";
 import { fieldDirection } from "../lib/fieldDirection";
+import { formatRange } from "../lib/chapters";
+import { findGuides, findTerms, firstSentence } from "../lib/dictionary";
 import { excerptOf } from "../lib/reader";
 import { createSearchLogger } from "../lib/searchLog";
 import { planSearch, type SearchPlan, splitSnippet } from "../lib/searchQuery";
@@ -47,7 +57,12 @@ import { useSettings } from "../state/settings";
 
 const WORDS_SHOWN = 5;
 
-export default function SearchScreen() {
+/**
+ * IA-15: Search is also the round button beside the tab bar, a tab of its own (app/(tabs)/search.tsx), so it is one
+ * step from Today as well as Bible. There it is a page under the bar, not a sheet: no Cancel, and a verse opens the
+ * reader over the tabs.
+ */
+export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
   const palette = usePalette();
   const { ax } = useLayout();
   const core = useCore();
@@ -103,7 +118,10 @@ export default function SearchScreen() {
           ? searchWordsByGloss(core, plan.glossWord)
           : Promise.resolve([] as Lexeme[]),
     ]);
-    return { plan, reference, people, passages, total, words };
+    // The dictionary and guide titles are in the app (data/dictionary.generated.ts): found with no book's file here.
+    const terms = plan.reference === null ? findTerms(query) : [];
+    const guides = plan.reference === null ? findGuides(query) : [];
+    return { plan, reference, people, passages, total, words, terms, guides };
   }, [query, translation]);
 
   const searchLog = useMemo(() => createSearchLogger((detail) => log("search", undefined, detail)), [log]);
@@ -117,10 +135,21 @@ export default function SearchScreen() {
     searchLog.settle();
     router.push(href);
   };
+  /**
+   * The dictionary's pages (DI-04) are pages, not sheets. In the tab they push over it with ‹ Search; from the sheet,
+   * Search closes first, as it does for a verse, so a page is never drawn inside a sheet.
+   */
+  const openPage = (href: Parameters<typeof router.push>[0]) => {
+    searchLog.settle();
+    if (!inTab) router.back();
+    router.push(href);
+  };
+  const back = inTab ? "Search" : "Back";
   /** A verse or chapter: Search closes and the reader opens, never inside the sheet. */
   const read = (target: Parameters<typeof jumpTo>[0]) => {
     searchLog.settle();
-    jumpTo(target);
+    if (inTab) router.push(readerHref(target));
+    else jumpTo(target);
   };
 
   // From the raw input, not the debounced query, so the first Hebrew letter turns the field at once.
@@ -133,7 +162,9 @@ export default function SearchScreen() {
     data.reference === null &&
     data.people.length === 0 &&
     data.passages.length === 0 &&
-    data.words.length === 0;
+    data.words.length === 0 &&
+    data.terms.length === 0 &&
+    data.guides.length === 0;
 
   const field = (
     <View style={styles.searchRow}>
@@ -145,7 +176,7 @@ export default function SearchScreen() {
             setInput(text);
             setSubmitted("");
           }}
-          autoFocus
+          autoFocus={!inTab}
           autoCorrect={false}
           autoCapitalize="none"
           clearButtonMode="while-editing"
@@ -174,20 +205,29 @@ export default function SearchScreen() {
           testID="search-field"
         />
       </View>
-      <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.cancel} testID="search-cancel">
-        <Chrome tone="ink" style={{ fontWeight: "500" }}>
-          Cancel
-        </Chrome>
-      </Pressable>
+      {inTab ? null : (
+        <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.cancel} testID="search-cancel">
+          <Chrome tone="ink" style={{ fontWeight: "500" }}>
+            Cancel
+          </Chrome>
+        </Pressable>
+      )}
     </View>
   );
 
   const ref = data?.reference ?? null;
   return (
-    <SheetScreen title="Search" header={field} backLabel={null} footer={false} keyboard testID="search">
+    <Frame inTab={inTab} field={field}>
+      {input === "" && query === "" ? (
+        <View testID="search-browse">
+          <SectionTitle inSheet style={styles.section}>Browse</SectionTitle>
+          <ListRow first title="Dictionary" onPress={() => openPage({ pathname: "/dictionary", params: { back } })} testID="browse-dictionary" />
+        </View>
+      ) : null}
+
       {ref !== null ? (
         <View>
-          <Label style={styles.section}>Go to</Label>
+          <SectionTitle inSheet style={styles.section}>Go to</SectionTitle>
           <ListRow
             first
             testID="result-reference"
@@ -207,10 +247,53 @@ export default function SearchScreen() {
         </View>
       ) : null}
 
+      {/* DI-03, PD-04: a term finds its dictionary entry before the verses. */}
+      {data !== undefined && data !== null && data.terms.length > 0 ? (
+        <View testID="result-dictionary">
+          <SectionTitle inSheet style={styles.section}>Dictionary</SectionTitle>
+          {data.terms.map((entry, i) => (
+            <ListRow
+              key={entry.term}
+              first={i === 0}
+              title={entry.term}
+              label={`${entry.term}, ${firstSentence(entry.definition)}`}
+              onPress={() => openPage({ pathname: "/dictionary/term", params: { term: entry.term, back } })}
+              testID={`result-term-${entry.term}`}
+            >
+              <Chrome step="note" tone="muted">
+                {firstSentence(entry.definition)}
+              </Chrome>
+            </ListRow>
+          ))}
+        </View>
+      ) : null}
+
+      {/* IA-06: a passage title finds its guide, a sheet over Search as People's pages are. */}
+      {data !== undefined && data !== null && data.guides.length > 0 ? (
+        <View testID="result-guides">
+          <SectionTitle inSheet style={styles.section}>Guides</SectionTitle>
+          {data.guides.map((guide, i) => (
+            <ListRow
+              key={guide.ref}
+              first={i === 0}
+              book
+              title={guide.title}
+              label={`${guide.title}, ${formatRange(guide.ref)}`}
+              onPress={() => open({ pathname: "/guide", params: { ref: guide.ref } })}
+              testID={`result-guide-${guide.ref}`}
+            >
+              <Chrome step="note" tone="muted">
+                {formatRange(guide.ref)}
+              </Chrome>
+            </ListRow>
+          ))}
+        </View>
+      ) : null}
+
       {/* A name finds the person first, then the verses that name them (canvas TD-03). */}
       {data !== undefined && data !== null && data.people.length > 0 ? (
         <View>
-          <Label style={styles.section}>People</Label>
+          <SectionTitle inSheet style={styles.section}>People</SectionTitle>
           {data.people.map((person, i) => {
             const who = whoLine(person.title ?? "", person.text);
             const line = who === null ? "Tyndale" : `${who} · Tyndale`;
@@ -239,7 +322,7 @@ export default function SearchScreen() {
 
       {data !== undefined && data !== null && data.words.length > 0 ? (
         <View>
-          <Label style={styles.section}>Words</Label>
+          <SectionTitle inSheet style={styles.section}>Words</SectionTitle>
           {(allWords ? data.words : data.words.slice(0, WORDS_SHOWN)).map((lexeme, i) => (
             <ListRow
               key={lexeme.occurrenceKey}
@@ -273,7 +356,7 @@ export default function SearchScreen() {
 
       {licensed?.status === "ok" ? (
         <View testID="licensed-results">
-          <Label style={styles.section}>{`Verses in the ${licensed.translation}`}</Label>
+          <SectionTitle inSheet style={styles.section}>{`Verses in the ${licensed.translation}`}</SectionTitle>
           {licensed.verses.map((v, i) => {
             const at = parseVerseId(v.verseId);
             return (
@@ -289,7 +372,7 @@ export default function SearchScreen() {
               </ListRow>
             );
           })}
-          <Label style={styles.section}>Also</Label>
+          <SectionTitle inSheet style={styles.section}>Also</SectionTitle>
           <ListRow first title="Search the BSB instead" onPress={() => setBsbInstead(true)} testID="search-bsb-instead">
             <Chrome step="note" tone="muted">
               on this iPhone · with Words
@@ -313,7 +396,7 @@ export default function SearchScreen() {
 
       {data !== undefined && data !== null && data.passages.length > 0 && (licensedCode === null || licensed === undefined || fallback) ? (
         <View>
-          <Label style={styles.section}>{`Verses · ${data.total}`}</Label>
+          <SectionTitle inSheet style={styles.section}>{`Verses · ${data.total}`}</SectionTitle>
           {data.passages.map((hit, i) => {
             const parts = ordToParts(hit.ord);
             return (
@@ -345,7 +428,29 @@ export default function SearchScreen() {
           </Prose>
         </View>
       ) : null}
-    </SheetScreen>
+    </Frame>
+  );
+}
+
+/** The sheet over the reader, or the page in the Search tab: the field on top, results scrolling under it, clear of the tab bar. */
+function Frame({ inTab, field, children }: { inTab: boolean; field: ReactNode; children: ReactNode }) {
+  const palette = usePalette();
+  const insets = useSafeAreaInsets();
+  const tabClearance = useTabBarClearance();
+  const { gutter, tabs } = useLayout();
+  if (!inTab)
+    return (
+      <SheetScreen title="Search" header={field} backLabel={null} footer={false} keyboard testID="search">
+        {children}
+      </SheetScreen>
+    );
+  return (
+    <View style={{ flex: 1, backgroundColor: palette.paper, paddingTop: (tabs === "top" ? 0 : insets.top) + 8 }} testID="search-tab">
+      <View style={{ paddingHorizontal: gutter, paddingBottom: 8 }}>{field}</View>
+      <ScrollView keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: gutter, paddingBottom: tabClearance }}>
+        {children}
+      </ScrollView>
+    </View>
   );
 }
 

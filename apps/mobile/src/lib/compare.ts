@@ -8,14 +8,31 @@
 export const COMPARE_MAX = 3;
 
 /**
- * The others to compare with, in On your iPhone order. A saved choice is kept
- * as far as it is still installed and is not the reader's own translation; an
- * empty or missing choice means the default.
+ * The others to compare with. A saved choice is kept in the reader's own order (CP-06: "Up to 3, in your
+ * order") as far as it is still installed and is not the reader's own translation; an empty or missing
+ * choice means the default, the first three in On your iPhone order.
  */
 export function compareSelection(current: string, installed: readonly string[], chosen: readonly string[] | null): string[] {
   const others = installed.filter((code) => code !== current);
-  const picked = chosen === null ? [] : others.filter((code) => chosen.includes(code));
+  const picked = chosen === null ? [] : chosen.filter((code) => others.includes(code));
   return (picked.length > 0 ? picked : others).slice(0, COMPARE_MAX);
+}
+
+/**
+ * Choose's list (CP-06): the chosen first, in your order, each with a drag handle; then the rest in
+ * On your iPhone order, unticked.
+ */
+export function chooseOrder(available: readonly string[], chosen: readonly string[]): string[] {
+  return [...chosen.filter((c) => available.includes(c)), ...available.filter((c) => !chosen.includes(c))];
+}
+
+/** A chosen version dragged to a new place among the chosen (CP-06); out-of-range places are clamped. */
+export function moveCompare(chosen: readonly string[], code: string, to: number): string[] {
+  const from = chosen.indexOf(code);
+  if (from < 0) return [...chosen];
+  const rest = chosen.filter((c) => c !== code);
+  const at = Math.max(0, Math.min(rest.length, to));
+  return [...rest.slice(0, at), code, ...rest.slice(at)];
 }
 
 /** Tapping a version in Choose: off if on; on if there is room, otherwise unchanged. */

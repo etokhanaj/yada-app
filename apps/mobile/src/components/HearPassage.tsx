@@ -7,8 +7,10 @@
  */
 
 import { type BookCode, ordToParts } from "@yada/schema";
+import { View } from "react-native";
 
 import { audioTranslation, listen } from "../data/audio";
+import { useLayout } from "../design/tokens";
 import { useAudio } from "../state/audio";
 import { useSettings } from "../state/settings";
 import { MediaIcon } from "./audio/MediaIcon";
@@ -18,12 +20,15 @@ import { Chrome } from "./Type";
 
 export function HearPassage({ book, startOrd, range, first = true }: { book: BookCode; startOrd: number; range: string; first?: boolean }) {
   const { closeSheet } = useSheetNav();
+  const { sectionGap } = useLayout();
   const translation = useSettings((s) => s.translation);
   const voice = useAudio((s) => s.voice);
   // As the reader's Listen: a text a voice may read, and a voice to read it.
   if (audioTranslation(translation) === null || voice === null) return null;
   const start = ordToParts(startOrd);
+  // Its own section, one section gap above it (UL-01, UL-02); the gap goes with the row when it isn't offered.
   return (
+    <View style={{ marginTop: sectionGap }}>
     <Row
       first={first}
       chevron={false}
@@ -41,5 +46,6 @@ export function HearPassage({ book, startOrd, range, first = true }: { book: Boo
       </Chrome>
       <RowNote>{range}</RowNote>
     </Row>
+    </View>
   );
 }

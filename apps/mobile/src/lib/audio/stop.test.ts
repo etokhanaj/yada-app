@@ -1,3 +1,4 @@
+import { verseOrd } from "@yada/schema";
 import { describe, expect, it } from "vitest";
 
 import { afterVerse, keepStop, minutesLeft, passageStartIndex, statusLine, stopChoices, stopFrom, type VerseEnd } from "./stop";
@@ -104,5 +105,38 @@ describe("the player's line (LB-03, LB-06)", () => {
 
   it("says nothing when nothing is set", () => {
     expect(statusLine(null, null, place, 0)).toBeNull();
+  });
+});
+
+describe("End of this evening's psalms (DR-08)", () => {
+  const psalm = (n: number, verses: number) => Array.from({ length: verses }, (_, i) => verseOrd("PSA", n, i + 1));
+  const end = { part: "evening", psalm: 8, to: null } as const;
+  const stop = stopFrom("set", 0, end);
+
+  it("plays on through the set's psalms and stops after the last verse of the last", () => {
+    expect(afterVerse({ index: 9, ords: psalm(7, 10), starts: null, stop, repeat: null, now: 0 })).toEqual({ kind: "next" });
+    expect(afterVerse({ index: 7, ords: psalm(8, 9), starts: null, stop, repeat: null, now: 0 })).toEqual({ kind: "next" });
+    expect(afterVerse({ index: 8, ords: psalm(8, 9), starts: null, stop, repeat: null, now: 0 })).toEqual({ kind: "stop" });
+  });
+
+  it("stops inside Psalm 119 where the set's section ends", () => {
+    const section = stopFrom("set", 0, { part: "evening", psalm: 119, to: 104 });
+    const ords = psalm(119, 176);
+    expect(afterVerse({ index: 102, ords, starts: null, stop: section, repeat: null, now: 0 })).toEqual({ kind: "next" });
+    expect(afterVerse({ index: 103, ords, starts: null, stop: section, repeat: null, now: 0 })).toEqual({ kind: "stop" });
+  });
+
+  it("is offered first, only while nothing repeats, and a repeat clears it", () => {
+    expect(stopChoices(null, false, true)[0]).toBe("set");
+    expect(stopChoices("chapter", false, true)).not.toContain("set");
+    expect(stopChoices(null, false, false)).not.toContain("set");
+    expect(keepStop(stop, "chapter")).toBeNull();
+    expect(keepStop(stop, null)).toEqual(stop);
+  });
+
+  it("says where it stops", () => {
+    const place = { chapter: 8, verse: 5, passageFirst: 1, passageLast: 9, chapterLast: 9, chapterTitle: "Psalm 8" };
+    expect(statusLine(stop, null, place, 0)).toBe("Stops after Psalm 8");
+    expect(statusLine(stopFrom("set", 0, { part: "evening", psalm: 119, to: 104 }), null, place, 0)).toBe("Stops after 119:104");
   });
 });

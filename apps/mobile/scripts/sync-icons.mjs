@@ -39,6 +39,10 @@ const ICONS = {
   share: "Share01",
   search: "SearchSm",
   download: "Download01",
+  // Compare's "Add or remove" capsule and Choose's drag handle (canvas CP-01, CP-06: "M5 9h14M5 15h14").
+  plus: "Plus",
+  drag: "Equal",
+  lock: "Lock01",
 };
 
 function walk(node, shapes) {

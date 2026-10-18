@@ -331,7 +331,6 @@ export function bookOnPhone(book: BookCode, text: ReadText = "BSB"): { chapters:
   return { chapters: here.length, total: info.chapters.length, bytes: info.chapters.reduce((n, c) => n + c.bytes, 0) };
 }
 
-/** "Download John" (BA-03, BA-04): chapter by chapter, so a stopped download keeps what it fetched. */
 /**
  * NT-08: a book download that finished while Yada was not on screen says so once, then nothing more. The transfer
  * itself runs in iOS's background session (expo-file-system's default). Only when notifications are already allowed;
@@ -347,6 +346,7 @@ async function notifyIfAway(book: BookCode, chapters: number): Promise<void> {
   });
 }
 
+/** "Download John" (BA-03, BA-04): chapter by chapter, so a stopped download keeps what it fetched. */
 export async function downloadBook(book: BookCode, text: ReadText = "BSB"): Promise<boolean> {
   await refreshRecordings();
   const info = readingOf(book, text);
@@ -366,13 +366,15 @@ export async function downloadBook(book: BookCode, text: ReadText = "BSB"): Prom
   });
   let ok = true;
   const run = bookRuns;
+  const stop = new AbortController();
+  bookStops.set(key, stop);
   for (const c of need) {
     // Remove my data or Remove all downloads stopped it: no more chapters land after they were removed.
-    if (run !== bookRuns) {
+    if (run !== bookRuns || stop.signal.aborted) {
       ok = false;
       break;
     }
-    if ((await ensureChapter(book, c.chapter, {}, text, narrator)) === null) {
+    if ((await ensureChapter(book, c.chapter, { signal: stop.signal }, text, narrator)) === null) {
       ok = false;
       break;
     }
@@ -381,13 +383,24 @@ export async function downloadBook(book: BookCode, text: ReadText = "BSB"): Prom
       return now === undefined ? {} : { downloading: { ...s.downloading, [key]: { ...now, done: now.done + 1 } } };
     });
   }
+  if (bookStops.get(key) === stop) bookStops.delete(key);
   if (ok) await ensureTitles(book, narrator);
   if (ok) await notifyIfAway(book, info.chapters.length);
+  // A download the reader stopped is not a failure: it keeps what it fetched and says nothing (BA-04).
+  const failed = !ok && !stop.signal.aborted;
   useRecordings.setState((s) => {
     const { [key]: _done, ...downloading } = s.downloading;
-    return { downloading, ...(ok ? {} : { failed: { ...s.failed, [key]: "network" as const } }) };
+    return { downloading, ...(failed ? { failed: { ...s.failed, [key]: "network" as const } } : {}) };
   });
   return ok;
+}
+
+/** The book downloads under way, each with the stop its row's ring sends (BA-04). */
+const bookStops = new Map<string, AbortController>();
+
+/** BA-04: "Stop downloading". The chapter being fetched is dropped; the chapters already fetched stay. */
+export function stopBookDownload(book: BookCode, text: ReadText = "BSB"): void {
+  bookStops.get(readingKey(book, text))?.abort();
 }
 
 /**

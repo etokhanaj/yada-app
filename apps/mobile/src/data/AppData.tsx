@@ -12,6 +12,11 @@ import { type EventName, logEvent } from "./user";
 export interface AppData {
   readonly core: SQLiteDatabase;
   readonly user: SQLiteDatabase;
+  /**
+   * The tab Yada opens on, read with the settings before the tabs mount. A navigate after mount could override a
+   * notification, a widget link or Return (RT-01) that routed first (code review, 18 Oct 2026).
+   */
+  readonly launchTab: "today" | "index";
 }
 
 const Context = createContext<AppData | null>(null);

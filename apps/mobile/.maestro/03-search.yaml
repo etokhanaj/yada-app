@@ -8,7 +8,7 @@ appId: studio.yada.reader
 # Home (ON-01); wait for either before choosing.
 - extendedWaitUntil:
     visible:
-      id: "reader-back|home-search"
+      id: "reader-back|home-saved"
     timeout: 20000
 # Home may sit under more than one reader: the cold launch resumes one at the saved place and
 # a deep link pushes another, so ‹ Home can take more than one tap (simulator, 11 Oct 2026).
@@ -16,16 +16,17 @@ appId: studio.yada.reader
     times: 3
     while:
       notVisible:
-        id: home-search
+        id: home-saved
     commands:
       - tapOn:
           id: reader-back
       - waitForAnimationToEnd
+# IA-15: Search is the round tab beside the bar, a page there, not a sheet.
 - tapOn:
-    id: home-search
+    id: tab-search
 - waitForAnimationToEnd
 - assertVisible:
-    id: search
+    id: search-tab
 - inputText: "jn 3 16"
 - assertVisible: "Go to"
 - assertVisible:
@@ -59,7 +60,7 @@ appId: studio.yada.reader
 - assertVisible:
     id: search-empty
 - tapOn:
-    id: search-cancel
+    id: tab-bible
 - waitForAnimationToEnd
 - assertVisible:
     id: home

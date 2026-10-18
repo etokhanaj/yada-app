@@ -11,6 +11,8 @@ public struct ReadingAttributes: ActivityAttributes {
     public var title: String
     /// "1:5".
     public var ref: String
+    /// SX-22, StandBy's overline: "John 1:5". Optional so a state from an older build still decodes.
+    public var reference: String?
     /// The verse being read, in one of the four open texts (rule 9); empty while the chapter's name is said.
     public var verse: String
     /// SX-19: "John, chapter 2" while the name is said.

@@ -23,6 +23,10 @@
  * out of the bar and out of `⋯` while playing too: IA-05 drops it for good, and
  * Understand opens it in place.
  *
+ * Your space (PS-01, HM-02): under the actions a second row, the four highlight colours in one grey pill, then
+ * Note and Copy; at AX sizes they are rows of the list, after Understand. A colour already on the selection is
+ * ringed in ink and a second tap clears it.
+ *
  * Paper ground, hairline top, no shadow. To VoiceOver it comes after the
  * verses and appearing does not move focus (brief §5).
  */
@@ -35,6 +39,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FONTS, SPRING, useLayout, usePalette } from "../design/tokens";
 import { useReduceMotion } from "../lib/motion";
 import type { OriginalLanguage } from "../lib/originalLanguage";
+import { HIGHLIGHT_COLORS, type HighlightColor } from "../lib/highlights";
 import { type BarItem, barItems, moreActions } from "../lib/reader";
 import { MediaIcon } from "./audio/MediaIcon";
 import { Icon } from "./Icon";
@@ -43,7 +48,7 @@ import { Chrome } from "./Type";
 /** Native menu glyphs are SF Symbols: UIMenu takes system images only. */
 const MENU_IMAGES: Readonly<Record<string, string>> = {
   Compare: "rectangle.split.2x1",
-  Copy: "doc.on.doc",
+  "Share as an image": "photo",
   Share: "square.and.arrow.up",
   Bookmark: "bookmark",
   "Remove bookmark": "bookmark.slash",
@@ -62,6 +67,11 @@ export function ActionBar({
   onHeight,
   playFrom = null,
   nowPlaying = null,
+  highlight,
+  imageable,
+  onHighlight,
+  onNote,
+  onCopy,
 }: {
   /** "14:34" or "14:34–35". */
   verseLabel: string;
@@ -81,11 +91,19 @@ export function ActionBar({
   playFrom?: (() => void) | null;
   /** While audio plays: the now-playing strip above the actions (ReaderBars NowPlayingStrip). */
   nowPlaying?: ReactNode;
+  /** The colour every selected verse already has, or null. */
+  highlight: HighlightColor | null;
+  /** Share as an image is offered (not for a licensed translation's words). */
+  imageable: boolean;
+  /** A colour for the selection, or null to clear it. */
+  onHighlight: (color: HighlightColor | null) => void;
+  onNote: () => void;
+  onCopy: () => void;
 }) {
   const palette = usePalette();
   const { ax, pill } = useLayout();
   const items = barItems(hasEntry, ax);
-  const menu = moreActions(hasEntry, ax, bookmarked);
+  const menu = moreActions(ax, bookmarked, imageable);
   const firstVerse = verseLabel.split(/[–-]/)[0] ?? verseLabel;
 
   const originalName = `Original ${language}`;
@@ -163,7 +181,8 @@ export function ActionBar({
         key={item}
         style={ax ? styles.wide : hasEntry || playFrom !== null ? { width: pill } : styles.cell}
         shouldOpenOnLongPress={false}
-        actions={menu.map((title) => ({ id: title.toLowerCase(), title, image: MENU_IMAGES[title] }))}
+        // imageColor always set: without it @react-native-menu draws the glyph transparent (index.tsx, 10 Oct 2026).
+        actions={menu.map((title) => ({ id: title.toLowerCase(), title, image: MENU_IMAGES[title], imageColor: palette.ink }))}
         onPressAction={({ nativeEvent }) => onMenu(nativeEvent.event)}
         testID="bar-more"
       >
@@ -187,6 +206,50 @@ export function ActionBar({
     );
   };
 
+  const dots = (
+    <View style={[styles.dots, { backgroundColor: palette.fill, minHeight: pill }, ax ? styles.wide : null]} accessibilityRole="radiogroup" accessibilityLabel="Highlight">
+      {HIGHLIGHT_COLORS.map((color) => {
+        const on = highlight === color;
+        return (
+          <Pressable
+            key={color}
+            onPress={() => onHighlight(on ? null : color)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: on }}
+            accessibilityLabel={`Highlight ${color}`}
+            accessibilityHint={on ? "Removes the highlight" : undefined}
+            style={styles.dot}
+            testID={`bar-highlight-${color}`}
+          >
+            {/* PS-01's 28 pt swatch with a hairline inner ring; the colour on the selection is ringed in ink. */}
+            <View style={[styles.swatch, { backgroundColor: palette.highlights[color], borderColor: on ? palette.ink : palette.edge, borderWidth: on ? 2 : 1 }]} />
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+  const labelled = (label: string, icon: "note" | "copy", onPress: () => void, testID: string) => (
+    <Capsule height={pill} onPress={onPress} label={label} testID={testID}>
+      {ax ? (
+        <>
+          <Chrome tone="ink" style={{ fontWeight: "500", flex: 1 }}>
+            {label}
+          </Chrome>
+          <Icon name={icon} size={22} />
+        </>
+      ) : (
+        <>
+          <Icon name={icon} size={16} />
+          <Chrome tone="ink" step="note" style={{ fontWeight: "600" }}>
+            {label}
+          </Chrome>
+        </>
+      )}
+    </Capsule>
+  );
+  const note = labelled("Note", "note", onNote, "bar-note");
+  const copy = labelled("Copy", "copy", onCopy, "bar-copy");
+
   const [first, ...rest] = items.map(button);
   return (
     <BarFrame onHeight={onHeight} testID="action-bar">
@@ -195,13 +258,23 @@ export function ActionBar({
         <View style={{ rowGap: 8 }}>
           {first}
           {audio}
+          {dots}
+          {note}
+          {copy}
           {rest}
         </View>
       ) : (
-        <View style={styles.row}>
-          {audio}
-          {first}
-          {rest}
+        <View style={{ rowGap: 8 }}>
+          <View style={styles.row}>
+            {audio}
+            {first}
+            {rest}
+          </View>
+          <View style={styles.row}>
+            <View style={styles.cell}>{dots}</View>
+            {note}
+            {copy}
+          </View>
         </View>
       )}
     </BarFrame>
@@ -354,6 +427,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     columnGap: 6,
     paddingHorizontal: 12,
+  },
+  dots: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    borderRadius: 999,
+    paddingHorizontal: 4,
+  },
+  dot: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  swatch: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   list: {
     justifyContent: "flex-start",

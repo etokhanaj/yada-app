@@ -7,6 +7,7 @@
 // text never reaches Siri (rule 9).
 
 import AppIntents
+import CoreSpotlight
 import Foundation
 import SQLite3
 import SwiftUI
@@ -95,6 +96,12 @@ enum Core {
   }
 }
 
+/// A chapter's first passage name, as the app last indexed it (YadaSystemModule indexChapters); nil for a verse,
+/// or where the book's passages were not on the phone.
+func chapterName(_ id: String) -> String? {
+  (UserDefaults(suiteName: yadaGroup)?.dictionary(forKey: "yada.chapterNames") as? [String: String])?[id]
+}
+
 /// A chapter ("PSA.23") or a verse ("JHN.3.16"), in the BSB.
 @available(iOS 16.0, *)
 struct PassageEntity: AppEntity {
@@ -105,9 +112,13 @@ struct PassageEntity: AppEntity {
   /// "Psalm 23", "John 3:16".
   var reference: String
   var first: String
+  /// SX-10, SX-12: "The Lord is my shepherd", for a chapter.
+  var name: String? = nil
+  /// Spotlight's keywords, "Psalm 23|Psalms 23|PSA 23", as the app writes them (data/system.ts indexSpotlight).
+  var searchWords: [String] = []
 
   var displayRepresentation: DisplayRepresentation {
-    DisplayRepresentation(title: "\(reference)", subtitle: "\(first)")
+    DisplayRepresentation(title: "\(reference)", subtitle: "\(name ?? first)")
   }
 
   var parts: (code: String, chapter: Int, verse: Int?) {
@@ -122,7 +133,23 @@ struct PassageEntity: AppEntity {
     let name = Core.bookName(code)
     let reference = verse.map { "\(name) \(chapter):\($0)" } ?? "\(name) \(chapter)"
     let id = verse.map { "\(code).\(chapter).\($0)" } ?? "\(code).\(chapter)"
-    return PassageEntity(id: id, reference: reference, first: text)
+    return PassageEntity(id: id, reference: reference, first: text, name: verse == nil ? chapterName(id) : nil)
+  }
+}
+
+/// SX-12 from iOS 18: a chapter in Spotlight as an App Entity, so the hit carries Yada's actions on it, Read
+/// (OpenPassageInYadaIntent) and Listen (ListenToPassageIntent). "Psalm 23", "The Lord is my shepherd", the verse.
+@available(iOS 18.0, *)
+extension PassageEntity: IndexedEntity {
+  var attributeSet: CSSearchableItemAttributeSet {
+    let attributes = CSSearchableItemAttributeSet(contentType: .text)
+    attributes.title = reference
+    attributes.displayName = reference
+    attributes.contentDescription = name.map { "\($0)\n\(first)" } ?? first
+    attributes.keywords = searchWords.isEmpty ? [reference] : searchWords
+    // Above the verses (rank 0), as the chapter items were: "psalm 23" finds the psalm first.
+    attributes.rankingHint = NSNumber(value: 1)
+    return attributes
   }
 }
 
@@ -167,22 +194,30 @@ struct ReadPassageIntent: AppIntent {
     let spoken = verses.map(\.1).joined(separator: " ")
     return .result(
       dialog: "\(passage.reference), Berean Standard Bible. \(spoken)",
-      view: PassageSnippet(reference: passage.reference, id: passage.id, verses: verses)
+      view: PassageSnippet(reference: passage.reference, name: p.verse == nil ? passage.name ?? chapterName(passage.id) : nil, id: passage.id, verses: verses)
     )
   }
 }
 
-/// SX-10's card: the reference, the verses in a serif, Read and Listen. Typography carries it; no card chrome.
+/// SX-10's card: the reference, the passage's name large, the verses in a serif, Read and Listen. Typography
+/// carries it; no card chrome.
 @available(iOS 16.0, *)
 struct PassageSnippet: View {
   let reference: String
+  /// "The Lord is my shepherd"; nil for a verse, or where the app has not indexed the names yet.
+  let name: String?
   let id: String
   let verses: [(Int, String)]
   @Environment(\.dynamicTypeSize) private var size
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("\(reference) · BSB").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+      VStack(alignment: .leading, spacing: 2) {
+        Text("\(reference) · BSB").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+        if let name {
+          Text(name).font(.system(.title2, design: .serif).weight(.semibold))
+        }
+      }
       ForEach(size.isAccessibilitySize ? Array(verses.prefix(1)) : verses, id: \.0) { v in
         (Text("\(v.0) ").font(.system(.caption2, design: .serif)).foregroundColor(.secondary) + Text(v.1).font(.system(.body, design: .serif)))
       }
@@ -236,6 +271,45 @@ struct ListenPassageIntent: AudioPlaybackIntent {
     return .result()
   }
 }
+
+/// SX-12's Read: Spotlight's hit opens the reader at the chapter (the entity's open intent from iOS 18), and the
+/// same as an App Shortcut, "Open Psalm 23 in Yada".
+@available(iOS 16.0, *)
+struct OpenPassageInYadaIntent: OpenIntent {
+  static var title: LocalizedStringResource = "Read in Yada"
+  static var description = IntentDescription("Opens a chapter or a verse in the reader.")
+  @Parameter(title: "Passage") var target: PassageEntity
+
+  init() {}
+
+  @MainActor
+  func perform() async throws -> some IntentResult {
+    Door.open(target.id.split(separator: ".").count > 2 ? "verse:\(target.id)" : "chapter:\(target.id)")
+    return .result()
+  }
+}
+
+/// SX-12's Listen: Spotlight's hit reads the chapter aloud without opening Yada, as Siri's card does. An audio
+/// intent from iOS 17 (below), so it may start playback in the background; the App Shortcuts builder takes no
+/// availability check, so the type itself is iOS 16.
+@available(iOS 16.0, *)
+struct ListenToPassageIntent: AppIntent {
+  static var title: LocalizedStringResource = "Listen in Yada"
+  static var description = IntentDescription("Reads a chapter aloud in the Berean Standard Bible.")
+  @Parameter(title: "Passage") var passage: PassageEntity
+
+  init() {}
+
+  func perform() async throws -> some IntentResult {
+    let before = Listening.raw()
+    Door.open("listen:\(passage.id)")
+    await Listening.awaitChange(from: before)
+    return .result()
+  }
+}
+
+@available(iOS 17.0, *)
+extension ListenToPassageIntent: AudioPlaybackIntent {}
 
 /// Kept from build 5 so a shortcut someone built on it still runs: one verse, said by Siri.
 @available(iOS 16.0, *)
@@ -328,14 +402,50 @@ struct YadaShortcuts: AppShortcutsProvider {
       shortTitle: "Read a verse",
       systemImageName: "magnifyingglass"
     )
+    // SX-12: Read and Listen on a chapter, which Spotlight shows beside the chapter's hit.
+    AppShortcut(intent: OpenPassageInYadaIntent(), phrases: ["Open \(\.$target) in \(.applicationName)"], shortTitle: "Read", systemImageName: "book")
+    AppShortcut(intent: ListenToPassageIntent(), phrases: ["Listen to \(\.$passage) in \(.applicationName)"], shortTitle: "Listen", systemImageName: "play.fill")
   }
 }
 
-/// Called by the YadaSystem pod at launch (updateShortcuts), which cannot name this app-target type: Siri
-/// learns the chapters "Read Psalm 23 in Yada" may name.
+/// Called by the YadaSystem pod, which cannot name this app-target type: at launch (updateShortcuts), so Siri learns
+/// the chapters "Read Psalm 23 in Yada" may name; and from iOS 18 with each batch of chapters (indexChapters).
 @objc(YadaShortcutsUpdater)
 final class YadaShortcutsUpdater: NSObject {
   @objc static func update() {
     if #available(iOS 16.0, *) { YadaShortcuts.updateAppShortcutParameters() }
+  }
+
+  /// SX-12: the chapters as App Entities in Spotlight, each with its passage's name and first verse (BSB, rule 9:
+  /// the app sends only the BSB here). Items as data/system.ts indexSpotlight writes them.
+  @objc(indexChapters:completion:) static func indexChapters(_ items: NSArray, completion: @escaping (NSError?) -> Void) {
+    guard #available(iOS 18.0, *) else { return completion(nil) }
+    let entities = items.compactMap { item -> PassageEntity? in
+      guard let item = item as? [String: String], let id = item["id"], let title = item["title"], let text = item["text"] else { return nil }
+      let name = item["name"].flatMap { $0.isEmpty ? nil : $0 }
+      let words = (item["keywords"] ?? "").split(separator: "|").map(String.init)
+      return PassageEntity(id: id, reference: title, first: text, name: name, searchWords: words)
+    }
+    Task(priority: .utility) {
+      do {
+        try await CSSearchableIndex.default().indexAppEntities(entities)
+        completion(nil)
+      } catch {
+        completion(error as NSError)
+      }
+    }
+  }
+
+  /// Removes the chapters indexed as App Entities (clearIndex, before a new core is indexed).
+  @objc(clearChapters:) static func clearChapters(_ completion: @escaping (NSError?) -> Void) {
+    guard #available(iOS 18.0, *) else { return completion(nil) }
+    Task(priority: .utility) {
+      do {
+        try await CSSearchableIndex.default().deleteAppEntities(ofType: PassageEntity.self)
+        completion(nil)
+      } catch {
+        completion(error as NSError)
+      }
+    }
   }
 }

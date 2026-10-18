@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>UIAppFonts</key>
+    <array>
+      <string>Literata.ttf</string>
+    </array>
+    <key>WKApplication</key>
+    <true/>
+    <!-- Everything it shows comes from the iPhone. -->
+    <key>WKRunsIndependentlyOfCompanionApp</key>
+    <false/>
+    <!-- Sit with this keeps running with the wrist down, so each breath's tap and Silence's end still arrive. -->
+    <key>WKBackgroundModes</key>
+    <array>
+      <string>mindfulness</string>
+    </array>
+  </dict>
+</plist>

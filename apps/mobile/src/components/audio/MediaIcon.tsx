@@ -11,11 +11,12 @@ import { usePalette } from "../../design/tokens";
 
 export type MediaIconName = "play" | "pause" | "previous" | "next";
 
-export function MediaIcon({ name, size = 20, tone = "ink", maxScale = 2 }: { name: MediaIconName; size?: number; tone?: "ink" | "paper"; maxScale?: number }) {
+export function MediaIcon({ name, size = 20, tone = "ink", maxScale = 2 }: { name: MediaIconName; size?: number; tone?: "ink" | "paper" | "white"; maxScale?: number }) {
   const palette = usePalette();
   const { fontScale } = useWindowDimensions();
   const px = Math.round(size * Math.min(Math.max(fontScale, 1), maxScale));
-  const color = tone === "paper" ? palette.paper : palette.ink;
+  // "white" stays white in both appearances: a glyph over a picture or the forest (the day's verse, DR-16).
+  const color = tone === "white" ? "#FFFFFF" : tone === "paper" ? palette.paper : palette.ink;
   const stroke = { stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <Svg width={px} height={px} viewBox="0 0 24 24" fill="none" accessible={false} importantForAccessibility="no-hide-descendants">

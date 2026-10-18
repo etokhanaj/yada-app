@@ -1,5 +1,6 @@
 # Asking for the reminder (NP-01–03; John, 15 Oct 2026): at the end of the first passage, Yada shows the
-# notification it would send and asks in its own words; iOS asks only after Turn on. Not now closes it.
+# four ways in ("When will you read?", RT-05, build 10a) and asks in its own words; iOS asks only after
+# Remind me. Not now closes it.
 # Run on a fresh install (no passage read, reminder never asked). Launch the app first, outside Maestro.
 appId: studio.yada.reader
 ---
@@ -11,10 +12,9 @@ appId: studio.yada.reader
     element:
       id: remind-ask
     timeout: 30000
-- assertVisible: "A reminder to read"
-- assertVisible:
-    id: reminder-preview
-- assertVisible: "Turn on"
+- assertVisible: "When will you read?"
+- assertVisible: "After I wake up, 7:30"
+- assertVisible: "Remind me"
 - tapOn:
     id: remind-ask-later
 - waitForAnimationToEnd

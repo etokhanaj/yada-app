@@ -13,6 +13,7 @@ import { useAccessibility } from "../state/accessibility";
 import { useSettings } from "../state/settings";
 import { type Palette, paletteFor } from "./palette";
 import { axLevel, type ScaledType, scaledType, type TypeStep } from "./type";
+import { tabPlacementFor } from "./wide";
 
 export type { Palette } from "./palette";
 export { FONTS, leading, TYPE, type ScaledType, type TypeStep } from "./type";
@@ -70,16 +71,25 @@ export const LAYOUT = {
 
 export function useLayout() {
   const ax = useAXLevel() >= 1 ? 1 : 0;
+  const { width, height } = useWindowDimensions();
+  const tabs = tabPlacementFor(width, height);
   return {
     ax: ax === 1,
     gutter: LAYOUT.gutter[ax],
     sectionGap: LAYOUT.sectionGap[ax],
     pill: LAYOUT.pill[ax],
     control: LAYOUT.control[ax],
+    /**
+     * A regular-width window (iPad, an open Duo). `gutter` stays the iPhone's: it also pads rows inside sheets, which
+     * the system keeps narrow; full-width pages use `WIDE.gutter` and `WIDE.measure` themselves.
+     */
+    regular: tabs !== "bottom",
+    tabs,
   };
 }
 
 export { SHEET_MEDIUM } from "./sheet";
+export { sidebarWidthFor, type TabPlacement, tabPlacementFor, WIDE } from "./wide";
 
 export const RADIUS = {
   /** Selection wash and Here / Next rows. */

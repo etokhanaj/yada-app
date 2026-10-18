@@ -1,6 +1,6 @@
 /**
  * Remove my data (canvas ST-03, DN-04): exactly what the alert names, from this iPhone and from iCloud —
- * bookmarks, the reading place, plan progress, the reminder and downloads. A download under way stops
+ * bookmarks, highlights, notes and saved images, the reading place, plan progress, the reminder and downloads. A download under way stops
  * first. Built-in texts stay: they are part of Yada (ST-02). So do the reader's settings (appearance, text
  * size, translation, Compare with): the alert does not name them, and clearing them would reset the
  * reader's other devices through iCloud (review, 13 Oct 2026).
@@ -26,10 +26,10 @@ import { exclusiveWrite, loadSettings } from "./user";
 import { parseReminder } from "../lib/reminder";
 
 /** The user.db tables that are the reader's own record; the installed_* tables are handled by Remove. */
-const READER_TABLES = ["bookmarks", "bookmark_removals", "position", "thread_progress", "events", "books_begun", "licensed_chapters", "rhythm_days"] as const;
+const READER_TABLES = ["bookmarks", "bookmark_removals", "position", "thread_progress", "events", "books_begun", "licensed_chapters", "rhythm_days", "chapters_read", "highlights", "notes", "verse_images"] as const;
 /** The settings that are the reader's record rather than a preference: the reminder and the plan. */
 // reminderOffered is build 5's key, still on phones that upgraded.
-const READER_SETTINGS = ["reminder", "reminderUntil", "reminderAsk", "reminderOffered", "yourPlan"] as const;
+const READER_SETTINGS = ["reminder", "reminderUntil", "reminderAsk", "reminderOffered", "yourPlan", "lastOpenAt", "returnShownAt"] as const;
 
 /** DN-04: the alert says the download stops first when one is under way. */
 export function downloadUnderWay(): boolean {

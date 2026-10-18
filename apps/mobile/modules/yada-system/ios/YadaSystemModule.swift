@@ -17,6 +17,8 @@ let pendingKey = "yada.pendingOpen"
 let doorAnnounce = "studio.yada.reader.open"
 /// The reminder's notifications (SX-15): one thread, so iOS stacks them.
 let reminderThread = "reminder"
+/// Each chapter's first passage name, "PSA.23" → "The Lord is my shepherd", for Siri's card (YadaIntents.swift).
+let chapterNamesKey = "yada.chapterNames"
 /// Widget kinds whose Listen button follows what plays.
 let listeningKinds = ["continue", "today", "listen"]
 
@@ -92,6 +94,11 @@ public class YadaSystemModule: Module {
       WidgetCenter.shared.reloadAllTimelines()
     }
 
+    /// AW-01, AW-03: the watch's mornings and evenings (WatchLink.swift).
+    Function("setWatchData") { (json: String) in
+      WatchLink.shared.send(json)
+    }
+
     /// SX-05, SX-09: what plays, for the Listen buttons and Control Center's toggle. While audio plays, iOS does
     /// not count these reloads against the widgets' budget.
     Function("setListening") { (json: String) in
@@ -115,7 +122,8 @@ public class YadaSystemModule: Module {
       }
     }
 
-    /// Decision 7: a stopped reading's activity ends at once; nothing stays lit at night.
+    /// The reading ended (Stop listening, the end of the book, an app killed mid-session): its activity goes at once.
+    /// A stop that fires does not come here: the activity stays paused on "Stopped after 1:18" (SX-23).
     AsyncFunction("endReading") {
       await self.inTurn {
         for activity in Activity<ReadingAttributes>.activities {
@@ -129,13 +137,42 @@ public class YadaSystemModule: Module {
       try await CSSearchableIndex.default().indexSearchableItems(Self.searchable(items, prefix: "verse:", rank: 0))
     }
 
-    /// SX-12: each chapter, ranked above its verses, so "psalm 23" has the psalm as its top hit.
+    /// SX-12: each chapter, ranked above its verses, so "psalm 23" has the psalm as its top hit: its first passage's
+    /// name, then its first verse. The names are kept in the App Group for Siri's card (SX-10). From iOS 18 the app
+    /// target indexes each chapter as an App Entity instead (YadaIntents.swift), which is what puts Read and Listen
+    /// beside the hit; a plain item can carry no actions.
     AsyncFunction("indexChapters") { (items: [[String: String]]) in
+      let shared = UserDefaults(suiteName: appGroup)
+      var names = shared?.dictionary(forKey: chapterNamesKey) as? [String: String] ?? [:]
+      for item in items { if let id = item["id"], let name = item["name"], !name.isEmpty { names[id] = name } }
+      shared?.set(names, forKey: chapterNamesKey)
+      // Awaited, so a failure reaches data/system.ts and the index is not recorded as done; it was fire-and-forget,
+      // and a failed batch left chapters out of Spotlight until the next core (native review, 18 Oct 2026).
+      if #available(iOS 18.0, *), let indexer = NSClassFromString("YadaShortcutsUpdater") as? NSObject.Type,
+         indexer.responds(to: NSSelectorFromString("indexChapters:completion:")) {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+          let done: @convention(block) (NSError?) -> Void = { error in
+            if let error { continuation.resume(throwing: error) } else { continuation.resume() }
+          }
+          _ = indexer.perform(NSSelectorFromString("indexChapters:completion:"), with: items as NSArray, with: done)
+        }
+        return
+      }
       try await CSSearchableIndex.default().indexSearchableItems(Self.searchable(items, prefix: "chapter:", rank: 1))
     }
 
     AsyncFunction("clearIndex") {
       try await CSSearchableIndex.default().deleteSearchableItems(withDomainIdentifiers: ["bsb"])
+      // From iOS 18 chapters are App Entities, which the domain delete does not reach.
+      if let clearer = NSClassFromString("YadaShortcutsUpdater") as? NSObject.Type,
+         clearer.responds(to: NSSelectorFromString("clearChapters:")) {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+          let done: @convention(block) (NSError?) -> Void = { error in
+            if let error { continuation.resume(throwing: error) } else { continuation.resume() }
+          }
+          _ = clearer.perform(NSSelectorFromString("clearChapters:"), with: done)
+        }
+      }
     }
 
     /// SX-11: the chapters "Read Psalm 23 in Yada" may name, from the app target (YadaIntents.swift), which
@@ -183,7 +220,12 @@ public class YadaSystemModule: Module {
       let attributes = CSSearchableItemAttributeSet(contentType: .text)
       attributes.title = title
       attributes.displayName = title
-      attributes.contentDescription = "\(text)\nBerean Standard Bible"
+      // SX-12: "Psalm 23", then "The Lord is my shepherd", then the verse.
+      if let name = item["name"], !name.isEmpty {
+        attributes.contentDescription = "\(name)\n\(text)"
+      } else {
+        attributes.contentDescription = "\(text)\nBerean Standard Bible"
+      }
       attributes.keywords = (item["keywords"] ?? "").split(separator: "|").map(String.init)
       attributes.rankingHint = NSNumber(value: rank)
       return CSSearchableItem(uniqueIdentifier: "\(prefix)\(id)", domainIdentifier: "bsb", attributeSet: attributes)

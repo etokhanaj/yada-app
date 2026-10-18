@@ -16,7 +16,7 @@ import { type AccessibilityActionEvent, Pressable, StyleSheet, Switch, View } fr
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "../components/Icon";
-import { Chrome, Label } from "../components/Type";
+import { SectionTitle, Chrome } from "../components/Type";
 import { useLayout, usePalette } from "../design/tokens";
 import { type Appearance, TEXT_SCALES, useSettings } from "../state/settings";
 
@@ -113,7 +113,7 @@ export default function TypeSettings() {
     <View style={{ backgroundColor: palette.sheet, paddingHorizontal: gutter, paddingTop: 14, paddingBottom: Math.max(insets.bottom, 24) }}>
       {header}
 
-      <Label style={{ marginTop: 24 }}>Text size</Label>
+      <SectionTitle inSheet style={{ marginTop: 24 }}>Text size</SectionTitle>
       {ax ? (
         <Chrome tone="ink" style={{ marginTop: 6 }}>
           Using iPhone text size
@@ -138,7 +138,7 @@ export default function TypeSettings() {
         {stepButton("A+", 1, "text-larger")}
       </View>
 
-      <Label style={{ marginTop: 28 }}>Appearance</Label>
+      <SectionTitle inSheet style={{ marginTop: 28 }}>Appearance</SectionTitle>
       {ax ? (
         <View accessibilityRole="radiogroup" style={{ marginTop: 6 }}>
           {APPEARANCES.map((option, i) => {

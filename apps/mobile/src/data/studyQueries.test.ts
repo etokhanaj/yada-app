@@ -10,7 +10,7 @@ import { DatabaseSync } from "node:sqlite";
 import { STUDY_DDL, verseOrd } from "@yada/schema";
 import { describe, expect, it } from "vitest";
 
-import { checkStudyFile, getPassageNote, getProfiles, getStudyNotes, getStudySources, getXrefs, noteOrdsInRange } from "./studyQueries";
+import { checkStudyFile, getPassageNote, getProfiles, getStudyNotes, getStudyNotesInRange, getStudySources, getXrefs, noteOrdsInRange } from "./studyQueries";
 import type { Db } from "./queries";
 
 function wrap(db: DatabaseSync): Db {
@@ -65,6 +65,13 @@ describe("study queries", () => {
     expect((await getPassageNote(db, j(1, 3), j(1, 5)))?.id).toBe(2);
     expect(await getPassageNote(db, j(1, 1), j(1, 1)).then((n) => n?.id)).toBe(2);
     expect(await getPassageNote(db, j(1, 1), j(2, 12))).toBeNull();
+  });
+
+  it("reads every note touching a passage, the wider one first, never an intro or a profile (WM-05)", async () => {
+    const db = fixture();
+    expect((await getStudyNotesInRange(db, j(1, 1), j(1, 18))).map((n) => n.id)).toEqual([2, 3]);
+    expect((await getStudyNotesInRange(db, j(1, 3), j(1, 5))).map((n) => n.id)).toEqual([2]);
+    expect(await getStudyNotesInRange(db, j(3, 1), j(3, 21))).toEqual([]);
   });
 
   const real = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../content/bundles/study-jhn.v1.db");

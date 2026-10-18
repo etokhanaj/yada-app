@@ -21,6 +21,7 @@ import { initAudio } from "../data/audio";
 import { countListening } from "../data/rhythm";
 import { installBundles, openCore, openUser } from "../data/bundles";
 import { setCloudPaused, startCloudSync } from "../data/cloud";
+import { stampOpen } from "../data/lapse";
 import { refreshReminder, targetOf } from "../data/reminder";
 import { followListening, indexSpotlight, updateWidgets, watchDoors } from "../data/system";
 import { listen } from "../data/audio";
@@ -74,7 +75,8 @@ async function start(): Promise<AppData> {
   countListening(user);
   // The reminder's two weeks are made again from today's progress (lib/reminder.ts); never fails the launch.
   void refreshReminder(user, asDb(core)).catch(() => undefined);
-  return { core, user };
+  // DR-01: the very first launch, with no tab remembered, opens Bible, where Start here is.
+  return { core, user, launchTab: stored["lastTab"] === "today" ? "today" : "index" };
 }
 
 /** A setting changed on another device: the store follows user.db, keeping a translation not installed here. */
@@ -153,7 +155,11 @@ export default function RootLayout() {
     const appState = AppState.addEventListener("change", (state) => {
       if (state === "active") void refreshReminder(data.user, data.core).catch(() => undefined);
       // Leaving the app: the widget's Continue becomes where the reader stopped (WL-01).
-      if (state === "background") void updateWidgets(data.user, data.core).catch(() => undefined);
+      if (state === "background") {
+        void updateWidgets(data.user, data.core).catch(() => undefined);
+        // "Away" is measured from the last time Yada was in use (lib/lapse.ts).
+        void stampOpen(data.user).catch(() => undefined);
+      }
     });
     return () => {
       sub.remove();
@@ -201,6 +207,8 @@ export default function RootLayout() {
       if (now.understandFull !== before.understandFull) void saveSetting(data.user, "understandFull", now.understandFull ? "1" : "0");
       if (now.psalmTipSeen && !before.psalmTipSeen) void saveSetting(data.user, "psalmTipSeen", "1");
       if (now.understandOpenFull !== before.understandOpenFull) void saveSetting(data.user, "understandOpenFull", now.understandOpenFull ? "1" : "0");
+      if (now.bookOrder !== before.bookOrder) void saveSetting(data.user, "bookOrder", now.bookOrder);
+      if (now.chooseVerse !== before.chooseVerse) void saveSetting(data.user, "chooseVerse", now.chooseVerse ? "1" : "0");
     });
   }, [data]);
 
@@ -270,8 +278,14 @@ export default function RootLayout() {
           {/* IA v4: Today and Bible are tabs beneath every other route (build 7). */}
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="read/[book]/[chapter]" />
-          <Stack.Screen name="bookmarks" />
+          {/* PS-04: Saved, from the bookmark in Bible's header; it replaced Bookmarks. */}
+          <Stack.Screen name="saved" />
+          {/* DR-19: Earlier days, a Today page. */}
+          <Stack.Screen name="earlier" />
           <Stack.Screen name="recent" />
+          {/* DI-04: the dictionary, a page pushed from Search. */}
+          <Stack.Screen name="dictionary/index" />
+          <Stack.Screen name="dictionary/term" />
           <Stack.Screen name="sources" />
           <Stack.Screen name="thread" />
           <Stack.Screen name="plans" />
@@ -284,9 +298,18 @@ export default function RootLayout() {
           <Stack.Screen name="open" options={{ animation: "none" }} />
           {/* The full player (AU-04) covers the reader; closed by its down chevron, so no swipe to lose. */}
           {/* Ask for prayer (PR-10): a sheet over Pray. */}
-          <Stack.Screen name="pray/ask" options={sheet} />
+          {/* Large only: the keyboard takes the lower half, and the request needs the room above it (PR-10). */}
+          <Stack.Screen name="pray/ask" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          {/* DR-16: the day's verse fills the screen, closed by its ×; DR-14: About this picture is a sheet over it. */}
+          <Stack.Screen name="verse" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          <Stack.Screen name="picture" options={sheet} />
+          {/* Your space: a note opens large, the keyboard takes the lower half (PS-03); Share as an image shows its card whole (PS-05). */}
+          <Stack.Screen name="note" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          <Stack.Screen name="share-image" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
           {/* A circle needs iCloud (CI-03): the same sheet as XT-05. */}
           <Stack.Screen name="pray/icloud" options={sheet} />
+          {/* PR-09: Pray for someone is a calm full screen, closed by its ×. */}
+          <Stack.Screen name="pray/someone" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           {/* Daily prayer (DO-04–06): full screen over the day's picture; closed by its × or Amen. */}
           <Stack.Screen name="office" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           <Stack.Screen
@@ -302,9 +325,14 @@ export default function RootLayout() {
           <Stack.Screen name="understand" options={{ ...sheet, sheetInitialDetentIndex: ax || understandFull ? 1 : 0 }} />
           {/* The passage guide: medium and large, as Understand (PG-02, PG-03). */}
           <Stack.Screen name="guide" options={sheet} />
-          {/* NP-01: the reminder asked for at the first passage's end, at the medium height only. */}
-          <Stack.Screen name="remind-ask" options={{ ...sheet, sheetAllowedDetents: ax ? [1] : [SHEET_MEDIUM], sheetInitialDetentIndex: 0 }} />
-          <Stack.Screen name="rhythm" options={{ ...sheet, sheetAllowedDetents: ax ? [1] : [SHEET_MEDIUM], sheetInitialDetentIndex: 0 }} />
+          {/* NP-01, RT-05: the reminder asked for at the first passage's end, a page of its own; Not now is its way out. */}
+          <Stack.Screen name="remind-ask" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          {/* RT-02: Your rhythm now holds the week, the year grid and how it works, so it opens large. */}
+          <Stack.Screen name="rhythm" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          {/* RT-01, RT-08: back after a month or more, over everything, closed by its × or Continue. */}
+          <Stack.Screen name="return" options={{ presentation: "fullScreenModal", animation: "fade", gestureEnabled: false }} />
+          {/* RT-07: three ways to start small. */}
+          <Stack.Screen name="start-small" options={{ ...sheet, sheetAllowedDetents: ax ? [1] : [SHEET_MEDIUM], sheetInitialDetentIndex: 0 }} />
           <Stack.Screen name="evidence" options={sheet} />
           {/* Contents and Search open large: lists to scan, not notes beside the text. */}
           <Stack.Screen name="contents" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />

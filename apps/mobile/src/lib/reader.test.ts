@@ -73,9 +73,13 @@ describe("barItems", () => {
   });
 
   it("moves Compare into More at AX sizes, and never Original", () => {
-    expect(moreActions(true, true, false)).toEqual(["Compare", "Copy", "Share", "Bookmark"]);
-    expect(moreActions(false, true, true)).toEqual(["Compare", "Copy", "Share", "Remove bookmark"]);
-    expect(moreActions(true, false, false)).toEqual(["Copy", "Share", "Bookmark"]);
+    expect(moreActions(true, false, true)).toEqual(["Compare", "Share as an image", "Share", "Bookmark"]);
+    expect(moreActions(true, true, true)).toEqual(["Compare", "Share as an image", "Share", "Remove bookmark"]);
+    expect(moreActions(false, false, true)).toEqual(["Share as an image", "Share", "Bookmark"]);
+  });
+
+  it("offers no image of a licensed translation's words (rule 9)", () => {
+    expect(moreActions(false, false, false)).toEqual(["Share", "Bookmark"]);
   });
 });
 
@@ -217,6 +221,13 @@ describe("splitSuperscription", () => {
 });
 
 describe("excerptOf", () => {
+  it("skips a superscription that names a tune (Psalm 80, Psalm 8)", () => {
+    expect(
+      excerptOf("For the choirmaster. To the tune of “The Lilies of the Covenant.” A Psalm of Asaph. Hear us, O Shepherd of Israel"),
+    ).toBe("Hear us, O Shepherd of Israel");
+    expect(excerptOf("For the choirmaster. According to Gittith. A Psalm of David. O LORD, our Lord")).toBe("O LORD, our Lord");
+  });
+
   it("drops a psalm's superscription (S18)", () => {
     expect(excerptOf("A Psalm of David. The LORD is my shepherd; I shall not want.")).toBe("The LORD is my shepherd; I shall not want.");
   });

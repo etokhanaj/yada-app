@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MANUSCRIPT_OMISSIONS, missingOriginalNote, SOURCE_GAPS } from "./omissions";
+import { MANUSCRIPT_OMISSIONS, missingOriginalNote, omittedVerseLine, SOURCE_GAPS } from "./omissions";
 
 describe("verses with nothing underneath", () => {
   it("says nothing when the verse has original words", () => {
@@ -41,5 +41,18 @@ describe("verses with nothing underneath", () => {
 
   it("speaks of Hebrew in the Old Testament", () => {
     expect(missingOriginalNote("NEH.7.68", "hebrew", false)).toMatch(/no Hebrew/);
+  });
+});
+
+describe("the note on a verse modern translations leave out (PD-06)", () => {
+  it("says so in plain words for a listed omission", () => {
+    expect(omittedVerseLine("JHN.5.4", "John")).toBe(
+      "The oldest Greek manuscripts of John don’t have this verse, so modern translations leave it out. Later manuscripts add it, and the King James Version has it:",
+    );
+  });
+
+  it("says nothing for a numbering difference or the passage in John 7:53–8:11", () => {
+    expect(omittedVerseLine("2CO.13.14", "2 Corinthians")).toBeNull();
+    expect(omittedVerseLine("JHN.8.3", "John")).toBeNull();
   });
 });

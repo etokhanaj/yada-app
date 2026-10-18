@@ -63,10 +63,24 @@ export function missingOriginalNote(verseId: string, script: "greek" | "hebrew",
     return "There is no Hebrew for this verse. The Westminster Leningrad Codex, the Hebrew text Yada uses, has no words at this verse number.";
   }
   if (SOURCE_GAPS.has(verseId)) {
-    return "There is no Greek for this verse in Yada yet. The MorphGNT data Yada's Greek comes from stops at Romans 16:24, so this is a gap in Yada's data, not a verse the manuscripts leave out.";
+    // No "yet": nothing on screen promises what is coming (CLAUDE.md; review-2026-10-12.md:91).
+    return "There is no Greek for this verse in Yada. The MorphGNT data Yada's Greek comes from stops at Romans 16:24, so this is a gap in Yada's data, not a verse the manuscripts leave out.";
   }
   if (MANUSCRIPT_OMISSIONS.has(verseId)) {
     return "There is no Greek for this verse. The earliest manuscripts omit it, so SBLGNT, the Greek text Yada uses, does not include it. The English is shown as the translation prints it.";
   }
   return "There is no Greek at this verse number. SBLGNT, the Greek text Yada uses, numbers this passage differently, so its words are not attached to this verse.";
 }
+
+/**
+ * PD-06: the plain note on a verse modern translations leave out (John 5:4), before the KJV's words for it.
+ * Only for the verses listed as true omissions; the twelve verses of John 7:53–8:11 are one passage with
+ * its own sentence, and the BSB prints them, so they never reach this note.
+ */
+export function omittedVerseLine(verseId: string, bookName: string): string | null {
+  if (!MANUSCRIPT_OMISSIONS.has(verseId) || PERICOPE_ADULTERAE.has(verseId)) return null;
+  return `The oldest Greek manuscripts of ${bookName} don’t have this verse, so modern translations leave it out. Later manuscripts add it, and the King James Version has it:`;
+}
+
+/** Under the KJV's words in PD-06: the edition Yada's KJV is (sources.ts, "1769 standardised text"). */
+export const KJV_EDITION = "KJV, 1769";

@@ -39,6 +39,15 @@ struct Rich {
   }
 }
 
+/// Literata, bundled here as in the widget (design QA X2: this drew in New York). relativeTo keeps Dynamic Type.
+private enum Serif {
+  static func font(_ size: CGFloat, _ style: Font.TextStyle) -> Font { .custom("Literata-Regular", size: size, relativeTo: style) }
+  static let title = font(20, .title3).weight(.semibold)
+  static let titleLine = font(13, .footnote)
+  static let number = font(11, .caption2)
+  static let verse = font(17, .body)
+}
+
 struct RichView: View {
   let rich: Rich
   @Environment(\.dynamicTypeSize) private var size
@@ -47,9 +56,9 @@ struct RichView: View {
     VStack(alignment: .leading, spacing: 10) {
       VStack(alignment: .leading, spacing: 2) {
         Text(rich.overline).font(.caption.weight(.medium)).foregroundStyle(Color("mutedInk"))
-        Text(rich.title).font(.system(.title3, design: .serif).weight(.semibold)).foregroundStyle(Color("ink"))
+        Text(rich.title).font(Serif.title).foregroundStyle(Color("ink"))
         if let line = rich.titleLine {
-          Text(line).font(.system(.footnote, design: .serif)).italic().foregroundStyle(Color("mutedInk"))
+          Text(line).font(Serif.titleLine).italic().foregroundStyle(Color("mutedInk"))
         }
         if !rich.ref.isEmpty {
           Text(rich.ref).font(.caption).foregroundStyle(Color("mutedInk"))
@@ -58,10 +67,10 @@ struct RichView: View {
       // AX5 keeps one verse (SX-14).
       ForEach(Array((size.isAccessibilitySize ? Array(rich.verses.prefix(1)) : rich.verses).enumerated()), id: \.offset) { _, v in
         if v.0 > 0 {
-          Text("\(v.0) ").font(.system(.caption2, design: .serif)).foregroundColor(Color("mutedInk"))
-            + Text(v.1).font(.system(.body, design: .serif)).foregroundColor(Color("ink"))
+          Text("\(v.0) ").font(Serif.number).foregroundColor(Color("mutedInk"))
+            + Text(v.1).font(Serif.verse).foregroundColor(Color("ink"))
         } else {
-          Text(v.1).font(.system(.body, design: .serif)).foregroundColor(Color("ink"))
+          Text(v.1).font(Serif.verse).foregroundColor(Color("ink"))
         }
       }
     }

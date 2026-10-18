@@ -31,6 +31,16 @@ export function trailingSheets(routeNames: readonly string[], sheets: ReadonlySe
 }
 
 /**
+ * DN-06: ‹ inside a sheet names where it goes back to when that is a verse or passage, as "‹ 14:34", so three
+ * pushes never feel lost. The page title "1 Corinthians 14:34" gives "14:34"; any other title gives null, and ‹
+ * stays the round glyph with the name in its VoiceOver label.
+ */
+export function backPill(title: string | null): string | null {
+  if (title === null) return null;
+  return /\s(\d{1,3}:\d{1,3}(?:[–-]\d{1,3}(?::\d{1,3})?)?)$/u.exec(title)?.[1] ?? null;
+}
+
+/**
  * Leaving to read somewhere else closes Search too. Back to reading does not:
  * a sheet opened from Search returns to it (Search is not in SHEET_ROUTES).
  */

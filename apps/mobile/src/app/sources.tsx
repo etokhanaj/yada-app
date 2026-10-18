@@ -20,7 +20,7 @@ import { licensedCodes, licensedEnabled } from "../data/useLicensedChapter";
 import { Linking, View } from "react-native";
 
 import { ListRow, PageScreen } from "../components/Page";
-import { Chrome, Label } from "../components/Type";
+import { SectionTitle, Chrome } from "../components/Type";
 import { useCore, useQuery } from "../data/AppData";
 import { getSources, getTranslationSources } from "../data/queries";
 import { refreshRecordings, useRecordings } from "../data/recordings";
@@ -30,7 +30,6 @@ import { loadAnyUnderstandSources, useUnderstand } from "../data/understand";
 import { useLayout } from "../design/tokens";
 import { todaySources } from "../data/today";
 import { type SourceGroup, sourceItems, studySourceItem } from "../lib/sources";
-import { useSettings } from "../state/settings";
 
 const GROUPS: readonly SourceGroup[] = ["Bible text", "Words and people", "Understand", "Today"];
 
@@ -53,7 +52,6 @@ export default function SourcesScreen() {
 export function SourcesList() {
   const core = useCore();
   const { ax, sectionGap } = useLayout();
-  const translation = useSettings((s) => s.translation);
   const installed = useTranslations((s) => s.installed);
   const { data: sources } = useQuery(
     async () => [...(await getSources(core)), ...(await getTranslationSources(core)), ...(await todaySources())],
@@ -73,7 +71,7 @@ export function SourcesList() {
         if (rows.length === 0) return null;
         return (
           <View key={group} style={{ marginTop: sectionGap }}>
-            <Label style={{ marginBottom: 6 }}>{group}</Label>
+            <SectionTitle style={{ marginBottom: 6 }}>{group}</SectionTitle>
             {rows.map((item, i) => (
               <ListRow
                 key={item.dataset}
@@ -112,7 +110,7 @@ export function SourcesList() {
           the book's own file (rule 3). Credited here once, never under each line (Phase 1). */}
       {explanations !== undefined && explanations.length > 0 ? (
         <View style={{ marginTop: sectionGap }}>
-          <Label style={{ marginBottom: 6 }}>Explanations</Label>
+          <SectionTitle style={{ marginBottom: 6 }}>Explanations</SectionTitle>
           {explanations
             .filter((source) => source.key !== "twl")
             .map((source, i) => (
@@ -149,7 +147,7 @@ export function SourcesList() {
           (API.Bible terms, Minimum Acceptable Use, read 18 Oct 2026). */}
       {licensedEnabled() ? (
         <View style={{ marginTop: sectionGap }}>
-          <Label style={{ marginBottom: 6 }}>Read online</Label>
+          <SectionTitle style={{ marginBottom: 6 }}>Read online</SectionTitle>
           <ListRow
             first
             title={licensedCodes().map((c) => (c === "MSG" ? "The Message" : c)).join(" · ")}
@@ -164,7 +162,7 @@ export function SourcesList() {
           A computer voice says so here too (John, 12 Oct 2026). */}
       {readings.length > 0 ? (
         <View style={{ marginTop: sectionGap }}>
-          <Label style={{ marginBottom: 6 }}>Audio</Label>
+          <SectionTitle style={{ marginBottom: 6 }}>Audio</SectionTitle>
           {readings.map((reading, i) => (
             <ListRow
               key={reading.narrator}
@@ -183,7 +181,7 @@ export function SourcesList() {
           and for Tyndale's share-alike notes, what was changed. */}
       {study !== undefined && study.length > 0 ? (
         <View style={{ marginTop: sectionGap }}>
-          <Label style={{ marginBottom: 6 }}>Study notes</Label>
+          <SectionTitle style={{ marginBottom: 6 }}>Study notes</SectionTitle>
           {study.map((source, i) => {
             const item = studySourceItem(source);
             return (

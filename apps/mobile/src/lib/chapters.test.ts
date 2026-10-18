@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { chapterFromParams, formatRange, formatRangeInBook, nextChapter, prevChapter, resolveRef } from "./chapters";
+import { chapterFromParams, formatRange, formatRangeInBook, nextChapter, prevChapter, printedRef, resolveRef } from "./chapters";
 
 describe("chapter navigation", () => {
   it("moves within a book", () => {
@@ -33,6 +33,21 @@ describe("refs", () => {
     expect(resolveRef("1TI.2.11-12")).toMatchObject({ book: "1TI", chapter: 2, startVerse: 11, endOrd: 54002012 });
     expect(resolveRef("JHN.7.53-8.11")).toMatchObject({ startOrd: 43007053, endOrd: 43008011 });
     expect(resolveRef("nonsense")).toBeNull();
+  });
+
+  it("reads a printed reference as the data prints it (Read it alongside, VS-02, JR-05)", () => {
+    expect(resolveRef("1 Jn 4:9-10")).toBeNull();
+    expect(printedRef("1 Jn 4:9-10")).toBe("1JN.4.9-4.10");
+    expect(printedRef("Matthew 14:13–21")).toBe("MAT.14.13-14.21");
+    expect(printedRef("Gen 3:16")).toBe("GEN.3.16");
+    expect(printedRef("1 Tim 2:11-15")).toBe("1TI.2.11-2.15");
+    expect(printedRef("Song of Songs 2:1")).toBe("SNG.2.1");
+    expect(printedRef("Luke 3:23–4:2")).toBe("LUK.3.23-4.2");
+    expect(printedRef("Nowhere 3:1")).toBeNull();
+    expect(printedRef("John 30:1")).toBeNull();
+    expect(printedRef("Psalm 119:176")).toBe("PSA.119.176");
+    expect(printedRef("John 3:177")).toBeNull();
+    expect(printedRef("John 3:16-177")).toBeNull();
   });
 
   it("formats ranges for display", () => {

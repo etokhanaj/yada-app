@@ -52,6 +52,18 @@ describe("playerMenu (LB-01, LB-02, LB-05, LB-07)", () => {
     expect(menu[2]?.subtitle).toBe("This verse");
   });
 
+  it("offers the end of this evening's psalms while one of them plays, and calls a psalm a psalm (DR-08)", () => {
+    const psalm8 = { verse: "8:5", passage: null, chapter: "Psalm 8", passageEnd: null, chapterEnd: "8:9", psalm: true, set: { part: "evening", psalm: 8, to: null } } as const;
+    const stop = playerMenu(1, null, null, psalm8, 0)[1];
+    expect(stop?.rows.slice(0, 2).map((r) => [r.title, r.subtitle])).toEqual([
+      ["End of this evening’s psalms", "After Psalm 8"],
+      ["End of this psalm", "After 8:9"],
+    ]);
+    const set = playerMenu(1, { kind: "set", part: "evening", psalm: 8, to: null }, null, psalm8, 0)[1];
+    expect(set?.subtitle).toBe("End of this evening’s psalms");
+    expect(set?.rows[0]?.on).toBe(true);
+  });
+
   it("a book with no passages has no passage rows (US-02)", () => {
     const menu = playerMenu(1, null, null, { ...place, passage: null, passageEnd: null }, 0);
     expect(menu[1]?.rows.map((r) => r.title)).not.toContain("End of this passage");

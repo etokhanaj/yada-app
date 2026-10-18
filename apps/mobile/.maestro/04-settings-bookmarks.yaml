@@ -55,26 +55,31 @@ appId: studio.yada.reader
     times: 3
     while:
       notVisible:
-        id: home-search
+        id: home-saved
     commands:
       - tapOn:
           id: reader-back
       - waitForAnimationToEnd
+# PS-04: Saved replaced Bookmarks; its Bookmarks segment holds them, removed through ⋯ › Edit.
 - tapOn:
-    id: home-bookmarks
+    id: home-saved
 - waitForAnimationToEnd
-- assertVisible:
-    id: bookmark-1CO.14.34
 - tapOn:
-    id: bookmarks-edit
+    id: saved-tab-bookmarks
+- assertVisible:
+    id: saved-1CO.14.34
+- tapOn:
+    id: saved-more
+- waitForAnimationToEnd
+- tapOn: "Edit"
 - waitForAnimationToEnd
 # The remove control sits at the row's trailing edge.
 - tapOn:
-    id: bookmark-1CO.14.34
+    id: saved-1CO.14.34
     point: "94%,50%"
 - waitForAnimationToEnd
 - assertNotVisible:
-    id: bookmark-1CO.14.34
+    id: saved-1CO.14.34
 - tapOn:
     id: page-back
 - waitForAnimationToEnd

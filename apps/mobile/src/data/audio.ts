@@ -23,7 +23,7 @@ import { AppState } from "react-native";
 import { Speech } from "../../modules/yada-speech";
 import { leadFor, pauseFor, phrasesOf, type VerseOpening } from "../lib/audio/cadence";
 import { afterVerse, canSpeak, isSpeed, nowPlayingFor, rateFor } from "../lib/audio/session";
-import { afterVerse as stopOrRepeat, keepStop, type Repeat, type StopChoice, stopFrom } from "../lib/audio/stop";
+import { afterVerse as stopOrRepeat, keepStop, type Repeat, type SetEnd, type StopChoice, stopFrom } from "../lib/audio/stop";
 import { type SpokenText, spokenFor, spokenOffsetOf, wordAt, type WordRange, wordRanges } from "../lib/audio/text";
 import { chapterTitle } from "../lib/reader";
 import { type AudioSession, currentVerse, useAudio } from "../state/audio";
@@ -174,9 +174,9 @@ export function endSession(): void {
   useAudio.setState({ session: null, stop: null, repeat: null });
 }
 
-/** LB-02: a stop at a natural break, or none. */
-export function setStop(choice: StopChoice | null): void {
-  useAudio.setState({ stop: choice === null ? null : stopFrom(choice, Date.now()) });
+/** LB-02: a stop at a natural break, or none; DR-08: `set` is where today's psalms end, for "set". */
+export function setStop(choice: StopChoice | null, set: SetEnd | null = null): void {
+  useAudio.setState({ stop: choice === null ? null : stopFrom(choice, Date.now(), set) });
 }
 
 /** LB-05: a repeat, which clears a stop the loop would never reach (LB-07). */

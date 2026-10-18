@@ -12,6 +12,7 @@ import { create } from "zustand";
 
 import { isTranslation, type TranslationCode } from "../data/queries";
 import { parseCompareChoice } from "../lib/compare";
+import { type BookOrder, isBookOrder } from "../lib/contents";
 
 export type Appearance = "system" | "light" | "dark";
 
@@ -37,6 +38,10 @@ interface SettingsState {
   understandOpenFull: boolean;
   /** The one-time Hebrew poetry tip above the first psalm a reader opens (JR-01). */
   psalmTipSeen: boolean;
+  /** Contents ⋯ › Book order (CT-01, CT-02). */
+  bookOrder: BookOrder;
+  /** Contents ⋯ › Choose a verse: a chapter opens its verses before the reader (CT-03). */
+  chooseVerse: boolean;
   hydrated: boolean;
   setAppearance: (value: Appearance) => void;
   setTextScale: (value: number) => void;
@@ -48,6 +53,8 @@ interface SettingsState {
   setUnderstandFull: (value: boolean) => void;
   setUnderstandOpenFull: (value: boolean) => void;
   markPsalmTipSeen: () => void;
+  setBookOrder: (value: BookOrder) => void;
+  setChooseVerse: (value: boolean) => void;
   /**
    * `installed`: downloads attached this launch, so a saved choice of one survives.
    * `fallback`: the translation kept when the saved one cannot be read here. BSB at
@@ -68,6 +75,8 @@ export const useSettings = create<SettingsState>((set) => ({
   understandFull: false,
   understandOpenFull: false,
   psalmTipSeen: false,
+  bookOrder: "traditional",
+  chooseVerse: false,
   hydrated: false,
   setAppearance: (appearance) => set({ appearance }),
   setTextScale: (textScale) => set({ textScale }),
@@ -79,6 +88,8 @@ export const useSettings = create<SettingsState>((set) => ({
   setUnderstandFull: (understandFull) => set({ understandFull }),
   setUnderstandOpenFull: (understandOpenFull) => set({ understandOpenFull }),
   markPsalmTipSeen: () => set({ psalmTipSeen: true }),
+  setBookOrder: (bookOrder) => set({ bookOrder }),
+  setChooseVerse: (chooseVerse) => set({ chooseVerse }),
   hydrate: (stored, installed = [], fallback = "BSB") => {
     const translation = stored["translation"];
     set({
@@ -95,6 +106,8 @@ export const useSettings = create<SettingsState>((set) => ({
       understandFull: stored["understandFull"] === "1",
       understandOpenFull: stored["understandOpenFull"] === "1",
       psalmTipSeen: stored["psalmTipSeen"] === "1",
+      bookOrder: isBookOrder(stored["bookOrder"]) ? stored["bookOrder"] : "traditional",
+      chooseVerse: stored["chooseVerse"] === "1",
       hydrated: true,
     });
   },

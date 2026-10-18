@@ -23,12 +23,34 @@ import {
   serializeRegisters,
   SYNC_KINDS,
   SYNCED_SETTINGS,
+  type SyncKind,
   type SyncState,
 } from "../lib/cloudSync";
-import { exclusiveWrite, setUserDataListener } from "./user";
+import { exclusiveWrite, setUserDataListener, yourSpaceChanged } from "./user";
 
 /** Local writes come in bursts (a range bookmarked, a scroll settling); one sync per burst. */
 const SYNC_DELAY_MS = 1500;
+
+/**
+ * The most one kind may take in the key-value store. iCloud allows 1 MB for the whole app, and a write past it is a
+ * quotaViolation that stops every key syncing, so a kind grown past this (hundreds of long notes) stays on this device
+ * and the rest keep syncing (code review, 18 Oct 2026).
+ */
+export const KIND_BUDGET_BYTES = 400_000;
+
+/** UTF-8 length, as iCloud counts it; a note in Greek or with emoji takes more than its character count. */
+function utf8Bytes(text: string): number {
+  let bytes = 0;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code < 0x80) bytes += 1;
+    else if (code < 0x800) bytes += 2;
+    // Each half of a surrogate pair: the pair is one 4-byte character.
+    else if (code >= 0xd800 && code <= 0xdfff) bytes += 2;
+    else bytes += 3;
+  }
+  return bytes;
+}
 
 const ms = (iso: string | null | undefined): number => {
   const value = iso === null || iso === undefined ? Number.NaN : Date.parse(iso);
@@ -53,6 +75,9 @@ async function readLocal(db: SQLiteDatabase): Promise<SyncState> {
     [...SYNCED_SETTINGS],
   );
   const days = await db.getAllAsync<{ day: string }>("SELECT day FROM rhythm_days");
+  const chapters = await db.getAllAsync<{ chapter_key: string }>("SELECT chapter_key FROM chapters_read");
+  const highlights = await db.getAllAsync<{ verse_id: string; color: string; updated_at: string }>("SELECT verse_id, color, updated_at FROM highlights");
+  const notes = await db.getAllAsync<{ target: string; body: string; updated_at: string }>("SELECT target, body, updated_at FROM notes");
   return {
     bookmarks,
     position: place === null ? {} : { [POSITION_KEY]: [place.verse_id, ms(place.updated_at)] },
@@ -60,6 +85,10 @@ async function readLocal(db: SQLiteDatabase): Promise<SyncState> {
     settings: Object.fromEntries(settings.map((r) => [r.key, [r.value, ms(r.at)]])),
     // A counted day never changes, so its stamp is 0 on every device and the merge is a plain union.
     days: Object.fromEntries(days.map((r) => [r.day, [true, 0]])),
+    // A chapter read stays read, so its stamp is 0 everywhere and the merge is a union too.
+    chapters: Object.fromEntries(chapters.map((r) => [r.chapter_key, [true, 0]])),
+    highlights: Object.fromEntries(highlights.map((r) => [r.verse_id, [r.color, ms(r.updated_at)]])),
+    notes: Object.fromEntries(notes.map((r) => [r.target, [r.body, ms(r.updated_at)]])),
   };
 }
 
@@ -95,6 +124,21 @@ async function writeLocal(db: SQLiteDatabase, local: SyncState, merged: SyncStat
   for (const [day] of changedEntries(local.days, merged.days)) {
     await db.runAsync("INSERT OR IGNORE INTO rhythm_days (day) VALUES (?)", [day]);
   }
+  for (const [key] of changedEntries(local.chapters, merged.chapters)) {
+    await db.runAsync("INSERT OR IGNORE INTO chapters_read (chapter_key) VALUES (?)", [key]);
+  }
+  for (const [verse, [color, at]] of changedEntries(local.highlights, merged.highlights)) {
+    await db.runAsync(
+      "INSERT INTO highlights (verse_id, color, updated_at) VALUES (?, ?, ?) ON CONFLICT(verse_id) DO UPDATE SET color = excluded.color, updated_at = excluded.updated_at",
+      [verse, color, iso(at)],
+    );
+  }
+  for (const [target, [body, at]] of changedEntries(local.notes, merged.notes)) {
+    await db.runAsync(
+      "INSERT INTO notes (target, body, updated_at) VALUES (?, ?, ?) ON CONFLICT(target) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at",
+      [target, body, iso(at)],
+    );
+  }
   const settings = changedEntries(local.settings, merged.settings);
   for (const [key, [value, at]] of settings) {
     await db.runAsync("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", [key, value]);
@@ -128,30 +172,32 @@ export function setCloudPaused(value: boolean): void {
 export function syncWithCloud(db: SQLiteDatabase, store: KeyValueStore, initialSync = false): Promise<boolean> {
   const run = async (): Promise<boolean> => {
     if (paused) return false;
-    const raw = {
-      bookmarks: store.get(CLOUD_KEYS.bookmarks),
-      position: store.get(CLOUD_KEYS.position),
-      threads: store.get(CLOUD_KEYS.threads),
-      settings: store.get(CLOUD_KEYS.settings),
-      days: store.get(CLOUD_KEYS.days),
-    };
+    const raw = new Map<SyncKind, string | null>();
+    for (const kind of SYNC_KINDS) raw.set(kind, store.get(CLOUD_KEYS[kind]));
     const remote: SyncState = {
-      bookmarks: parseCloud("bookmarks", raw.bookmarks),
-      position: parseCloud("position", raw.position),
-      threads: parseCloud("threads", raw.threads),
-      settings: parseCloud("settings", raw.settings),
-      days: parseCloud("days", raw.days),
+      bookmarks: parseCloud("bookmarks", raw.get("bookmarks")),
+      position: parseCloud("position", raw.get("position")),
+      threads: parseCloud("threads", raw.get("threads")),
+      settings: parseCloud("settings", raw.get("settings")),
+      days: parseCloud("days", raw.get("days")),
+      chapters: parseCloud("chapters", raw.get("chapters")),
+      highlights: parseCloud("highlights", raw.get("highlights")),
+      notes: parseCloud("notes", raw.get("notes")),
     };
     const { merged, settingsChanged } = await exclusiveWrite(async () => {
       const local = await readLocal(db);
       const next = mergeState(local, remote, { initialSync });
-      return { merged: next, settingsChanged: await writeLocal(db, local, next) };
+      const changed = await writeLocal(db, local, next);
+      if (changedEntries(local.highlights, next.highlights).length + changedEntries(local.notes, next.notes).length > 0) yourSpaceChanged();
+      return { merged: next, settingsChanged: changed };
     });
     let wrote = false;
     for (const kind of SYNC_KINDS) {
       const text = serializeRegisters<unknown>(merged[kind]);
       // Compared with the raw value, so entries this version could not read are rewritten out.
-      if (text === (raw[kind] ?? serializeRegisters({}))) continue;
+      if (text === (raw.get(kind) ?? serializeRegisters({}))) continue;
+      // Over budget it stays local-only: iCloud keeps its last copy, which merges as older and loses nothing here.
+      if (utf8Bytes(text) > KIND_BUDGET_BYTES) continue;
       store.set(CLOUD_KEYS[kind], text);
       wrote = true;
     }
@@ -214,8 +260,8 @@ export async function startCloudSync(db: SQLiteDatabase, settingsChanged: () => 
  * CloudKit, FileManager.ubiquityIdentityToken, is nil when iCloud Drive is off,
  * yet the key-value store still syncs then, so IC-02's "On this iPhone only"
  * would have told a syncing reader their bookmarks were not kept (package F,
- * 11 Oct 2026). CloudKit's accountStatus needs a container entitlement this
- * app does not have.
+ * 11 Oct 2026). CloudKit's accountStatus, possible since Pray brought the
+ * container entitlement (build 8), is what Saved asks for IC-02's line.
  */
 export function cloudAvailable(): boolean {
   return cloudStore !== null;

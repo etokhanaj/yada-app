@@ -15,7 +15,7 @@ import { useCallback, useState } from "react";
 import { Alert, Linking, Switch, View } from "react-native";
 
 import { ListRow, PageScreen } from "../components/Page";
-import { Chrome, Label } from "../components/Type";
+import { SectionTitle, Chrome } from "../components/Type";
 import { useAppData, useCore } from "../data/AppData";
 import { setSpeed, chooseReading } from "../data/audio";
 import { cloudAvailable, setCloudPaused } from "../data/cloud";
@@ -89,7 +89,7 @@ export default function SettingsScreen() {
   const version = `${Constants.expoConfig?.version ?? ""} (${Constants.expoConfig?.ios?.buildNumber ?? ""})`;
 
   const confirmRemove = () => {
-    const what = "bookmarks, your reading place, plan progress, your rhythm, the reminder and downloads";
+    const what = "bookmarks, highlights, notes, saved images, your reading place, plan progress, your rhythm, the reminder and downloads";
     Alert.alert(
       "Remove your data?",
       downloadUnderWay()
@@ -111,7 +111,7 @@ export default function SettingsScreen() {
 
   return (
     <PageScreen title="Settings" testID="settings">
-      <Label style={{ marginBottom: 6 }}>Reading</Label>
+      <SectionTitle style={{ marginBottom: 6 }}>Reading</SectionTitle>
       <ListRow first title="Text and appearance" right={value(`${size} · ${look}`)} onPress={() => router.push("/type-settings")} label={`Text and appearance, ${size}, ${look}`} testID="settings-text" />
       <ListRow title="Translation" right={value(translation)} onPress={() => router.push("/translations")} label={`Translation, ${translation}`} testID="settings-translation" />
       <ListRow
@@ -123,7 +123,7 @@ export default function SettingsScreen() {
         testID="settings-compare"
       />
 
-      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>Listening</Label>
+      <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>Listening</SectionTitle>
       <MenuView
         shouldOpenOnLongPress={false}
         actions={VOICES.map((v) => ({ id: v.id, title: v.name, subtitle: "Computer voice", state: v.id === narrator ? ("on" as const) : ("off" as const), imageColor: palette.ink }))}
@@ -147,10 +147,10 @@ export default function SettingsScreen() {
       </MenuView>
 
       {/* DR-04: Today's reading card follows this; a native menu as Voice and Speed above. */}
-      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>Today</Label>
+      <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>Today</SectionTitle>
       <MenuView
         shouldOpenOnLongPress={false}
-        actions={PSALTER_CHOICES.map((c) => ({ id: c.id, title: c.title, state: c.id === psalter ? ("on" as const) : ("off" as const), imageColor: palette.ink }))}
+        actions={PSALTER_CHOICES.map((c) => ({ id: c.id, title: c.title, subtitle: c.line, state: c.id === psalter ? ("on" as const) : ("off" as const), imageColor: palette.ink }))}
         onPressAction={({ nativeEvent }) => {
           const next = parsePsalter(nativeEvent.event);
           setPsalter(next);
@@ -163,10 +163,10 @@ export default function SettingsScreen() {
         </View>
       </MenuView>
 
-      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>Reminder</Label>
+      <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>Reminder</SectionTitle>
       <ListRow first title="Reminder" right={value(reminderSummary(prefs))} onPress={() => router.push("/reminder")} label={`Reminder, ${reminderSummary(prefs)}`} testID="settings-reminder" />
 
-      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>On this iPhone</Label>
+      <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>On this iPhone</SectionTitle>
       <ListRow first title="Downloads" right={value(downloads === 0 ? "None" : formatMB(downloads))} onPress={() => router.push("/downloads")} label={`Downloads, ${downloads === 0 ? "none" : formatMB(downloads)}`} testID="settings-downloads" />
       {cloudAvailable() ? (
         <ListRow
@@ -187,7 +187,7 @@ export default function SettingsScreen() {
         />
       ) : null}
 
-      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>About</Label>
+      <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>About</SectionTitle>
       <ListRow first title="Sources and licences" onPress={() => router.push("/sources")} testID="settings-sources" />
       {/* yadabible.com went live on 16 Oct 2026; until then these links were held back so none led nowhere. */}
       {SITE_PAGES.map((p) => (

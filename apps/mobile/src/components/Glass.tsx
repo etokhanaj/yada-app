@@ -18,7 +18,8 @@ import { Pressable, type PressableProps, StyleSheet, View, type ViewStyle } from
 import { LAYOUT, useIsDark, useLayout, usePalette } from "../design/tokens";
 import { useAccessibility } from "../state/accessibility";
 
-function GlassSurface({ children }: { children: ReactNode }) {
+/** The glass ground of a control: the header buttons, and the tab bar, its Search and the mini player above it (IA-15, IA-17). */
+export function GlassSurface({ children }: { children: ReactNode }) {
   const palette = usePalette();
   const isDark = useIsDark();
   const reduceTransparency = useAccessibility((s) => s.reduceTransparency);

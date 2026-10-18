@@ -26,10 +26,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useLog } from "../data/AppData";
-import { LAYOUT, useLayout, usePalette } from "../design/tokens";
+import { LAYOUT, useLayout, usePalette, WIDE } from "../design/tokens";
+import { backPill } from "../lib/backToReading";
 import { Icon } from "./Icon";
 import { useSheetNav } from "./navigation";
-import { Chrome, Label, Prose } from "./Type";
+import { Chrome, Prose, SectionTitle } from "./Type";
 
 /** Whether the sheet stands at its large detent: Understand shows more there (amendment 1). */
 export interface SheetSizeValue {
@@ -75,18 +76,13 @@ export function SheetScreen({
   onSize,
   closeLabel = "Close",
   returns = false,
-  footer = true,
+  footer: backFooter = true,
+  foot,
   header,
   leading,
   noBack = false,
   keyboard = false,
-  onScrollY,
 }: {
-  /**
-   * The body's scroll offset and visible height, as it scrolls and when it is laid out:
-   * the passage guide counts a passage read when its Next row comes into view (ON-04).
-   */
-  onScrollY?: (y: number, viewport: number) => void;
   /** A text control where `‹` would be, on a sheet's first screen: Translations' `Choose`. */
   leading?: ReactNode;
   /** A root sheet over a full-screen view (Voice over the player) has no screen of its own behind it: × only. */
@@ -94,6 +90,8 @@ export function SheetScreen({
   children: ReactNode;
   /** Back to reading. Contents and Search have none: picking is the way out. */
   footer?: boolean;
+  /** Pinned at the foot in place of Back to reading: Compare's "Add or remove" (CP-01). */
+  foot?: ReactNode;
   /** Replaces the title row: Search puts its field there. */
   header?: ReactNode;
   /** Search: results scroll under a focused field and dismiss the keyboard on drag. */
@@ -122,7 +120,8 @@ export function SheetScreen({
   const palette = usePalette();
   const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
-  const { ax, control } = useLayout();
+  const footer = backFooter || foot !== undefined;
+  const { ax, control, regular } = useLayout();
   const { backToReading, closeSheet, back, escape } = useSheetNav();
   const backName = useBackName(title);
   const log = useLog();
@@ -144,16 +143,9 @@ export function SheetScreen({
     settled.current = large;
   }, [large]);
 
-  const scrollY = useRef(0);
-  const viewport = useRef(0);
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setScrolled(e.nativeEvent.contentOffset.y > 2);
-    scrollY.current = e.nativeEvent.contentOffset.y;
-    viewport.current = e.nativeEvent.layoutMeasurement.height;
-    onScrollY?.(scrollY.current, viewport.current - (footer ? chrome.footer : 0));
-  };
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => setScrolled(e.nativeEvent.contentOffset.y > 2);
 
-  const round = (icon: "back" | "close", label: string, onPress: () => void, id: string) => (
+  const round = (icon: "back" | "close", label: string, onPress: () => void, id: string, named: string | null = null) => (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
@@ -161,10 +153,18 @@ export function SheetScreen({
       testID={id}
       style={({ pressed }) => [
         styles.round,
-        { width: control, height: control, backgroundColor: palette.fill, opacity: pressed ? 0.6 : 1 },
+        // White circles with a hairline ring (polish-2026-10-15.md, after YouVersion's ×).
+        { width: control, height: control, backgroundColor: palette.sheet, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.edge, opacity: pressed ? 0.6 : 1 },
+        // DN-06 `.sh-back.named`: a pill, "‹ 14:34", as wide as its words.
+        named !== null ? [styles.named, { minWidth: control }] : null,
       ]}
     >
       <Icon name={icon} size={icon === "close" ? 18 : 20} strokeWidth={2.2} />
+      {named !== null ? (
+        <Chrome tone="ink" numberOfLines={1} maxFontSizeMultiplier={2}>
+          {named}
+        </Chrome>
+      ) : null}
     </Pressable>
   );
 
@@ -185,7 +185,7 @@ export function SheetScreen({
   // A text control is wider than `‹`; both ends take its width so the title stays centred.
   const slot = (child: ReactNode, end: "flex-start" | "flex-end") =>
     leading === undefined ? child : <View style={{ minWidth: 76, alignItems: end }}>{child}</View>;
-  const backButton = slot(leading ?? (back === null || noBack ? side : round("back", backName === null ? "Back" : `Back to ${backName}`, back, "sheet-back")), "flex-start");
+  const backButton = slot(leading ?? (back === null || noBack ? side : round("back", backName === null ? "Back" : `Back to ${backName}`, back, "sheet-back", backPill(backName))), "flex-start");
   // × names its destination to VoiceOver: one layer up, never further (v2-review X7).
   // A sheet without the Back to reading capsule (Understand, canvas SN-09) counts its × as the return.
   const close = () => {
@@ -200,7 +200,9 @@ export function SheetScreen({
         style={{ flex: 1, backgroundColor: palette.sheet }}
         onTouchStart={() => (touchedAt.current = Date.now())}
         onTouchEnd={() => (touchedAt.current = Date.now())}
-        onLayout={(e) => setLarge(e.nativeEvent.layout.height > window.height * 0.75)}
+        // On an iPad the system draws a sheet as a centred form sheet narrower than the window, whole and with no detent
+        // to grow to, so it counts as large there: Understand shows all it has (TB-02, until it sits beside the text).
+        onLayout={(e) => setLarge(e.nativeEvent.layout.height > window.height * 0.75 || (regular && e.nativeEvent.layout.width < window.width - 1))}
         // A sheet is its own screen to VoiceOver, and two-finger Z goes back one depth (rule 6).
         accessibilityViewIsModal
         onAccessibilityEscape={escape}
@@ -215,18 +217,18 @@ export function SheetScreen({
         <ScrollView
           ref={scrollRef}
           style={StyleSheet.absoluteFill}
-          contentContainerStyle={[styles.body, { paddingTop: chrome.header + 6, paddingBottom: (footer ? chrome.footer : insets.bottom) + 24 }]}
+          contentContainerStyle={[
+            styles.body,
+            { paddingTop: chrome.header + 6, paddingBottom: (footer ? chrome.footer : insets.bottom) + 24 },
+            // Where a sheet is drawn as wide as an open Duo, its body keeps a column rather than running the width.
+            regular ? { width: "100%", maxWidth: WIDE.sheet, alignSelf: "center" } : null,
+          ]}
           keyboardDismissMode={keyboard ? "on-drag" : undefined}
           keyboardShouldPersistTaps={keyboard ? "handled" : undefined}
           scrollIndicatorInsets={{ top: chrome.header, bottom: chrome.footer }}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={32}
-          onLayout={(e) => {
-            viewport.current = e.nativeEvent.layout.height;
-            onScrollY?.(scrollY.current, viewport.current - (footer ? chrome.footer : 0));
-          }}
-          onContentSizeChange={() => onScrollY?.(scrollY.current, viewport.current - (footer ? chrome.footer : 0))}
         >
           {children}
         </ScrollView>
@@ -265,6 +267,7 @@ export function SheetScreen({
           }}
           style={[styles.footer, { backgroundColor: palette.sheet, paddingBottom: Math.max(insets.bottom - 20, 14) }]}
         >
+          {foot !== undefined ? foot : (
           <Pressable
             onPress={() => {
               // "Back to search" closes only this sheet: Search is a sheet too, beneath it.
@@ -282,6 +285,7 @@ export function SheetScreen({
               {backText ?? "Back to reading"}
             </Chrome>
           </Pressable>
+          )}
         </View>
         ) : null}
       </View>
@@ -295,12 +299,12 @@ export function SheetScreen({
  */
 export const UNDERSTAND_EXIT = { footer: false, returns: true, closeLabel: "Close, back to reading" } as const;
 
-/** A section: sentence-case label, then its content (canvas `.sec`). */
+/** A section: its title in bold ink (polish-2026-10-15.md: "the title carries the hierarchy"), then its content. */
 export function Section({ title, children, first = false, hint }: { title: string; children: ReactNode; first?: boolean; hint?: string }) {
   const { sectionGap } = useLayout();
   return (
     <View style={{ marginTop: first ? 0 : sectionGap }}>
-      <Label style={{ marginBottom: 6 }}>{title}</Label>
+      <SectionTitle inSheet style={{ marginBottom: 6 }}>{title}</SectionTitle>
       {hint !== undefined ? (
         <Prose step="note" tone="muted" style={{ marginBottom: 4 }}>
           {hint}
@@ -391,6 +395,29 @@ export function TextLink({ label, onPress, testID, a11yLabel }: { label: string;
   );
 }
 
+/**
+ * A secondary action in a sheet's body (canvas `.tbtn2`): a grey-fill capsule, 44 pt, ink 600 at 15 pt, 18 pt
+ * sides. US-08's "Try again", SN-05's, the guide's. TextCapsule, not Capsule: ActionBar exports a Capsule too
+ * (the reader bar's pill), and two exports of one name invited the wrong import.
+ */
+export function TextCapsule({ label, onPress, testID, a11yLabel }: { label: string; onPress: () => void; testID?: string; a11yLabel?: string }) {
+  const palette = usePalette();
+  const { ax } = useLayout();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel ?? label}
+      testID={testID}
+      style={({ pressed }) => [styles.capsule, { backgroundColor: palette.fill, opacity: pressed ? 0.7 : 1 }]}
+    >
+      <Chrome tone="ink" size={ax ? undefined : 15} style={{ fontWeight: "600" }}>
+        {label}
+      </Chrome>
+    </Pressable>
+  );
+}
+
 /** A capsule link to another verse: evidence chips (canvas `.elink`). */
 export function Chip({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) {
   const palette = usePalette();
@@ -447,6 +474,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  named: {
+    width: "auto",
+    flexDirection: "row",
+    columnGap: 2,
+    paddingLeft: 8,
+    paddingRight: 14,
+  },
   body: {
     paddingHorizontal: 22,
   },
@@ -478,6 +512,14 @@ const styles = StyleSheet.create({
     minWidth: 44,
     justifyContent: "center",
     alignSelf: "flex-start",
+  },
+  capsule: {
+    minHeight: 44,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    alignSelf: "flex-start",
+    alignItems: "center",
+    justifyContent: "center",
   },
   chip: {
     minHeight: 44,

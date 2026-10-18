@@ -26,13 +26,16 @@ import { progressSegments } from "../lib/audio/session";
 import { statusLine } from "../lib/audio/stop";
 import { pericopeForVerse, type PericopeRow } from "../lib/pericopes";
 import { MCHEYNE_READINGS, nextPortion } from "../lib/plans";
+import { parsePsalter, type PsalterChoice, setForChoice } from "../lib/dailyPsalms";
 import { chapterTitle } from "../lib/reader";
-import { psalmForDay } from "../lib/reminder";
 import { verseLabel } from "../lib/saved";
 import { nextPassage } from "../lib/startHere";
 import {
+  type ActivityState,
   activityState,
   type ContinueData,
+  holdAfterStop,
+  type StopHold,
   type ListeningData,
   placeInPassage,
   psalmTitleLine,
@@ -41,10 +44,15 @@ import {
   surfaceText,
   type SurfaceVerse,
   type TodayData,
+  todayReading,
+  type WatchPart,
+  watchPart,
   watchStop,
 } from "../lib/systemSurfaces";
+import { dayOf, type Part, partOf } from "../lib/today";
 import { currentVerse, useAudio } from "../state/audio";
 import { CORE_BUNDLE } from "./bundles";
+import { dayVerse } from "./today";
 
 const day = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const url = openHref;
@@ -83,31 +91,64 @@ async function continueData(user: SQLiteDatabase, core: Db): Promise<ContinueDat
   };
 }
 
-/** SX-03, SX-04: the day's psalm, its BSB title set apart (decision 1), its first three verses. */
-async function todayData(core: Db, date: Date): Promise<TodayData> {
-  const psalm = psalmForDay(date);
-  const verses = (await getChapter(core, "PSA", psalm, WIDGET_TEXT)).slice(0, 3);
-  const split = psalmTitleLine("PSA", 1, verses[0]?.text ?? "");
+/** DR-07, SX-03, SX-04: one day's and part's reading, its BSB title set apart (decision 1), its first three verses. */
+async function todayData(core: Db, date: Date, part: Part, choice: PsalterChoice): Promise<TodayData> {
+  const reading = todayReading(date, part, choice);
+  const verses = (await getChapter(core, reading.book, reading.chapter, WIDGET_TEXT)).filter((v) => v.verse >= reading.verse).slice(0, 3);
+  const split = psalmTitleLine(reading.book, verses[0]?.verse ?? 0, verses[0]?.text ?? "");
   return {
+    ...reading,
     date: day(date),
-    psalm,
     titleLine: split.title,
-    verses: verses.map((v) => asSurface(v, v.verse === 1 ? split.body : v.text)),
-    url: url("PSA", psalm, 1),
+    verses: verses.map((v, i) => asSurface(v, i === 0 ? split.body : v.text)),
+    url: url(reading.book, reading.chapter, reading.verse),
   };
 }
 
-/** SX-01–08: the place and today's psalm for two weeks ahead; then the widgets draw again. */
+/** What the Today widget shows now, under Settings › Daily psalms (DR-07): Listen and Siri's "today's psalm" go there. */
+async function todayNow(user: SQLiteDatabase): Promise<{ book: BookCode; chapter: number; verse: number }> {
+  const now = new Date();
+  const r = todayReading(dayOf(now), partOf(now), parsePsalter((await loadSettings(user))["dailyPsalms"]));
+  return { book: r.book, chapter: r.chapter, verse: r.verse };
+}
+
+/**
+ * SX-01–08, DR-07: the place, and Today's reading for each morning and evening two weeks ahead; the widget's timeline
+ * turns at 03:00 and 17:00 as Today does (lib/today.ts). A change in Settings › Daily psalms reaches it when the app
+ * next goes to the background, as the place does.
+ */
 export async function updateWidgets(user: SQLiteDatabase, core: Db): Promise<void> {
   if (system === null) return;
   const cont = await continueData(user, core);
+  const choice = parsePsalter((await loadSettings(user))["dailyPsalms"]);
+  const first = dayOf(new Date());
   const today: TodayData[] = [];
   for (let d = 0; d < 14; d++) {
-    const date = new Date();
-    date.setDate(date.getDate() + d);
-    today.push(await todayData(core, date));
+    const date = new Date(first);
+    date.setDate(first.getDate() + d);
+    for (const part of ["morning", "evening"] as const) today.push(await todayData(core, date, part, choice));
   }
   system.setWidgetData(JSON.stringify({ continue: cont, today }));
+  system.setWatchData(JSON.stringify({ parts: await watchParts(user, core) }));
+}
+
+/**
+ * AW-01, AW-03: a week of mornings and evenings for the watch, so its widgets turn each part over without the
+ * phone. The day's verse in the BSB (rule 9); the psalms as Settings › Daily psalms chooses them.
+ */
+async function watchParts(user: SQLiteDatabase, core: Db): Promise<WatchPart[]> {
+  const choice = parsePsalter((await loadSettings(user))["dailyPsalms"]);
+  const now = Date.now();
+  const first = dayOf(new Date());
+  const parts: WatchPart[] = [];
+  for (let d = 0; d < 7; d++) {
+    const day = new Date(first.getFullYear(), first.getMonth(), first.getDate() + d);
+    for (const part of ["morning", "evening"] as const) {
+      const verse = await dayVerse(core, WIDGET_TEXT, day, part);
+      parts.push(watchPart(day, part, verse, setForChoice(day, part, choice)));
+    }
+  }
+  return parts.filter((p) => p.until > now);
 }
 
 /** The chapter's passages, for the activity's segments; loaded once a book. */
@@ -115,7 +156,8 @@ const passagesByBook = new Map<BookCode, readonly PericopeRow[]>();
 
 /**
  * SX-17–23: the Live Activity follows the session, and the Listen buttons and Control Center learn what
- * plays (SX-05, SX-09). A stop that fires ends the activity at once (decision 7); it comes back with Play.
+ * plays (SX-05, SX-09). A stop that fires pauses the activity on "Stopped after 1:18" (SX-23, build 10's design QA,
+ * which replaces build-6 decision 7's "it ends at once"); Play goes on from 1:19.
  * Returns the unsubscribe.
  */
 export function followListening(): () => void {
@@ -129,8 +171,12 @@ export function followListening(): () => void {
   }
   let shown = "";
   let listening = "";
-  /** Ended by a stop: nothing shows again until the reading plays. */
-  let stopped = false;
+  /**
+   * SX-23: at a stop the activity stays, paused on the verse it stopped after ("Stopped after 1:18"), while the
+   * place moves on to 1:19 for Play; iOS ends a paused activity in its own time. It holds until the reading plays
+   * again or the reader moves away from where it stopped. `landed` is where the place moved on to.
+   */
+  let stopped: { state: ActivityState; hold: StopHold } | null = null;
   let watch: StopWatch = { stop: useAudio.getState().stop, playing: useAudio.getState().session?.status === "playing", armed: false };
 
   const update = () => {
@@ -140,6 +186,8 @@ export function followListening(): () => void {
     const playing = s?.status === "playing";
     const step = watchStop(watch, { stop: now.stop, playing });
     watch = step.watch;
+    const hold = holdAfterStop(stopped?.hold ?? null, { playing, ord: s === null || s.status === "finished" ? null : (verse?.ord ?? null) });
+    stopped = stopped === null || hold === null ? null : { state: stopped.state, hold };
 
     const heard: ListeningData | null =
       s === null || verse === undefined || s.status === "finished"
@@ -151,9 +199,8 @@ export function followListening(): () => void {
       system?.setListening(heard === null ? "" : heardKey);
     }
 
-    if (step.fired) stopped = true;
-    if (playing) stopped = false;
-    if (s === null || verse === undefined || s.status === "finished" || stopped) {
+    if (stopped !== null) return show(stopped.state);
+    if (s === null || verse === undefined || s.status === "finished") {
       if (shown !== "") void system?.endReading();
       shown = "";
       return;
@@ -192,6 +239,16 @@ export function followListening(): () => void {
       stop: now.stop,
       repeat: now.repeat,
     });
+    // The update in which the stop fires still holds the verse it stopped after (data/audio.ts advance() pauses
+    // before it moves the place on): that is the state SX-23 keeps.
+    if (step.fired) {
+      stopped = { state: { ...state, line: `Stopped after ${s.chapter}:${verse.verse}`, lineGlyph: null, playing: false }, hold: { ord: verse.ord, landed: null } };
+      return show(stopped.state);
+    }
+    show(state);
+  };
+
+  const show = (state: ActivityState) => {
     const key = JSON.stringify(state);
     if (key === shown) return;
     shown = key;
@@ -209,8 +266,9 @@ export function followListening(): () => void {
 export async function indexSpotlight(user: SQLiteDatabase, core: Db): Promise<void> {
   if (system === null || CORE_BUNDLE === undefined) return;
   const done = (await loadSettings(user))["spotlight"];
-  // ".2": chapters joined the index in build 6 (SX-12), so a phone indexed before indexes again.
-  const version = `${CORE_BUNDLE.version}.2`;
+  // ".2": chapters joined the index in build 6 (SX-12), so a phone indexed before indexes again. ".3": each
+  // chapter carries its first passage's name, and from iOS 18 Read and Listen (build 10).
+  const version = `${CORE_BUNDLE.version}.3`;
   if (done === version) return;
   await system.clearIndex().catch(() => undefined);
   const rows = await core.getAllAsync<{ ord: number; text: string }>("SELECT ord, text FROM texts WHERE translation = 'BSB' AND text <> '' ORDER BY ord", []);
@@ -227,13 +285,17 @@ export async function indexSpotlight(user: SQLiteDatabase, core: Db): Promise<vo
     });
     await system.indexVerses(items);
   }
-  // A chapter with its first verse whole, as SX-12 shows it, so "psalm 23" finds the psalm itself first.
+  // A chapter with its first verse whole, as SX-12 shows it, so "psalm 23" finds the psalm itself first, under the
+  // name of the passage it opens with ("The Lord is my shepherd") where the book's passages are on the phone.
   const chapters = rows.filter((r) => r.ord % 1000 === 1);
+  const passages = new Map<BookCode, readonly PericopeRow[]>();
+  for (const book of new Set(chapters.map((r) => ordToParts(r.ord).book))) passages.set(book, await loadPericopes(book).catch((): PericopeRow[] => []));
   for (let i = 0; i < chapters.length; i += 500) {
     const items = chapters.slice(i, i + 500).map((r) => {
       const p = ordToParts(r.ord);
       const title = chapterTitle(p.book, p.chapter);
-      return { id: `${p.book}.${p.chapter}`, title, text: r.text, keywords: [title, `${BOOK_CODES[p.book].name} ${p.chapter}`, `${p.book} ${p.chapter}`].join("|") };
+      const name = pericopeForVerse(passages.get(p.book) ?? [], r.ord)?.label ?? "";
+      return { id: `${p.book}.${p.chapter}`, title, name, text: r.text, keywords: [title, `${BOOK_CODES[p.book].name} ${p.chapter}`, `${p.book} ${p.chapter}`].join("|") };
     });
     await system.indexChapters(items);
   }
@@ -290,7 +352,7 @@ export async function openDoor(door: string, user: SQLiteDatabase): Promise<void
     return;
   }
   if (door === "today") {
-    openFromOutside({ book: "PSA", chapter: psalmForDay(new Date()), verse: 1 });
+    openFromOutside(await todayNow(user));
     return;
   }
   if (door === "listen-next") {
@@ -300,13 +362,13 @@ export async function openDoor(door: string, user: SQLiteDatabase): Promise<void
     await listen(target.book, target.chapter, target.verse);
     return;
   }
-  if (door === "listen:today") return listenTo({ book: "PSA", chapter: psalmForDay(new Date()), verse: 1 });
+  if (door === "listen:today") return listenTo(await todayNow(user));
   if (door === "listen:continue") {
     // Control Center's toggle carries on what was playing; with nothing begun, the place.
     const s = useAudio.getState().session;
     if (s !== null && s.status === "paused") return resume();
     const place = await placeOf(user);
-    return listenTo(place ?? { book: "PSA", chapter: psalmForDay(new Date()), verse: 1 });
+    return listenTo(place ?? (await todayNow(user)));
   }
   if (door.startsWith("listen:")) {
     const v = chapterOrVerse(door.slice("listen:".length));

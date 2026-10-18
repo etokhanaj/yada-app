@@ -1,30 +1,34 @@
 /**
- * IA v4 (canvas IA-15–17; John chose tabs, 15 Oct 2026): two tabs, Today and Bible, as iOS 26's native tab bar.
- * A tab only for a daily job (docs/build-7-ia-stress-test.md). The reader and every sheet stay in the root stack,
- * so they open over the tabs and cover them (IA-16). Search stays in Bible's header for build 7a: its screen is a
- * sheet, and a search tab is a separate piece of work (lean plan §0).
+ * IA v4 (canvas IA-15–17; John chose tabs, 15 Oct 2026): Today and Bible, with Search as the round button beside them
+ * (IA-15) and, while listening, the mini player riding above (IA-17). A tab only for a daily job
+ * (docs/build-7-ia-stress-test.md). The reader and every sheet stay in the root stack, so they open over the tabs and
+ * cover them (IA-16). The bar is our own (components/TabBar.tsx): the native one took no taps (18 Oct 2026).
+ *
+ * Yada opens on the tab last used; the very first launch opens Bible, where Start here is (DR-01, canvas note i7).
  */
 
-import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { Tabs } from "expo-router/js-tabs";
 
-import { usePalette } from "../../design/tokens";
+import { TabBar } from "../../components/TabBar";
+import { useAppData } from "../../data/AppData";
+import { saveSetting } from "../../data/user";
+import { useLayout } from "../../design/tokens";
+
+export const unstable_settings = { initialRouteName: "index" };
 
 export default function TabsLayout() {
-  const palette = usePalette();
+  // Read before the tabs mounted (app/_layout.tsx start), so nothing routes after a link or Return already has.
+  const { user, launchTab } = useAppData();
+  const remember = (tab: "today" | "index") => ({ focus: () => void saveSetting(user, "lastTab", tab).catch(() => undefined) });
+  // TB-01, DU-01: in a regular-width window the tabs take their own room, a sidebar at the left or a capsule at the
+  // top, and the page lays out beside or under them; on the iPhone the bar floats over the page's foot.
+  const { tabs } = useLayout();
+  const tabBarPosition = tabs === "side" ? "left" : tabs;
   return (
-    // No minimizeBehavior: on scroll the bar shrank to a bare icon with no glass, over the text
-    // (simulator, 15 Oct 2026).
-    <NativeTabs tintColor={palette.accent}>
-      {/* Today pads itself (insets.top, and 120 below for the bar): the automatic inset doubled the top gap and kept
-          the picture from running under the status bar (simulator, 16 Oct 2026). */}
-      <NativeTabs.Trigger name="today" disableAutomaticContentInsets>
-        <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: "sun.horizon", selected: "sun.horizon.fill" }} />
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Bible</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: "book", selected: "book.fill" }} />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+    <Tabs initialRouteName={launchTab} tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, tabBarPosition }}>
+      <Tabs.Screen name="today" listeners={remember("today")} />
+      <Tabs.Screen name="index" listeners={remember("index")} />
+      <Tabs.Screen name="search" />
+    </Tabs>
   );
 }

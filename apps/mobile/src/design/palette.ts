@@ -15,6 +15,8 @@
  * colour alone: every wash pairs with a bar, underline or glyph (brief §3).
  */
 
+import type { HighlightColor } from "../lib/highlights";
+
 export interface Palette {
   readonly paper: string;
   readonly ink: string;
@@ -40,10 +42,18 @@ export interface Palette {
   readonly edge: string;
   /** Raised sheet ground. */
   readonly sheet: string;
-  readonly scrim: string;
   /** Build 7 cards (CLAUDE.md "cards used right"): one soft fill, no shadow. */
   readonly card: string;
+  /**
+   * The reader's own highlights (PS-02): soft washes behind the verse, never alone (the verse number in ink and
+   * "highlighted yellow" to VoiceOver carry it too). Values from the canvas's --hy, --hg, --hb, --hp.
+   */
+  readonly highlights: Readonly<Record<HighlightColor, string>>;
+  /** The same colours saturated, for the bar's dots and Saved's 6 pt bar beside each excerpt (PS-01, PS-04). */
+  readonly swatches: Readonly<Record<HighlightColor, string>>;
 }
+
+const SWATCHES = { yellow: "#E6C93A", green: "#69B24E", blue: "#4C93D6", pink: "#D96A9A" } as const;
 
 // Build 7, "we go white" (John, 15 Oct 2026; docs/redesign/polish-2026-10-15.md): white ground and neutral greys;
 // forest stays the accent, chartreuse dark mode's. Values match style-v2.css's system polish block.
@@ -60,8 +70,9 @@ const LIGHT: Palette = {
   glassSolid: "#F2F2F0",
   edge: "rgba(0,0,0,0.08)",
   sheet: "#FFFFFF",
-  scrim: "rgba(0,0,0,0.28)",
   card: "#F4F4F2",
+  highlights: { yellow: "#FBEFA6", green: "#D6F0C8", blue: "#CFE5F8", pink: "#F7D7E5" },
+  swatches: SWATCHES,
 };
 
 const DARK: Palette = {
@@ -77,8 +88,9 @@ const DARK: Palette = {
   glassSolid: "#161716",
   edge: "rgba(255,255,255,0.1)",
   sheet: "#161716",
-  scrim: "rgba(0,0,0,0.6)",
   card: "#171917",
+  highlights: { yellow: "#4B4420", green: "#21401F", blue: "#1D3448", pink: "#48283A" },
+  swatches: SWATCHES,
 };
 
 /**
@@ -107,3 +119,16 @@ export function paletteFor(dark: boolean, increaseContrast: boolean): Palette {
   if (dark) return increaseContrast ? DARK_IC : DARK;
   return increaseContrast ? LIGHT_IC : LIGHT;
 }
+
+/**
+ * Yada's brand grounds, the same in both appearances: the forest card (DO-01, the calm close), its night (Return,
+ * the launch, a full-screen verse with no picture, RT-08: "the deep forest, never blank") and the chartreuse kicker.
+ */
+export const BRAND = {
+  forest: "#183F35",
+  forestDark: "#0F2A23",
+  // The forest card in dark mode (design-system.md): lifted off the near-black ground, where #183F35 sinks into it.
+  forestCardDark: "#1E4A3E",
+  night: "#0E1814",
+  chartreuse: "#DBEC9A",
+} as const;

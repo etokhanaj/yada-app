@@ -145,6 +145,37 @@ export function translatorNotes(verse: VerseLayers): string[] {
 
 const noteLine = (text: string): string => `The BSB’s own footnote: ${text.replace(/\.?$/u, ".")}`;
 
+/**
+ * UX-09: under each verse in Verse by verse, what its Understand holds, in the order the sheet shows it:
+ * "Readers differ · In plain words · Study note". A verse with none of these still has its words and other
+ * translations (Original, Compare), and says so rather than nothing.
+ */
+export function behindLine(verse: UnderstandVerse): string {
+  if (isMissingVerse(verse)) return verse.manuscripts.length > 0 ? "Manuscripts" : "Words and translations";
+  const parts = [
+    ...(readerLines(verse).length > 0 ? ["Readers differ"] : []),
+    ...(verse.beginner.plain !== null ? ["In plain words"] : []),
+    ...(verse.deeper.study_note !== null ? ["Study note"] : []),
+    ...(verse.beginner.manuscripts.length > 0 ? ["Manuscripts"] : []),
+  ];
+  return parts.length === 0 ? "Words and translations" : parts.join(" · ");
+}
+
+/** EG-02: the one line while a book's Understand waits for a connection. */
+export function offlineLine(bookName: string): string {
+  return `Understand for ${bookName} downloads when you’re online.`;
+}
+
+/**
+ * UX-11: on a version other than the BSB, a fact that quotes the BSB's wording says so ("In the BSB, “are to be
+ * silent” translates…"), and the BSB translators' own footnotes step aside: they are notes on words the reader
+ * isn't reading. Facts that already name their versions ("Translations differ: … (BSB) · … (KJV)") stand.
+ */
+export function factsFor(verse: VerseLayers, translation: string): string[] {
+  if (translation === "BSB") return [...translatorNotes(verse), ...verse.facts];
+  return verse.facts.map((f) => (/^“[^”]+” translates\b/u.test(f) ? `In the BSB, ${f}` : f));
+}
+
 /** "1 Jn 4:9-10" → "1 Jn 4:9–10": en dash in ranges (review §6). */
 export const alongsideLabel = (ref: string): string => ref.replace(/(\d)-(\d)/gu, "$1–$2");
 

@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
-  s.frameworks = 'WidgetKit', 'ActivityKit', 'CoreSpotlight', 'AppIntents', 'UserNotifications'
+  s.frameworks = 'WidgetKit', 'ActivityKit', 'CoreSpotlight', 'AppIntents', 'UserNotifications', 'WatchConnectivity'
   s.library = 'sqlite3'
 
   s.source_files = '**/*.swift'

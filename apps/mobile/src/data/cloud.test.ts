@@ -11,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("react-native", () => ({ AppState: { addEventListener: () => ({ remove: () => undefined }) } }));
 vi.mock("../../modules/yada-cloud", () => ({ cloudStore: null, CloudChangeReason: {} }));
 
-const { syncWithCloud } = await import("./cloud");
+const { KIND_BUDGET_BYTES, syncWithCloud } = await import("./cloud");
 const user = await import("./user");
 
 type Params = Array<string | number | null>;
@@ -54,6 +54,8 @@ const READ = "start-here-john/read/";
 const finished = async (db: SQLiteDatabase) => (await user.loadReadPassages(db, READ)).sort();
 
 const bookmarks = async (db: SQLiteDatabase) => (await user.listBookmarks(db)).map((r) => r.verse_id).sort();
+const highlights = async (db: SQLiteDatabase) => (await user.listHighlights(db)).map((r) => `${r.verse_id}:${r.color}`).sort();
+const notes = async (db: SQLiteDatabase) => (await user.listNotes(db)).map((r) => `${r.target}:${r.body}`).sort();
 
 describe("iCloud sync between two devices", () => {
   it("leaves an empty store empty when there is nothing to keep", async () => {
@@ -203,5 +205,58 @@ describe("iCloud sync between two devices", () => {
     await syncWithCloud(phone, store);
     const second = JSON.parse(store.values.get("v1.threads") ?? "{}")[`${READ}JHN.1.1-1.18`][1] as number;
     expect(second).toBeGreaterThan(first);
+  });
+
+  it("carries a highlight cleared on one device to the other: the cleared mark beats the stale colour", async () => {
+    const store = memoryStore();
+    const phone = device();
+    const pad = device();
+    await user.setHighlight(phone, ["JHN.3.16", "JHN.3.17"], "yellow");
+    await syncWithCloud(phone, store);
+    await syncWithCloud(pad, store);
+    expect(await highlights(pad)).toEqual(["JHN.3.16:yellow", "JHN.3.17:yellow"]);
+
+    await user.setHighlight(pad, ["JHN.3.16"], null);
+    await user.setHighlight(pad, ["JHN.3.17"], "blue");
+    await syncWithCloud(pad, store);
+    // The phone still holds yellow on both; its sync must not send them back.
+    await syncWithCloud(phone, store);
+    await syncWithCloud(pad, store);
+
+    expect(await highlights(phone)).toEqual(["JHN.3.17:blue"]);
+    expect(await highlights(pad)).toEqual(["JHN.3.17:blue"]);
+  });
+
+  it("carries a note deleted on one device to the other, and keeps a newer note from either", async () => {
+    const store = memoryStore();
+    const phone = device();
+    const pad = device();
+    await user.saveNote(phone, "JHN.3.16", "For God so loved");
+    await user.saveNote(phone, "JHN.3", "Nicodemus at night");
+    await syncWithCloud(phone, store);
+    await syncWithCloud(pad, store);
+
+    await user.saveNote(pad, "JHN.3.16", "");
+    await user.saveNote(pad, "JHN.3", "Born again, from above");
+    await syncWithCloud(pad, store);
+    await syncWithCloud(phone, store);
+    await syncWithCloud(pad, store);
+
+    expect(await notes(phone)).toEqual(["JHN.3:Born again, from above"]);
+    expect(await notes(pad)).toEqual(["JHN.3:Born again, from above"]);
+  });
+
+  it("keeps a kind past its iCloud budget on this device, and still syncs the rest", async () => {
+    const store = memoryStore();
+    const phone = device();
+    const body = "a".repeat(1900);
+    const count = Math.ceil(KIND_BUDGET_BYTES / body.length) + 5;
+    for (let i = 0; i < count; i++) await user.saveNote(phone, `PSA.${1 + Math.floor(i / 5)}.${1 + (i % 5)}`, body);
+    await user.toggleBookmark(phone, "JHN.3.16");
+    await syncWithCloud(phone, store);
+
+    expect(store.values.has("v1.notes")).toBe(false);
+    expect(store.values.has("v1.bookmarks")).toBe(true);
+    expect((await user.listNotes(phone)).length).toBe(count);
   });
 });

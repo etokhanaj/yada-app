@@ -18,6 +18,7 @@ import { useAppData, useQuery } from "./AppData";
 import {
   getLicensedChapter,
   isLicensedCode,
+  LICENSED,
   licensedConfigUsable,
   loadServed,
   ON_ACCOUNT,
@@ -32,6 +33,16 @@ import {
   searchLicensed,
 } from "./licensed";
 import { ONLINE_PLACEHOLDERS, registerOnlineProvider } from "./online";
+import { type InstalledTranslation, translationName } from "./translations";
+
+/**
+ * The full name of any version Compare can show, licensed ones included. Compare and its chooser each built this
+ * the same way; one function keeps the two from naming a version differently. Here, not in translations.ts, so
+ * the list of files that import data/licensed stays as rule 9's test allows (lib/licensedSurfaces.test.ts).
+ */
+export function versionName(code: string, installed: readonly InstalledTranslation[]): string {
+  return isLicensedCode(code) ? (LICENSED.find((t) => t.code === code)?.name ?? code) : translationName(code, installed);
+}
 
 const OFF: LicensedConfig = { via: "proxy", url: "", enabled: false };
 

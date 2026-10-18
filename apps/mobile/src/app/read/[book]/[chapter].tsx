@@ -41,8 +41,10 @@ import {
 } from "react-native";
 
 import { ActionBar, RestBar } from "../../../components/ActionBar";
+import { ChapterClose } from "../../../components/ChapterClose";
 import { ChapterPeek, EndOfBook } from "../../../components/ChapterPages";
 import { useFootprints } from "../../../state/footprints";
+import { MissingVerseLines } from "../../../components/OmittedVerse";
 import { ListRow } from "../../../components/Page";
 import { loadMcheyne, loadYourPlan, markPortionRead, type McheyneState } from "../../../data/plans";
 import { keyOf, MCHEYNE_READINGS, nextPortion, portionLabel, portionsInChapter, portionSpoken } from "../../../lib/plans";
@@ -68,14 +70,30 @@ import { prophetLeads, readerLeadLines } from "../../../lib/passageGuide";
 import { rangeInBook } from "../../../lib/saved";
 import { useGuide } from "../../../state/guide";
 import { useTranslationName } from "../../../data/translations";
-import { countDay, listBookmarks, loadSettings, markBookBegun, markPassageRead, savePosition, toggleBookmark } from "../../../data/user";
+import {
+  countDay,
+  listBookmarks,
+  loadChapterNotes,
+  loadChaptersRead,
+  loadHighlights,
+  loadSettings,
+  markBookBegun,
+  markChapterRead,
+  markPassageRead,
+  savePosition,
+  setHighlight,
+  subscribeYourSpace,
+  toggleBookmark,
+} from "../../../data/user";
+import type { HighlightColor } from "../../../lib/highlights";
 import { shouldAsk } from "../../../data/reminder";
 import { bookThread, readThread, stepAfter } from "../../../lib/startHere";
 import { audioTranslation, endSession, listen, next as nextVerse, previous as previousVerse, stopFetching, toggle as togglePlay } from "../../../data/audio";
 import { currentVerse, useAudio } from "../../../state/audio";
 import { progressSegments } from "../../../lib/audio/session";
 import { spokenText } from "../../../lib/supplied";
-import { SHEET_MEDIUM, SPACE, useLayout, usePalette } from "../../../design/tokens";
+import { SHEET_MEDIUM, SPACE, useLayout, usePalette, WIDE } from "../../../design/tokens";
+import { chapterKey } from "../../../lib/chaptersRead";
 import { chapterFromParams, nextChapter, prevChapter, type ChapterRef } from "../../../lib/chapters";
 import { label as psalmsLabel, nextInSet, parsePsalter, setForChoice } from "../../../lib/dailyPsalms";
 import { useReduceMotion } from "../../../lib/motion";
@@ -117,7 +135,7 @@ export default function ReaderScreen() {
 
   const palette = usePalette();
   const window = useWindowDimensions();
-  const { gutter, ax } = useLayout();
+  const { gutter, ax, regular } = useLayout();
   const reduceMotion = useReduceMotion();
   const screenReader = useAccessibility((s) => s.screenReader);
   const core = useCore();
@@ -271,12 +289,45 @@ export default function ReaderScreen() {
   };
   // The streak (lib/rhythm.ts): a chapter's last verse reached by scrolling counts the day, or the whole
   // chapter on screen at once (Psalm 117), as RP-04 counts a portion.
+  // The chapter already counted on this screen: onScrollEndDrag calls markDay on every drag end while the last
+  // verse is visible, and without this each nudge ran countDay again. Keyed by chapter, so a new one counts afresh.
+  const dayCounted = useRef<string | null>(null);
   const markDay = useRef<(visible: ReadonlySet<number>) => void>(() => undefined);
   markDay.current = (visible) => {
     const last = verses?.[verses.length - 1]?.verse;
     if (last === undefined || !visible.has(last)) return;
-    if (readerScrolled.current || visible.has(verses?.[0]?.verse ?? 1)) void countDay(user).catch(() => undefined);
+    if (readerScrolled.current || visible.has(verses?.[0]?.verse ?? 1)) {
+      const key = chapterKey(book, chapter);
+      if (dayCounted.current === key) return;
+      dayCounted.current = key;
+      void countDay(user).catch(() => undefined);
+      // RT-03, RT-04: the same moment counts the chapter, once, in any translation (build 10a).
+      if (readKeys.has(key)) return;
+      // Read back rather than added locally: the first load of the set can land after this write and undo a local add.
+      void markChapterRead(user, key)
+        .then(() => loadChaptersRead(user))
+        .then(setReadKeys)
+        .catch((error: unknown) => {
+          // The chapter stays unticked and reading goes on; a failed local write is a bug, so say so in development.
+          if (__DEV__) console.warn("marking the chapter read failed", key, error);
+        });
+    }
   };
+  // Chapters read in this book, for the calm close's bar (RT-03) and the end of the book (RT-04).
+  const [readKeys, setReadKeys] = useState<ReadonlySet<string>>(new Set());
+  useEffect(() => {
+    let live = true;
+    loadChaptersRead(user).then(
+      (keys) => live && setReadKeys(keys),
+      (error: unknown) => {
+        // The close's bar shows no chapters read; a failed local read is a bug, so say so in development.
+        if (__DEV__) console.warn("chapters read failed to load", error);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [user, book, chapter]);
   // The plan arrives after the first verses are counted: a short chapter already on screen is checked then.
   useEffect(() => {
     if (plan !== null) markPlan.current(visibleVerses.current);
@@ -315,6 +366,8 @@ export default function ReaderScreen() {
       live = false;
     };
   }, [user, book, chapter]);
+  // RT-03 closes open reading. Today's psalms and an M'Cheyne portion lead with their own Next (DR-02, RP-04) and keep it.
+  const closeCard = psalmsNext === null && planNext === null;
   const [selection, setSelection] = useState(EMPTY_SELECTION);
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [headerHeight, setHeaderHeight] = useState(110);
@@ -462,6 +515,23 @@ export default function ReaderScreen() {
     }, [user]),
   );
 
+  // Your space (PS-02): this chapter's highlights and notes, read again whenever they change, here, in the Note
+  // sheet or from iCloud (data/user.ts subscribeYourSpace).
+  const [marks, setMarks] = useState<{ highlights: ReadonlyMap<number, HighlightColor>; notes: ReadonlySet<number> }>({ highlights: new Map(), notes: new Set() });
+  const loadMarks = useCallback(async () => {
+    const [highlights, notes] = await Promise.all([loadHighlights(user, book, chapter), loadChapterNotes(user, book, chapter)]);
+    if (location.current.book === book && location.current.chapter === chapter) setMarks({ highlights, notes: notes.verses });
+  }, [user, book, chapter]);
+  useEffect(() => {
+    // The chapter reads on without its marks; a failed local read is a bug, so say so in development.
+    const reload = () =>
+      loadMarks().catch((error: unknown) => {
+        if (__DEV__) console.warn("highlights and notes failed to load", error);
+      });
+    void reload();
+    return subscribeYourSpace(() => void reload());
+  }, [loadMarks]);
+
   // Reading position: the first verse whose middle is below the header, saved as it settles.
   // FlatList counts a verse under the floating header as visible, so a passage's title row
   // scrolled to the top still reported the passage before it (simulator, 11 Oct 2026): the bar
@@ -597,6 +667,26 @@ export default function ReaderScreen() {
   const verseLabel = span === null ? "" : span.start === span.end ? `${chapter}:${span.start}` : `${chapter}:${span.start}–${span.end}`;
   const ids = span === null ? [] : Array.from({ length: span.end - span.start + 1 }, (_, i) => formatVerseId(book, chapter, span.start + i));
   const allMarked = ids.length > 0 && ids.every((id) => bookmarks.has(id));
+  // The colour the whole selection already wears, so the bar can ring it (PS-01).
+  const firstColor = span === null ? undefined : marks.highlights.get(span.start);
+  const selectionColor =
+    span !== null && firstColor !== undefined && ids.every((_, i) => marks.highlights.get(span.start + i) === firstColor) ? firstColor : null;
+  const imageable = !isLicensedCode(translation);
+
+  const openNote = (verse: number) => router.push({ pathname: "/note", params: { book, chapter: String(chapter), verse: String(verse) } });
+
+  const highlightSelection = async (color: HighlightColor | null) => {
+    try {
+      await setHighlight(user, ids, color);
+    } catch (error: unknown) {
+      // Called with void from the bar, so a failed write was an unhandled rejection and VoiceOver heard nothing.
+      if (__DEV__) console.warn("highlight failed", error);
+      AccessibilityInfo.announceForAccessibility("Couldn’t highlight");
+      return;
+    }
+    void Haptics.selectionAsync();
+    AccessibilityInfo.announceForAccessibility(color === null ? "Highlight removed" : `Highlighted ${color}`);
+  };
 
   const selectedText = (): string => {
     if (span === null || verses === undefined) return "";
@@ -618,7 +708,8 @@ export default function ReaderScreen() {
   // Original and Compare open Understand at that section: one depth-1 surface, never three (brief §1 rule 1).
   const open = (section?: "original") => {
     clearForSheet();
-    router.push({ pathname: "/understand", params: section === undefined ? { ref: sheetRef } : { ref: sheetRef, section } });
+    // `reader`: a range opens its guide here, and the guide's Next moves this reader (ON-04).
+    router.push({ pathname: "/understand", params: section === undefined ? { ref: sheetRef, reader: readerId } : { ref: sheetRef, section, reader: readerId } });
   };
 
   async function act(action: string): Promise<void> {
@@ -634,6 +725,11 @@ export default function ReaderScreen() {
       AccessibilityInfo.announceForAccessibility("Copied");
     } else if (action === "share") {
       void Share.share({ message: quote });
+    } else if (action === "share as an image") {
+      if (span === null) return;
+      router.push({ pathname: "/share-image", params: { verse: formatVerseId(book, chapter, span.start), through: String(span.end), translation } });
+    } else if (action === "note") {
+      if (span !== null) openNote(span.start);
     } else if (action === "original") {
       open("original");
     } else if (action === "compare") {
@@ -731,7 +827,7 @@ export default function ReaderScreen() {
           chapter < BOOK_CODES[book].chapters ? (
             <ChapterPeek book={book} chapter={chapter + 1} translation={translation} top={headerHeight + SPACE.sm} />
           ) : (
-            <EndOfBook book={book} top={headerHeight} next={next === null ? null : { title: chapterTitle(next.book, next.chapter) }} onNext={() => undefined} />
+            <EndOfBook book={book} onNext={() => undefined} />
           )
         }
         onPrevious={() => goTo({ book, chapter: chapter - 1 })}
@@ -742,11 +838,16 @@ export default function ReaderScreen() {
           ref={listRef}
           data={verses}
           keyExtractor={(v) => String(v.ord)}
-          contentContainerStyle={{
-            paddingTop: headerHeight + SPACE.sm,
-            paddingHorizontal: gutter,
-            paddingBottom: Math.max(barHeight, SPACE.xxl) + SPACE.lg,
-          }}
+          contentContainerStyle={[
+            {
+              paddingTop: headerHeight + SPACE.sm,
+              paddingHorizontal: gutter,
+              paddingBottom: Math.max(barHeight, SPACE.xxl) + SPACE.lg,
+            },
+            // TB-02, DU-02: on an iPad or an open Duo the text keeps its measure, centred; the list still scrolls
+            // from anywhere across the window.
+            regular ? { width: "100%", maxWidth: WIDE.measure + 2 * gutter, alignSelf: "center" } : null,
+          ]}
           showsVerticalScrollIndicator={false}
           initialNumToRender={40}
           windowSize={15}
@@ -762,6 +863,9 @@ export default function ReaderScreen() {
           onMomentumScrollEnd={() => (dragging.current = false)}
           onScrollEndDrag={(e) => {
             if (e.nativeEvent.velocity === undefined || Math.abs(e.nativeEvent.velocity.y) < 0.01) dragging.current = false;
+            // Landed on a chapter's last verse (a link, Continue) and nudged: the visible verses never changed, so the
+            // viewability callback never ran and the chapter went uncounted (simulator, Jude 1, 18 Oct 2026).
+            markDay.current(visibleVerses.current);
           }}
           scrollEventThrottle={16}
           onScrollToIndexFailed={({ index, averageItemLength }) => {
@@ -816,8 +920,11 @@ export default function ReaderScreen() {
             const lead = start === undefined ? undefined : prophet.get(start.pericope_id);
             // The psalm's lines skip what its title and superscription already say (verse 1 carries it).
             const psalmLines = full === undefined || full.mode !== "psalms" ? [] : readerLeadLines(full, [full.label, item.text]);
+            const before = index === 0 ? undefined : verses[index - 1];
             return (
             <>
+            {/* PD-05: a verse this version leaves out (John 5:4) keeps its place as one line. */}
+            {before !== undefined ? <MissingVerseLines book={book} chapter={chapter} after={before.through ?? before.verse} before={item.verse} /> : null}
             {lead !== undefined ? <ProphetLeadLines lead={lead} /> : null}
             {start !== undefined ? (
               <PassageTitle pericope={start} book={BOOK_CODES[book].name} boundary={index > 0} onPress={() => openGuide(start.pericope_id)} />
@@ -849,8 +956,12 @@ export default function ReaderScreen() {
                 bookmarked={bookmarks.has(`${book}.${chapter}.${item.verse}`)}
                 hasEntry={entryOrds?.has(item.ord) ?? false}
                 differs={understood?.differs.has(item.ord) ?? false}
+                highlight={marks.highlights.get(item.verse) ?? null}
+                noted={marks.notes.has(item.verse)}
+                onNote={() => openNote(item.verse)}
                 onPress={() => tap(item.verse)}
                 onAction={(action: VerseAction) => {
+                  if (action === "note") return openNote(item.verse);
                   setSelection({ anchor: item.verse, end: null });
                   void act(action);
                 }}
@@ -885,13 +996,22 @@ export default function ReaderScreen() {
                   testID="reader-plan-next"
                 />
               ) : null}
+              {closeCard ? (
+                <ChapterClose
+                  book={book}
+                  chapter={chapter}
+                  readKeys={readKeys}
+                  onNext={(to) => goTo(to)}
+                  onEnd={() => setAtEnd(true)}
+                />
+              ) : null}
               <View style={styles.links}>
-                {prev !== null ? (
+                {prev !== null && (!closeCard || screenReader) ? (
                   <ChapterLink direction="prev" title={chapterTitle(prev.book, prev.chapter)} onPress={() => goTo(prev)} />
                 ) : (
                   <View />
                 )}
-                {next !== null ? (
+                {next !== null && !closeCard ? (
                   <ChapterLink direction="next" title={chapterTitle(next.book, next.chapter)} onPress={() => goTo(next)} />
                 ) : null}
               </View>
@@ -916,10 +1036,8 @@ export default function ReaderScreen() {
         // SW-03: the End page stays until the reader swipes back or takes the way on.
         <View style={[StyleSheet.absoluteFill, { backgroundColor: palette.paper }]} accessibilityViewIsModal>
           <ChapterSwipe enabled={!screenReader} reduceMotion={reduceMotion} chapterKey="end" previous={<View />} next={null} onPrevious={() => setAtEnd(false)} onNext={() => undefined}>
-            <EndOfBook book={book} top={headerHeight} next={next === null ? null : { title: chapterTitle(next.book, next.chapter) }} onNext={() => next !== null && goTo(next)} />
+            <EndOfBook book={book} onNext={(to) => goTo({ book: to, chapter: 1 })} onClose={() => setAtEnd(false)} />
           </ChapterSwipe>
-          {/* SW-03 keeps the chapter's header above the End page. */}
-          {readerHeader}
         </View>
       ) : null}
 
@@ -946,6 +1064,11 @@ export default function ReaderScreen() {
           onOriginal={() => open("original")}
           onCompare={() => void act("compare")}
           onMenu={(action) => void act(action)}
+          highlight={selectionColor}
+          imageable={imageable}
+          onHighlight={(color) => void highlightSelection(color)}
+          onNote={() => void act("note")}
+          onCopy={() => void act("copy")}
           onHeight={setBarHeight}
           playFrom={
             // IA-05 draws `▶ 1:1` on a selected verse before anything plays, not only while a
@@ -1141,6 +1264,7 @@ function ChapterLink({ direction, title, onPress }: { direction: "prev" | "next"
 }
 
 const styles = StyleSheet.create({
+  // `.msl`: 44 pt tall, tucked a little under the verse above it.
   passageTitle: {
     flexDirection: "row",
     alignItems: "center",

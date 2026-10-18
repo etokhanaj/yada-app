@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { dayOf, greeting, mmdd, opening, partOf, pictureDay } from "./today";
+import { dayOf, dayParam, earlierDays, greeting, laterRow, mmdd, opening, parseDayParam, partOf, partSpan, pictureDay, whenLabel } from "./today";
+
+describe("Later and Earlier (DR-11, DR-12)", () => {
+  it("names the other part's psalms and, when there is an entry, Spurgeon", () => {
+    expect(laterRow("morning", "Psalms 6–8", true)).toEqual({ title: "This evening · Psalms 6–8", subtitle: "and Spurgeon for the evening", label: "This evening: Psalms 6–8 and Spurgeon" });
+    expect(laterRow("evening", "Psalms 1–5", true)).toEqual({ title: "This morning", subtitle: "Psalms 1–5 · Spurgeon", label: "This morning: Psalms 1–5 and Spurgeon" });
+  });
+
+  it("never names Spurgeon without an entry", () => {
+    expect(laterRow("morning", "Psalms 6–8", false).subtitle).toBeUndefined();
+    expect(laterRow("evening", "Psalms 1–5", false).subtitle).toBe("Psalms 1–5");
+  });
+});
 
 const at = (h: number, d = 1, m = 10) => new Date(2026, m, d, h, 0, 0);
 
@@ -16,6 +28,17 @@ describe("today's clock", () => {
     expect(partOf(at(17))).toBe("evening");
     expect(partOf(at(2))).toBe("evening");
     expect(partOf(at(3))).toBe("morning");
+  });
+
+  it("spans a morning from 03:00 to 17:00 and an evening on to 03:00 the next day", () => {
+    const day = new Date(2026, 9, 31);
+    const morning = partSpan(day, "morning");
+    const evening = partSpan(day, "evening");
+    expect([morning.from.getHours(), morning.until.getHours()]).toEqual([3, 17]);
+    expect(evening.from).toEqual(morning.until);
+    expect(evening.until).toEqual(new Date(2026, 10, 1, 3));
+    expect(partOf(evening.from)).toBe("evening");
+    expect(dayOf(new Date(evening.until.getTime() - 1))).toEqual(day);
   });
 
   it("greets by the hour, with no name", () => {
@@ -37,5 +60,37 @@ describe("today's clock", () => {
     expect(opening("O LORD, do not rebuke me in Your anger or discipline me in Your wrath.")).toBe(
       "O LORD, do not rebuke me in Your anger or discipline me in Your wrath",
     );
+  });
+});
+
+describe("the day's verse, earlier (DR-16, DR-19)", () => {
+  const sunday = new Date(2026, 10, 1);
+  it("names today, this evening, yesterday and last night, then the date", () => {
+    expect(whenLabel(sunday, "morning", sunday)).toBe("Today");
+    expect(whenLabel(sunday, "evening", sunday)).toBe("This evening");
+    expect(whenLabel(new Date(2026, 9, 31), "morning", sunday)).toBe("Yesterday");
+    expect(whenLabel(new Date(2026, 9, 31), "evening", sunday)).toBe("Last night");
+    expect(whenLabel(new Date(2026, 9, 29), "morning", sunday)).toBe("Thursday 29 October");
+  });
+
+  it("round-trips a day through its route parameter", () => {
+    expect(dayParam(sunday)).toBe("2026-11-01");
+    expect(parseDayParam("2026-11-01")?.getTime()).toBe(sunday.getTime());
+    expect(parseDayParam("nonsense")).toBeNull();
+  });
+
+  it("refuses a day that does not exist rather than rolling it into the next month", () => {
+    expect(parseDayParam("2026-02-31")).toBeNull();
+    expect(parseDayParam("2026-13-01")).toBeNull();
+    expect(parseDayParam("2026-00-10")).toBeNull();
+    expect(parseDayParam("2025-02-29")).toBeNull();
+    expect(parseDayParam("2028-02-29")?.getDate()).toBe(29);
+  });
+
+  it("lists this month newest first, this evening only once it has come", () => {
+    const morning = earlierDays(new Date(2026, 9, 3, 9));
+    expect(morning.map((d) => `${d.day.getDate()} ${d.part}`)).toEqual(["3 morning", "2 evening", "2 morning", "1 evening", "1 morning"]);
+    const evening = earlierDays(new Date(2026, 9, 2, 20));
+    expect(evening.map((d) => `${d.day.getDate()} ${d.part}`)).toEqual(["2 evening", "2 morning", "1 evening", "1 morning"]);
   });
 });

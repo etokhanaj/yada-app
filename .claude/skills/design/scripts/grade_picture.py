@@ -5,9 +5,15 @@ from PIL import Image, ImageEnhance
 src, out, tone, cx = sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4])
 im = Image.open(src).convert("RGB")
 w, h = im.size
-tw = int(h * 3 / 4)                       # 3:4 portrait, cropped again by the layout
-x0 = max(0, min(w - tw, int(cx * w - tw / 2)))
-im = im.crop((x0, 0, x0 + tw, h)).resize((1200, 1600), Image.LANCZOS)
+if w / h > 3 / 4:                         # wider than 3:4: crop the sides around cx
+    tw = int(h * 3 / 4)
+    x0 = max(0, min(w - tw, int(cx * w - tw / 2)))
+    im = im.crop((x0, 0, x0 + tw, h))
+else:                                     # a tall portrait: keep the full width, crop top and bottom evenly
+    th = int(w * 4 / 3)
+    y0 = (h - th) // 2
+    im = im.crop((0, y0, w, y0 + th))
+im = im.resize((1200, 1600), Image.LANCZOS)
 im = ImageEnhance.Color(im).enhance(1.35)
 im = ImageEnhance.Contrast(im).enhance(1.06)
 r, g, b = im.split()

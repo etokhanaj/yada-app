@@ -4,9 +4,28 @@
 
 import { type LabelledLine, type Passage, ordToParts } from "@yada/schema";
 
+import { formatRangeInBook } from "./chapters";
+
 /** The passages a selection touches, in order (UX-07: a range across two shows the first, then a row). */
 export function passagesTouched(passages: readonly Passage[], lo: number, hi: number): Passage[] {
   return passages.filter((p) => p.startOrd <= hi && lo <= p.endOrd).sort((a, b) => a.startOrd - b.startOrd);
+}
+
+/** "Nicodemus by night · 3:1–21" under the reference (NA-02). */
+export function passageSubtitle(passage: Pick<Passage, "label" | "id">): string {
+  return `${passage.label} · ${formatRangeInBook(passage.id)}`;
+}
+
+/** ON-04: the passage after this one in its book, for the guide's closing Next row; null at the book's end. */
+export function passageAfter<T extends { readonly startOrd: number; readonly endOrd: number }>(passages: readonly T[], current: T): T | null {
+  return [...passages].sort((a, b) => a.startOrd - b.startOrd).find((p) => p.startOrd > current.endOrd) ?? null;
+}
+
+/** "JHN.1.19-1.34": a passage as the ref its guide opens with. */
+export function passageRef(p: { readonly startOrd: number; readonly endOrd: number }): string {
+  const a = ordToParts(p.startOrd);
+  const b = ordToParts(p.endOrd);
+  return `${a.book}.${a.chapter}.${a.verse}-${b.chapter}.${b.verse}`;
 }
 
 /** "1:3–5", or "1:15–2:3" across a chapter. */
@@ -94,17 +113,27 @@ export interface GuideRow {
   readonly note: string;
 }
 
-/** More, in a fixed order (NA-04, JR-03, JR-05). */
-export function guideRows(passage: Passage, verseCount: number): GuideRow[] {
+/** What the passage's pages would hold, so a row is offered only where its page has something (UL-04). */
+export interface GuideContent {
+  readonly studyNotes: boolean;
+  readonly keyWords: boolean;
+  readonly check: boolean;
+}
+
+/**
+ * Go deeper, in a fixed order (NA-04, JR-03, JR-05). UL-04, "nothing empty, nothing promised": a row whose
+ * page would be empty is left out (Proverbs 1:8–19 shows Verse by verse and Study notes only).
+ */
+export function guideRows(passage: Passage, verseCount: number, content: GuideContent): GuideRow[] {
   const range = versesLabel(passage.startOrd, passage.endOrd);
   const rows: GuideRow[] = [];
   if (passage.psalm_about.length > 0) rows.push({ page: "about", title: "About this psalm", note: "Title, the picture, how it moves" });
   // UX pass, 15 Oct 2026: "each with its Understand" was app jargon, and a source's name as a row's line is a code
   // the Sources page holds (John, 12 Oct 2026: codes only in Sources).
-  rows.push({ page: "verses", title: "Verse by verse", note: `${verseCount} ${verseCount === 1 ? "verse" : "verses"}` });
-  rows.push({ page: "notes", title: "Study notes", note: `Tyndale on ${range}` });
-  rows.push({ page: "key-words", title: "Key words", note: "What its main words mean" });
-  rows.push({ page: "check", title: "Check what you read", note: "Questions from the passage" });
+  if (verseCount > 0) rows.push({ page: "verses", title: "Verse by verse", note: `${verseCount} ${verseCount === 1 ? "verse" : "verses"}` });
+  if (content.studyNotes) rows.push({ page: "notes", title: "Study notes", note: `Tyndale on ${range}` });
+  if (content.keyWords) rows.push({ page: "key-words", title: "Key words", note: "What its main words mean" });
+  if (content.check) rows.push({ page: "check", title: "Check what you read", note: "Questions from the passage" });
   return rows;
 }
 

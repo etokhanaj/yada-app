@@ -3,22 +3,26 @@
  * under a soft scrim, one part at a time in large Literata, the step marks, Next and, on the last part, Amen, which
  * returns to Today. After Insight Timer, Oura, Forest and Opal's sessions (mobbin.com/screens/7bf892dd-c66e-4a13-
  * be51-3a9633d0a363, 7be5795d-113c-493f-a297-ae5b4fbd4fc9, c6485d4b-493d-440e-847e-6b3ba1176d45,
- * b7a85dff-8e86-4211-9dec-73f5bf2ac492). Long parts scroll within their step.
+ * b7a85dff-8e86-4211-9dec-73f5bf2ac492). Long parts scroll within their step. Opened for the evening (Build 10), it
+ * prays the evening office over the evening's picture.
  */
 
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useCore } from "../data/AppData";
 import { setAmbient, useAmbient } from "../data/ambient";
 import { loadOffice, type OfficeStep } from "../data/office";
-import { DAY_PICTURES } from "../data/pictures.generated";
+import { pictureFor } from "../data/pictures";
 import { FONTS, useLayout } from "../design/tokens";
-import { dayOf, pictureDay } from "../lib/today";
+import { dayOf, type Part, partOf } from "../lib/today";
+import { BRAND } from "../design/palette";
+import { useAccessibility } from "../state/accessibility";
+import { FillPicture } from "../components/FillPicture";
 
-const FOREST = "#183F35";
+const FOREST = BRAND.forest;
 
 export default function Office() {
   const core = useCore();
@@ -26,12 +30,15 @@ export default function Office() {
   const { ax, gutter } = useLayout();
   const [steps, setSteps] = useState<OfficeStep[] | null>(null);
   const [at, setAt] = useState(0);
+  const params = useLocalSearchParams<{ part?: string }>();
+  // The part comes from the card that opened this; opened without one (an old link), it follows the clock.
+  const part: Part = params.part === "evening" || params.part === "morning" ? params.part : partOf(new Date());
   const day = dayOf(new Date());
-  const picture = DAY_PICTURES.find((p) => p.day === pictureDay(day));
+  const picture = pictureFor(day, part);
 
   useEffect(() => {
     let live = true;
-    void loadOffice(core, day).then((s) => live && setSteps(s));
+    void loadOffice(core, day, part).then((s) => live && setSteps(s));
     return () => {
       live = false;
     };
@@ -47,12 +54,24 @@ export default function Office() {
   const last = steps !== null && at === steps.length - 1;
   const next = () => (last ? router.back() : setAt((n) => n + 1));
 
+  const solid = useAccessibility((s) => s.reduceTransparency);
   return (
     <View style={[styles.root, { backgroundColor: FOREST }]} testID="office">
-      {picture !== undefined ? <Image source={picture.image} style={StyleSheet.absoluteFill} resizeMode="cover" accessible accessibilityLabel={picture.alt} /> : null}
-      <View style={[StyleSheet.absoluteFill, styles.scrim]} />
+      {picture !== undefined ? <FillPicture source={picture.image} alt={picture.alt} /> : null}
+      {/* Darker where the words sit, at least 86% (design system), and solid under Reduce Transparency (images audit). */}
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            experimental_backgroundImage: solid
+              ? "linear-gradient(rgba(8,14,12,0.88), rgba(8,14,12,0.94))"
+              : "linear-gradient(rgba(8,14,12,0.5), rgba(8,14,12,0.86) 40%, rgba(8,14,12,0.9))",
+          },
+        ]}
+      />
       <View style={[styles.top, { top: insets.top + 8, left: gutter, right: gutter }]}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close daily prayer" style={styles.close} testID="office-close">
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={part === "evening" ? "Close evening prayer" : "Close daily prayer"} style={styles.close} testID="office-close">
           <Text style={styles.closeX}>×</Text>
         </Pressable>
         {steps !== null ? (
@@ -101,7 +120,6 @@ export default function Office() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scrim: { backgroundColor: "rgba(8,14,12,0.62)" },
   top: { position: "absolute", flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 1 },
   close: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" },
   closeX: { color: "#fff", fontSize: 26, lineHeight: 28 },

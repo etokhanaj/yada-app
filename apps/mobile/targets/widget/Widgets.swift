@@ -31,15 +31,29 @@ struct Place: Decodable {
   let url: String
 }
 
-/// lib/systemSurfaces.ts TodayData.
+/// lib/systemSurfaces.ts TodayData: one morning's or evening's reading (DR-07).
 struct Day: Decodable {
+  struct Figure: Decodable {
+    let over: String
+    let big: String
+  }
+
   let date: String
-  let psalm: Int
+  let part: String
+  let overline: String
+  let label: String
+  let figure: Figure?
+  let book: String
+  let chapter: Int
+  let verse: Int
+  let chapters: [Int]
   let titleLine: String?
   let verses: [Verse]
   let url: String
 
   var first: String { verses.first?.text ?? "" }
+  /// The first verse whole, title and all, as DR-07 draws it on the medium widget.
+  var whole: String { titleLine.map { "\($0) \(first)" } ?? first }
 }
 
 struct Shared: Decodable {
@@ -58,12 +72,21 @@ struct Entry: TimelineEntry {
   let listening: Listening?
 
   var place: Place? { shared?.continue }
-  var day: Day? { shared?.today.first { $0.date == dayKey(date) } }
+  /// Today's reading at this entry's moment: its day turns at 03:00 and its evening starts at 17:00 (lib/today.ts).
+  var day: Day? {
+    let (key, part) = moment(date)
+    return shared?.today.first { $0.date == key && $0.part == part }
+  }
 
   /// Playing in this chapter: the Listen button there is Pause (SX-05).
   func playing(_ book: String, _ chapter: Int) -> Bool {
+    playing(book, [chapter])
+  }
+
+  /// Playing any of a set's psalms (DR-07): "Psalms 1–5" shows Pause from Psalm 1 to Psalm 5.
+  func playing(_ book: String, _ chapters: [Int]) -> Bool {
     guard let l = listening, l.playing else { return false }
-    return l.book == book && l.chapter == chapter
+    return l.book == book && chapters.contains(l.chapter)
   }
 
   static let preview = Entry(
@@ -80,13 +103,14 @@ struct Entry: TimelineEntry {
       ),
       today: [
         Day(
-          date: dayKey(Date()), psalm: 138, titleLine: "Of David.",
+          date: moment(Date()).key, part: moment(Date()).part, overline: "This morning", label: "Psalms 1–5",
+          figure: Day.Figure(over: "Psalms", big: "1–5"), book: "PSA", chapter: 1, verse: 1, chapters: [1, 2, 3, 4, 5], titleLine: nil,
           verses: [
-            Verse(n: 1, text: "I give You thanks with all my heart; before the gods I sing Your praises."),
-            Verse(n: 2, text: "I bow down toward Your holy temple and give thanks to Your name for Your loving devotion and Your faithfulness; You have exalted Your name and Your word above all else."),
-            Verse(n: 3, text: "On the day I called, You answered me; You emboldened me and strengthened my soul."),
+            Verse(n: 1, text: "Blessed is the man who does not walk in the counsel of the wicked, or set foot on the path of sinners, or sit in the seat of mockers."),
+            Verse(n: 2, text: "But his delight is in the Law of the LORD, and on His law he meditates day and night."),
+            Verse(n: 3, text: "He is like a tree planted by streams of water, yielding its fruit in season, whose leaf does not wither, and who prospers in all he does."),
           ],
-          url: "studio.yada.reader:///open?book=PSA&chapter=138&verse=1"
+          url: "studio.yada.reader:///open?book=PSA&chapter=1&verse=1"
         ),
       ]
     ),
@@ -100,16 +124,32 @@ struct Provider: TimelineProvider {
     let shared = Shared.load()
     completion(shared == nil ? .preview : Entry(date: Date(), shared: shared, listening: Listening.load()))
   }
-  /// One entry now and one each midnight ahead, so today's psalm turns over without the app.
+  /// One entry now and one at each 03:00 and 17:00 for a week (DR-07), so the evening's psalms come at 17:00 and the
+  /// next morning's at 03:00 without the app.
   func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
     let shared = Shared.load()
     let listening = Listening.load()
-    let start = Calendar.current.startOfDay(for: Date())
-    let entries = [Entry(date: Date(), shared: shared, listening: listening)] + (1...7).compactMap { d in
-      Calendar.current.date(byAdding: .day, value: d, to: start).map { Entry(date: $0, shared: shared, listening: listening) }
+    let now = Date()
+    let start = Calendar.current.startOfDay(for: now)
+    let turns = (0...7).flatMap { d -> [Date] in
+      [dayTurnsAt, eveningFrom].compactMap { hour in
+        Calendar.current.date(byAdding: .day, value: d, to: start).flatMap { Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: $0) }
+      }
     }
+    let entries = [Entry(date: now, shared: shared, listening: listening)] + turns.filter { $0 > now }.map { Entry(date: $0, shared: shared, listening: listening) }
     completion(Timeline(entries: entries, policy: .atEnd))
   }
+}
+
+/// lib/today.ts: the day turns at 03:00, the evening starts at 17:00.
+let dayTurnsAt = 3
+let eveningFrom = 17
+
+/// The day ("2026-11-01") and part ("morning", "evening") Today shows at `date`, as lib/today.ts dayOf and partOf.
+func moment(_ date: Date) -> (key: String, part: String) {
+  let hour = Calendar.current.component(.hour, from: date)
+  let day = hour < dayTurnsAt ? Calendar.current.date(byAdding: .day, value: -1, to: date) ?? date : date
+  return (dayKey(day), hour >= eveningFrom || hour < dayTurnsAt ? "evening" : "morning")
 }
 
 func dayKey(_ date: Date) -> String {
@@ -330,7 +370,7 @@ struct ContinueView: View {
   }
 }
 
-// MARK: - A passage for today (SX-03, SX-04, SX-06, SX-07, SX-08)
+// MARK: - Today (DR-07; SX-03, SX-04, SX-06, SX-07, SX-08)
 
 struct TodayView: View {
   let entry: Entry
@@ -348,7 +388,7 @@ struct TodayView: View {
         default: medium(day)
         }
       } else {
-        Text("Open Yada once to bring today’s psalm here.").font(Fonts.verse(.subheadline)).foregroundStyle(Color("ink"))
+        Text("Open Yada once to bring today’s psalms here.").font(Fonts.verse(.subheadline)).foregroundStyle(Color("ink"))
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       }
     }
@@ -356,16 +396,14 @@ struct TodayView: View {
     .widgetURL(URL(string: entry.day?.url ?? "studio.yada.reader:///"))
   }
 
-  private func label(_ d: Day) -> String { "A passage for today, Psalm \(d.psalm), \(d.first)" }
-
   private func foot(_ d: Day, _ text: String) -> some View {
-    let playing = entry.playing("PSA", d.psalm)
+    let playing = entry.playing(d.book, d.chapters)
     return HStack(alignment: .center, spacing: 12) {
       Text(playing ? "Playing · \(entry.listening.map { "\($0.chapter):\($0.verse)" } ?? "")" : text)
         .font(Fonts.ref).foregroundStyle(Color("ink"))
         .accessibilityHidden(!playing)
       Spacer(minLength: 0)
-      ListenButton(what: "today", playing: playing, label: "Listen to Psalm \(d.psalm)")
+      ListenButton(what: "today", playing: playing, label: "Listen to \(d.label)")
     }
   }
 
@@ -376,16 +414,17 @@ struct TodayView: View {
     }
   }
 
+  /// DR-07: "This morning", the first verse whole, then "Psalms 1–5 · BSB" beside Listen.
   private func medium(_ d: Day) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       VStack(alignment: .leading, spacing: 4) {
-        if !size.isAccessibilitySize { titleLine(d) }
-        Text(d.first).font(Fonts.verse(.body)).foregroundStyle(Color("ink")).lineLimit(size.isAccessibilitySize ? 2 : 3)
+        Text(d.overline).font(Fonts.overline).foregroundStyle(Color("mutedInk"))
+        Text(d.whole).font(Fonts.verse(.body)).foregroundStyle(Color("ink")).lineLimit(size.isAccessibilitySize ? 2 : 3)
       }
       .accessibilityElement(children: .ignore)
-      .accessibilityLabel(label(d))
+      .accessibilityLabel(voiceLabel(d))
       Spacer(minLength: 0)
-      foot(d, "Psalm \(d.psalm):1 · BSB")
+      foot(d, "\(d.label) · BSB")
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }
@@ -394,8 +433,8 @@ struct TodayView: View {
     VStack(alignment: .leading, spacing: 8) {
       VStack(alignment: .leading, spacing: 8) {
         VStack(alignment: .leading, spacing: 2) {
-          Text("A passage for today").font(Fonts.overline).foregroundStyle(Color("mutedInk"))
-          Text("Psalm \(d.psalm)").font(Fonts.name(.title2)).foregroundStyle(Color("ink")).accentable()
+          Text(d.overline).font(Fonts.overline).foregroundStyle(Color("mutedInk"))
+          Text(d.label).font(Fonts.name(.title2)).foregroundStyle(Color("ink")).accentable()
           titleLine(d)
         }
         ViewThatFits(in: .vertical) {
@@ -405,7 +444,7 @@ struct TodayView: View {
         }
       }
       .accessibilityElement(children: .ignore)
-      .accessibilityLabel(label(d))
+      .accessibilityLabel(voiceLabel(d))
       Spacer(minLength: 0)
       foot(d, "BSB")
     }
@@ -418,25 +457,28 @@ struct TodayView: View {
     }
   }
 
-  /// SX-07: "Psalm 138 · I give You thanks…".
+  /// SX-07: "Psalms 6–8 · O LORD, do not rebuke me…".
   private func inline(_ d: Day) -> some View {
-    Label("Psalm \(d.psalm) · \(d.first)", systemImage: "book")
-      .accessibilityLabel(label(d))
+    Label("\(d.label) · \(d.first)", systemImage: "book")
+      .accessibilityLabel(voiceLabel(d))
   }
 
-  /// SX-07: the reference and the verse.
+  /// SX-07, DR-07 (Lock Screen, evening): the set and its first verse.
   private func rectangle(_ d: Day) -> some View {
     VStack(alignment: .leading, spacing: 1) {
-      Text("Psalm \(d.psalm):1").font(.headline).widgetAccentable()
+      Text(d.label).font(.headline).widgetAccentable()
       if !size.isAccessibilitySize {
         Text(d.first).font(Fonts.verse(.caption)).lineLimit(2)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(label(d))
+    .accessibilityLabel(voiceLabel(d))
   }
 }
+
+/// DR-07's VoiceOver label: "This evening, Psalms 6–8, O LORD, do not rebuke me…".
+private func voiceLabel(_ d: Day) -> String { "\(d.overline), \(d.label), \(d.first)" }
 
 /// SX-03 small, and SX-08: in StandBy, where the container background is gone, the verse fills the widget,
 /// the largest thing on the screen after the clock; night mode's red is the system's tint over it.
@@ -463,8 +505,15 @@ struct SmallToday: View {
     let size: DynamicTypeSize
     var body: some View {
       VStack(alignment: .leading, spacing: 0) {
-        Text("Psalm").font(Fonts.overline).foregroundStyle(Color("mutedInk"))
-        Text("\(day.psalm)").font(.system(size: 46, weight: .semibold, design: .serif)).foregroundStyle(Color("ink")).minimumScaleFactor(0.6).accentable()
+        // SX-03: the psalms' figures set large ("Psalms" over "1–5"); the day's verse has its reference instead.
+        if let figure = day.figure {
+          Text(figure.over).font(Fonts.overline).foregroundStyle(Color("mutedInk"))
+          Text(figure.big).font(.custom("Literata-Regular", size: 46, relativeTo: .largeTitle).weight(.semibold)).foregroundStyle(Color("ink"))
+            .lineLimit(1).minimumScaleFactor(0.4).accentable()
+        } else {
+          Text(day.overline).font(Fonts.overline).foregroundStyle(Color("mutedInk"))
+          Text(day.label).font(Fonts.name(.headline)).foregroundStyle(Color("ink")).lineLimit(2).accentable()
+        }
         if !size.isAccessibilitySize {
           Spacer(minLength: 4)
           Text(day.first).font(Fonts.verse(.caption)).foregroundStyle(Color("ink")).lineLimit(3)
@@ -473,7 +522,7 @@ struct SmallToday: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .accessibilityElement(children: .ignore)
-      .accessibilityLabel("A passage for today, Psalm \(day.psalm), \(day.first)")
+      .accessibilityLabel(voiceLabel(day))
     }
   }
 
@@ -481,13 +530,13 @@ struct SmallToday: View {
     let day: Day
     var body: some View {
       VStack(alignment: .leading, spacing: 6) {
-        Text("Psalm \(day.psalm)").font(.caption.weight(.medium)).foregroundStyle(.secondary)
+        Text(day.label).font(.caption.weight(.medium)).foregroundStyle(.secondary)
         Text(day.first).font(Fonts.verse(.title3)).foregroundStyle(.primary).minimumScaleFactor(0.7)
         Spacer(minLength: 0)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .accessibilityElement(children: .ignore)
-      .accessibilityLabel("A passage for today, Psalm \(day.psalm), \(day.first)")
+      .accessibilityLabel(voiceLabel(day))
     }
   }
 }
@@ -497,8 +546,7 @@ struct SmallToday: View {
 struct ListenAccessory: View {
   let entry: Entry
   var body: some View {
-    let psalm = entry.day?.psalm
-    let playing = psalm.map { entry.playing("PSA", $0) } ?? false
+    let playing = entry.day.map { entry.playing($0.book, $0.chapters) } ?? false
     ZStack {
       AccessoryWidgetBackground()
       if #available(iOS 17.0, *) {
@@ -507,9 +555,9 @@ struct ListenAccessory: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(playing ? "Pause" : "Listen to today’s psalm")
+        .accessibilityLabel(playing ? "Pause" : "Listen to \(entry.day?.label ?? "today’s psalms")")
       } else {
-        Image(systemName: "headphones").font(.title3.weight(.semibold)).accessibilityLabel("Today’s psalm")
+        Image(systemName: "headphones").font(.title3.weight(.semibold)).accessibilityLabel(entry.day?.label ?? "Today’s psalms")
       }
     }
     .widgetURL(URL(string: entry.day?.url ?? "studio.yada.reader:///"))
@@ -531,8 +579,9 @@ struct ContinueWidget: Widget {
 struct TodayWidget: Widget {
   var body: some WidgetConfiguration {
     StaticConfiguration(kind: "today", provider: Provider()) { TodayView(entry: $0) }
-      .configurationDisplayName("A passage for today")
-      .description("One psalm, the same for everyone that day.")
+      // Build 7 names it Today (docs/build-7-plan.md:106): it follows Settings › Daily psalms as Today does (DR-07).
+      .configurationDisplayName("Today")
+      .description("This morning’s psalms, then this evening’s.")
       .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryInline, .accessoryRectangular])
   }
 }
@@ -541,7 +590,7 @@ struct ListenWidget: Widget {
   var body: some WidgetConfiguration {
     StaticConfiguration(kind: "listen", provider: Provider()) { ListenAccessory(entry: $0) }
       .configurationDisplayName("Listen")
-      .description("Today’s psalm, read aloud.")
+      .description("Today’s psalms, read aloud.")
       .supportedFamilies([.accessoryCircular])
   }
 }
@@ -616,6 +665,46 @@ struct PassageRing: View {
   }
 }
 
+/// SX-17: Yada's mark leading the activity's title row, a 24 pt tile on the brand night with the mark in chartreuse,
+/// as the app's icon is in either theme (canvas `.sxlam`). Path from the canvas's mark, on a 256 grid.
+struct YadaMark: View {
+  struct Glyph: Shape {
+    func path(in rect: CGRect) -> Path {
+      let s = min(rect.width, rect.height) / 256
+      let p = { (x: CGFloat, y: CGFloat) in CGPoint(x: rect.minX + x * s, y: rect.minY + y * s) }
+      var path = Path()
+      path.move(to: p(34, 42))
+      path.addCurve(to: p(94, 64), control1: p(62, 40), control2: p(80, 44))
+      path.addCurve(to: p(131, 133), control1: p(104, 79), control2: p(115, 101))
+      path.addLine(to: p(144, 161))
+      path.addCurve(to: p(151, 101), control1: p(146, 139), control2: p(146, 119))
+      path.addCurve(to: p(221, 40), control1: p(158, 77), control2: p(181, 53))
+      path.addLine(to: p(221, 94))
+      path.addCurve(to: p(164, 119), control1: p(191, 94), control2: p(174, 103))
+      path.addCurve(to: p(150, 172), control1: p(157, 131), control2: p(154, 152))
+      path.addCurve(to: p(99, 227), control1: p(145, 198), control2: p(128, 221))
+      path.addCurve(to: p(42, 208), control1: p(75, 232), control2: p(49, 226))
+      path.addCurve(to: p(61, 169), control1: p(34, 190), control2: p(43, 171))
+      path.addCurve(to: p(91, 196), control1: p(80, 167), control2: p(94, 179))
+      path.addCurve(to: p(81, 214), control1: p(90, 204), control2: p(86, 210))
+      path.addCurve(to: p(112, 191), control1: p(97, 214), control2: p(108, 205))
+      path.addCurve(to: p(105, 155), control1: p(115, 180), control2: p(112, 169))
+      path.addLine(to: p(60, 76))
+      path.addCurve(to: p(34, 42), control1: p(50, 57), control2: p(43, 47))
+      path.closeSubpath()
+      return path
+    }
+  }
+
+  var body: some View {
+    Glyph().fill(Color("chartreuse"))
+      .frame(width: 16, height: 16)
+      .frame(width: 24, height: 24)
+      .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color("mark")))
+      .accessibilityHidden(true)
+  }
+}
+
 /// Previous, play or pause, next by verse; every target at least 44 pt.
 struct Controls: View {
   let playing: Bool
@@ -681,7 +770,8 @@ struct ActivityView: View {
     let size: DynamicTypeSize
     var body: some View {
       VStack(alignment: .leading, spacing: 8) {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .center, spacing: 10) {
+          YadaMark()
           Text(state.title).font(Fonts.name(.headline)).foregroundStyle(Color("ink")).lineLimit(2)
           Spacer(minLength: 8)
           Text(state.ref).font(.subheadline.weight(.semibold)).monospacedDigit().foregroundStyle(Color("mutedInk"))
@@ -710,7 +800,8 @@ struct ActivityView: View {
     var body: some View {
       HStack(alignment: .center, spacing: 24) {
         VStack(alignment: .leading, spacing: 10) {
-          Text("\(state.title) · \(state.ref)").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+          // SX-22: "The Word became flesh · John 1:5": in StandBy nothing else names the book.
+          Text("\(state.title) · \(state.reference ?? state.ref)").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
           Text(state.spoken ?? state.verse).font(Fonts.verse(.largeTitle)).foregroundStyle(.primary).minimumScaleFactor(0.5)
           Segments(fills: state.segments, track: .secondary.opacity(0.3), fill: .primary)
           StatusLine(state: state, color: .secondary)
@@ -813,7 +904,7 @@ struct YadaWidgets: WidgetBundle {
 @available(iOS 17.0, *)
 #Preview("Live Activity", as: .content, using: ReadingAttributes()) { ReadingActivityWidget() } contentStates: {
   ReadingAttributes.ContentState(
-    title: "The Word became flesh", ref: "1:5", verse: "The Light shines in the darkness, and the darkness has not overcome it.",
+    title: "The Word became flesh", ref: "1:5", reference: "John 1:5", verse: "The Light shines in the darkness, and the darkness has not overcome it.",
     spoken: nil, line: "Stops after 1:18", lineGlyph: "stop", segments: [5.0 / 18, 0, 0], ring: 5.0 / 18, playing: true
   )
 }

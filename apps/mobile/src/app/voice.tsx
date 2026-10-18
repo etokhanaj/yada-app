@@ -12,11 +12,12 @@ import * as Haptics from "expo-haptics";
 import { BOOK_CODES } from "@yada/schema";
 import { View } from "react-native";
 
+import { StopRing } from "../components/audio/ReaderBars";
 import { Icon } from "../components/Icon";
 import { Row, RowNote, Section, SheetScreen } from "../components/Sheet";
 import { Chrome } from "../components/Type";
 import { chooseReading } from "../data/audio";
-import { bookOnPhone, downloadBook, readingKey, readingsOf, readText, removeBook, useRecordings } from "../data/recordings";
+import { bookOnPhone, downloadBook, readingKey, readingsOf, readText, removeBook, stopBookDownload, useRecordings } from "../data/recordings";
 import { formatMB } from "../lib/progress";
 import { chapterTitle } from "../lib/reader";
 import { useAudio } from "../state/audio";
@@ -69,7 +70,15 @@ export default function VoiceScreen() {
       {info !== undefined ? (
         <Section title="Download">
           {downloading !== undefined ? (
-            <Row first chevron={false} testID="voice-downloading">
+            // BA-04: the ring stops the download; the chapters already fetched stay on the phone.
+            <Row
+              first
+              chevron={false}
+              label={`Downloading ${book}, ${downloading.done} of ${downloading.total} chapters. Stop downloading`}
+              onPress={() => stopBookDownload(session.book, text)}
+              trailing={<StopRing share={downloading.total === 0 ? 0 : downloading.done / downloading.total} size={36} />}
+              testID="voice-downloading"
+            >
               <Chrome tone="ink" style={{ fontWeight: "500" }}>
                 {`Downloading ${book}`}
               </Chrome>
@@ -114,7 +123,8 @@ export default function VoiceScreen() {
               <Chrome tone="ink" style={{ fontWeight: "500" }}>
                 {`Download ${book}`}
               </Chrome>
-              <RowNote>{`${voiceOf}${here.total} ${here.total === 1 ? "chapter" : "chapters"} · ${formatMB(here.bytes)}`}</RowNote>
+              {/* LB-10: "21 chapters · 34 MB"; the voice it downloads is the one ticked or named above. */}
+              <RowNote>{`${here.total} ${here.total === 1 ? "chapter" : "chapters"} · ${formatMB(here.bytes)}`}</RowNote>
             </Row>
           )}
           {failed === "space" ? (

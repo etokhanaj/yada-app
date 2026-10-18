@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { LEAVE_ROUTES, trailingSheets } from "./backToReading";
+import { backPill, LEAVE_ROUTES, trailingSheets } from "./backToReading";
 
 const READER = "read/[book]/[chapter]";
 
@@ -26,5 +26,19 @@ describe("back to reading", () => {
   it("closes Search as well when leaving to read elsewhere", () => {
     expect(trailingSheets(["index", "search", "evidence"], LEAVE_ROUTES)).toBe(2);
     expect(trailingSheets(["index", "search"], LEAVE_ROUTES)).toBe(1);
+  });
+});
+
+describe("‹ names a verse it goes back to (DN-06)", () => {
+  it("shortens a verse or passage title to its reference", () => {
+    expect(backPill("1 Corinthians 14:34")).toBe("14:34");
+    expect(backPill("John 1:1–18")).toBe("1:1–18");
+    expect(backPill("John 7:53–8:11")).toBe("7:53–8:11");
+  });
+
+  it("leaves any other page to the round glyph", () => {
+    expect(backPill("Key words")).toBeNull();
+    expect(backPill("Compare")).toBeNull();
+    expect(backPill(null)).toBeNull();
   });
 });

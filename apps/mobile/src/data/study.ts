@@ -24,6 +24,7 @@ import {
   getPassageNote,
   getProfiles,
   getStudyNotes,
+  getStudyNotesInRange,
   getStudySources,
   getXrefs,
   noteOrdsInRange,
@@ -73,6 +74,12 @@ export async function loadVerseStudy(book: BookCode, ord: number, bsbText: strin
 export async function loadPassageNote(book: BookCode, startOrd: number, endOrd: number): Promise<StudyNoteRow | null> {
   const db = await openStudy(book);
   return db === null ? null : getPassageNote(asDb(db), startOrd, endOrd);
+}
+
+/** Every Tyndale note touching a passage (WM-05), or null while the book's notes are not on the phone. */
+export async function loadRangeNotes(book: BookCode, lo: number, hi: number): Promise<StudyNoteRow[] | null> {
+  const db = await openStudy(book);
+  return db === null ? null : getStudyNotesInRange(asDb(db), lo, hi);
 }
 
 /** The passage guide's fallback opener (registerPassageNoteSource, data/passageNote.ts): lib/study.ts guideNote. */

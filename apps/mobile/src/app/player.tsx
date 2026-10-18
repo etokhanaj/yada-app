@@ -32,7 +32,9 @@ import { SpokenSegments, useVerseMark } from "../components/audio/Spoken";
 import { usePericopes } from "../components/audio/usePassage";
 import { Icon } from "../components/Icon";
 import { Chrome } from "../components/Type";
+import { useAppData } from "../data/AppData";
 import { endSession, jumpTo, next, previous, setRepeat, setSpeed, setStop, toggle } from "../data/audio";
+import { loadSettings } from "../data/user";
 import { readingKey, readText, refreshRecordings, useRecordings } from "../data/recordings";
 import type { VerseText } from "../data/queries";
 import { transparent } from "../design/contrast";
@@ -40,9 +42,11 @@ import { FONTS, LTR_PROSE, useAXLevel, useLayout, usePalette, useType } from "..
 import { FADE_BOTTOM, FADE_TOP, followOffset, progressSegments, segmentFill, speedAccessibilityLabel, speedLabel } from "../lib/audio/session";
 import { passageEndIndex, passageStartIndex, repeatChoices, statusLine, stopChoices } from "../lib/audio/stop";
 import { playerMenu } from "../lib/audio/voice";
+import { parsePsalter, type PsalterChoice, setHolding } from "../lib/dailyPsalms";
 import { useReduceMotion } from "../lib/motion";
 import { pericopeForVerse } from "../lib/pericopes";
 import { chapterTitle } from "../lib/reader";
+import { dayOf, partOf } from "../lib/today";
 import { scriptureSegments, spokenText } from "../lib/supplied";
 import { currentVerse, useAudio } from "../state/audio";
 
@@ -76,6 +80,18 @@ export default function PlayerScreen() {
   useEffect(() => () => useAudio.setState({ voiceNote: null }), []);
   useEffect(() => void refreshRecordings(), []);
   const note = voiceNote;
+  // DR-08: Settings › Daily psalms, so a psalm of today's set is titled by the set and can stop at its end.
+  const { user } = useAppData();
+  const [psalter, setPsalter] = useState<PsalterChoice | null>(null);
+  useEffect(() => {
+    let live = true;
+    void loadSettings(user).then((s) => {
+      if (live) setPsalter(parsePsalter(s["dailyPsalms"]));
+    });
+    return () => {
+      live = false;
+    };
+  }, [user]);
 
   const pericopes = usePericopes(session?.book);
   const reading = useRecordings((s) => {
@@ -110,13 +126,18 @@ export default function PlayerScreen() {
   const passage = pericopeForVerse(pericopes, verse.ord);
   const lastVerse = verses[verses.length - 1]?.verse ?? verses.length;
   const segments = progressSegments(pericopes, verses[0] === undefined ? verse.ord : verses[0].ord - verses[0].verse + 1, lastVerse);
+  // DR-08: "Evening · Psalms 6–8" while one of today's psalms plays, the psalm named beneath.
+  const clock = new Date();
+  const daySet = book === "PSA" && psalter !== null ? setHolding(dayOf(clock), partOf(clock), psalter, chapter, verse.verse) : null;
+  const heading = daySet === null ? (passage?.label ?? title) : `${daySet.end.part === "morning" ? "Morning" : "Evening"} · ${daySet.label}`;
+  const namesChapter = daySet !== null || passage !== null;
 
   const onMenu = (id: string) => {
     if (id.startsWith("speed:")) setSpeed(Number(id.slice("speed:".length)));
     else if (id === "stop:off") setStop(null);
     else if (id.startsWith("stop:")) {
-      const choice = stopChoices(repeat, pericopes.length > 0).find((c) => `stop:${c}` === id);
-      if (choice !== undefined) setStop(choice);
+      const choice = stopChoices(repeat, pericopes.length > 0, daySet !== null).find((c) => `stop:${c}` === id);
+      if (choice !== undefined) setStop(choice, daySet?.end ?? null);
     } else if (id === "repeat:off") setRepeat(null);
     else if (id.startsWith("repeat:")) {
       const choice = repeatChoices(pericopes.length > 0).find((r) => `repeat:${r}` === id);
@@ -172,6 +193,8 @@ export default function PlayerScreen() {
       chapter: title,
       passageEnd: starts === null ? null : `${chapter}:${passageLast}`,
       chapterEnd: `${chapter}:${lastVerse}`,
+      psalm: book === "PSA",
+      set: daySet?.end ?? null,
     },
     now,
   );
@@ -243,19 +266,24 @@ export default function PlayerScreen() {
           accessibilityRole="button"
           accessibilityLabel="Close player"
           testID="player-close"
-          style={({ pressed }) => [styles.round, { width: ax ? 64 : 44, height: ax ? 64 : 44, backgroundColor: palette.fill }, pressed ? styles.pressed : null]}
+          // Design QA X6: the sheets' white circle with a hairline ring (polish-2026-10-15.md), not a grey disc.
+          style={({ pressed }) => [
+            styles.round,
+            { width: ax ? 64 : 44, height: ax ? 64 : 44, backgroundColor: palette.sheet, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.edge },
+            pressed ? styles.pressed : null,
+          ]}
         >
           <Icon name="down" size={20} maxScale={1.5} />
         </Pressable>
         <View style={[styles.title, ax ? { flex: 0, alignItems: "flex-start", paddingHorizontal: 6 } : null]}>
           {/* BA-01 AX5: one line, two at most. US-02: a book with no passages names the chapter once. */}
           <Chrome tone="ink" step="sheetTitle" accessibilityRole="header" style={{ textAlign: ax ? "left" : "center" }} numberOfLines={ax ? 2 : 1}>
-            {passage?.label ?? title}
+            {heading}
           </Chrome>
           {/* BA-01: the place is plain text; the voice is its own control, accented with ⌄, only where there is a choice (BA-06). */}
           <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: ax ? "flex-start" : "center" }}>
-            <Chrome tone="muted" step="note" accessibilityLabel={[passage === null ? null : title, translation].filter((p) => p !== null).join(", ")}>
-              {`${[passage === null ? null : title, translation].filter((p) => p !== null).join(" · ")} · `}
+            <Chrome tone="muted" step="note" accessibilityLabel={[namesChapter ? title : null, translation].filter((p) => p !== null).join(", ")}>
+              {`${[namesChapter ? title : null, translation].filter((p) => p !== null).join(" · ")} · `}
             </Chrome>
             {voiceChoices ? (
               <Pressable

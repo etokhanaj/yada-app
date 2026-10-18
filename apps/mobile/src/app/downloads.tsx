@@ -12,7 +12,7 @@ import { Alert, View } from "react-native";
 
 import { Icon } from "../components/Icon";
 import { ListRow, PageScreen } from "../components/Page";
-import { Chrome, Label } from "../components/Type";
+import { SectionTitle, Chrome } from "../components/Type";
 import { useAppData } from "../data/AppData";
 import { readingsOnPhone, removeBook } from "../data/recordings";
 import { removeAllDownloads } from "../data/removeData";
@@ -53,7 +53,7 @@ export default function DownloadsScreen() {
   const group = (title: string, rows: ReactNode[]) =>
     rows.length === 0 ? null : (
       <View style={{ marginBottom: sectionGap }}>
-        <Label style={{ marginBottom: 6 }}>{title}</Label>
+        <SectionTitle style={{ marginBottom: 6 }}>{title}</SectionTitle>
         {rows}
       </View>
     );

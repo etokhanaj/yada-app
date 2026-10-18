@@ -10,20 +10,45 @@ import { useAudio } from "../state/audio";
 import { countDay } from "./user";
 
 const LISTEN_COUNTS_AFTER_MS = 2 * 60 * 1000;
-const TICK_MS = 15 * 1000;
 
-/** Started once at launch; sampling the player is enough at this grain. */
+/**
+ * Started once at launch. It follows the player rather than sampling it: a timer runs only while audio plays, for
+ * the time still needed to reach two minutes today. It sampled every 15 s from launch, even with nothing playing
+ * (review, 18 Oct 2026; CLAUDE.md "no polling").
+ */
 export function countListening(user: SQLiteDatabase): void {
   let day = "";
   let played = 0;
-  setInterval(() => {
-    if (useAudio.getState().session?.status !== "playing") return;
+  let since: number | null = null;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  const today = () => {
     const now = todayKey(new Date());
     if (now !== day) {
       day = now;
       played = 0;
     }
-    played += TICK_MS;
-    if (played === LISTEN_COUNTS_AFTER_MS) void countDay(user).catch(() => undefined);
-  }, TICK_MS);
+  };
+  const stop = () => {
+    clearTimeout(timer);
+    timer = undefined;
+    if (since !== null) played += Date.now() - since;
+    since = null;
+  };
+  const start = () => {
+    today();
+    if (played >= LISTEN_COUNTS_AFTER_MS) return;
+    since = Date.now();
+    timer = setTimeout(() => {
+      stop();
+      void countDay(user).catch(() => undefined);
+    }, LISTEN_COUNTS_AFTER_MS - played);
+  };
+
+  useAudio.subscribe((state, previous) => {
+    const playing = state.session?.status === "playing";
+    const was = previous.session?.status === "playing";
+    if (playing && !was) start();
+    else if (!playing && was) stop();
+  });
 }

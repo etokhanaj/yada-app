@@ -22,7 +22,7 @@ import { Icon } from "../components/Icon";
 import { readerHref } from "../components/navigation";
 import { ListRow, PageScreen } from "../components/Page";
 import { Chrome, Prose } from "../components/Type";
-import { useAppData, useCore, useLog, useQuery } from "../data/AppData";
+import { useAppData, useLog, useQuery } from "../data/AppData";
 import { chooseYourPlan } from "../data/plans";
 import { loadProgress, type Progress } from "../data/startHere";
 import { loadOrientation, loadPassageCover } from "../data/understand";
@@ -34,7 +34,6 @@ export default function ThreadScreen() {
   const { user } = useAppData();
   const { ax } = useLayout();
   const log = useLog();
-  const core = useCore();
   const { from } = useLocalSearchParams<{ from?: string }>();
   // DP-03: the Gospel's opening word heads the thread.
   const { data: cover } = useQuery(() => loadPassageCover("JHN", verseOrd("JHN", 1, 1), "greek"), []);

@@ -25,7 +25,8 @@ export function Icon({
 }: {
   name: IconName;
   size?: number;
-  tone?: "ink" | "muted" | "accent" | "paper";
+  /** "white" stays white in both appearances: a glyph over a picture or the forest (the day's verse, DR-16). */
+  tone?: "ink" | "muted" | "accent" | "paper" | "white";
   /** Solid shape, e.g. a set bookmark. */
   filled?: boolean;
   strokeWidth?: number;
@@ -35,7 +36,7 @@ export function Icon({
   const { fontScale } = useWindowDimensions();
   const px = Math.round(size * Math.min(Math.max(fontScale, 1), maxScale));
   const color =
-    tone === "muted" ? palette.mutedInk : tone === "accent" ? palette.accent : tone === "paper" ? palette.paper : palette.ink;
+    tone === "white" ? "#FFFFFF" : tone === "muted" ? palette.mutedInk : tone === "accent" ? palette.accent : tone === "paper" ? palette.paper : palette.ink;
   return (
     <Svg
       width={px}

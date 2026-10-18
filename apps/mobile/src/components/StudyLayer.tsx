@@ -36,15 +36,17 @@ import { AccessibilityInfo, Pressable, StyleSheet, Text, useWindowDimensions, Vi
 
 import { useAppData, useCore, useQuery } from "../data/AppData";
 import { getTexts, getTextsInRange, isDownloaded, isTranslation } from "../data/queries";
-import { ensureStudy, loadProfile, loadVerseStudy, useStudy, type VerseStudy } from "../data/study";
+import { ensureStudy, loadProfile, loadRangeNotes, loadVerseStudy, useStudy, type VerseStudy } from "../data/study";
+import { loadVersePlaces } from "../data/wordsAndPlaces";
 import { FONTS, useLayout, usePalette, useType } from "../design/tokens";
-import { studyNotesLine } from "../lib/goFurther";
 import {
   failedLine,
   FETCHING_DELAY_MS,
   fetchingLine,
   isOwnNote,
   leadingLemma,
+  type Named,
+  namedInVerse,
   needsMore,
   type NoteParagraph,
   noteReferences,
@@ -54,7 +56,6 @@ import {
   OPENBIBLE_LINE,
   parseFurtherStudy,
   parseNoteMarkup,
-  passagesLine,
   profileBody,
   rangeTitle,
   readAboutLabel,
@@ -70,7 +71,7 @@ import {
 } from "../lib/study";
 import { useSettings } from "../state/settings";
 import { useSheetBase, useSheetNav } from "./navigation";
-import { Row, RowNote, Section, SheetScreen, TextLink, UNDERSTAND_EXIT } from "./Sheet";
+import { Row, RowNote, Section, SheetScreen, TextCapsule, TextLink, UNDERSTAND_EXIT } from "./Sheet";
 import { Chrome, Prose, Scripture } from "./Type";
 import { DivineText } from "./Verse";
 
@@ -121,7 +122,6 @@ export function hasStatusLine(state: StudyState): boolean {
 /** The one line shown while a book's notes are not on the phone (canvas SN brief 4). */
 export function StudyStatus({ book, state, first = false }: { book: BookCode; state: StudyState; first?: boolean }) {
   const { user } = useAppData();
-  const palette = usePalette();
   const { sectionGap, ax } = useLayout();
   const [late, setLate] = useState(false);
   useEffect(() => {
@@ -148,17 +148,7 @@ export function StudyStatus({ book, state, first = false }: { book: BookCode; st
         <Chrome step="note" tone="muted" role="status" style={ax ? null : { flex: 1 }}>
           {failedLine(book)}
         </Chrome>
-        <Pressable
-          onPress={() => void ensureStudy(user, book, true)}
-          accessibilityRole="button"
-          accessibilityLabel="Try the study notes download again"
-          testID="study-retry"
-          style={({ pressed }) => [styles.retry, { backgroundColor: palette.fill, opacity: pressed ? 0.7 : 1 }]}
-        >
-          <Chrome tone="ink" size={ax ? undefined : 15} style={{ fontWeight: "600" }}>
-            Try again
-          </Chrome>
-        </Pressable>
+        <TextCapsule label="Try again" a11yLabel="Try the study notes download again" onPress={() => void ensureStudy(user, book, true)} testID="study-retry" />
       </View>
     );
   }
@@ -262,27 +252,34 @@ export function StudyNotesInline({ study, ord, from, first = false }: { study: V
   );
 }
 
-/** The Study notes page, pushed inside the sheet: every note on the verse, in full. */
-export function StudyNotesScreen({ book, ord, from }: { book: BookCode; ord: number; from: string }) {
+/**
+ * The Study notes page, pushed inside the sheet: every note on the verse, in full. Opened from a passage guide
+ * ("Tyndale on 11:1–44", WM-05) it holds every note on the passage, each under the verses it is on; it opened
+ * on the first verse's notes alone before.
+ */
+export function StudyNotesScreen({ book, ord, end = ord, from }: { book: BookCode; ord: number; end?: number; from: string }) {
   const base = useSheetBase();
   const core = useCore();
-  const { data: bsb } = useQuery(async () => (await getTextsInRange(core, ord, ord))[0]?.texts["BSB"] ?? "", [ord]);
+  const range = end > ord;
+  const installed = useStudy((s) => s.installed[book]?.file ?? "");
+  const { data: bsb } = useQuery(async () => (range ? undefined : ((await getTextsInRange(core, ord, ord))[0]?.texts["BSB"] ?? "")), [ord, range]);
   const state = useVerseStudy(book, ord, bsb);
-  const display = formatDisplayRef(ordToParts(ord));
-  const notes = state.kind === "ready" ? state.study.notes : [];
+  const { data: rangeNotes } = useQuery(async () => (range ? ((await loadRangeNotes(book, ord, end)) ?? []) : []), [book, ord, end, installed]);
+  const display = range ? rangeTitle(ord, end) : formatDisplayRef(ordToParts(ord));
+  const notes = range ? (rangeNotes ?? []) : state.kind === "ready" ? state.study.notes : [];
   return (
     <SheetScreen title="Study notes" subtitle={display} backLabel={display} verseId={from} testID="study-notes-page" {...UNDERSTAND_EXIT}>
       {notes.map((row, n) => (
         <View key={row.id} style={{ marginTop: n === 0 ? 0 : 20 }} testID={`study-note-${row.id}`}>
-          {isOwnNote(row, ord) ? null : <OnRange row={row} />}
+          {!range && isOwnNote(row, ord) ? null : <OnRange row={row} />}
           <View style={{ rowGap: 10 }}>
-            {noteParagraphs(row, ord).map((p, i) => (
+            {noteParagraphs(row, range ? row.ord_start : ord).map((p, i) => (
               <NoteParagraphText key={i} paragraph={p} lead={i === 0} />
             ))}
           </View>
           {/* "See study note on 1:24" becomes a row that opens it (edge case 2), never a dead pointer. */}
           {noteReferences(row.text, book)
-            .filter((r) => !(r.start <= ord && ord <= r.end))
+            .filter((r) => !(r.start <= end && ord <= r.end))
             .map((r, i) => {
               const title = `Study note on ${rangeTitle(r.start, r.end)}`;
               return (
@@ -310,33 +307,47 @@ export function StudyNotesScreen({ book, ord, from }: { book: BookCode; ord: num
   );
 }
 
-/** People rows: one per Tyndale profile named in the verse (canvas TD-01). */
-export function PeopleRows({ people, book, from, first }: { people: readonly StudyNoteRow[]; book: BookCode; from: string; first: boolean }) {
+/**
+ * People and places named in the verse, first in the sheet (canvas TD-01: who someone is comes before what a
+ * note says; PD-01). Several are one line of names in the verse's order, accent, each a 44 pt target, with
+ * rows at AX sizes where a line of names would break apart; one alone is a row with its line (TD-01).
+ */
+export function PeopleAndPlaces({ people, book, ord, bsb, from, first }: { people: readonly StudyNoteRow[]; book: BookCode; ord: number; bsb: string; from: string; first: boolean }) {
   const base = useSheetBase();
+  const palette = usePalette();
+  const { ax } = useLayout();
+  const { data: places } = useQuery(() => loadVersePlaces(book, ord), [book, ord]);
+  const named = namedInVerse(bsb, people, places ?? []);
+  if (named.length === 0) return null;
+  const open = (n: Named) =>
+    n.kind === "person"
+      ? router.push({ pathname: `${base}/person`, params: { book, id: n.id, from } })
+      : router.push({ pathname: `${base}/place`, params: { book, id: n.id, from: String(ord) } });
+  const lineOf = (n: Named) => (n.kind === "place" ? "Place" : (whoLine(n.name, people.find((p) => String(p.id) === n.id)?.text ?? "") ?? "Person"));
   return (
-    <>
-      {people.map((p, i) => {
-        const who = whoLine(p.title ?? "", p.text);
-        return (
-          <Row
-            key={p.id}
-            first={first && i === 0}
-            onPress={() => router.push({ pathname: `${base}/person`, params: { book, id: String(p.id), from } })}
-            label={[p.title ?? "", who].filter((s) => s !== null && s !== "").join(", ")}
-            testID={`person-${p.id}`}
-          >
+    <Section title="People and places" first={first}>
+      {named.length > 1 && !ax ? (
+        <View style={styles.names} testID="people-line">
+          {named.map((n, i) => (
+            <View key={`${n.kind}-${n.id}`} style={styles.nameSlot}>
+              {i > 0 ? <Chrome tone="muted">{" · "}</Chrome> : null}
+              <Pressable onPress={() => open(n)} accessibilityRole="button" accessibilityLabel={`${n.name}, ${n.kind}`} style={({ pressed }) => [styles.name, pressed ? { opacity: 0.6 } : null]} testID={`named-${n.id}`}>
+                <Chrome style={{ color: palette.accent, fontWeight: "600" }}>{n.name}</Chrome>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      ) : (
+        named.map((n, i) => (
+          <Row key={`${n.kind}-${n.id}`} first={i === 0} onPress={() => open(n)} label={`${n.name}, ${lineOf(n)}`} testID={n.kind === "person" ? `person-${n.id}` : `named-${n.id}`}>
             <Chrome tone="ink" style={{ fontWeight: "500" }}>
-              {p.title ?? ""}
+              {n.name}
             </Chrome>
-            {who !== null ? (
-              <RowNote>
-                {who}
-              </RowNote>
-            ) : null}
+            <RowNote>{lineOf(n)}</RowNote>
           </Row>
-        );
-      })}
-    </>
+        ))
+      )}
+    </Section>
   );
 }
 
@@ -502,7 +513,10 @@ export function SeeAlsoSection({ items, from, ax, first = false }: { items: read
 }
 
 const styles = StyleSheet.create({
+  // PD-01 `.ppl`/`.ppn`: names wrap as a line; each is its own 44 pt target.
+  names: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
+  nameSlot: { flexDirection: "row", alignItems: "center" },
+  name: { minHeight: 44, justifyContent: "center" },
   failed: { flexDirection: "row", alignItems: "center", columnGap: 12 },
   failedAx: { alignItems: "flex-start", rowGap: 8 },
-  retry: { minHeight: 44, paddingHorizontal: 16, borderRadius: 999, justifyContent: "center" },
 });

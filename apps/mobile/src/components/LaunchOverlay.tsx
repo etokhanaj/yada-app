@@ -25,8 +25,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { create } from "zustand";
 
-import { PALETTES } from "../design/palette";
 import { SPRING } from "../design/tokens";
+import { BRAND } from "../design/palette";
 
 /**
  * The first screen says when it can draw. A cold launch with a saved position
@@ -44,7 +44,8 @@ export const useLaunch = create<{ ready: boolean; routed: boolean; markReady: ()
 
 /** Same size as app.config.ts's expo-splash-screen imageWidth, so the hand-over is invisible. */
 const SYMBOL = 125;
-const GROUND = PALETTES.dark.paper;
+/** The native splash's own ground (app.config.ts splash backgroundColor), so the hand-over shows no colour change (design QA, 18 Oct 2026). */
+const GROUND = BRAND.night;
 
 export function LaunchStage({ reduceMotion, children }: { reduceMotion: boolean; children: ReactNode }) {
   const ready = useLaunch((s) => s.ready);

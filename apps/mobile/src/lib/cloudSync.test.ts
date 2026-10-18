@@ -169,3 +169,44 @@ describe("the streak's days (build 7)", () => {
     expect(parseCloud("days", JSON.stringify({ "2026-10-16": [true, 0], nonsense: [true, 0], "2026-10-17": [false, 0] }))).toEqual({ "2026-10-16": [true, 0] });
   });
 });
+
+describe("chapters read (build 10a)", () => {
+  it("merges two devices' chapters as a union", () => {
+    const phone = { ...EMPTY_STATE, chapters: { "MRK.4": [true, 0] as const } };
+    const ipad = { ...EMPTY_STATE, chapters: { "MRK.5": [true, 0] as const } };
+    expect(Object.keys(mergeState(phone, ipad).chapters).sort()).toEqual(["MRK.4", "MRK.5"]);
+  });
+  it("reads only real chapters marked true", () => {
+    expect(parseCloud("chapters", JSON.stringify({ "MRK.4": [true, 0], "MRK.99": [true, 0], nonsense: [true, 0], "MRK.5": [false, 0] }))).toEqual({ "MRK.4": [true, 0] });
+  });
+});
+
+describe("Your space: highlights and notes (PS-01–PS-03)", () => {
+  it("keeps two devices' highlights on different verses, and the later colour on the same verse", () => {
+    const phone = state({ highlights: { "JHN.3.16": ["yellow", 100], "JHN.3.17": ["green", 300] } });
+    const ipad = state({ highlights: { "JHN.3.16": ["blue", 200], "PSA.1.3": ["pink", 100] } });
+    expect(mergeState(phone, ipad).highlights).toEqual({ "JHN.3.16": ["blue", 200], "JHN.3.17": ["green", 300], "PSA.1.3": ["pink", 100] });
+  });
+
+  it("lets a removal beat the older highlight it removed", () => {
+    const phone = state({ highlights: { "JHN.3.16": ["", 300] } });
+    const ipad = state({ highlights: { "JHN.3.16": ["yellow", 200] } });
+    expect(mergeState(phone, ipad).highlights["JHN.3.16"]).toEqual(["", 300]);
+  });
+
+  it("reads only the four colours, or a removal, on a real verse", () => {
+    const raw = JSON.stringify({ "JHN.3.16": ["yellow", 1], "JHN.3.17": ["", 2], "JHN.3.18": ["purple", 1], "XYZ.1.1": ["blue", 1] });
+    expect(parseCloud("highlights", raw)).toEqual({ "JHN.3.16": ["yellow", 1], "JHN.3.17": ["", 2] });
+  });
+
+  it("reads a note on a verse or a whole chapter, and drops one longer than the editor allows", () => {
+    const raw = JSON.stringify({ "JHN.3.16": ["Loved.", 1], "JHN.3": ["The new birth.", 1], "JHN.99": ["no", 1], "ROM.8.28": ["x".repeat(2001), 1] });
+    expect(parseCloud("notes", raw)).toEqual({ "JHN.3.16": ["Loved.", 1], "JHN.3": ["The new birth.", 1] });
+  });
+
+  it("keeps the later edit of the same note", () => {
+    const phone = state({ notes: { "JHN.3.16": ["first", 100] } });
+    const ipad = state({ notes: { "JHN.3.16": ["second", 200] } });
+    expect(mergeState(phone, ipad).notes["JHN.3.16"]).toEqual(["second", 200]);
+  });
+});

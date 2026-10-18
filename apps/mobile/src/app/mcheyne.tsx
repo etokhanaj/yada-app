@@ -12,7 +12,7 @@ import { View } from "react-native";
 import { Icon } from "../components/Icon";
 import { readerHref } from "../components/navigation";
 import { ListRow, PageScreen } from "../components/Page";
-import { Chrome, Label, Prose, Scripture } from "../components/Type";
+import { SectionTitle, Chrome, Prose, Scripture } from "../components/Type";
 import { formatDay } from "../lib/dates";
 import { useAppData } from "../data/AppData";
 import { chooseYourPlan, loadMcheyne, type McheyneState, restartMcheyne } from "../data/plans";
@@ -114,7 +114,7 @@ export default function McheyneScreen() {
       ) : null}
       {done.length > 0 ? (
         <View style={{ marginTop: sectionGap }}>
-          <Label style={{ marginBottom: 6 }}>Read</Label>
+          <SectionTitle style={{ marginBottom: 6 }}>Read</SectionTitle>
           {done.map((ri, i) => {
             const portions = (MCHEYNE_READINGS[ri] ?? []).map(portionLabel);
             return (

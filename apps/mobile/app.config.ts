@@ -81,7 +81,18 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
       ...(process.env.APPLE_TEAM_ID === undefined ? {} : { appleTeamId: process.env.APPLE_TEAM_ID }),
       // release-ios.sh bumps this file on each upload; config can no longer be rewritten as JSON.
       buildNumber: build.buildNumber,
-      supportsTablet: false,
+      // Apple's required-reason APIs, as the generated manifest already declared them, plus 1C8F.1: the app shares
+      // UserDefaults with its widget and, from build 10, the watch through the app group (native review, 18 Oct 2026).
+      privacyManifests: {
+        NSPrivacyAccessedAPITypes: [
+          { NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryFileTimestamp", NSPrivacyAccessedAPITypeReasons: ["C617.1"] },
+          { NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryUserDefaults", NSPrivacyAccessedAPITypeReasons: ["CA92.1", "1C8F.1"] },
+          { NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategorySystemBootTime", NSPrivacyAccessedAPITypeReasons: ["35F9.1"] },
+        ],
+      },
+      // iPad (build 10, canvas TB-01–03): the layout follows the window's width (src/design/wide.ts), so split view
+      // and Slide Over work too.
+      supportsTablet: true,
       config: {
         usesNonExemptEncryption: false,
       },
@@ -105,6 +116,14 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
         UIBackgroundModes: ["audio"],
         // The listening Live Activity (WL-02, WL-03).
         NSSupportsLiveActivities: true,
+        // TB-01–03 draw the iPad in landscape and portrait; iPad multitasking needs all four. `orientation` above
+        // keeps the iPhone in portrait.
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight",
+        ],
       },
       icon: {
         light: "./assets/brand/icon.png",
@@ -132,6 +151,8 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
       "@bacons/apple-targets",
       // Siri, App Shortcuts and the Live Activity's controls, in the app target (MS-02, MS-03).
       "./plugins/withAppIntents",
+      // Share as an image › Save to Photos (PS-05): add-only, so Yada never asks to read the reader's photos.
+      ["expo-media-library", { photosPermission: false, savePhotosPermission: "Yada saves the verse image you made to your photos.", granularPermissions: [] }],
     ],
     experiments: {
       typedRoutes: false,

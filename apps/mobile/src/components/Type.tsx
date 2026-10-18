@@ -218,12 +218,13 @@ export function Chrome({
   );
 }
 
-/** Build 7: a section's title, bold sans in ink (polish-2026-10-15.md). */
-export function SectionTitle({ children, style, ...rest }: BaseProps) {
+/** Build 7: a section's title, bold sans in ink, 22 pt on a page and 20 in a sheet (polish-2026-10-15.md). */
+export function SectionTitle({ children, style, inSheet = false, ...rest }: BaseProps & { inSheet?: boolean }) {
   const key = useFontScaleKey();
   const t = useTypeStyle("sectionTitle", "ink");
+  const sheetSize = inSheet ? { fontSize: t.style.fontSize === undefined ? 20 : (t.style.fontSize * 20) / 22, lineHeight: t.style.lineHeight === undefined ? 24 : (t.style.lineHeight * 20) / 22 } : null;
   return (
-    <Text key={key} accessibilityRole="header" maxFontSizeMultiplier={t.maxFontSizeMultiplier} {...rest} style={[LTR_PROSE, t.style, style]}>
+    <Text key={key} accessibilityRole="header" maxFontSizeMultiplier={t.maxFontSizeMultiplier} {...rest} style={[LTR_PROSE, t.style, sheetSize, style]}>
       {children}
     </Text>
   );

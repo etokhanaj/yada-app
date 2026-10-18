@@ -8,13 +8,13 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActionSheetIOS, Pressable, View } from "react-native";
 
-import { type CircleRequest, circlesCloud } from "../../../modules/yada-pray";
-import { ListRow, PageScreen } from "../../components/Page";
-import { Chrome } from "../../components/Type";
-import { useAppData } from "../../data/AppData";
-import { block, hide, loadPrayLocal } from "../../data/prayLocal";
-import { useLayout } from "../../design/tokens";
-import { inviteLine, offerable, prayedLine, requestLine } from "../../lib/pray";
+import { type CircleRequest, circlesCloud } from "../../../../../modules/yada-pray";
+import { ListRow, PageScreen } from "../../../../components/Page";
+import { Chrome } from "../../../../components/Type";
+import { useAppData } from "../../../../data/AppData";
+import { block, hide, loadPrayLocal } from "../../../../data/prayLocal";
+import { useLayout } from "../../../../design/tokens";
+import { inviteLine, offerable, prayedLine, requestLine } from "../../../../lib/pray";
 
 export default function CirclePage() {
   const { id = "", owner = "", name = "Circle", owned = "", people = "1" } = useLocalSearchParams<{ id?: string; owner?: string; name?: string; owned?: string; people?: string }>();
@@ -56,6 +56,7 @@ export default function CirclePage() {
     <PageScreen
       title={name}
       back="Pray"
+      clearTabBar
       right={
         <Pressable onPress={options} accessibilityRole="button" accessibilityLabel={owned !== "" ? "Circle options: Delete" : "Circle options: Leave"} hitSlop={12}>
           <Chrome tone="ink">⋯</Chrome>

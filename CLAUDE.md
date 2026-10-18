@@ -28,6 +28,8 @@ Start from `docs/handoff-2026-09-13.md` for current state. Governing docs (froze
 
 ## Design
 
+- The design system is `docs/design-system.md`: which component, type step and colour for what. Its rules are
+  tested (`apps/mobile/src/design/system.test.ts`); read it before building or changing a screen.
 - Design decisions come from the Mobbin MCP, cited in a code comment. Use `/design` to
   draft before building screens.
 - Typography carries hierarchy: no coloured category labels, no AI visual language, no

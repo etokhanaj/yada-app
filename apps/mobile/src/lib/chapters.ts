@@ -3,7 +3,7 @@
  * carries into somewhere the reader can go.
  */
 
-import { BOOK_CODES, BOOK_ORDER, isBookCode, parseVerseRef, verseOrd, type BookCode } from "@yada/schema";
+import { BOOK_CODES, BOOK_ORDER, isBookCode, lookupBook, parseVerseRef, verseOrd, type BookCode } from "@yada/schema";
 
 export interface ChapterRef {
   readonly book: BookCode;
@@ -29,6 +29,30 @@ export function chapterFromParams(book: unknown, chapter: unknown): ChapterRef {
   const n = Number(chapter);
   const max = BOOK_CODES[safeBook].chapters;
   return { book: safeBook, chapter: Number.isInteger(n) && n >= 1 && n <= max ? n : 1 };
+}
+
+/** Psalm 119, the longest chapter in the canon. */
+const MOST_VERSES = 176;
+
+/**
+ * "1 Jn 4:9-10", "Matthew 14:13–21", "Gen 3:16" as the data prints them (a note's named references, a
+ * passage's "also told in") to the id form the sheets open: "1JN.4.9-4.10". Null for anything else, so a row
+ * is never offered for a reference Yada cannot open (Read it alongside, VS-02 and JR-05).
+ */
+export function printedRef(text: string): string | null {
+  const m = /^((?:[1-3]\s?)?[A-Za-z]+\.?(?:\s(?:of\s)?[A-Za-z]+)?)\s+(\d{1,3}):(\d{1,3})(?:\s*[-–]\s*(?:(\d{1,3}):)?(\d{1,3}))?$/u.exec(text.trim());
+  if (m === null) return null;
+  const book = lookupBook((m[1] ?? "").replace(/\.$/u, ""));
+  if (book === null) return null;
+  const c = Number(m[2]);
+  const v = Number(m[3]);
+  // No chapter has more verses than Psalm 119's 176. The per-chapter counts live only in the bundle, which this
+  // pure parser cannot read, so this is the tightest bound it can hold without guessing (rule 4).
+  if (c < 1 || c > BOOK_CODES[book].chapters || v < 1 || v > MOST_VERSES) return null;
+  if (m[5] === undefined) return `${book}.${c}.${v}`;
+  if (Number(m[5]) > MOST_VERSES) return null;
+  const id = `${book}.${c}.${v}-${m[4] ?? c}.${m[5]}`;
+  return resolveRef(id) === null ? null : id;
 }
 
 export interface OrdSpan {

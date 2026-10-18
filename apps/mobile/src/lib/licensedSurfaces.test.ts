@@ -38,11 +38,14 @@ describe("system surfaces (Siri, Spotlight, App Intents, widgets, Live Activitie
       .sort();
     expect(importers).toEqual([
       "app/_layout.tsx",
-      "app/bookmarks.tsx",
       "app/evidence/choose.tsx",
       "app/evidence/translations.tsx",
+      // Your space (PS-03, PS-04): the note's quoted verse and Saved's excerpts ask only whether a code is licensed,
+      // and draw the BSB if it is (US-11, rule 9). The share image uses the system surfaces' allow-list instead.
+      "app/note.tsx",
       "app/read/[book]/[chapter].tsx",
       "app/recent.tsx",
+      "app/saved.tsx",
       "app/search.tsx",
       // Sources and licences names the versions read online (ST-04); it reads no licensed text.
       "app/sources.tsx",

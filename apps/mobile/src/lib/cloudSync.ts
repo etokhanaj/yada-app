@@ -2,7 +2,7 @@
  * iCloud backup and sync of the reader's own data: the merge, kept pure so it
  * can be tested without a phone (data/cloud.ts does the reading and writing).
  *
- * What syncs: bookmarks, the reading place, thread progress and four reading
+ * What syncs: bookmarks, highlights, notes, the reading place, thread progress and four reading
  * settings. What does not: the event log (local history, PRD §14, read only by
  * this app), and installed bundles and translations (downloads are per device).
  *
@@ -37,6 +37,9 @@
 
 import { parseVerseId } from "@yada/schema";
 
+import { parseChapterKey } from "./chaptersRead";
+import { isHighlightColor, isNoteTarget, NOTE_MAX } from "./highlights";
+
 export type Register<T> = readonly [value: T, at: number];
 export type Registers<T> = Readonly<Record<string, Register<T>>>;
 
@@ -51,11 +54,20 @@ export interface SyncState {
   settings: Registers<string>;
   /** The streak's counted days (lib/rhythm.ts), "2026-10-16" → true: a union across devices (plan §6). */
   days: Registers<boolean>;
+  /** Chapters the reader reached the end of (lib/chaptersRead.ts), "MRK.4" → true: a union across devices (build 10a). */
+  chapters: Registers<boolean>;
+  /**
+   * Verse id → highlight colour (lib/highlights.ts); "" is a removal. Per verse, as bookmarks are, so two devices
+   * colouring different verses keep both.
+   */
+  highlights: Registers<string>;
+  /** A verse id or "JHN.3" → the note's text; "" is a deleted note. Last writer wins, the whole note at once. */
+  notes: Registers<string>;
 }
 
 export type SyncKind = keyof SyncState;
 
-export const SYNC_KINDS: readonly SyncKind[] = ["bookmarks", "position", "threads", "settings", "days"];
+export const SYNC_KINDS: readonly SyncKind[] = ["bookmarks", "position", "threads", "settings", "days", "chapters", "highlights", "notes"];
 
 /**
  * One iCloud key per kind, versioned so a later format can live beside this one.
@@ -70,6 +82,11 @@ export const CLOUD_KEYS: Readonly<Record<SyncKind, string>> = {
   settings: "v1.settings",
   // Build 7: its own key, so a build 6 app, which rewrites only the four kinds it knows, never strips it.
   days: "v1.days",
+  // Build 10a: its own key, for the same reason.
+  chapters: "v1.chapters",
+  // Your space (PS-01–PS-03): their own keys, for the same reason.
+  highlights: "v1.highlights",
+  notes: "v1.notes",
 };
 
 export const POSITION_KEY = "reading";
@@ -86,7 +103,7 @@ export function isSyncedSetting(key: string): boolean {
   return (SYNCED_SETTINGS as readonly string[]).includes(key);
 }
 
-export const EMPTY_STATE: SyncState = { bookmarks: {}, position: {}, threads: {}, settings: {}, days: {} };
+export const EMPTY_STATE: SyncState = { bookmarks: {}, position: {}, threads: {}, settings: {}, days: {}, chapters: {}, highlights: {}, notes: {} };
 
 /** The stamp for a local write that replaces a value stamped `previous`. */
 export function nextStamp(now: number, previous: number | undefined): number {
@@ -128,6 +145,9 @@ export function mergeState(local: SyncState, remote: SyncState, options: MergeOp
     threads: mergeRegisters(local.threads, remote.threads),
     settings: mergeRegisters(local.settings, remote.settings),
     days: mergeRegisters(local.days, remote.days),
+    chapters: mergeRegisters(local.chapters, remote.chapters),
+    highlights: mergeRegisters(local.highlights, remote.highlights),
+    notes: mergeRegisters(local.notes, remote.notes),
   };
 }
 
@@ -150,6 +170,9 @@ const VALID: { [K in SyncKind]: (key: string, value: unknown) => value is SyncSt
   threads: (key, value): value is number => key.length > 0 && key.length <= 64 && Number.isInteger(value) && (value as number) >= 0,
   settings: (key, value): value is string => isSyncedSetting(key) && typeof value === "string" && value.length <= 200,
   days: (key, value): value is boolean => /^\d{4}-\d{2}-\d{2}$/u.test(key) && value === true,
+  chapters: (key, value): value is boolean => parseChapterKey(key) !== null && value === true,
+  highlights: (key, value): value is string => parseVerseId(key) !== null && (value === "" || isHighlightColor(value)),
+  notes: (key, value): value is string => isNoteTarget(key) && typeof value === "string" && value.length <= NOTE_MAX,
 };
 
 /**

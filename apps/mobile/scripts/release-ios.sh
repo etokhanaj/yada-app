@@ -128,6 +128,12 @@ if ! grep -q "YadaNotification" ios/Yada.xcodeproj/project.pbxproj; then
   echo "ios/ predates the notification extension. Regenerate it: npx expo prebuild --platform ios --clean" >&2
   exit 1
 fi
+# Build 10 added the Apple Watch app (targets/watch, AW-01, AW-03). An ios/ generated before it archives without it,
+# and nothing else would fail.
+if ! grep -q "YadaWatch" ios/Yada.xcodeproj/project.pbxproj; then
+  echo "ios/ predates the watch app. Regenerate it: npx expo prebuild --platform ios --clean" >&2
+  exit 1
+fi
 
 build="$(node -e '
   const fs = require("fs");
@@ -158,6 +164,21 @@ auth=(
 
 # Defence in depth (review, 10 Oct 2026): the archive's config phase never sees the licensed
 # names, even if one appears between the check above and here.
+# With the API key, export asks Apple to sign in the cloud, and a key without the Admin role is
+# refused ("Cloud signing permission error", 10 Oct 2026). When this Mac holds an Apple Distribution
+# certificate for the team, Xcode's signed-in account signs instead; the key is still what uploads.
+# The archive does the same since build 10: the key could not create provisioning profiles for the new
+# watch targets ("Authentication failed", 18 Oct 2026), and the account can.
+# Captured first, not piped into grep -q: under pipefail an early grep exit can fail the pipe on
+# a match (rule 7).
+sign_auth=("${auth[@]}")
+identities="$(security find-identity -v -p codesigning)"
+while IFS= read -r line; do
+  case "$line" in
+    *"Apple Distribution"*"($APPLE_TEAM_ID)"*) sign_auth=(-allowProvisioningUpdates) ;;
+  esac
+done <<<"$identities"
+
 step "archive" "$out/archive.log" env -u YADA_DEV_LICENSED -u API_BIBLE_KEY -u API_BIBLE_URL xcodebuild archive \
   -workspace ios/Yada.xcworkspace \
   -scheme Yada \
@@ -167,11 +188,13 @@ step "archive" "$out/archive.log" env -u YADA_DEV_LICENSED -u API_BIBLE_KEY -u A
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   CODE_SIGN_STYLE=Automatic \
   CURRENT_PROJECT_VERSION="$build" \
-  "${auth[@]}"
+  "${sign_auth[@]}"
 
 # Every bundle inside must carry the app's build number: build 5 shipped a widget still at 4 (ITMS-90473,
 # 13 Oct 2026), because its Info.plist reads CURRENT_PROJECT_VERSION, fixed when ios/ was generated.
-for plist in "$out"/Yada.xcarchive/Products/Applications/Yada.app/PlugIns/*.appex/Info.plist; do
+# The watch app and its widget too (build 10): they sit under Watch/, not PlugIns/.
+app_dir="$out/Yada.xcarchive/Products/Applications/Yada.app"
+for plist in "$app_dir"/PlugIns/*.appex/Info.plist "$app_dir"/Watch/*.app/Info.plist "$app_dir"/Watch/*.app/PlugIns/*.appex/Info.plist; do
   [ -e "$plist" ] || continue
   if [ "$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$plist")" != "$build" ]; then
     echo "$(basename "$(dirname "$plist")") is not build $build. Refusing to export." >&2
@@ -212,25 +235,11 @@ cat >"$private/ExportOptions.plist" <<PLIST
 </plist>
 PLIST
 
-# With the API key, export asks Apple to sign in the cloud, and a key without the Admin role is
-# refused ("Cloud signing permission error", 10 Oct 2026). When this Mac holds an Apple Distribution
-# certificate for the team, export signs locally and lets Xcode's signed-in account create the
-# App Store profile instead; the key is still what uploads.
-# Captured first, not piped into grep -q: under pipefail an early grep exit can fail the pipe on
-# a match (rule 7).
-export_auth=("${auth[@]}")
-identities="$(security find-identity -v -p codesigning)"
-while IFS= read -r line; do
-  case "$line" in
-    *"Apple Distribution"*"($APPLE_TEAM_ID)"*) export_auth=(-allowProvisioningUpdates) ;;
-  esac
-done <<<"$identities"
-
 step "export" "$out/export.log" xcodebuild -exportArchive \
   -archivePath "$out/Yada.xcarchive" \
   -exportPath "$out/export" \
   -exportOptionsPlist "$private/ExportOptions.plist" \
-  "${export_auth[@]}"
+  "${sign_auth[@]}"
 
 ipa="$out/export/Yada.ipa"
 if [ ! -f "$ipa" ]; then

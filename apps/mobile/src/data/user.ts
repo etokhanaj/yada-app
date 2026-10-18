@@ -1,6 +1,6 @@
 /**
- * The reader's own data: bookmarks, reading position, settings, thread
- * progress, and the local event log.
+ * The reader's own data: bookmarks, highlights and notes, reading position,
+ * settings, thread progress, and the local event log.
  *
  * Kept in a separate database from the content bundles (build plan §6) so a
  * bundle update can never touch anything the reader made. No accounts and no
@@ -13,6 +13,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
 import { isSyncedSetting, nextStamp } from "../lib/cloudSync";
+import { type HighlightColor, type ImageGround, isHighlightColor, NOTE_MAX } from "../lib/highlights";
 import { todayKey } from "../lib/rhythm";
 import { LICENSED_DDL } from "./licensed";
 
@@ -114,6 +115,38 @@ CREATE TABLE IF NOT EXISTS rhythm_days (
   day TEXT PRIMARY KEY
 );
 
+-- Chapters the reader reached the end of (build 10a, lib/chaptersRead.ts): "MRK.4", once, in any translation.
+CREATE TABLE IF NOT EXISTS chapters_read (
+  chapter_key TEXT PRIMARY KEY
+);
+
+-- Your space (PS-01–PS-03, lib/highlights.ts). A highlight is a colour on one verse; '' is a removal, kept so it can
+-- beat the same highlight still on another device (the bookmark_removals rule, in one table).
+CREATE TABLE IF NOT EXISTS highlights (
+  verse_id   TEXT PRIMARY KEY,
+  color      TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- A note on a verse ("JHN.3.16") or a whole chapter ("JHN.3"); '' is a deleted note, for the same reason.
+CREATE TABLE IF NOT EXISTS notes (
+  target     TEXT PRIMARY KEY,
+  body       TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- Images made from a verse (PS-05), listed under Saved › Images (PS-04). Kept on this iPhone only: the picture is
+-- redrawn from these fields, so nothing large is stored or synced.
+CREATE TABLE IF NOT EXISTS verse_images (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  verse_id    TEXT NOT NULL,
+  through     INTEGER NOT NULL,
+  translation TEXT NOT NULL,
+  ground      TEXT NOT NULL,
+  picture_day INTEGER NOT NULL,
+  created_at  TEXT NOT NULL
+);
+
 -- Downloaded Understand bundles, one per book (data/understand.ts), kept the same way.
 CREATE TABLE IF NOT EXISTS installed_understand (
   book       TEXT PRIMARY KEY,
@@ -145,6 +178,19 @@ let onChange: () => void = () => undefined;
 /** Called after every write of a synced value, so data/cloud.ts can send it to iCloud. */
 export function setUserDataListener(listener: () => void): void {
   onChange = listener;
+}
+
+/**
+ * Your space changed (a highlight, a note, from here or from iCloud): the reader redraws its marks. A sheet over the
+ * reader never takes its focus, so a focus refresh missed a note saved in the Note sheet (simulator, 18 Oct 2026).
+ */
+const spaceListeners = new Set<() => void>();
+export function subscribeYourSpace(listener: () => void): () => void {
+  spaceListeners.add(listener);
+  return () => void spaceListeners.delete(listener);
+}
+export function yourSpaceChanged(): void {
+  for (const listener of spaceListeners) listener();
 }
 
 let writes: Promise<unknown> = Promise.resolve();
@@ -243,6 +289,114 @@ async function unbookmark(db: SQLiteDatabase, verseId: string): Promise<void> {
     [verseId, stampAfter(row.created_at)],
   );
   onChange();
+}
+
+/** Colours `verseIds` (PS-01), or clears them with null; one write, so a range lands as one. */
+export function setHighlight(db: SQLiteDatabase, verseIds: readonly string[], color: HighlightColor | null): Promise<void> {
+  return exclusiveWrite(async () => {
+    let changed = false;
+    for (const id of verseIds) {
+      const old = await db.getFirstAsync<{ color: string; updated_at: string }>("SELECT color, updated_at FROM highlights WHERE verse_id = ?", [id]);
+      if ((old?.color ?? "") === (color ?? "")) continue;
+      await db.runAsync(
+        "INSERT INTO highlights (verse_id, color, updated_at) VALUES (?, ?, ?) ON CONFLICT(verse_id) DO UPDATE SET color = excluded.color, updated_at = excluded.updated_at",
+        [id, color ?? "", stampAfter(old?.updated_at)],
+      );
+      changed = true;
+    }
+    // Re-choosing the same colour is no write: no iCloud sync and no redraw for it, as saveNote and saveSetting.
+    if (!changed) return;
+    onChange();
+    yourSpaceChanged();
+  });
+}
+
+/** The chapter's highlighted verses, verse number → colour (PS-02). */
+export async function loadHighlights(db: SQLiteDatabase, book: string, chapter: number): Promise<Map<number, HighlightColor>> {
+  const rows = await db.getAllAsync<{ verse_id: string; color: string }>("SELECT verse_id, color FROM highlights WHERE verse_id LIKE ? AND color != ''", [`${book}.${chapter}.%`]);
+  const out = new Map<number, HighlightColor>();
+  for (const r of rows) {
+    const verse = Number(r.verse_id.split(".")[2]);
+    if (Number.isInteger(verse) && isHighlightColor(r.color)) out.set(verse, r.color);
+  }
+  return out;
+}
+
+/** Every highlight, newest first (PS-04 Saved › Highlights). */
+export async function listHighlights(db: SQLiteDatabase): Promise<Array<{ verse_id: string; color: HighlightColor; updated_at: string }>> {
+  const rows = await db.getAllAsync<{ verse_id: string; color: string; updated_at: string }>("SELECT verse_id, color, updated_at FROM highlights WHERE color != '' ORDER BY updated_at DESC");
+  return rows.flatMap((r) => (isHighlightColor(r.color) ? [{ verse_id: r.verse_id, color: r.color, updated_at: r.updated_at }] : []));
+}
+
+/** Saves the note on `target` (a verse id or "JHN.3"); an empty note deletes it (PS-03). */
+export function saveNote(db: SQLiteDatabase, target: string, body: string): Promise<void> {
+  const text = body.trim().slice(0, NOTE_MAX);
+  return exclusiveWrite(async () => {
+    const old = await db.getFirstAsync<{ body: string; updated_at: string }>("SELECT body, updated_at FROM notes WHERE target = ?", [target]);
+    if ((old?.body ?? "") === text) return;
+    await db.runAsync(
+      "INSERT INTO notes (target, body, updated_at) VALUES (?, ?, ?) ON CONFLICT(target) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at",
+      [target, text, stampAfter(old?.updated_at)],
+    );
+    onChange();
+    yourSpaceChanged();
+  });
+}
+
+export async function loadNote(db: SQLiteDatabase, target: string): Promise<string> {
+  const row = await db.getFirstAsync<{ body: string }>("SELECT body FROM notes WHERE target = ?", [target]);
+  return row?.body ?? "";
+}
+
+/** The chapter's notes: which verses carry one (PS-02's mark) and whether the whole chapter does. */
+export async function loadChapterNotes(db: SQLiteDatabase, book: string, chapter: number): Promise<{ verses: Set<number>; chapter: boolean }> {
+  const key = `${book}.${chapter}`;
+  const rows = await db.getAllAsync<{ target: string }>("SELECT target FROM notes WHERE (target = ? OR target LIKE ?) AND body != ''", [key, `${key}.%`]);
+  const verses = new Set<number>();
+  let whole = false;
+  for (const r of rows) {
+    if (r.target === key) whole = true;
+    else {
+      const verse = Number(r.target.split(".")[2]);
+      if (Number.isInteger(verse)) verses.add(verse);
+    }
+  }
+  return { verses, chapter: whole };
+}
+
+/** Every note, newest first (PS-04 Saved › Notes). */
+export async function listNotes(db: SQLiteDatabase): Promise<Array<{ target: string; body: string; updated_at: string }>> {
+  return db.getAllAsync("SELECT target, body, updated_at FROM notes WHERE body != '' ORDER BY updated_at DESC");
+}
+
+export interface VerseImage {
+  readonly id: number;
+  readonly verse_id: string;
+  readonly through: number;
+  readonly translation: string;
+  readonly ground: ImageGround;
+  readonly picture_day: number;
+  readonly created_at: string;
+}
+
+/** An image the reader saved or shared (PS-05), so Saved › Images can show it again. */
+export async function recordVerseImage(db: SQLiteDatabase, image: Omit<VerseImage, "id" | "created_at">): Promise<void> {
+  await db.runAsync("INSERT INTO verse_images (verse_id, through, translation, ground, picture_day, created_at) VALUES (?, ?, ?, ?, ?, ?)", [
+    image.verse_id,
+    image.through,
+    image.translation,
+    image.ground,
+    image.picture_day,
+    now(),
+  ]);
+}
+
+export async function listVerseImages(db: SQLiteDatabase): Promise<VerseImage[]> {
+  return db.getAllAsync<VerseImage>("SELECT id, verse_id, through, translation, ground, picture_day, created_at FROM verse_images ORDER BY id DESC");
+}
+
+export async function removeVerseImage(db: SQLiteDatabase, id: number): Promise<void> {
+  await db.runAsync("DELETE FROM verse_images WHERE id = ?", [id]);
 }
 
 export async function loadSettings(db: SQLiteDatabase): Promise<Record<string, string>> {
@@ -365,4 +519,19 @@ export async function countDay(db: SQLiteDatabase, now = new Date()): Promise<vo
 export async function loadDays(db: SQLiteDatabase): Promise<string[]> {
   const rows = await db.getAllAsync<{ day: string }>("SELECT day FROM rhythm_days");
   return rows.map((r) => r.day);
+}
+
+/**
+ * The reader reached the end of a chapter (the same moment that counts the day). Returns whether it was new, so the
+ * caller can refresh what shows it. A new chapter goes to iCloud, so a second device's bar has it too.
+ */
+export async function markChapterRead(db: SQLiteDatabase, key: string): Promise<boolean> {
+  const result = await db.runAsync("INSERT OR IGNORE INTO chapters_read (chapter_key) VALUES (?)", [key]);
+  if (result.changes > 0) onChange();
+  return result.changes > 0;
+}
+
+export async function loadChaptersRead(db: SQLiteDatabase): Promise<Set<string>> {
+  const rows = await db.getAllAsync<{ chapter_key: string }>("SELECT chapter_key FROM chapters_read");
+  return new Set(rows.map((r) => r.chapter_key));
 }

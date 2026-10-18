@@ -114,16 +114,17 @@ appId: studio.yada.reader
 - runFlow:
     when:
       notVisible:
-        id: home-search
+        id: home-saved
     commands:
       - tapOn:
           id: reader-back
       - waitForAnimationToEnd
+# IA-15: Search is the round tab beside the bar, a page there, not a sheet.
 - tapOn:
-    id: home-search
+    id: tab-search
 - waitForAnimationToEnd
 - assertVisible:
-    id: search
+    id: search-tab
 # YLT's Genesis 1:2, "the earth hath existed waste and void": both words are in no
 # built-in version's verse, so a hit proves Search reads the downloaded file.
 - inputText: "existed waste"
@@ -131,7 +132,7 @@ appId: studio.yada.reader
 - assertVisible:
     id: result-passage-1001002
 - tapOn:
-    id: search-cancel
+    id: tab-bible
 - waitForAnimationToEnd
 
 # Relaunch again (stale hierarchy, as above), then back to BSB by its row.

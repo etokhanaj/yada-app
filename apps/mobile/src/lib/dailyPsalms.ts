@@ -15,6 +15,7 @@
  * The 03:00 day boundary is the caller's job; this takes a Date and uses its local calendar date.
  */
 
+import type { SetEnd } from "./audio/stop";
 import { psalmForDay } from "./reminder";
 
 export type PsalterPart = "morning" | "evening";
@@ -160,12 +161,17 @@ export function label(set: PsalmSet): string {
  */
 export type PsalterChoice = "1662" | "one" | "office" | "off";
 
-export const PSALTER_CHOICES: readonly { readonly id: PsalterChoice; readonly title: string }[] = [
+/**
+ * DR-04: each choice says what it is. The lines are DR-04's, with two changes: Off says only Today, since the widget
+ * keeps its own psalm a day whatever this is set to (targets/widget, design QA DR-07); and Daily prayer, which DO-03
+ * added after DR-04 was drawn, says what data/office.ts builds.
+ */
+export const PSALTER_CHOICES: readonly { readonly id: PsalterChoice; readonly title: string; readonly line: string }[] = [
   // DO-03 (build 8, John 17 Oct 2026): Daily prayer as a fourth choice, the 1662 table by its own name.
-  { id: "1662", title: "1662 Prayer Book" },
-  { id: "one", title: "One a day" },
-  { id: "office", title: "Daily prayer" },
-  { id: "off", title: "Off" },
+  { id: "1662", title: "1662 Prayer Book", line: "All 150 in a month, as the 1662 Prayer Book divides them" },
+  { id: "one", title: "One a day", line: "Psalm 1 to 150, then again" },
+  { id: "office", title: "Daily prayer", line: "Morning and Evening Prayer step by step: the day’s psalms and lessons" },
+  { id: "off", title: "Off", line: "No psalms on Today" },
 ];
 
 export function parsePsalter(stored: string | undefined): PsalterChoice {
@@ -177,6 +183,20 @@ export function setForChoice(date: Date, part: PsalterPart, choice: PsalterChoic
   // Daily prayer carries its own psalms (the Daily Office lectionary), so Today shows its card instead.
   if (choice === "off" || choice === "office") return null;
   return choice === "one" ? [{ psalm: psalmForDay(date) }] : setFor(date, part);
+}
+
+/**
+ * DR-08: the 1662 set now being heard, when `psalm`:`verse` is one of its psalms and not past its end: the player's
+ * "Evening · Psalms 6–8" and Stop playing's "End of this evening's psalms · After Psalm 8". One a day's set is one
+ * psalm, which "End of this psalm" already covers.
+ */
+export function setHolding(day: Date, part: PsalterPart, choice: PsalterChoice, psalm: number, verse: number): { label: string; end: SetEnd } | null {
+  if (choice !== "1662") return null;
+  const set = setFor(day, part);
+  const range = set.find((r) => r.psalm === psalm && verse >= (r.from ?? 1) && verse <= (r.to ?? Infinity));
+  const last = set[set.length - 1];
+  if (range === undefined || last === undefined) return null;
+  return { label: label(set), end: { part, psalm: last.psalm, to: last.to ?? null } };
 }
 
 /** DR-02: in the reader on one of the set's psalms, the next one in the set, or null after the last. */
