@@ -51,8 +51,15 @@ no app update.
   `{ translation, chapter, content, copyright }`, with `content` and `copyright` exactly as API.Bible
   sent them (§4.1, §7). Nothing else from the upstream body is forwarded (no FUMS ids, no metadata), and
   an upstream error body is never forwarded either.
-- `Cache-Control: private, max-age=2592000` on a chapter: the app may keep it 30 days (§11) and no
-  shared cache may store it. Errors are `no-store`. The Worker stores nothing.
+- **One shared copy (John, 18 Oct 2026):** each chapter read is kept once in the private R2 bucket
+  `yada-licensed-cache`, Bible text only, and served to every reader for 30 days after API.Bible sent it;
+  a daily cron deletes expired copies and any version no longer in `SERVED`. The response carries
+  `fetchedAt`, and the app counts its own 30 days from it. `Cache-Control: private, max-age=<seconds left>`;
+  errors are `no-store`. Nothing about readers is stored. Plan and stress test: `docs/licensed-online-plan.md`.
+- **Call budget:** every API.Bible call goes through one Durable Object (`src/gate.ts`), which fetches a
+  chapter once however many readers ask together, and counts calls per plan month (`PLAN_MONTH_DAY`).
+  Reading stops at 4,900 calls; search has its own 800. Past either, the route answers 503
+  `{"error":"budget"}` and the app says the chapter "isn't available until next month" or searches the BSB.
 - Every response carries `Yada-Served: NKJV,NLT,MSG`. The app keeps the last set it heard in `user.db`
   (`licensed_served`) and offers only those in the Online group; before it has heard anything it assumes
   NKJV, NLT and MSG (`DEFAULT_SERVED`). A code added to `SERVED` appears in the app after the next chapter response;
@@ -112,9 +119,12 @@ From `services/licensed-proxy`, with Node on PATH. Nothing here prints the key.
    Cloudflare and never appears in `wrangler.toml`, the repo or a build. To pipe it from `.env.local`
    without showing it: `grep -m1 '^API_BIBLE_KEY=' ../../.env.local | cut -d= -f2- | npx wrangler secret put API_BIBLE_KEY`
    (then check `npx wrangler secret list` names it; the value is never shown).
-3. `npx wrangler deploy`. It prints the URL, `https://yada-licensed-proxy.<subdomain>.workers.dev`.
+3. Once, for the shared copy: `npx wrangler r2 bucket create yada-licensed-cache` (leave public access
+   off: a public bucket would mirror the API, §8(e)). Check `PLAN_MONTH_DAY` in `wrangler.toml` against the
+   day the Starter plan took effect in the API.Bible dashboard.
+   Then `npx wrangler deploy`. It prints the URL, `https://yada-licensed-proxy.<subdomain>.workers.dev`.
 4. Check it: `curl -sI https://yada-licensed-proxy.<subdomain>.workers.dev/v1/chapter/NKJV/JHN.3` shows
-   200, `Cache-Control: private, max-age=2592000` and `Yada-Served: NKJV,NLT,MSG`; `/v1/chapter/NIV/JHN.3`
+   200, `Cache-Control: private, max-age=…` and `Yada-Served: NKJV,NLT,MSG`; `/v1/chapter/NIV/JHN.3`
    is 404. In the dashboard, Workers → yada-licensed-proxy → Settings → Observability shows logs off.
 5. Build for TestFlight with the URL in the environment:
    `EXPO_PUBLIC_LICENSED_PROXY_URL=https://yada-licensed-proxy.<subdomain>.workers.dev apps/mobile/scripts/release-ios.sh`.
@@ -174,6 +184,18 @@ Verses are sliced at the `[n]` markers of `content-type=text`; only whitespace a
 dropped, line breaks inside it (NLT poetry) are kept. A cached chapter older than 30 days is deleted and
 refetched, never shown, even offline. A bridged verse (`[1-2]`) is one reader row numbered "1–2";
 selecting it selects its first verse.
+
+## Confirmed 18 Oct 2026 (api.bible terms dated 3 Sep 2026)
+
+- Starter: **5,000 calls a month**, no rollover; overage is off by default, so going over stops calls.
+- **NKJV only while Yada has 5,000 or fewer monthly end users**, and only if the end-user range chosen in
+  the dashboard is at most 5,000. John checks monthly active devices in App Store Connect (decided 18 Oct
+  2026: no tracking added). NLT and MSG carry no user cap in API.Bible's terms; each version's own licence
+  in the dashboard may add terms, as Biblica's did for NIV.
+- **No audio from licensed text:** "Text may not be used to create audio content." Text-to-speech is
+  allowed only for public-domain texts and American Bible Society's GNT and CEV.
+- Starter apps must show a **visible citation and link to https://api.bible**: the Read online row on
+  Sources opens it.
 
 ## Open
 - Confirm FUMS for native apps.

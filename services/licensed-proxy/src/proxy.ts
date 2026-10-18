@@ -3,25 +3,28 @@
  * (John, 12 Oct 2026: search follows the translation, EG-06; results are display-only, never stored).
  *
  * Why a proxy: Expo `extra` is embedded in the app binary, so a key shipped in a build can be
- * extracted by anyone holding it (docs/licensed-translations.md). The key lives here, as a Worker
- * secret, and never reaches a build (CLAUDE.md rule 1).
+ * extracted by anyone holding it (docs/licensed-translations.md), and §12 forbids making the key
+ * available to anyone. The key lives here, as a Worker secret, and never reaches a build (rule 1).
  *
- * What it may and may not do (API.Bible terms, read 10 Oct 2026; CLAUDE.md rule 9):
- * - §4.1 never alter the text: `content` and `copyright` are passed through as API.Bible sent
- *   them. Nothing else from the upstream body is forwarded.
- * - §11 offline cache at most 30 days: the response says the app may keep it that long, and only
- *   the app (`private`), so no shared cache holds a copy. This Worker stores nothing.
- * - Display-only: no AI anywhere near this; the Worker imports nothing but the book table.
- * - Privacy: no logging at all. The client IP is used only as a hashed rate-limit key, held by
- *   Cloudflare's limiter counter, and never written anywhere by this code.
+ * What it may and may not do (API.Bible terms, read 18 Oct 2026; CLAUDE.md rule 9):
+ * - §4.1 never alter the text: `content` and `copyright` are passed through as API.Bible sent them.
+ * - §11 a stored copy is at most 30 days old: one shared copy per chapter lives in R2 (John, 18 Oct
+ *   2026), so reading costs about one call per chapter a month at any number of readers, and
+ *   the app's own copy counts its 30 days from `fetchedAt`, when API.Bible sent it.
+ * - Calls are counted and capped (budget.ts, gate.ts) so the 5,000-a-month Starter plan holds.
+ * - Display-only: no AI anywhere near this.
+ * - Privacy: no logging at all, and nothing about readers is stored: R2 holds Bible text and the
+ *   Durable Object holds two call counts. The client IP is used only as a hashed rate-limit key.
  *
- * Pure: the upstream fetch and the limiter come in through `env` and `deps`, so tests run with
- * both mocked and never touch the network.
+ * Pure: the gate, the store and the limiter come in through `env` and `deps`, so tests run with
+ * all of them in memory and never touch the network.
  */
 
 import { BOOK_CODES, isBookCode } from "@yada/schema";
 
-import { BIBLES, isLicensedCode, servedSet, type LicensedCode } from "./translations";
+import { expiresAt } from "./budget";
+import { chapterKey, isFresh, type ChapterStore, type GateResult, type SearchFound, type Stored } from "./gate";
+import { isLicensedCode, servedSet, type LicensedCode } from "./translations";
 
 export interface RateLimiter {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -34,15 +37,24 @@ export interface Env {
   readonly API_BIBLE_URL?: string;
   /** Comma-separated codes this Worker serves, e.g. "NKJV,NLT". */
   readonly SERVED?: string;
+  /** Day of the month the API.Bible plan took effect (1–28): when the 5,000 calls reset. */
+  readonly PLAN_MONTH_DAY?: string;
   readonly LIMITER: RateLimiter;
 }
 
-export interface Deps {
-  readonly fetch: (url: string, init: RequestInit) => Promise<Response>;
+/** Every API.Bible call: the Durable Object in production (index.ts), a plain Gate in tests. */
+export interface GateClient {
+  chapter(code: LicensedCode, chapterId: string): Promise<GateResult<Stored>>;
+  search(code: LicensedCode, query: string): Promise<GateResult<SearchFound>>;
 }
 
-/** The app may keep a chapter 30 days (§11) and no longer; it enforces the same limit itself. */
-export const CACHE_CONTROL_OK = "private, max-age=2592000";
+export interface Deps {
+  readonly gate: GateClient;
+  /** Read directly for a fresh copy, so most readers never reach the Durable Object. */
+  readonly store: ChapterStore;
+  readonly now: () => Date;
+}
+
 /** Read by the app to learn the served set, so a change here needs no app update. */
 export const SERVED_HEADER = "Yada-Served";
 
@@ -50,7 +62,6 @@ const ROUTE = /^\/v1\/chapter\/([A-Za-z]+)\/([1-4A-Z][A-Z0-9]{2})\.([1-9]\d{0,2}
 const SEARCH_ROUTE = /^\/v1\/search\/([A-Za-z]+)$/;
 /** Words, spaces, apostrophes and hyphens: a reader's search, never a query language. */
 const QUERY = /^[\p{L}\p{N}][\p{L}\p{N} '’-]{1,79}$/u;
-export const SEARCH_LIMIT = 20;
 
 export interface SearchBody {
   readonly translation: LicensedCode;
@@ -70,6 +81,8 @@ export interface ChapterBody {
   readonly content: string;
   /** Verbatim copyright notice, shown under the chapter (§7). */
   readonly copyright: string;
+  /** When API.Bible sent it (ISO); the app's 30 days run from here. */
+  readonly fetchedAt: string;
 }
 
 export async function handle(request: Request, env: Env, deps: Deps): Promise<Response> {
@@ -105,46 +118,32 @@ export async function handle(request: Request, env: Env, deps: Deps): Promise<Re
   const chapter = Number(match[3]);
   if (!isBookCode(book) || chapter > BOOK_CODES[book].chapters) return reply(404, { error: "no-chapter" });
 
-  const key = env.API_BIBLE_KEY ?? "";
-  const base = (env.API_BIBLE_URL ?? "").replace(/\/+$/, "");
-  if (key === "" || base === "") return reply(503, { error: "unconfigured" });
+  if ((env.API_BIBLE_KEY ?? "") === "" || (env.API_BIBLE_URL ?? "") === "") return reply(503, { error: "unconfigured" });
 
   const chapterId = `${book}.${chapter}`;
-  let upstream: Response;
-  try {
-    upstream = await deps.fetch(upstreamUrl(base, BIBLES[translation], chapterId), {
-      headers: { "api-key": key, Accept: "application/json" },
-      // The Worker keeps no copy; caching is the app's, under its own 30-day rule.
-      cache: "no-store",
-    });
-  } catch {
-    return reply(502, { error: "upstream" });
+  let stored = await deps.store.get(chapterKey(translation, chapterId));
+  if (stored === null || !isFresh(stored, deps.now())) {
+    const result = await deps.gate.chapter(translation, chapterId);
+    if (!result.ok) return failed(result, reply);
+    stored = result.body;
   }
-  // Upstream bodies are never forwarded on failure: only a status the app can act on.
-  if (upstream.status === 404) return reply(404, { error: "no-chapter" });
-  if (upstream.status === 429) return reply(503, { error: "busy" }, { "Retry-After": "60" });
-  if (!upstream.ok) return reply(502, { error: "upstream" });
+  const { content, copyright, fetchedAt } = stored;
+  const body: ChapterBody = { translation, chapter: chapterId, content, copyright, fetchedAt };
+  // The app may keep it only for what is left of its 30 days (§11), and only the app (`private`).
+  const left = Math.max(0, Math.floor((expiresAt(new Date(fetchedAt)).getTime() - deps.now().getTime()) / 1000));
+  return reply(200, body, { "Cache-Control": `private, max-age=${left}` });
+}
 
-  let parsed: unknown;
-  try {
-    parsed = await upstream.json();
-  } catch {
-    return reply(502, { error: "upstream" });
-  }
-  const data = typeof parsed === "object" && parsed !== null ? (parsed as { data?: unknown }).data : undefined;
-  if (typeof data !== "object" || data === null) return reply(502, { error: "upstream" });
-  const { content, copyright } = data as { content?: unknown; copyright?: unknown };
-  if (typeof content !== "string" || typeof copyright !== "string") return reply(502, { error: "upstream" });
-
-  const body: ChapterBody = { translation, chapter: chapterId, content, copyright };
-  return reply(200, body, { "Cache-Control": CACHE_CONTROL_OK });
+function failed(result: { status: number; error: string }, reply: Reply): Response {
+  return reply(result.status, { error: result.error }, result.status === 503 ? { "Retry-After": "60" } : {});
 }
 
 type Reply = (status: number, body: unknown, headers?: Record<string, string>) => Response;
 
 /**
  * Search in one licensed translation: verses as API.Bible sends them, and the Bible's copyright line.
- * `no-store`, unlike a chapter: John's ruling is that search results are never kept (12 Oct 2026).
+ * `no-store`, unlike a chapter: John's ruling is that search results are never kept (12 Oct 2026). Only the
+ * search is counted against search's own cap (budget.ts); the copyright line comes from R2.
  */
 async function searchRoute(code: string, url: URL, env: Env, deps: Deps, served: LicensedCode[], reply: Reply): Promise<Response> {
   const translation = code.toUpperCase();
@@ -152,50 +151,12 @@ async function searchRoute(code: string, url: URL, env: Env, deps: Deps, served:
   const query = (url.searchParams.get("q") ?? "").trim();
   if ([...url.searchParams.keys()].some((k) => k !== "q") || !QUERY.test(query)) return reply(400, { error: "query" });
 
-  const key = env.API_BIBLE_KEY ?? "";
-  const base = (env.API_BIBLE_URL ?? "").replace(/\/+$/, "");
-  if (key === "" || base === "") return reply(503, { error: "unconfigured" });
-  const bibleId = BIBLES[translation];
-  const init: RequestInit = { headers: { "api-key": key, Accept: "application/json" }, cache: "no-store" };
+  if ((env.API_BIBLE_KEY ?? "") === "" || (env.API_BIBLE_URL ?? "") === "") return reply(503, { error: "unconfigured" });
 
-  let found: Response;
-  let bible: Response;
-  try {
-    [found, bible] = await Promise.all([deps.fetch(searchUrl(base, bibleId, query), init), deps.fetch(`${base}/v1/bibles/${encodeURIComponent(bibleId)}`, init)]);
-  } catch {
-    return reply(502, { error: "upstream" });
-  }
-  if (found.status === 429 || bible.status === 429) return reply(503, { error: "busy" }, { "Retry-After": "60" });
-  if (!found.ok || !bible.ok) return reply(502, { error: "upstream" });
-
-  let results: unknown;
-  let info: unknown;
-  try {
-    [results, info] = await Promise.all([found.json(), bible.json()]);
-  } catch {
-    return reply(502, { error: "upstream" });
-  }
-  const data = (results as { data?: { total?: unknown; verses?: unknown } } | null)?.data;
-  const copyright = (info as { data?: { copyright?: unknown } } | null)?.data?.copyright;
-  if (data === undefined || typeof copyright !== "string") return reply(502, { error: "upstream" });
-  const verses = (Array.isArray(data.verses) ? data.verses : []).flatMap((v: unknown) => {
-    const { id, reference, text } = (v ?? {}) as { id?: unknown; reference?: unknown; text?: unknown };
-    return typeof id === "string" && typeof reference === "string" && typeof text === "string" ? [{ id, reference, text }] : [];
-  });
-  const body: SearchBody = { translation, query, total: typeof data.total === "number" ? data.total : verses.length, verses, copyright };
+  const result = await deps.gate.search(translation, query);
+  if (!result.ok) return failed(result, reply);
+  const body: SearchBody = { translation, query, ...result.body };
   return reply(200, body);
-}
-
-function searchUrl(base: string, bibleId: string, query: string): string {
-  return `${base}/v1/bibles/${encodeURIComponent(bibleId)}/search?query=${encodeURIComponent(query)}&limit=${SEARCH_LIMIT}&sort=canonical`;
-}
-
-/** The same request the app's dev path makes (apps/mobile/src/data/licensed.ts chapterUrl). */
-export function upstreamUrl(base: string, bibleId: string, chapterId: string): string {
-  return (
-    `${base}/v1/bibles/${encodeURIComponent(bibleId)}/chapters/${encodeURIComponent(chapterId)}` +
-    "?content-type=text&include-notes=false&include-titles=false&include-verse-numbers=true"
-  );
 }
 
 /**

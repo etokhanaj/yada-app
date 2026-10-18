@@ -10,8 +10,10 @@
  *   its verse markers and nothing else; no word, letter or punctuation mark is
  *   changed, and line breaks inside a verse (NLT poetry) are kept.
  * - §7 attribution: the chapter's copyright notice is passed through verbatim.
- * - §11 offline cache: a chapter is kept at most 30 days. An older copy is never
- *   shown, even offline; it is refetched, or the reader is told to connect.
+ * - §11 offline cache: a chapter is kept at most 30 days from when API.Bible sent it
+ *   (the proxy's `fetchedAt`: it keeps one shared copy, 18 Oct 2026, so a chapter can
+ *   reach the phone already days old). An older copy is never shown, even offline; it
+ *   is refetched, or the reader is told to connect.
  *
  * Pure: the database, fetch and clock are passed in, so tests run against
  * node:sqlite with a mocked fetch and never touch the network.
@@ -77,6 +79,13 @@ CREATE TABLE IF NOT EXISTS licensed_chapters (
   PRIMARY KEY (translation, chapter_id)
 );
 
+-- This calendar month's searches in a licensed version (LICENSED_SEARCHES_A_MONTH).
+CREATE TABLE IF NOT EXISTS licensed_search_month (
+  id    INTEGER PRIMARY KEY CHECK (id = 1),
+  month TEXT NOT NULL,
+  count INTEGER NOT NULL
+);
+
 -- The proxy's served set as last heard (SERVED_HEADER). No row: DEFAULT_SERVED.
 CREATE TABLE IF NOT EXISTS licensed_served (
   id      INTEGER PRIMARY KEY CHECK (id = 1),
@@ -106,7 +115,10 @@ export type LicensedChapter =
   | { readonly status: "disabled"; readonly translation: LicensedCode }
   | { readonly status: "error"; readonly translation: LicensedCode; readonly reason: "http"; readonly httpStatus: number }
   // A 2xx whose body is not a chapter. Was reported as httpStatus 200 (review, 10 Oct 2026).
-  | { readonly status: "error"; readonly translation: LicensedCode; readonly reason: "malformed" | "timeout" };
+  | { readonly status: "error"; readonly translation: LicensedCode; readonly reason: "malformed" | "timeout" }
+  // The proxy has spent this month's API.Bible calls (services/licensed-proxy/src/budget.ts): trying
+  // again will not help until the plan month turns.
+  | { readonly status: "error"; readonly translation: LicensedCode; readonly reason: "budget" };
 
 /**
  * Where chapters come from. `api-bible` carries the key and exists only in a flagged dev build
@@ -186,6 +198,8 @@ export function parseChapterText(content: string): LicensedVerse[] {
 interface ChapterText {
   content: string;
   copyright: string;
+  /** The proxy's: when API.Bible sent this copy. Absent on the dev path, which fetches it now. */
+  fetchedAt?: string;
 }
 
 /**
@@ -196,8 +210,15 @@ function chapterText(value: unknown, via: LicensedConfig["via"]): ChapterText | 
   if (typeof value !== "object" || value === null) return null;
   const body = via === "api-bible" ? (value as { data?: unknown }).data : value;
   if (typeof body !== "object" || body === null) return null;
-  const { content, copyright } = body as { content?: unknown; copyright?: unknown };
-  return typeof content === "string" && typeof copyright === "string" ? { content, copyright } : null;
+  const { content, copyright, fetchedAt } = body as { content?: unknown; copyright?: unknown; fetchedAt?: unknown };
+  if (typeof content !== "string" || typeof copyright !== "string") return null;
+  return typeof fetchedAt === "string" ? { content, copyright, fetchedAt } : { content, copyright };
+}
+
+/** The proxy's fetch time, or now: never later than now, so a bad clock cannot stretch the 30 days. */
+function fetchedTime(text: ChapterText, now: Date): string {
+  const at = text.fetchedAt === undefined ? Number.NaN : Date.parse(text.fetchedAt);
+  return Number.isNaN(at) || at > now.getTime() ? now.toISOString() : new Date(at).toISOString();
 }
 
 interface CacheRow {
@@ -251,7 +272,11 @@ export async function getLicensedChapter(
     const served = parseServed(response.headers?.get(SERVED_HEADER));
     if (served !== null) deps.onServed?.(served);
   }
-  if (!response.ok) return { status: "error", translation, reason: "http", httpStatus: response.status };
+  if (!response.ok) {
+    clearTimeout(timer);
+    if (config.via === "proxy" && response.status === 503 && (await errorOf(response)) === "budget") return { status: "error", translation, reason: "budget" };
+    return { status: "error", translation, reason: "http", httpStatus: response.status };
+  }
 
   let body: unknown;
   try {
@@ -264,13 +289,22 @@ export async function getLicensedChapter(
   const text = chapterText(body, config.via);
   if (text === null) return { status: "error", translation, reason: "malformed" };
 
-  const row: CacheRow = { content: text.content, copyright: text.copyright, fetched_at: now.toISOString() };
+  const row: CacheRow = { content: text.content, copyright: text.copyright, fetched_at: fetchedTime(text, now) };
   await db.runAsync(
     `INSERT INTO licensed_chapters (translation, chapter_id, content, copyright, fetched_at) VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(translation, chapter_id) DO UPDATE SET content = excluded.content, copyright = excluded.copyright, fetched_at = excluded.fetched_at`,
     [translation, chapterId, row.content, row.copyright, row.fetched_at],
   );
   return ok(translation, row, false);
+}
+
+async function errorOf(response: { json(): Promise<unknown> }): Promise<string | null> {
+  try {
+    const { error } = ((await response.json()) ?? {}) as { error?: unknown };
+    return typeof error === "string" ? error : null;
+  } catch {
+    return null;
+  }
 }
 
 function ok(translation: LicensedCode, row: CacheRow, fromCache: boolean): LicensedChapter {
@@ -334,7 +368,35 @@ export type LicensedSearch =
       /** Shown under the results, verbatim (§7). */
       readonly copyright: string;
     }
-  | { readonly status: "needs-connection" | "error" | "disabled"; readonly translation: LicensedCode };
+  | { readonly status: "needs-connection" | "error" | "disabled"; readonly translation: LicensedCode }
+  // This phone's searches for the month are used (LICENSED_SEARCHES_A_MONTH), or the proxy's are.
+  | { readonly status: "limit"; readonly translation: LicensedCode };
+
+/**
+ * Searches in a licensed version per phone per calendar month. Each costs an API.Bible call from the
+ * proxy's 800 a month, shared by every reader (docs/licensed-online-plan.md, stress test), so one
+ * phone may not spend them all. References and the BSB search on the phone are never counted.
+ */
+export const LICENSED_SEARCHES_A_MONTH = 10;
+
+async function searchesUsed(db: LicensedDb, month: string): Promise<number> {
+  const row = await db.getFirstAsync<{ month: string; count: number }>("SELECT month, count FROM licensed_search_month WHERE id = 1", []);
+  return row !== null && row.month === month ? row.count : 0;
+}
+
+export async function licensedSearchLeft(db: LicensedDb, now: Date = new Date()): Promise<boolean> {
+  return (await searchesUsed(db, now.toISOString().slice(0, 7))) < LICENSED_SEARCHES_A_MONTH;
+}
+
+/** Counted only once the proxy has answered: an offline or failed search spends no API.Bible call. */
+export async function countLicensedSearch(db: LicensedDb, now: Date = new Date()): Promise<void> {
+  const month = now.toISOString().slice(0, 7);
+  await db.runAsync(
+    `INSERT INTO licensed_search_month (id, month, count) VALUES (1, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET month = excluded.month, count = excluded.count`,
+    [month, (await searchesUsed(db, month)) + 1],
+  );
+}
 
 /**
  * Search in a licensed version (John, 12 Oct 2026; EG-06): through the proxy's search route, or straight
@@ -352,7 +414,7 @@ export async function searchLicensed(deps: Omit<LicensedDeps, "db">, translation
     if (config.via === "proxy") {
       const url = `${config.url.replace(/\/+$/, "")}/v1/search/${encodeURIComponent(translation)}?q=${encodeURIComponent(query)}`;
       const response = await deps.fetch(url, { headers: { Accept: "application/json" }, signal: controller.signal });
-      if (!response.ok) return { status: "error", translation };
+      if (!response.ok) return { status: response.status === 503 && (await errorOf(response)) === "budget" ? "limit" : "error", translation };
       const body = (await response.json()) as { total?: unknown; verses?: unknown; copyright?: unknown };
       return searchResult(translation, body.total, body.verses, body.copyright);
     }

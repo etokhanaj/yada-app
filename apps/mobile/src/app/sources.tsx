@@ -144,11 +144,19 @@ export function SourcesList() {
 
       {GROUPS.filter((g) => g !== "Bible text").map(groupView)}
 
-      {/* ST-04 Read online: the licensed versions, shown only, never kept for AI or audio (rule 9). */}
+      {/* ST-04 Read online: the licensed versions, shown only, never kept for AI or audio (rule 9).
+          The row links to api.bible: the Starter plan requires a visible citation and hyperlink in the app
+          (API.Bible terms, Minimum Acceptable Use, read 18 Oct 2026). */}
       {licensedEnabled() ? (
         <View style={{ marginTop: sectionGap }}>
           <Label style={{ marginBottom: 6 }}>Read online</Label>
-          <ListRow first chevron={false} title={licensedCodes().map((c) => (c === "MSG" ? "The Message" : c)).join(" · ")} subtitle="API.Bible · display only" testID="source-read-online" />
+          <ListRow
+            first
+            title={licensedCodes().map((c) => (c === "MSG" ? "The Message" : c)).join(" · ")}
+            subtitle="API.Bible · display only"
+            {...opens("https://api.bible")}
+            testID="source-read-online"
+          />
         </View>
       ) : null}
 

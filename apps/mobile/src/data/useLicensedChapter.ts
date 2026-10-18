@@ -27,6 +27,8 @@ import {
   type LicensedConfig,
   type LicensedDb,
   type LicensedSearch,
+  countLicensedSearch,
+  licensedSearchLeft,
   searchLicensed,
 } from "./licensed";
 import { ONLINE_PLACEHOLDERS, registerOnlineProvider } from "./online";
@@ -126,12 +128,20 @@ export function registerLicensedProvider(codes: readonly LicensedCode[]): Licens
   return served;
 }
 
-/** Search in a licensed version; undefined while it runs, or when `translation` is null (EG-06). */
+/**
+ * Search in a licensed version; undefined while it runs, or when `translation` is null (EG-06).
+ * `query` is the submitted search only, never each keystroke: every one costs an API.Bible call
+ * (docs/licensed-online-plan.md, stress test), and this phone has LICENSED_SEARCHES_A_MONTH of them.
+ */
 export function useLicensedSearch(translation: LicensedCode | null, query: string): LicensedSearch | undefined {
-  const { data } = useQuery(
-    async () => (translation === null || query.length < 2 ? undefined : searchLicensed({ config: licensedConfig(), fetch: (url, init) => fetch(url, init) }, translation, query)),
-    [translation, query],
-  );
+  const { user } = useAppData();
+  const { data } = useQuery(async () => {
+    if (translation === null || query.length < 2) return undefined;
+    if (!(await licensedSearchLeft(user))) return { status: "limit", translation } satisfies LicensedSearch;
+    const result = await searchLicensed({ config: licensedConfig(), fetch: (url, init) => fetch(url, init) }, translation, query);
+    if (result.status === "ok") await countLicensedSearch(user);
+    return result;
+  }, [translation, query]);
   return data;
 }
 

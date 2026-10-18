@@ -18,6 +18,30 @@ API_BIBLE_URL = "https://rest.api.bible"
 # with AI features) and MSG took its place. A code added here and redeployed switches on; the app
 # learns the set from each response.
 SERVED = "NKJV,NLT,MSG"
+# Day of the month the API.Bible Starter plan took effect: its 5,000 calls reset then. Check it in
+# the API.Bible dashboard; the account was set up on 10 Oct 2026.
+PLAN_MONTH_DAY = "10"
+
+# One shared copy of each chapter read (John, 18 Oct 2026; docs/licensed-online-plan.md). Bible text
+# only, no reader data, deleted daily once past 30 days. The bucket must stay private: public access
+# would mirror the API (API.Bible terms §8(e)). Create it once: `npx wrangler r2 bucket create yada-licensed-cache`.
+[[r2_buckets]]
+binding = "CACHE"
+bucket_name = "yada-licensed-cache"
+
+# Every API.Bible call goes through one Durable Object: one fetch per chapter in flight, and the
+# month's calls counted and capped (src/budget.ts). SQLite-backed, which the Free plan allows.
+[[durable_objects.bindings]]
+name = "GATE"
+class_name = "GateObject"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["GateObject"]
+
+# Daily prune of expired copies and of versions no longer served (§10, §11, §18.8).
+[triggers]
+crons = ["17 3 * * *"]
 
 # Per-IP limit to protect the key (keyed on a hash of the IP; counters live in Cloudflare's
 # limiter, per location, and are not logs). 60 chapters a minute is far above one reader.

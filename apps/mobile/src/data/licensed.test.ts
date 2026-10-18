@@ -19,6 +19,9 @@ import {
   clearLicensedCache,
   getLicensedChapter,
   searchLicensed,
+  countLicensedSearch,
+  licensedSearchLeft,
+  LICENSED_SEARCHES_A_MONTH,
   isLicensedCode,
   licensedConfigUsable,
   loadServed,
@@ -365,5 +368,52 @@ describe("searchLicensed (EG-06, EG-07)", () => {
       throw new TypeError("Network request failed");
     });
     expect(await searchLicensed({ config: PROXY, fetch }, "NKJV", "church")).toEqual({ status: "needs-connection", translation: "NKJV" });
+  });
+});
+
+describe("with the proxy's shared copy and call budget (18 Oct 2026)", () => {
+  const PROXY: LicensedConfig = { via: "proxy", url: "https://proxy.example.test", enabled: true };
+  const NOW = new Date("2026-10-18T12:00:00Z");
+  const proxyBody = (fetchedAt?: string) => ({ translation: "NKJV", chapter: "JHN.3", content: CONTENT, copyright: NOTICE, ...(fetchedAt === undefined ? {} : { fetchedAt }) });
+
+  it("counts the phone's 30 days from when API.Bible sent the chapter, not from the download", async () => {
+    const db = memoryDb();
+    const fetch = vi.fn(async () => response(proxyBody("2026-10-01T00:00:00.000Z")));
+    const got = await getLicensedChapter({ db, config: PROXY, fetch, now: () => NOW }, "NKJV", "JHN", 3);
+    expect(got).toMatchObject({ status: "ok", fetchedAt: "2026-10-01T00:00:00.000Z" });
+    // 31 Oct is 30 days after 1 Oct: the copy is gone, though the phone downloaded it on the 18th.
+    await getLicensedChapter({ db, config: PROXY, fetch, now: () => new Date("2026-10-31T00:00:00Z") }, "NKJV", "JHN", 3);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("never takes a fetch time later than now", async () => {
+    const db = memoryDb();
+    const fetch = vi.fn(async () => response(proxyBody("2027-01-01T00:00:00.000Z")));
+    const got = await getLicensedChapter({ db, config: PROXY, fetch, now: () => NOW }, "NKJV", "JHN", 3);
+    expect(got).toMatchObject({ status: "ok", fetchedAt: NOW.toISOString() });
+  });
+
+  it("says so when the month's calls are spent, so the reader offers no Try again", async () => {
+    const db = memoryDb();
+    const fetch = vi.fn(async () => response({ error: "budget" }, 503));
+    const got = await getLicensedChapter({ db, config: PROXY, fetch, now: () => NOW }, "NKJV", "JHN", 3);
+    expect(got).toEqual({ status: "error", translation: "NKJV", reason: "budget" });
+    const busy = await getLicensedChapter({ db, config: PROXY, fetch: vi.fn(async () => response({ error: "busy" }, 503)), now: () => NOW }, "NKJV", "JHN", 3);
+    expect(busy).toEqual({ status: "error", translation: "NKJV", reason: "http", httpStatus: 503 });
+  });
+
+  it("gives each phone a few licensed searches a month, afresh each month", async () => {
+    const db = memoryDb();
+    for (let i = 0; i < LICENSED_SEARCHES_A_MONTH; i++) {
+      expect(await licensedSearchLeft(db, NOW)).toBe(true);
+      await countLicensedSearch(db, NOW);
+    }
+    expect(await licensedSearchLeft(db, NOW)).toBe(false);
+    expect(await licensedSearchLeft(db, new Date("2026-11-01T00:00:00Z"))).toBe(true);
+  });
+
+  it("reports the proxy's spent search share as a limit, not a failure", async () => {
+    const fetch = vi.fn(async () => response({ error: "budget" }, 503));
+    expect(await searchLicensed({ config: PROXY, fetch }, "NKJV", "love")).toEqual({ status: "limit", translation: "NKJV" });
   });
 });

@@ -55,11 +55,14 @@ export default function SearchScreen() {
   const reading = useSettings((s) => s.translation);
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
+  // What the Search key sent. A licensed search runs on that alone: each costs one of the month's
+  // API.Bible calls, so typing searches the BSB on the phone and the licensed version waits.
+  const [submitted, setSubmitted] = useState("");
   const [bsbInstead, setBsbInstead] = useState(false);
   const licensedCode = licensedEnabled() && isLicensedCode(reading) && !bsbInstead ? reading : null;
   // The proxy takes words only: references, verse numbers and punctuation are the BSB's own search.
-  const words = query.replace(/[^\p{L}\p{N}\s'’-]/gu, " ").replace(/\s+/gu, " ").trim();
-  const licensed = useLicensedSearch(licensedCode, planSearch(query).reference === null ? words : "");
+  const words = submitted.replace(/[^\p{L}\p{N}\s'’-]/gu, " ").replace(/\s+/gu, " ").trim();
+  const licensed = useLicensedSearch(licensedCode, submitted !== "" && submitted === query && planSearch(submitted).reference === null ? words : "");
   const fallback = licensed !== undefined && licensed.status !== "ok";
   // "Offline" only when it is: a refused or failed search falls back quietly with its own line.
   const offline = licensed?.status === "needs-connection";
@@ -138,16 +141,20 @@ export default function SearchScreen() {
         <Icon name="search" size={16} tone="muted" />
         <TextInput
           value={input}
-          onChangeText={setInput}
+          onChangeText={(text) => {
+            setInput(text);
+            setSubmitted("");
+          }}
           autoFocus
           autoCorrect={false}
           autoCapitalize="none"
           clearButtonMode="while-editing"
           returnKeyType="search"
           onSubmitEditing={() => {
-            const submitted = input.trim();
-            setQuery(submitted);
-            searchLog.typed(submitted, searchDetail(planSearch(submitted)));
+            const sent = input.trim();
+            setQuery(sent);
+            setSubmitted(sent);
+            searchLog.typed(sent, searchDetail(planSearch(sent)));
             searchLog.settle();
           }}
           placeholder="Search the Bible"
@@ -296,7 +303,11 @@ export default function SearchScreen() {
 
       {fallback && query.length >= 2 ? (
         <Prose step="note" tone="muted" style={{ marginTop: 12 }} testID="search-offline">
-          {offline ? "You’re offline, so this searches the BSB." : `This searches the BSB: the ${reading} search didn’t answer.`}
+          {offline
+            ? "You’re offline, so this searches the BSB."
+            : licensed?.status === "limit"
+              ? `This searches the BSB: this month’s ${reading} searches are used.`
+              : `This searches the BSB: the ${reading} search didn’t answer.`}
         </Prose>
       ) : null}
 

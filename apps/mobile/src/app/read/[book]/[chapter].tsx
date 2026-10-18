@@ -782,8 +782,11 @@ export default function ReaderScreen() {
               />
             ) : licensed !== undefined && licensed.status !== "ok" ? (
               <LicensedUnavailable
-                line={`${chapterTitle(book, chapter)} in the ${licensed.translation} ${licensed.status === "needs-connection" ? "needs a connection" : "didn’t load"}.`}
-                onRetry={licensed.status === "needs-connection" ? null : () => setAttempt((n) => n + 1)}
+                line={`${chapterTitle(book, chapter)} in the ${licensed.translation} ${
+                  licensed.status === "needs-connection" ? "needs a connection" : licensed.status === "error" && licensed.reason === "budget" ? "isn’t available until next month" : "didn’t load"
+                }.`}
+                // Out of the month's API.Bible calls, trying again cannot help (licensed.ts "budget").
+                onRetry={licensed.status === "needs-connection" || (licensed.status === "error" && licensed.reason === "budget") ? null : () => setAttempt((n) => n + 1)}
                 onBsb={() => setReadBsb(true)}
               />
             ) : null
