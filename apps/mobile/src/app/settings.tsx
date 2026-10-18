@@ -12,7 +12,7 @@ import { MenuView } from "@react-native-menu/menu";
 import Constants from "expo-constants";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Switch, View } from "react-native";
+import { Alert, Linking, Switch, View } from "react-native";
 
 import { ListRow, PageScreen } from "../components/Page";
 import { Chrome, Label } from "../components/Type";
@@ -40,6 +40,12 @@ import { TEXT_SCALES, useSettings } from "../state/settings";
 const VOICES = [
   { id: "heart", name: "Heart" },
   { id: "george", name: "George" },
+] as const;
+
+const SITE_PAGES = [
+  { title: "Privacy", path: "privacy" },
+  { title: "Terms", path: "terms" },
+  { title: "Support", path: "support" },
 ] as const;
 
 export default function SettingsScreen() {
@@ -183,6 +189,10 @@ export default function SettingsScreen() {
 
       <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>About</Label>
       <ListRow first title="Sources and licences" onPress={() => router.push("/sources")} testID="settings-sources" />
+      {/* yadabible.com went live on 16 Oct 2026; until then these links were held back so none led nowhere. */}
+      {SITE_PAGES.map((p) => (
+        <ListRow key={p.path} title={p.title} onPress={() => void Linking.openURL(`https://yadabible.com/${p.path}`)} label={`${p.title}, opens yadabible.com`} testID={`settings-${p.path}`} />
+      ))}
       <ListRow title="Version" right={value(version)} chevron={false} label={`Version ${version}`} />
 
       <View style={{ marginTop: sectionGap }}>

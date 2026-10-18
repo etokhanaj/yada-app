@@ -283,6 +283,12 @@ export default function RootLayout() {
           {/* A widget's link (navigation.ts openHref): it hands over at once, so nothing animates. */}
           <Stack.Screen name="open" options={{ animation: "none" }} />
           {/* The full player (AU-04) covers the reader; closed by its down chevron, so no swipe to lose. */}
+          {/* Ask for prayer (PR-10): a sheet over Pray. */}
+          <Stack.Screen name="pray/ask" options={sheet} />
+          {/* A circle needs iCloud (CI-03): the same sheet as XT-05. */}
+          <Stack.Screen name="pray/icloud" options={sheet} />
+          {/* Daily prayer (DO-04–06): full screen over the day's picture; closed by its × or Amen. */}
+          <Stack.Screen name="office" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           <Stack.Screen
             name="player"
             options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }}

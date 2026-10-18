@@ -101,6 +101,15 @@ if grep -q '"review_gate": "unreviewed-dev"' src/data/bundled.generated.ts; then
   fi
   echo "Warning: unreviewed-dev bundles are in this archive. It must not be uploaded." >&2
 fi
+# Build 8 (18 Oct 2026) went up from a worktree without content/pictures: sync-bundles treats them as optional, so
+# Today shipped with no day pictures. An upload needs them.
+if ! grep -q "pictures/day-01" src/data/pictures.generated.ts; then
+  if [ "$upload" -eq 1 ]; then
+    echo "Refusing to upload: no day pictures. Link the main checkout's content/pictures into this checkout's content/." >&2
+    exit 1
+  fi
+  echo "Warning: no day pictures in this archive. It must not be uploaded." >&2
+fi
 
 if [ ! -d ios/Yada.xcworkspace ]; then
   npx expo prebuild --platform ios

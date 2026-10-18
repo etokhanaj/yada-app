@@ -3,7 +3,7 @@
 // only: a reader of the NKJV still sees the BSB here (rule 9). One idea across every surface: the passage has a
 // name, so the name leads; the reference is the second line; the verse the third. No cards, badges or counts.
 //
-// The serif is the system's New York: Literata is not bundled in the extension.
+// The serif is Literata, bundled in the extension (build 8).
 
 import ActivityKit
 import AppIntents
@@ -126,8 +126,26 @@ func dayKey(_ date: Date) -> String {
 private enum Fonts {
   static let overline = Font.caption2.weight(.medium)
   static let ref = Font.caption.weight(.semibold)
-  static func name(_ style: Font.TextStyle) -> Font { .system(style, design: .serif).weight(.semibold) }
-  static func verse(_ style: Font.TextStyle) -> Font { .system(style, design: .serif) }
+  // Literata, the app's own scripture face, bundled in the extension (build 8: it was New York before, as the
+  // extension had no copy). relativeTo keeps Dynamic Type scaling.
+  static func name(_ style: Font.TextStyle) -> Font { .custom("Literata-Regular", size: size(style), relativeTo: style).weight(.semibold) }
+  static func verse(_ style: Font.TextStyle) -> Font { .custom("Literata-Regular", size: size(style), relativeTo: style) }
+  /// The text style's default point size, so Literata starts where the system serif did.
+  private static func size(_ style: Font.TextStyle) -> CGFloat {
+    switch style {
+    case .largeTitle: return 34
+    case .title: return 28
+    case .title2: return 22
+    case .title3: return 20
+    case .headline, .body: return 17
+    case .callout: return 16
+    case .subheadline: return 15
+    case .footnote: return 13
+    case .caption: return 12
+    case .caption2: return 11
+    default: return 17
+    }
+  }
 }
 
 private extension View {

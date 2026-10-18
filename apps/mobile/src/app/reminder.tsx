@@ -135,6 +135,19 @@ export default function ReminderScreen() {
         </View>
       ) : null}
 
+      {/* NB-04 (build 8, John 17 Oct 2026): Sunday's week in review, off until turned on; it rides on Sunday's
+          reminder, or comes alone at 18:00 when none is set that day, so never two in a day. */}
+      <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>Sunday</Label>
+      <ListRow
+        first
+        title="Week in review"
+        subtitle="How many days you read that week"
+        chevron={false}
+        right={
+          <Switch value={prefs.weekly} onValueChange={(weekly) => change({ ...prefs, weekly })} accessibilityLabel="Week in review" testID="reminder-weekly" />
+        }
+      />
+
       <Label style={{ marginTop: sectionGap, marginBottom: 6 }}>What it says</Label>
       {(
         [

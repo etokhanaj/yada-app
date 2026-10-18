@@ -158,21 +158,24 @@ export function label(set: PsalmSet): string {
  * Settings › Daily psalms (DR-04): the 1662 morning and evening table, One a day (Psalm 1 to 150 by the day of
  * the year, the reminder's `psalmForDay`), or Off.
  */
-export type PsalterChoice = "1662" | "one" | "off";
+export type PsalterChoice = "1662" | "one" | "office" | "off";
 
 export const PSALTER_CHOICES: readonly { readonly id: PsalterChoice; readonly title: string }[] = [
-  { id: "1662", title: "Morning and evening" },
+  // DO-03 (build 8, John 17 Oct 2026): Daily prayer as a fourth choice, the 1662 table by its own name.
+  { id: "1662", title: "1662 Prayer Book" },
   { id: "one", title: "One a day" },
+  { id: "office", title: "Daily prayer" },
   { id: "off", title: "Off" },
 ];
 
 export function parsePsalter(stored: string | undefined): PsalterChoice {
-  return stored === "one" || stored === "off" ? stored : "1662";
+  return stored === "one" || stored === "office" || stored === "off" ? stored : "1662";
 }
 
 /** The set to read now under the choice; null when daily psalms are off. One a day is the same all day. */
 export function setForChoice(date: Date, part: PsalterPart, choice: PsalterChoice): PsalmSet | null {
-  if (choice === "off") return null;
+  // Daily prayer carries its own psalms (the Daily Office lectionary), so Today shows its card instead.
+  if (choice === "off" || choice === "office") return null;
   return choice === "one" ? [{ psalm: psalmForDay(date) }] : setFor(date, part);
 }
 

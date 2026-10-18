@@ -28,6 +28,11 @@ describe("Tyndale's opening, cut by the rules John's rejections asked for (decis
     expect(tyndaleIntro("Zephaniah’s words send a chill through the soul.", "ZEP").intro).toBeNull();
   });
 
+  it("tries after the last aside when the hook leaves only a fragment (Zephaniah)", () => {
+    const r = tyndaleIntro("“That terrible day of the Lord is near. . . .” “It will be . . . a day of ruin” (Zeph 1:14-15). Zephaniah’s words send a chill through the soul. Will the day of the Lord spell the end to everything? Zephaniah’s prophecy portrays the coming judgment, but it also presents God’s promise that his faithful people will one day enjoy a world of everlasting righteousness and joy.", "ZEP");
+    expect(r.intro?.text).toBe("Zephaniah’s prophecy portrays the coming judgment, but it also presents God’s promise that his faithful people will one day enjoy a world of everlasting righteousness and joy.");
+  });
+
   it("starts at its own book, not a numbered sibling", () => {
     const r = bookIntro(about("The Book of 1 Chronicles retells the line from Adam to Saul in great and careful detail. The Book of 2 Chronicles gives the history of Israel beginning with Solomon and ending in exile."), "2CH");
     expect(r.intro?.text).toBe("The Book of 2 Chronicles gives the history of Israel beginning with Solomon and ending in exile.");
@@ -263,7 +268,7 @@ describe.skipIf(!existsSync(path.join(RAW, "uw-tn/en_tn/tn_GEN.tsv")) || !exists
     expect(all.get("2JN")?.text).not.toMatch(/first letter of John/);
     // HAG reaches Haggai; ZEP's Tyndale opening is a quotation, a question and a fragment, so it falls back.
     expect(all.get("HAG")?.text).toMatch(/Haggai pointed out/);
-    expect(all.get("ZEP")?.source).toBe("tn");
+    expect(all.get("ZEP")?.text).toMatch(/^Zephaniah’s prophecy portrays the coming judgment/);
     // No Tyndale text carries a quotation (rule 9: Tyndale quotes the NLT) or a question.
     for (const i of all.values()) if (i?.source === "tyndale") expect(i.text).not.toMatch(/[“”?]/);
   });

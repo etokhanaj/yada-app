@@ -161,3 +161,14 @@ describe.skipIf(!HAVE_EASTON)("Easton against the pinned module", () => {
     expect(eastonEntries("Kadesh").map((e) => e.first.slice(0, 22))).toEqual(["The sacred city of the", "Holy, or Kadesh-Barnea"]);
   });
 });
+
+describe("Henry's outline lines as statements (build 8)", () => {
+  it("tells a line that says who did what from a label", async () => {
+    const { isStatement } = await import("./matthewHenry.js");
+    expect(isStatement("Herod causes the infants of Bethlehem to be massacred.")).toBe(true);
+    expect(isStatement("The disciples of Christ are his nearest relations.")).toBe(true);
+    expect(isStatement("The plague of frogs.")).toBe(false);
+    expect(isStatement("Christian salutations.")).toBe(false);
+    expect(isStatement("The covenant, Those who signed it.")).toBe(false);
+  });
+});

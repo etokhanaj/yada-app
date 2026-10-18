@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { afterNotNow, askNow, DEFAULT_REMINDER, nextInMcheyne, parseAsk, parseReminder, pausedWhileAway, psalmForDay, reminderSummary, storeAsk, upcomingTimes } from "./reminder";
+import { afterNotNow, askNow, DEFAULT_REMINDER, rhythmLine, weekLine, withLine, nextInMcheyne, parseAsk, parseReminder, pausedWhileAway, psalmForDay, reminderSummary, storeAsk, upcomingTimes } from "./reminder";
 
 describe("the reminder", () => {
   it("reads what it stored, and falls back on anything else", () => {
@@ -55,12 +55,17 @@ describe("asking to turn the reminder on (NP-01–03)", () => {
     expect(askNow("home", { kind: "never" }, ctx)).toBe(false);
   });
 
-  it("after Not now, asks once more on Home three or more days later, then never", () => {
-    const later = afterNotNow({ kind: "never" }, 8 * day);
-    expect(askNow("passage-end", later, ctx)).toBe(false);
-    expect(askNow("home", later, ctx)).toBe(false);
-    expect(askNow("home", later, { ...ctx, now: 11 * day })).toBe(true);
-    expect(afterNotNow(later, 11 * day)).toEqual({ kind: "done" });
+  it("after Not now, asks on Home three days later, then every fourteen days, four asks in all", () => {
+    const first = afterNotNow({ kind: "never" }, 8 * day);
+    expect(askNow("passage-end", first, ctx)).toBe(false);
+    expect(askNow("home", first, ctx)).toBe(false);
+    expect(askNow("home", first, { ...ctx, now: 11 * day })).toBe(true);
+    const second = afterNotNow(first, 11 * day);
+    expect(askNow("home", second, { ...ctx, now: 24 * day })).toBe(false);
+    expect(askNow("home", second, { ...ctx, now: 25 * day })).toBe(true);
+    const third = afterNotNow(second, 25 * day);
+    expect(askNow("home", third, { ...ctx, now: 39 * day })).toBe(true);
+    expect(afterNotNow(third, 39 * day)).toEqual({ kind: "done" });
     expect(askNow("home", { kind: "done" }, { ...ctx, now: 99 * day })).toBe(false);
   });
 
@@ -71,7 +76,36 @@ describe("asking to turn the reminder on (NP-01–03)", () => {
   });
 
   it("keeps its state as one stored string", () => {
-    for (const s of [{ kind: "never" }, { kind: "later", at: 123 }, { kind: "done" }] as const) expect(parseAsk(storeAsk(s))).toEqual(s);
+    for (const s of [{ kind: "never" }, { kind: "later", at: 123, times: 2 }, { kind: "done" }] as const) expect(parseAsk(storeAsk(s))).toEqual(s);
     expect(parseAsk("later:x")).toEqual({ kind: "never" });
+    // Stored by build 7 before the count existed: one Not now.
+    expect(parseAsk("later:123")).toEqual({ kind: "later", at: 123, times: 1 });
   });
 });
+
+describe("build 8 notification lines (NB-01–04)", () => {
+  it("shows the rhythm only once today counts and there are two days or more", () => {
+    expect(rhythmLine({ streak: 4, lit: true, thisYear: 9, begun: true })).toBe("Your rhythm: 4 days");
+    expect(rhythmLine({ streak: 4, lit: false, thisYear: 9, begun: true })).toBeNull();
+    expect(rhythmLine({ streak: 1, lit: true, thisYear: 1, begun: true })).toBeNull();
+  });
+
+  it("counts Monday to Saturday before the Sunday, and says nothing for a week with none", () => {
+    const sunday = new Date(2026, 9, 18, 7, 30);
+    expect(weekLine(["2026-10-12", "2026-10-13", "2026-10-15", "2026-10-17", "2026-10-11", "2026-10-18"], sunday)).toBe("This week you read on 4 days");
+    expect(weekLine(["2026-10-12"], sunday)).toBe("This week you read on 1 day");
+    expect(weekLine(["2026-10-11"], sunday)).toBeNull();
+  });
+
+  it("puts one line over the reminder's own words, or leaves them alone", () => {
+    const text = { title: "Next in John: The wedding at Cana", body: "On the third day…" };
+    expect(withLine(text, "Your rhythm: 4 days")).toEqual({ title: text.title, body: "Your rhythm: 4 days\nOn the third day…" });
+    expect(withLine(text, null)).toBe(text);
+  });
+
+  it("keeps the week in review off unless it was turned on", () => {
+    expect(parseReminder(undefined).weekly).toBe(false);
+    expect(parseReminder(JSON.stringify({ ...DEFAULT_REMINDER, weekly: true })).weekly).toBe(true);
+  });
+});
+

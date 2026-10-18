@@ -10,6 +10,8 @@
  * - Public-domain words only: the BSB, whatever the reader's translation (rule 9; IA-13).
  */
 
+import { dayKey, type Rhythm } from "./rhythm";
+
 export type ReminderKind = "next" | "today";
 
 export interface ReminderPrefs {
@@ -21,9 +23,11 @@ export interface ReminderPrefs {
   readonly kind: ReminderKind;
   /** Build 7: a second time, for this evening's psalms (plan §0 step 5). Null is no evening reminder. */
   readonly evening: { readonly hour: number; readonly minute: number } | null;
+  /** Build 8: Sunday's week in review, off by default (John, 17 Oct 2026). */
+  readonly weekly: boolean;
 }
 
-export const DEFAULT_REMINDER: ReminderPrefs = { on: false, hour: 7, minute: 30, days: [true, true, true, true, true, true, true], kind: "next", evening: null };
+export const DEFAULT_REMINDER: ReminderPrefs = { on: false, hour: 7, minute: 30, days: [true, true, true, true, true, true, true], kind: "next", evening: null, weekly: false };
 
 /** When the evening reminder is first turned on: after the day's work, before Today's evening ends. */
 export const DEFAULT_EVENING = { hour: 19, minute: 0 } as const;
@@ -47,6 +51,7 @@ export function parseReminder(stored: string | undefined): ReminderPrefs {
         typeof v.evening === "object" && v.evening !== null && ok(v.evening.hour, 23) && ok(v.evening.minute, 59)
           ? { hour: v.evening.hour, minute: v.evening.minute }
           : null,
+      weekly: v.weekly === true,
     };
   } catch {
     return DEFAULT_REMINDER;
@@ -117,22 +122,28 @@ export function passageForToday(text: string, psalm: number): ReminderText {
 
 /**
  * When Yada asks to turn the reminder on (NP-01–03; John, 15 Oct 2026). iOS shows its own prompt once, so Yada
- * asks first in its own words: at the end of the first passage read, then once more on a return three or more
- * days after a Not now, then never; the reminder lives in Settings. Never while it is on, and never once iOS
- * has answered either way.
+ * asks first in its own words: at the end of the first passage read, then on a return three days after a Not now,
+ * then every fourteen days, four asks in all (John, 16 Oct 2026: "coming periodically when the notifications
+ * aren't set"); after that the reminder lives in Settings. Never while it is on, and never once iOS has answered.
  */
-export type AskState = { readonly kind: "never" } | { readonly kind: "later"; readonly at: number } | { readonly kind: "done" };
+export type AskState =
+  | { readonly kind: "never" }
+  | { readonly kind: "later"; readonly at: number; readonly times: number }
+  | { readonly kind: "done" };
 
 export const ASK_AGAIN_DAYS = 3;
+export const ASK_EVERY_DAYS = 14;
+export const ASK_TIMES = 4;
 
 export function parseAsk(stored: string | undefined): AskState {
   if (stored === "done") return { kind: "done" };
-  const at = stored?.startsWith("later:") === true ? Number(stored.slice("later:".length)) : NaN;
-  return Number.isFinite(at) ? { kind: "later", at } : { kind: "never" };
+  const [at, times] = stored?.startsWith("later:") === true ? stored.slice("later:".length).split(":").map(Number) : [NaN];
+  // Stored before 16 Oct 2026 as "later:<at>": one Not now so far.
+  return at !== undefined && Number.isFinite(at) ? { kind: "later", at, times: times !== undefined && Number.isFinite(times) ? times : 1 } : { kind: "never" };
 }
 
 export function storeAsk(state: AskState): string {
-  return state.kind === "done" ? "done" : state.kind === "later" ? `later:${state.at}` : "";
+  return state.kind === "done" ? "done" : state.kind === "later" ? `later:${state.at}:${state.times}` : "";
 }
 
 export function askNow(
@@ -142,10 +153,42 @@ export function askNow(
 ): boolean {
   if (context.on || context.permission !== "undetermined" || context.readCount < 1) return false;
   if (where === "passage-end") return state.kind === "never";
-  return state.kind === "later" && context.now - state.at >= ASK_AGAIN_DAYS * 86_400_000;
+  const wait = state.kind === "later" && state.times === 1 ? ASK_AGAIN_DAYS : ASK_EVERY_DAYS;
+  return state.kind === "later" && context.now - state.at >= wait * 86_400_000;
 }
 
-/** Not now: the first time, later; the second, never again. */
+/** Not now: later, until the fourth ask; then never again. */
 export function afterNotNow(state: AskState, now: number): AskState {
-  return state.kind === "never" ? { kind: "later", at: now } : { kind: "done" };
+  const times = state.kind === "later" ? state.times + 1 : 1;
+  return state.kind === "done" || times >= ASK_TIMES ? { kind: "done" } : { kind: "later", at: now, times };
 }
+
+/**
+ * The rhythm line on the next reminder (John, 17 Oct 2026: "honest, positive only"). Reminders are scheduled days
+ * ahead, so only the first one carries it, and only once today counts: by rhythm.ts's rules the count then still
+ * holds when that reminder arrives, later today or tomorrow. Never a loss, never a warning.
+ */
+export function rhythmLine(r: Rhythm): string | null {
+  return r.lit && r.streak >= 2 ? `Your rhythm: ${r.streak} days` : null;
+}
+
+/** Sunday's week in review: days counted Monday to Saturday before `sunday`; nothing when none were. */
+export function weekLine(days: Iterable<string>, sunday: Date): string | null {
+  const counted = new Set(days);
+  let n = 0;
+  for (let back = 1; back <= 6; back += 1) {
+    const d = new Date(sunday);
+    d.setDate(d.getDate() - back);
+    if (counted.has(dayKey(d))) n += 1;
+  }
+  return n === 0 ? null : `This week you read on ${n} ${n === 1 ? "day" : "days"}`;
+}
+
+/** The week in review on its own, when no morning reminder falls on that Sunday: one notification a day at most. */
+export const WEEKLY_AT = { hour: 18, minute: 0 } as const;
+
+/** A line over a reminder's own text: the rhythm or the week, never both (one notification, one line). */
+export function withLine(text: ReminderText, line: string | null): ReminderText {
+  return line === null ? text : { title: text.title, body: `${line}\n${text.body}` };
+}
+

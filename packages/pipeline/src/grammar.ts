@@ -102,11 +102,123 @@ export function machenText(raw: string): string {
 
 /** Machen's scan against its pin, or null where content/raw does not have it (the Greek terms then keep their gaps). */
 export function readMachen(raw: string): string | null {
-  const file = path.join(raw, MACHEN.file);
-  if (!existsSync(file)) return null;
-  const bytes = readFileSync(file);
-  if (createHash("sha256").update(bytes).digest("hex") !== MACHEN.sha256) throw new GrammarRefused(`${file} does not match its pin`);
-  return machenText(bytes.toString("utf8"));
+  return readPinned(raw, CHOSEN.machen);
+}
+
+export type ChosenSource = "machen" | "burton" | "gesenius" | "winer";
+
+interface ChosenSentence {
+  text: string;
+  ref: string;
+  /** Where the file's OCR misreads the printed page: what to find in the file, and the note John sees. */
+  ocr?: { reads: string; note: string };
+}
+
+interface ChosenGrammar {
+  /** Each file under content/raw with its sha256, read in this order as one text. */
+  files: Readonly<Record<string, string>>;
+  credit: string;
+  text: (raw: string) => string;
+  sentences: Readonly<Record<string, ChosenSentence>>;
+}
+
+/** Proofread Wikisource wikitext as plain text: italics, footnotes and the term template dropped, as the page prints it. */
+export function wikisourceText(raw: string): string {
+  return raw
+    .replace(/<ref>[\s\S]*?<\/ref>/g, "")
+    .replace(/\{\{GHGterm\|([^}]*)\}\}/g, "$1")
+    .replace(/'{2,3}/g, "")
+    .replace(/\s+/g, " ");
+}
+
+/**
+ * Grammars whose sentences are chosen by hand for terms the unfoldingWord grammars explain wrongly or not at all
+ * (build 8, 16 Oct 2026). Each sentence is the book's own, found once in its pinned file and checked against the
+ * page scan; an OCR slip is recorded beside it, never silently fixed.
+ */
+export const CHOSEN: Readonly<Record<ChosenSource, ChosenGrammar>> = {
+  machen: { files: { [MACHEN.file]: MACHEN.sha256 }, credit: MACHEN.credit, text: machenText, sentences: MACHEN_SENTENCES },
+  // Burton, 3rd edition (Chicago, 1903; copyright 1900). Public domain: a US publication before 1929, and Burton
+  // died in 1925. Machen's "simple past tense" left out the whole-event view John asked for.
+  burton: {
+    files: { "burton/cu31924021607449_djvu.txt": "12d1e3c10606cc5212e8378b29c035c2b769e2b5c9283f55d50779b7b72965f8" },
+    credit: "Greek grammar from Ernest De Witt Burton, Syntax of the Moods and Tenses in New Testament Greek (1903) · Public domain",
+    text: machenText,
+    sentences: {
+      "greek:aorist": {
+        text: "The constant characteristic of the Aorist tense in all of its moods, including the participle, is that it represents the action denoted by it indefinitely; i.e. simply as an event, neither on the one hand picturing it in progress, nor on the other affirming the existence of its result.",
+        ref: "§35, p. 16",
+        ocr: {
+          reads: "The constant characteristic of the Aorist tense in all of its moods, including the participle, is that it represents the action denoted by it indefinitely; 7¢.e. simply as an event, neither on the one hand picturing it in progress, nor on the other affirming the existence of its result.",
+          note: "The scan's OCR reads “7¢.e.”; the printed page has “i.e.” (checked against the page image, 16 Oct 2026).",
+        },
+      },
+    },
+  },
+  // Gesenius' Hebrew Grammar (Kautzsch–Cowley, 1910), from Wikisource's transcription (CC BY-SA 4.0, from the page
+  // footer). The Page: revisions are pinned; both are marked unproofread there, so each sentence was read against
+  // the page image. The 1909 scan Gesenius was first tried from is OCR noise (decision 25).
+  gesenius: {
+    files: {
+      "gesenius/page271-rev8193852.wiki": "f580e24e789fca84cef1ae6044c7ade64829ae635d15bafb9d642a6e264633cf",
+      "gesenius/page154-rev8193761.wiki": "f43d193e432775d909c575e4177eb034c9a06c36f37e6da10f589b4e3e504709",
+    },
+    credit: "Hebrew grammar from Gesenius' Hebrew Grammar, ed. E. Kautzsch, tr. A. E. Cowley (1910), Wikisource transcription · CC BY-SA 4.0",
+    text: wikisourceText,
+    sentences: {
+      // One sentence defines both states, so it serves both terms.
+      "hebrew:absolute": {
+        text: "Thus in Hebrew only the noun which stands before a genitive suffers a change, and in grammatical language is said to be dependent, or in the construct state, while a noun which has not a genitive after it is said to be in the absolute state.",
+        ref: "§89a, p. 247",
+      },
+      "hebrew:construct": {
+        text: "Thus in Hebrew only the noun which stands before a genitive suffers a change, and in grammatical language is said to be dependent, or in the construct state, while a noun which has not a genitive after it is said to be in the absolute state.",
+        ref: "§89a, p. 247",
+      },
+      "hebrew:cohortative": {
+        text: "The cohortative expresses the direction of the will to an action and thus denotes especially self-encouragement (in the 1st plur. an exhortation to others at the same time), a resolution or a wish, as an optative, &c., see § 108.",
+        ref: "§48e, p. 130",
+      },
+    },
+  },
+  // Winer, A Grammar of the Chaldee Language, tr. H. B. Hackett (Andover, 1845). Public domain. en_uag's
+  // state_determined.rst is a copy of its absolute-state article.
+  winer: {
+    files: { "winer/grammarofchaldee00wine_djvu.txt": "ec1125843677853dd170fb22e79d68f48c3a267b9d7bb4402e8c6cc2278c1111" },
+    credit: "Aramaic grammar from G. B. Winer, A Grammar of the Chaldee Language, tr. H. B. Hackett (1845) · Public domain",
+    // This scan breaks words at a line end with "¬".
+    text: (raw) => raw.replace(/[-¬]\s*\n\s*/g, "").replace(/\s+/g, " "),
+    sentences: {
+      "aramaic:determined": {
+        text: "In addition to the absolute and construct state, we have here also the status emphaticus, or emphatic state, as it is termed, and which was designed originally to express the noun with the definite article.",
+        ref: "§32.1, p. 87",
+      },
+    },
+  },
+};
+
+/** A grammar's files against their pins as one text, or null where content/raw lacks any of them. */
+function readPinned(raw: string, g: ChosenGrammar): string | null {
+  const parts: string[] = [];
+  for (const [file, sha256] of Object.entries(g.files)) {
+    const full = path.join(raw, file);
+    if (!existsSync(full)) return null;
+    const bytes = readFileSync(full);
+    if (createHash("sha256").update(bytes).digest("hex") !== sha256) throw new GrammarRefused(`${full} does not match its pin`);
+    parts.push(g.text(bytes.toString("utf8")));
+  }
+  return parts.join(" ");
+}
+
+/** Every chosen grammar's text, or a refusal naming the first one content/raw lacks. */
+export function readChosen(raw: string): Record<ChosenSource, string> {
+  const out = {} as Record<ChosenSource, string>;
+  for (const source of Object.keys(CHOSEN) as ChosenSource[]) {
+    const text = readPinned(raw, CHOSEN[source]);
+    if (text === null) throw new GrammarRefused(`${Object.keys(CHOSEN[source].files).map((f) => path.join(raw, f)).join(", ")} missing`);
+    out[source] = text;
+  }
+  return out;
 }
 
 /**
@@ -273,8 +385,8 @@ export interface GrammarEntry {
   status: GrammarStatus;
   /** For John: a spelling correction, shown beside the original. */
   note?: string;
-  /** Machen's sentence in place of the unfoldingWord one; credited as Machen in the app. */
-  source?: "machen";
+  /** A chosen grammar's sentence in place of the unfoldingWord one; credited to that book in the app. */
+  source?: ChosenSource;
   /** Sentences John rejected for this term: one never comes back as a draft. */
   rejected?: string[];
 }
@@ -367,7 +479,7 @@ export function buildGrammar(
   files: GrammarFiles,
   terms: ReadonlyArray<{ label: string; language: GrammarLanguage; tokens: number }>,
   previous: readonly GrammarEntry[],
-  machen: string | null = null,
+  chosen: Readonly<Partial<Record<ChosenSource, string>>> = {},
 ): { entries: GrammarEntry[]; gaps: GrammarGap[] } {
   for (const language of Object.keys(GRAMMARS) as GrammarLanguage[]) checkGrammarLicence(files, language);
   const built: GrammarEntry[] = [];
@@ -379,12 +491,21 @@ export function buildGrammar(
     // A sentence John rejected for the same term in another language (Hebrew "construct", which en_uag's
     // corrected copy now matches word for word) is rejected here too.
     const rejectedElsewhere = previous.filter((e) => e.label === t.label && e.key !== key).flatMap((e) => [...(e.rejected ?? []), ...(e.status === "rejected" ? [e.text] : [])]);
-    const chosen = MACHEN_SENTENCES[key];
-    let found: { text: string; ref: string; paragraph: string; note?: string; source?: "machen" } | { reason: string };
-    if (chosen !== undefined && machen !== null) {
-      const at = machen.indexOf(chosen.text);
-      if (at < 0 || machen.indexOf(chosen.text, at + 1) >= 0) throw new GrammarRefused(`Machen's sentence for ${key} is not in the pinned scan exactly once`);
-      found = { text: chosen.text, ref: `${MACHEN.file} ${chosen.ref}`, paragraph: chosen.text, source: "machen" };
+    const source = (Object.keys(CHOSEN) as ChosenSource[]).find((s) => CHOSEN[s].sentences[key] !== undefined && chosen[s] !== undefined);
+    let found: { text: string; ref: string; paragraph: string; note?: string; source?: ChosenSource } | { reason: string };
+    if (source !== undefined) {
+      const pick = CHOSEN[source].sentences[key] as ChosenSentence;
+      const scan = chosen[source] ?? "";
+      const needle = pick.ocr?.reads ?? pick.text;
+      const at = scan.indexOf(needle);
+      if (at < 0 || scan.indexOf(needle, at + 1) >= 0) throw new GrammarRefused(`${source}'s sentence for ${key} is not in its pinned file exactly once`);
+      found = {
+        text: pick.text,
+        ref: `${Object.keys(CHOSEN[source].files).join(" + ")} ${pick.ref}`,
+        paragraph: pick.text,
+        source,
+        ...(pick.ocr === undefined ? {} : { note: pick.ocr.note }),
+      };
     } else {
       const uw = grammarSentence(files, t.language, t.label);
       const fix = CORRECTIONS[key];
@@ -414,8 +535,10 @@ export function buildGrammar(
   }
   // One sentence for two terms of one language explains neither: Hebrew tiphil and hishtaphel share one word for
   // word (decision 24). Both are held, as gaps, until a source tells them apart. Across languages a shared sentence
-  // is en_uag including en_uhg's summaries, which John approved term by term.
+  // is en_uag including en_uhg's summaries, which John approved term by term. A chosen sentence is picked for each
+  // term by hand (Gesenius' one sentence defines both the absolute and the construct state), so it is exempt.
   const entries = built.filter((e) => {
+    if (e.source !== undefined) return true;
     const twin = built.find((o) => o !== e && o.text === e.text && o.language === e.language);
     if (twin === undefined) return true;
     gaps.push({ key: e.key, reason: `same sentence as ${twin.key}` });
@@ -435,7 +558,8 @@ export const GRAMMAR_WHY =
   "Grammar article's Summary (or Glossary), word for word. Built by `yada grammar --write` (packages/pipeline/src/grammar.ts). 'status' is " +
   "'draft' until John approves it in the review tool's Extracts queue; only approved entries are written into the app " +
   "(apps/mobile/src/data/grammar.generated.ts). Since John's review, six Greek terms take a sentence from Machen's New Testament Greek " +
-  "for Beginners (1923, public domain) instead, spelling slips are corrected with a note saying so, a sentence shared by two terms is " +
+  "for Beginners (1923, public domain) instead; since build 8 the aorist is Burton's (1903), the Hebrew absolute, construct and cohortative " +
+  "Gesenius' (1910, Wikisource), and the Aramaic determined state Winer's (1845); spelling slips are corrected with a note saying so, a sentence shared by two terms is " +
   "held, and 'rejected' lists sentences that never return as drafts. " +
   "This table is an adapted copy, published under CC BY-SA 4.0 like its unfoldingWord sources.";
 
@@ -459,14 +583,15 @@ export function appGrammarModule(entries: readonly GrammarEntry[]): string {
   return [
     "// Generated by `yada grammar --write` from packages/pipeline/prototypes/data/grammar.json. Do not edit.",
     "// Approved entries only (rule 2). Adapted from the unfoldingWord Hebrew, Greek and Aramaic Grammars, CC BY-SA 4.0, and",
-    "// J. Gresham Machen's New Testament Greek for Beginners (1923), public domain.",
+    "// J. Gresham Machen's New Testament Greek for Beginners (1923), Burton's Moods and Tenses (1903) and Winer's Chaldee Grammar",
+    "// (1845), public domain, and Gesenius' Hebrew Grammar (1910) from Wikisource, CC BY-SA 4.0.",
     "",
     `export const GRAMMAR_SENTENCES: Readonly<Record<string, string>> = ${JSON.stringify(table, null, 2)};`,
     "",
     `export const GRAMMAR_CREDITS = ${JSON.stringify(GRAMMAR_CREDIT, null, 2)} as const;`,
     "",
-    "/** Terms whose sentence is Machen's, not the unfoldingWord grammar's. */",
-    `export const GRAMMAR_ENTRY_CREDITS: Readonly<Record<string, string>> = ${JSON.stringify(Object.fromEntries(approved.filter((e) => e.source === "machen").map((e) => [e.key, MACHEN.credit])), null, 2)};`,
+    "/** Terms whose sentence is another grammar's, not the unfoldingWord grammar's. */",
+    `export const GRAMMAR_ENTRY_CREDITS: Readonly<Record<string, string>> = ${JSON.stringify(Object.fromEntries(approved.flatMap((e) => (e.source === undefined ? [] : [[e.key, CHOSEN[e.source].credit]]))), null, 2)};`,
     "",
   ].join("\n");
 }
@@ -511,11 +636,9 @@ export function grammarCommand(
   const terms = [...counts.values()].sort((a, b) => a.language.localeCompare(b.language) || b.tokens - a.tokens);
   let built: ReturnType<typeof buildGrammar>;
   try {
-    // Without the scan the six Machen terms would fall back to sentences John rejected and lose any approval
-    // of Machen's (review, 15 Oct 2026): refuse, as an unpinned grammar zip does.
-    const machen = readMachen(options.raw);
-    if (machen === null) throw new GrammarRefused(`${path.join(options.raw, MACHEN.file)} is missing`);
-    built = buildGrammar(files, terms, readGrammar(options.dataDir), machen);
+    // Without a chosen grammar's file its terms would fall back to sentences John rejected and lose any approval
+    // (review, 15 Oct 2026): refuse, as an unpinned grammar zip does.
+    built = buildGrammar(files, terms, readGrammar(options.dataDir), readChosen(options.raw));
   } catch (error) {
     if (error instanceof GrammarRefused) {
       console.error(`grammar: REFUSED. ${error.message}`);

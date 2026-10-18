@@ -268,7 +268,7 @@ const SUMMARIES: ReadonlyArray<[string, number, number]> = [
   ["MRK", 90, 90],
   ["MAT", 141, 139],
   ["LUK", 146, 144],
-  ["ACT", 110, 109],
+  ["ACT", 110, 110], // Acts 9:23–25 passes since Henry steers it (16 Oct 2026)
   ["GEN", 142, 139],
   ["RUT", 8, 8],
   ["PSA", 171, 171],

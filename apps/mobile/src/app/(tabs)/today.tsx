@@ -80,6 +80,18 @@ export default function Today() {
           {verse.ref}
           {verse.bsb ? " · BSB" : ""}
         </Chrome>
+        {/* PR-01: Sit with this, beside the day's verse. */}
+        <Pressable
+          onPress={() => router.push({ pathname: "/sit", params: { text: verse.text, ref: verse.ref } })}
+          accessibilityRole="button"
+          accessibilityLabel="Sit with this verse"
+          hitSlop={10}
+          testID="today-sit"
+        >
+          <Chrome step="note" tone={onPicture ? "paper" : "ink"} style={[{ fontWeight: "600", marginTop: 6 }, onPicture ? { color: "#FFFFFF" } : null]}>
+            Sit with this
+          </Chrome>
+        </Pressable>
       </Pressable>
     );
 
@@ -109,6 +121,41 @@ export default function Today() {
           </Pressable>
         </Card>
         )}
+
+        {data.office !== null ? (
+          // DO-01 (build 8, John 17 Oct 2026): Daily prayer's own card previews the guided steps it opens, the
+          // forest and chartreuse of Yada's brand against the light sheet; one card, no shadow.
+          <Pressable
+            onPress={() => router.push("/office")}
+            accessibilityRole="button"
+            accessibilityLabel={`Daily prayer, about 15 minutes. ${data.office.opening}`}
+            style={({ pressed }) => [styles.office, { opacity: pressed ? 0.9 : 1 }]}
+            testID="today-office"
+          >
+            <Chrome style={styles.officeKicker} maxFontSizeMultiplier={2}>
+              Daily prayer
+            </Chrome>
+            <Chrome style={styles.officeText} numberOfLines={ax ? 4 : 2}>
+              {data.office.opening}
+            </Chrome>
+            <Chrome style={styles.officeRef} maxFontSizeMultiplier={2}>
+              Psalm 95:1
+            </Chrome>
+            <View style={[styles.officeFoot, ax ? { flexWrap: "wrap", rowGap: 10 } : null]}>
+              <View style={styles.officeMarks} accessible={false}>
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <View key={i} style={styles.officeMark} />
+                ))}
+              </View>
+              <Chrome style={styles.officeLen} maxFontSizeMultiplier={2}>
+                About 15 min
+              </Chrome>
+              <View style={styles.officeBegin}>
+                <Chrome style={styles.officeBeginText}>Begin</Chrome>
+              </View>
+            </View>
+          </Pressable>
+        ) : null}
 
         {data.devotional !== null ? (
           <Card
@@ -167,6 +214,16 @@ export default function Today() {
             </Chrome>
           </Card>
         )}
+
+        {/* PR-01 (build 7 plan row 18, built in build 8): Pray is one card after the reading. */}
+        <Card onPress={() => router.push("/pray")} label="Pray: your list, and someone to pray for" testID="today-pray">
+          <Chrome tone="ink" style={styles.cardTitle}>
+            Pray
+          </Chrome>
+          <Chrome step="note" tone="muted">
+            Your list, and someone to pray for
+          </Chrome>
+        </Card>
 
         {data.other === null ? null : (
           <View style={{ marginTop: 30 }}>
@@ -299,6 +356,16 @@ function Card({ children, onPress, label, testID }: { children: ReactNode; onPre
 }
 
 const styles = StyleSheet.create({
+  office: { borderRadius: 24, padding: 20, paddingBottom: 16, backgroundColor: "#183F35" },
+  officeKicker: { color: "#DBEC9A", fontSize: 13, fontWeight: "600", marginBottom: 10 },
+  officeText: { color: "#FFFFFF", fontFamily: FONTS.scripture, fontSize: 22, lineHeight: 30 },
+  officeRef: { color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 8 },
+  officeFoot: { flexDirection: "row", alignItems: "center", columnGap: 12, marginTop: 18 },
+  officeMarks: { flexDirection: "row", columnGap: 5 },
+  officeMark: { width: 14, height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.35)" },
+  officeLen: { flex: 1, color: "rgba(255,255,255,0.78)", fontSize: 13 },
+  officeBegin: { minHeight: 44, paddingHorizontal: 22, borderRadius: 22, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },
+  officeBeginText: { color: "#183F35", fontSize: 16, fontWeight: "600" },
   hero: { height: 520, justifyContent: "flex-end" },
   heroTop: { position: "absolute" },
   onPicture: { color: "#FFFFFF", textShadowColor: "rgba(0,0,0,0.55)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 10 },

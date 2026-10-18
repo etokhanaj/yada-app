@@ -63,7 +63,7 @@
     "attribution_text": "Lexicon data created by www.STEPBible.org based on work at Tyndale House Cambridge, CC BY 4.0.",
     "url": "https://github.com/STEPBible/STEPBible-Data",
     "retrieved_at": "2026-10-11T07:40:38Z",
-    "modifications": "Read for Hebrew headwords (column 3) only, to label word cards. Glosses and definitions are not read; interlinear glosses come from TAHOT. ENCUMBERED: Definitions derive from the Abridged BDB by Online Bible; the file states permission should be gained before applying them in any project. Yada does not read or ship the definitions."
+    "modifications": "Read for Hebrew headwords (column 3), to label word cards, and for the brief gloss (column 6, written by Tyndale scholars) of Old Testament words TAHOT does not align, such as ketiv forms (build 8). Definitions (column 7) are not read; other interlinear glosses come from TAHOT. ENCUMBERED: Definitions derive from the Abridged BDB by Online Bible; the file states permission should be gained before applying them in any project. Yada does not read or ship the definitions."
   },
   {
     "source": "STEPBible / Tyndale House Cambridge",
@@ -473,6 +473,39 @@
     "modifications": "Six sentences chosen verbatim, never written, for Greek grammar terms whose unfoldingWord sentence John rejected (accusative, genitive, dative, middle, perfect, optative; decision 23); each must occur once in the pinned scan with its line-end hyphens joined (packages/pipeline/src/grammar.ts MACHEN_SENTENCES). Public domain status from the book's own copyright page, “Copyright, 1923” by The Macmillan Company, “Reprinted with corrections September, 1927”: in the United States a 1923 or 1927 publication is public domain (the later since 2023), and Machen died in 1937, so the UK term ended in 2007. Only entries John approved ship in the app. Pinned at content/raw/machen/newtestamentgree00mach_djvu.txt."
   },
   {
+    "source": "Internet Archive",
+    "dataset": "Ernest De Witt Burton, Syntax of the Moods and Tenses in New Testament Greek (3rd edition, 1903)",
+    "version": "archive.org cu31924021607449, djvu text",
+    "commit_hash": "sha256:12d1e3c10606cc5212e8378b29c035c2b769e2b5c9283f55d50779b7b72965f8",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Greek grammar from Ernest De Witt Burton, Syntax of the Moods and Tenses in New Testament Greek (University of Chicago Press, 1903). Public domain.",
+    "url": "https://archive.org/details/cu31924021607449",
+    "retrieved_at": "2026-10-16T06:52:00Z",
+    "modifications": "One sentence chosen verbatim for the Greek aorist (§35, p. 16), which John rejected from the unfoldingWord grammar (build 8). It must occur once in the pinned scan with line-end hyphens joined; the OCR's “7¢.e.” is the printed “i.e.”, checked against the page image and noted for John (packages/pipeline/src/grammar.ts CHOSEN.burton). Public domain status from the title page, “Copyright, 1900”, a US publication before 1929; Burton died in 1925. Only entries John approved ship in the app. Pinned at content/raw/burton/cu31924021607449_djvu.txt."
+  },
+  {
+    "source": "Wikisource",
+    "dataset": "Gesenius' Hebrew Grammar, ed. E. Kautzsch, tr. A. E. Cowley (1910), Wikisource transcription",
+    "version": "Page: revisions 8193852 (djvu/271) and 8193761 (djvu/154)",
+    "commit_hash": "sha256:f580e24e789fca84cef1ae6044c7ade64829ae635d15bafb9d642a6e264633cf,sha256:f43d193e432775d909c575e4177eb034c9a06c36f37e6da10f589b4e3e504709",
+    "license": "CC-BY-SA-4.0",
+    "attribution_text": "Hebrew grammar from Gesenius' Hebrew Grammar, edited by E. Kautzsch, translated by A. E. Cowley (Oxford, 1910), transcribed on Wikisource. CC BY-SA 4.0.",
+    "url": "https://en.wikisource.org/wiki/Gesenius%27_Hebrew_Grammar",
+    "retrieved_at": "2026-10-16T06:53:00Z",
+    "modifications": "Two sentences chosen verbatim (build 8): §89a for the Hebrew absolute and construct states, which it defines together, and §48e for the cohortative; John rejected the unfoldingWord sentences. Read from the pinned Page: wikitext with italics, footnotes and the term template removed (packages/pipeline/src/grammar.ts CHOSEN.gesenius); both pages are unproofread on Wikisource, so each sentence was checked against the page image. Licence from the page footer (creativecommons.org/licenses/by-sa/4.0); the 1910 text itself is public domain. Only entries John approved ship in the app. Pinned at content/raw/gesenius/."
+  },
+  {
+    "source": "Internet Archive",
+    "dataset": "G. B. Winer, A Grammar of the Chaldee Language, tr. H. B. Hackett (1845)",
+    "version": "archive.org grammarofchaldee00wine, djvu text",
+    "commit_hash": "sha256:ec1125843677853dd170fb22e79d68f48c3a267b9d7bb4402e8c6cc2278c1111",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Aramaic grammar from G. B. Winer, A Grammar of the Chaldee Language, translated by H. B. Hackett (Andover, 1845). Public domain.",
+    "url": "https://archive.org/details/grammarofchaldee00wine",
+    "retrieved_at": "2026-10-16T06:56:00Z",
+    "modifications": "One sentence chosen verbatim for the Aramaic determined (emphatic) state (§32.1, p. 87), where the unfoldingWord Aramaic grammar's article is a copy of the absolute state's (build 8). It must occur once in the pinned scan with line-end breaks (“-” and “¬”) joined, and was checked against the page image (packages/pipeline/src/grammar.ts CHOSEN.winer). Public domain: published in 1845. Only entries John approved ship in the app. Pinned at content/raw/winer/grammarofchaldee00wine_djvu.txt."
+  },
+  {
     "source": "OpenBible.info",
     "dataset": "OpenBible.info Bible Geocoding Data — ancient places and modern locations (ancient.jsonl, modern.jsonl)",
     "version": "7eb18a5",
@@ -515,5 +548,27 @@
     "url": "https://www.crosswire.org/ftpmirror/pub/sword/packages/rawzip/Easton.zip",
     "retrieved_at": "2026-10-15T14:27:40Z",
     "modifications": "Read from the module's zLD files (packages/pipeline/src/understand/easton.ts): one entry per key, markup removed, references kept as printed, words otherwise unchanged; the first sentence taken verbatim. Licence from the module's own mods.d/easton.conf: 'DistributionLicense=Public Domain', About 'Public Domain -- Copy Freely', 'M.G. Easton M.A., D.D., Illustrated Bible Dictionary, Third Edition, published by Thomas Nelson, 1897', TextSource=CCEL; illustrations not included. Easton died in 1894. Host terms: CCEL's own ThML (https://ccel.org/ccel/easton/ebd2.xml, kept as content/raw/easton/ebd2.xml, not read) says DC.Rights 'Public Domain' but also carries the comment 'Copyright Christian Classics Ethereal Library'; the CrossWire module is used because its file states no host terms. No licensed translation. Pinned by content/raw/easton.sha256."
+  },
+  {
+    "source": "GitHub (reubenlillie/daily-office)",
+    "dataset": "Daily Office Lectionary, 1979 Book of Common Prayer (JSON)",
+    "version": "c4bac1087e320e5ac954457f90c24260bdcb7515",
+    "commit_hash": "c4bac1087e320e5ac954457f90c24260bdcb7515",
+    "license": "MIT",
+    "attribution_text": "Daily Office Lectionary of the 1979 Book of Common Prayer, JSON by Reuben L. Lillie, MIT License.",
+    "url": "https://github.com/reubenlillie/daily-office",
+    "retrieved_at": "2026-10-17T13:30:00Z",
+    "modifications": "Morning psalms and the first two lessons only, as references (Daily prayer, build 8; John, 17 Oct 2026: morning only). The words shown are the BSB's, read from core; lessons from books the BSB does not have, and one unreadable reference, are skipped, never filled. Licence from the repo's LICENSE file (MIT); its README notes the Prayer Book itself has never been under copyright. packages/pipeline/src/office.ts; pinned at content/raw/daily-office/."
+  },
+  {
+    "source": "Wikimedia Commons (from pdsounds.org)",
+    "dataset": "Rain, by ezwa (Rain (1).ogg)",
+    "version": "Commons file Rain (1).ogg, 2008-11-13 recording",
+    "commit_hash": "sha256:31efcbe952a3989a9276774e2d7be61a2dc98fdd785a94d1435fc19cda9a84d1",
+    "license": "PUBLIC_DOMAIN",
+    "attribution_text": "Rain, recorded by ezwa (pdsounds.org), public domain.",
+    "url": "https://commons.wikimedia.org/wiki/File:Rain_(1).ogg",
+    "retrieved_at": "2026-10-17T14:20:00Z",
+    "modifications": "The quiet sound under Daily prayer (AS-01, build 8; John, 17 Oct 2026). Its last two seconds crossfaded into its first so the loop has no seam, normalised to -30 LUFS, mono AAC (apps/mobile/assets/sound-rain.m4a). Licence from the Commons file page (Public domain; Copyrighted: False). Off until the reader turns it on. Pinned at content/raw/ambient/rain-1.ogg."
   }
 ]

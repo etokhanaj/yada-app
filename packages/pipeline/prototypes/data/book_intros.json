@@ -160,7 +160,8 @@
    "paragraph": "Ecclesiastes challenges us to think deeply about basic questions. Life and all it contains appears to be a meaningless vapor, here today and gone tomorrow. Even so, life need not be without purpose. Ecclesiastes recommends wisdom, righteous living, finding purpose in remembering our Creator, and keeping God’s commands. Then we can experience joy in the life God has given us.",
    "status": "rejected",
    "rejected": [
-    "Ecclesiastes is a group of short teachings that try to answer questions such as “What profit belongs to humanity in exchange for all his toil that he toils under the sun?” (1:3) Ecclesiastes is a series of thoughts about a variety of subjects, all of them about the purpose and worth of various actions and events."
+    "Ecclesiastes is a group of short teachings that try to answer questions such as “What profit belongs to humanity in exchange for all his toil that he toils under the sun?” (1:3) Ecclesiastes is a series of thoughts about a variety of subjects, all of them about the purpose and worth of various actions and events.",
+    "Ecclesiastes challenges us to think deeply about basic questions. Life and all it contains appears to be a meaningless vapor, here today and gone tomorrow. Even so, life need not be without purpose. Ecclesiastes recommends wisdom, righteous living, finding purpose in remembering our Creator, and keeping God’s commands. Then we can experience joy in the life God has given us."
    ]
   },
   {
@@ -272,10 +273,10 @@
   },
   {
    "book": "ZEP",
-   "text": "Through Zephaniah’s prophecies, Yahweh warned Judah and other nations that he was about to destroy them because of their wickedness and idolatry. This message seems to have led at least the Judeans to repent, if only for a generation. Hezekiah had been a godly ruler, but his son Manasseh and his grandson Amon were wicked and idolatrous kings.",
-   "ref": "en_tn/tn_ZEP.tsv front:intro",
-   "paragraph": "Through Zephaniah’s prophecies, Yahweh warned Judah and other nations that he was about to destroy them because of their wickedness and idolatry. This message seems to have led at least the Judeans to repent, if only for a generation. Hezekiah had been a godly ruler, but his son Manasseh and his grandson Amon were wicked and idolatrous kings. Amon was so unpopular that he was assassinated, and his son Josiah became king when Josiah was only a boy. But when Josiah became a young adult and could assert himself, he introduced a series of reforms that led the people of Judah to worship and obey Yahweh once more. The prophecies of Zephaniah seem to have influenced Josiah strongly to do this. Zephaniah also prophesied about how Yahweh would restore Judah, and those prophecies had at least a partial fulfillment in his own time due to the reforms of Josiah.",
-   "status": "rejected",
+   "text": "Zephaniah’s prophecy portrays the coming judgment, but it also presents God’s promise that his faithful people will one day enjoy a world of everlasting righteousness and joy.",
+   "ref": "tosn-BookIntros.xml ZEP intro-overview",
+   "paragraph": "“That terrible day of the Lord is near. . . . It will be . . . a day of ruin and desolation, a day of darkness and gloom” (Zeph 1:14-15). Zephaniah’s words send a chill through the soul. Will the day of the Lord spell the end to everything? Zephaniah’s prophecy portrays the coming judgment, but it also presents God’s promise that his faithful people will one day enjoy a world of everlasting righteousness and joy.",
+   "status": "approved",
    "rejected": [
     "Through Zephaniah’s prophecies, Yahweh warned Judah and other nations that he was about to destroy them because of their wickedness and idolatry. This message seems to have led at least the Judeans to repent, if only for a generation. Hezekiah had been a godly ruler, but his son Manasseh and his grandson Amon were wicked and idolatrous kings."
    ]
@@ -484,7 +485,8 @@
    "paragraph": "Second John is the shortest book in the New Testament, containing only thirteen verses. In antiquity, the entire letter would have fit on one sheet of papyrus. The first letter of John elaborated the principles of continuing in the truth, loving fellow believers, and watching out for false teachers. This letter gives us an example of applying these principles to a concrete situation.",
    "status": "rejected",
    "rejected": [
-    "It appears that John addressed this letter to a specific congregation of believers. John’s purposes in writing this letter to them was to encourage them in their faith and to warn them about false teachers. John did not want believers helping or giving money to false teachers."
+    "It appears that John addressed this letter to a specific congregation of believers. John’s purposes in writing this letter to them was to encourage them in their faith and to warn them about false teachers. John did not want believers helping or giving money to false teachers.",
+    "Second John is the shortest book in the New Testament, containing only thirteen verses. In antiquity, the entire letter would have fit on one sheet of papyrus."
    ]
   },
   {

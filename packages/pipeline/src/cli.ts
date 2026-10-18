@@ -9,6 +9,7 @@
  * `batch recover` is offline.
  */
 
+import { officeCommand } from "./office.js";
 import { copyFileSync, existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -683,7 +684,7 @@ async function main(): Promise<number> {
       }
       const g = report.glosses;
       console.log(
-        `  glosses: TAGNT ${g.bySource.TAGNT}, TAHOT ${g.bySource.TAHOT}, TBESG fallback ${g.bySource.TBESG}, ` +
+        `  glosses: TAGNT ${g.bySource.TAGNT}, TAHOT ${g.bySource.TAHOT}, TBESG fallback ${g.bySource.TBESG}, TBESH fallback ${g.bySource.TBESH}, ` +
           `unglossed ${g.unglossed} of ${g.tokens} (${((1 - g.unglossed / Math.max(g.tokens, 1)) * 100).toFixed(1)}% glossed)`,
       );
       if (g.weakBooks.length > 0) {
@@ -1120,6 +1121,10 @@ async function main(): Promise<number> {
 
     case "intros":
       return introsCommand(rest, understandPaths().raw, UNDERSTAND_DATA);
+
+    // Build 8: the Daily Office lectionary, morning only, for Daily prayer.
+    case "office":
+      return officeCommand(rest, { raw: understandPaths().raw, appFile: path.join(REPO_ROOT, "apps/mobile/src/data/office.generated.ts") });
 
     case "grammar": {
       const { raw, bundles } = understandPaths();

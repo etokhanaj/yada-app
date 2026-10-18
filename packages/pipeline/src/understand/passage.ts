@@ -388,6 +388,12 @@ export interface SummariseInput {
   budget?: number;
   tq?: readonly TqAnswer[];
   events?: readonly OutlineEvent[];
+  /**
+   * Lines that name the passage's main event (Henry's outline, build 8): their words only lift the sentences that
+   * share them, so Daniel 6 keeps the lions. Never shown and never a headline (John, 15 Oct 2026: about 40 of 62
+   * fixes said a summary missed the main point).
+   */
+  steer?: readonly string[];
   asides?: ReadonlySet<VerseKey>;
   obs?: { no: number; pool: readonly ObsCandidate[] } | null;
   extra?: readonly Extra[];
@@ -512,7 +518,7 @@ export function summarise(input: SummariseInput): Summary | null {
   const labelWords = new Set(contentWords(input.label));
   // A passage can span two sections (11:1–16, 11:17–44): the one sharing most words with its title, then the longer.
   const key = argmax(cands, (e) => [contentWords(e.line).filter((w) => labelWords.has(w)).length, e.v2 - e.v1])?.line ?? "";
-  const title = new Set([...labelWords, ...contentWords(key)]);
+  const title = new Set([...labelWords, ...contentWords(key), ...(input.steer ?? []).flatMap((l) => contentWords(l))]);
   const keyWords = new Set(contentWords(key));
   const n = sents.length;
   const all = [...Array(n).keys()];
@@ -716,6 +722,11 @@ export interface PassageBookData {
   ust: ReadonlyMap<VerseKey, string>;
   tq: readonly TqAnswer[];
   events: readonly OutlineEvent[];
+  /**
+   * Matthew Henry's sections with an outline line; they only steer the choice, and only for the passages John
+   * accepted (summaries.ts STEERED).
+   */
+  henry?: ReadonlyArray<{ c1: number; v1: number; c2: number; v2: number; outline: string | null }>;
   /** passage_reviews.json: John's holds and approvals, by passage id. */
   reviews: ReadonlyMap<string, PassageReview>;
   /** tnGuides parts: bare-range chapter-introduction lines, for headlines only. */

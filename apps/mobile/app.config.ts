@@ -89,15 +89,19 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
       // kept in the reader's own iCloud. The App ID needs the iCloud capability to match.
       entitlements: {
         "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)",
-        // CloudKit (iCloud.studio.yada.reader) for build 8's Pray for others is left out until then: the build 7
-        // archive failed because the provisioning profile did not carry the container (16 Oct 2026), and nothing
-        // in build 7 uses it. Re-add "com.apple.developer.icloud-services": ["CloudKit"] and the container with Pray.
+        // CloudKit for Pray and Circles (build 8; John, 18 Oct 2026). The build 7 archive failed when the profile
+        // lacked the container (16 Oct 2026): the App ID studio.yada.reader must have iCloud with CloudKit and
+        // iCloud.studio.yada.reader ticked in the developer portal before the next archive, or it fails the same way.
+        "com.apple.developer.icloud-services": ["CloudKit"],
+        "com.apple.developer.icloud-container-identifiers": ["iCloud.studio.yada.reader"],
         // Shared with the widgets (WL-01): the reading place and today's psalm, nothing else. The App ID
         // needs the App Groups capability with this group for a device build.
         "com.apple.security.application-groups": ["group.studio.yada.reader"],
       },
       // Audio read-along keeps reading with the screen locked (AU-02; modules/yada-speech).
       infoPlist: {
+        // Circles (build 8): an invitation link opens Yada and hands it the share.
+        CKSharingSupported: true,
         UIBackgroundModes: ["audio"],
         // The listening Live Activity (WL-02, WL-03).
         NSSupportsLiveActivities: true,

@@ -67,6 +67,9 @@ interface NativeSpeech {
   /** False when nothing was paused mid-utterance (paused between verses), or a Personal Voice verse is resumed in the background. */
   resume(): Promise<boolean>;
   stop(): Promise<void>;
+  /** AS-01: a quiet looped sound, faded in; stopAmbient fades it out. */
+  playAmbient(uri: string, volume: number): Promise<void>;
+  stopAmbient(): Promise<void>;
   setNowPlaying(info: { title: string; artist: string; playing: boolean }): Promise<void>;
   clearNowPlaying(): Promise<void>;
   addListener<E extends keyof SpeechEvents>(event: E, listener: SpeechEvents[E]): EventSubscription;

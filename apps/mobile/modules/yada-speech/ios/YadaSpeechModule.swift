@@ -58,6 +58,8 @@ public class YadaSpeechModule: Module {
   private var sessionObservers: [NSObjectProtocol] = []
   /// The verse now queued is in the reader's Personal Voice.
   fileprivate var speakingPersonal = false
+  /// A quiet sound under Daily prayer or Sit with this (AS-01, build 8): opt-in, looped, faded in and out.
+  private var ambient: AVAudioPlayer?
 
   public func definition() -> ModuleDefinition {
     Name("YadaSpeech")
@@ -179,6 +181,27 @@ public class YadaSpeechModule: Module {
         return true
       }
       return self.synth.continueSpeaking()
+    }.runOnQueue(.main)
+
+    // AS-01 (John, 17 Oct 2026): "ambient sound ... an easy way they can opt in or out". A release build passes a
+    // file in the app; a development build passes Metro's URL, read as data.
+    AsyncFunction("playAmbient") { (uri: String, volume: Double) in
+      try self.activateSession()
+      guard let url = URL(string: uri) else { return }
+      let p = url.isFileURL ? try AVAudioPlayer(contentsOf: url) : try AVAudioPlayer(data: Data(contentsOf: url))
+      p.numberOfLoops = -1
+      p.volume = 0
+      p.play()
+      p.setVolume(Float(volume), fadeDuration: 2)
+      self.ambient?.stop()
+      self.ambient = p
+    }.runOnQueue(.main)
+
+    AsyncFunction("stopAmbient") {
+      guard let p = self.ambient else { return }
+      self.ambient = nil
+      p.setVolume(0, fadeDuration: 1)
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1) { p.stop() }
     }.runOnQueue(.main)
 
     AsyncFunction("stop") {

@@ -37,6 +37,8 @@ export interface TodayData {
    *  other under One a day (DR-04). */
   readonly psalms: { readonly label: string; readonly opening: string; readonly place: Place } | null;
   readonly other: { readonly part: Part; readonly label: string; readonly place: Place } | null;
+  /** Daily prayer (DO-01), mornings only, when Settings › Daily psalms is Daily prayer: the Venite's first words. */
+  readonly office: { readonly opening: string } | null;
   readonly devotional: { readonly heading: string; readonly ref: string; readonly key: string; readonly part: Part } | null;
   /** Your plan's next reading, or "A place to start" before anything has been read (XT-01). */
   readonly plan:
@@ -130,12 +132,15 @@ export async function loadToday(core: Db, user: SQLiteDatabase, translation: str
   }
 
   const otherSet = choice === "1662" ? setForChoice(day, otherPart, choice) : null;
+  // The office's words are the BSB's, whatever the reader's translation (Daily prayer is built on the BSB).
+  const office = choice === "office" && part === "morning" ? { opening: opening(excerptOf((await textOf(core, { book: "PSA", chapter: 95, verse: 1 }, "BSB")).text)) } : null;
   return {
     day,
     part,
     verse,
     psalms,
     other: otherSet === null ? null : { part: otherPart, label: psalmsLabel(otherSet), place: psalmPlace(otherSet) },
+    office,
     devotional,
     plan,
     rhythm: rhythmOf(await loadDays(user), todayKey(now)),

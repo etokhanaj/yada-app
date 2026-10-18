@@ -15,6 +15,9 @@ import {
   CORRECTIONS,
   MACHEN,
   MACHEN_SENTENCES,
+  CHOSEN,
+  readChosen,
+  wikisourceText,
   machenText,
   readMachen,
   cleanRst,
@@ -255,7 +258,8 @@ describe.skipIf(!existsSync(path.join(RAW, "en_uhg.zip")))("against the pinned g
   const pinned = existsSync(path.join(RAW, "en_uhg.zip")) ? grammarFiles(RAW) : () => null;
   it("the committed table matches the sources", () => {
     for (const e of readGrammar(UNDERSTAND_DATA)) {
-      if (e.source === "machen") continue;
+      // A chosen grammar's sentence is checked against its own pinned file below.
+      if (e.source !== undefined) continue;
       const fix = CORRECTIONS[e.key];
       const text = e.note === undefined || fix === undefined ? e.text : e.text.replace(fix[1], fix[0]);
       expect(grammarSentence(pinned, e.language, e.label)).toMatchObject({ text });
@@ -288,8 +292,8 @@ describe("fixes from John's rejections (decisions 23 and 24)", () => {
     const files = tree({ "en_ugg/content/mood_optative.rst": summary("mood_optative", "The Optative mood indicates a possibility.") });
     const terms = [{ label: "optative", language: "greek" as const, tokens: 1 }];
     const scan = machenText("classical uses have disappeared. The optative is still re-\n  tained to express a wish. Thus …");
-    expect(buildGrammar(files, terms, [], scan).entries[0]).toMatchObject({ text: "The optative is still retained to express a wish.", source: "machen" });
-    expect(() => buildGrammar(files, terms, [], "another book")).toThrow(/not in the pinned scan/);
+    expect(buildGrammar(files, terms, [], { machen: scan }).entries[0]).toMatchObject({ text: "The optative is still retained to express a wish.", source: "machen" });
+    expect(() => buildGrammar(files, terms, [], { machen: "another book" })).toThrow(/not in its pinned file/);
     // Without the scan on this Mac, the unfoldingWord sentence is kept.
     expect(buildGrammar(files, terms, []).entries[0]?.text).toBe("The Optative mood indicates a possibility.");
   });
@@ -322,7 +326,7 @@ describe("fixes from John's rejections (decisions 23 and 24)", () => {
 
   it("credits an approved Machen sentence as Machen's in the app", () => {
     const files = tree({ "en_ugg/content/mood_optative.rst": summary("mood_optative", "The Optative mood indicates a possibility.") });
-    const [e] = buildGrammar(files, [{ label: "optative", language: "greek", tokens: 1 }], [], machenText("The optative is still retained to express a wish.")).entries;
+    const [e] = buildGrammar(files, [{ label: "optative", language: "greek", tokens: 1 }], [], { machen: machenText("The optative is still retained to express a wish.") }).entries;
     const module = appGrammarModule([{ ...(e as GrammarEntry), status: "approved" }]);
     expect(module).toContain(`"greek:optative": ${JSON.stringify(MACHEN.credit)}`);
   });
@@ -342,3 +346,46 @@ describe.skipIf(!existsSync(path.join(understandPaths().raw, MACHEN.file)))("aga
     for (const { text } of Object.values(MACHEN_SENTENCES)) expect(scan.split(text)).toHaveLength(2);
   });
 });
+
+describe("chosen grammars beyond Machen (build 8)", () => {
+  const terms = [
+    { label: "aorist", language: "greek" as const, tokens: 1 },
+    { label: "absolute", language: "hebrew" as const, tokens: 1 },
+    { label: "construct", language: "hebrew" as const, tokens: 1 },
+  ];
+  const fakeFiles = (): GrammarFiles => {
+    const files = new Map<string, string>(["en_uhg", "en_ugg", "en_uag"].map((repo) => [`${repo}/LICENSE.md`, LICENCE]));
+    return (file) => files.get(file) ?? null;
+  };
+  const burton = CHOSEN.burton.sentences["greek:aorist"];
+  const gesenius = CHOSEN.gesenius.sentences["hebrew:absolute"];
+
+  it("keeps the printed page's words where the OCR misreads them, and says so", () => {
+    const files = fakeFiles();
+    const [aorist] = buildGrammar(files, terms.slice(0, 1), [], { burton: `x ${burton?.ocr?.reads ?? ""} y` }).entries;
+    expect(aorist).toMatchObject({ text: burton?.text, source: "burton" });
+    expect(aorist?.note).toMatch(/OCR reads “7¢\.e\.”/);
+  });
+
+  it("reads Wikisource wikitext as the page prints it, and lets one chosen sentence serve two terms", () => {
+    const wiki = "Thus in Hebrew only the noun which stands ''before a genitive'' suffers a change, and in grammatical language is said to be dependent, or in the {{GHGterm|construct state}}, while a noun which has not a genitive after it is said to be in the {{GHGterm|absolute state}}.<ref>x</ref>";
+    const { entries, gaps } = buildGrammar(fakeFiles(), terms.slice(1), [], { gesenius: wikisourceText(wiki) });
+    expect(entries.map((e) => [e.key, e.text])).toEqual([
+      ["hebrew:absolute", gesenius?.text],
+      ["hebrew:construct", gesenius?.text],
+    ]);
+    expect(gaps).toEqual([]);
+  });
+});
+
+describe.skipIf(!Object.values(CHOSEN).every((g) => Object.keys(g.files).every((f) => existsSync(path.join(understandPaths().raw, f)))))(
+  "against the pinned chosen grammars",
+  () => {
+    it("finds every chosen sentence once in its pinned file", () => {
+      const texts = readChosen(understandPaths().raw);
+      for (const [source, g] of Object.entries(CHOSEN)) {
+        for (const s of Object.values(g.sentences)) expect(texts[source as keyof typeof texts].split(s.ocr?.reads ?? s.text)).toHaveLength(2);
+      }
+    });
+  },
+);

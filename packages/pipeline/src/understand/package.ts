@@ -60,6 +60,7 @@ import { introFor, introMeta, readIntros, readTyndale, type IntroResult } from "
 import { splitLines } from "./text.js";
 import { writeBundleExtras, type ExtrasReport } from "./bundleExtras.js";
 import { LEAKS, assemble, beginnerText, derive, isMissing, type Assembled, type BookData, type StudyNote } from "./verse.js";
+import { MHC_DIR, mhcSections } from "./matthewHenry.js";
 
 
 export const UNDERSTAND_DDL = `
@@ -432,6 +433,7 @@ export function loadBook(book: string, options: { paths?: UnderstandPaths; verif
     ust: ustVerses(ustText, { summary: true }),
     tq: tqAnswers(tqText),
     events: guides.events,
+    henry: existsSync(path.join(paths.raw, MHC_DIR)) ? mhcSections(book) : [],
     parts: guides.parts,
     reviews: readPassageReviews(),
     asides: guides.asides,

@@ -244,7 +244,7 @@ export const SOURCES: SourceDef[] = [
       },
     ],
     modifications:
-      "Read for Hebrew headwords (column 3) only, to label word cards. Glosses and definitions are not read; interlinear glosses come from TAHOT.",
+      "Read for Hebrew headwords (column 3), to label word cards, and for the brief gloss (column 6, written by Tyndale scholars) of Old Testament words TAHOT does not align, such as ketiv forms (build 8). Definitions (column 7) are not read; other interlinear glosses come from TAHOT.",
     encumbered:
       "Definitions derive from the Abridged BDB by Online Bible; the file states permission should be gained before applying them in any project. Yada does not read or ship the definitions.",
   },

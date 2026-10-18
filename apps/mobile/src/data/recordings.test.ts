@@ -75,6 +75,9 @@ vi.mock("expo-file-system", () => {
   return { Directory, File, Paths: { document: "doc", availableDiskSpace: 1e12 } };
 });
 vi.mock("./translations", () => ({ MANIFEST_URL: "http://local/manifest.json" }));
+// NT-08's notice runs only when Yada is not on screen; under test it is.
+vi.mock("expo-notifications", () => ({ getPermissionsAsync: async () => ({ status: "denied" }), scheduleNotificationAsync: async () => undefined }));
+vi.mock("react-native", () => ({ AppState: { currentState: "active" } }));
 
 const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
 const audio = new Uint8Array([1, 2, 3, 4]);

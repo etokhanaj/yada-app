@@ -11,8 +11,10 @@
  * device, never synced. Nothing about the listener is stored or sent: the app only asks for a chapter.
  */
 
-import { type AudioInfo, AudioInfoSchema, type BookCode, type ChapterTimings, ChapterTimingsSchema, isBookCode } from "@yada/schema";
+import { type AudioInfo, AudioInfoSchema, BOOK_CODES, type BookCode, type ChapterTimings, ChapterTimingsSchema, isBookCode } from "@yada/schema";
 import { Directory, File, Paths } from "expo-file-system";
+import * as Notifications from "expo-notifications";
+import { AppState } from "react-native";
 import { create } from "zustand";
 
 import { resolveUrl, verifyDownload } from "../lib/translations";
@@ -330,6 +332,21 @@ export function bookOnPhone(book: BookCode, text: ReadText = "BSB"): { chapters:
 }
 
 /** "Download John" (BA-03, BA-04): chapter by chapter, so a stopped download keeps what it fetched. */
+/**
+ * NT-08: a book download that finished while Yada was not on screen says so once, then nothing more. The transfer
+ * itself runs in iOS's background session (expo-file-system's default). Only when notifications are already allowed;
+ * this never asks.
+ */
+async function notifyIfAway(book: BookCode, chapters: number): Promise<void> {
+  if (AppState.currentState === "active") return;
+  if ((await Notifications.getPermissionsAsync()).status !== "granted") return;
+  await Notifications.scheduleNotificationAsync({
+    identifier: `downloaded-${book}`,
+    content: { title: `${BOOK_CODES[book].name} is downloaded`, body: `${chapters} chapters, ready to listen offline.` },
+    trigger: null,
+  });
+}
+
 export async function downloadBook(book: BookCode, text: ReadText = "BSB"): Promise<boolean> {
   await refreshRecordings();
   const info = readingOf(book, text);
@@ -365,6 +382,7 @@ export async function downloadBook(book: BookCode, text: ReadText = "BSB"): Prom
     });
   }
   if (ok) await ensureTitles(book, narrator);
+  if (ok) await notifyIfAway(book, info.chapters.length);
   useRecordings.setState((s) => {
     const { [key]: _done, ...downloading } = s.downloading;
     return { downloading, ...(ok ? {} : { failed: { ...s.failed, [key]: "network" as const } }) };

@@ -25,7 +25,7 @@ export { normalizeGreek, normalizeHebrew };
 import type { Token } from "./parsers.js";
 import { RAW } from "./paths.js";
 
-export type GlossSource = "TAGNT" | "TAHOT" | "TBESG";
+export type GlossSource = "TAGNT" | "TAHOT" | "TBESG" | "TBESH";
 
 interface TaggedWord {
   norm: string;
@@ -54,6 +54,18 @@ export function cleanGloss(raw: string): string {
     .replace(/[.,;:!?·]+$/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/**
+ * TAHOT ends a word that closes a paragraph with the paragraph mark as its own
+ * backslash-separated piece (`אֶחָֽד\׃\ \פ`). normalizeHebrew keeps Hebrew
+ * letters, so the פ or ס stayed on the word and it never matched OSHB: 3,103
+ * verse-final words had no gloss in core v5, Genesis 1:5's among them. Only a
+ * trailing mark goes; the few rows where a maqaf or paseq joins a second word
+ * (`\־לָעֹ֔מֶר`) keep their letters.
+ */
+export function tahotSurface(raw: string): string {
+  return raw.replace(/(?:\\\s*)+[ספ]$/u, "");
 }
 
 // ---------------------------------------------------------------------------
@@ -111,7 +123,7 @@ function loadTahot(files: string[]): Map<string, TaggedWord[]> {
       seen.add(cols[0] ?? "");
       const key = verseKey(match[1] ?? "", match[2] ?? "", match[3] ?? "");
       if (key === null) continue;
-      const hebrew = cols[1] ?? "";
+      const hebrew = tahotSurface(cols[1] ?? "");
       const english = cols[3] ?? "";
       const parts = english.split("/").map(cleanGloss);
       const list = byVerse.get(key) ?? [];
@@ -142,6 +154,31 @@ function loadTbesgGlosses(): Map<string, string> {
   return map;
 }
 
+/**
+ * Brief Hebrew and Aramaic gloss by Strong's number, the fallback for unaligned Old Testament words: ketiv forms,
+ * whose TAHOT row is the qere, and the rest (build 8: 1,816 words left after the paragraph-mark fix). Column 6,
+ * the gloss "created by Tyndale scholars" (TBESH's header); never column 7, the Abridged BDB, which needs
+ * Online Bible's permission.
+ */
+function loadTbeshGlosses(): Map<string, string> {
+  const full = path.join(RAW, "TBESH.txt");
+  return existsSync(full) ? tbeshGlosses(readFileSync(full, "utf8")) : new Map();
+}
+
+/** TBESH's text as Strong's -> gloss: the first row for a number wins, as in TBESG. */
+export function tbeshGlosses(text: string): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const line of text.split("\n")) {
+    const cols = line.split("\t");
+    const strongs = (cols[0] ?? "").trim();
+    const gloss = (cols[6] ?? "").trim();
+    if (/^H\d{4,5}[a-zA-Z]?$/.test(strongs) && gloss.length > 0 && !map.has(strongs)) {
+      map.set(strongs, gloss.split("/")[0] ?? gloss);
+    }
+  }
+  return map;
+}
+
 // ---------------------------------------------------------------------------
 // Alignment
 // ---------------------------------------------------------------------------
@@ -158,10 +195,11 @@ export function attachGlosses(tokens: Token[]): GlossCoverage {
   const tagnt = loadTagnt(["TAGNT-Mat-Jhn.txt", "TAGNT-Act-Rev.txt"]);
   const tahot = loadTahot(["TAHOT-Gen-Deu.txt", "TAHOT-Jos-Est.txt", "TAHOT-Job-Sng.txt", "TAHOT-Isa-Mal.txt"]);
   const tbesg = loadTbesgGlosses();
+  const tbesh = loadTbeshGlosses();
 
   const coverage: GlossCoverage = {
     tokens: tokens.length,
-    bySource: { TAGNT: 0, TAHOT: 0, TBESG: 0 },
+    bySource: { TAGNT: 0, TAHOT: 0, TBESG: 0, TBESH: 0 },
     unglossed: 0,
     weakBooks: [],
   };
@@ -207,12 +245,13 @@ export function attachGlosses(tokens: Token[]): GlossCoverage {
         break;
       }
 
-      if (!matched && nt && token.strongs !== undefined) {
-        const lexical = tbesg.get(token.strongs);
+      if (!matched && token.strongs !== undefined) {
+        const source = nt ? "TBESG" : "TBESH";
+        const lexical = (nt ? tbesg : tbesh).get(token.strongs);
         if (lexical !== undefined) {
           token.gloss = lexical;
-          token.gloss_source = "TBESG";
-          coverage.bySource.TBESG += 1;
+          token.gloss_source = source;
+          coverage.bySource[source] += 1;
           matched = true;
         }
       }

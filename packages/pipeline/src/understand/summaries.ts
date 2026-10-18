@@ -77,6 +77,12 @@ const CUT_LINE = /\b(?:through|to|of|by|for|with|and|the|a|an|in|on|from)\.?$|^[
 /** Outline lines that name a kind of text, not what happens in it: no headline of "What happens". */
 const LABEL_LINE = /^(?:the\s+)?(?:greeting|greetings|introduction|conclusion|closing|heading|superscription|title|complaint|lament|prayer|praise|hymn|song|oracle|blessing|benediction)\b/i;
 
+/**
+ * Passages Henry's outline steers, one by one as John accepts the change (16 Oct 2026: Acts 9:23–25 accepted;
+ * Daniel 6, Ezra 2, Acts 2, Judges 2 and Hebrews 11 rejected). Steering every passage changed 284 summaries.
+ */
+const STEERED: ReadonlySet<string> = new Set(["ACT.9.23-9.25"]);
+
 export function summariseBook(data: PassageBookData, budget = BUDGET): PassageResult[] {
   const book = data.book;
   const ords = [...data.ordRef.keys()].sort((a, b) => a - b);
@@ -191,7 +197,15 @@ export function summariseBook(data: PassageBookData, budget = BUDGET): PassageRe
     const openingLine = opening ? openingSpeech(ust.get(vk(...firstV)) ?? "", speakerOf.get(vk(...firstV)), owner, firstV) : null;
     const events =
       mode === "love" ? [...data.events, ...data.outline.filter((x) => x.c1 === x.c2).map((x) => ({ chapter: x.c1, v1: x.v1, v2: x.v2, line: x.line }))] : data.events;
-    const base = { label: p.label, verses: vs, ust, names, budget, tq: data.tq, events, asides: data.asides, owner, divided, tqGap: mode === "letter", opening, openingLine };
+    // Henry's line for a section that starts inside the passage, or holds it and runs at most a third longer:
+    // Genesis 46:16–18 sits inside his 46:5–27, whose line is about the whole journey (build 8 plan §D).
+    const [sc, sv] = vs[0] as Where;
+    const [ec, ev] = vs.at(-1) as Where;
+    const steer = (STEERED.has(p.id) ? (data.henry ?? []) : [])
+      .filter((h) => h.outline !== null && h.c1 === h.c2 && h.c1 === sc && sc === ec)
+      .filter((h) => (h.v1 >= sv && h.v1 <= ev) || (h.v1 <= sv && h.v2 >= ev && h.v2 - h.v1 + 1 <= Math.ceil(((ev - sv + 1) * 4) / 3)))
+      .map((h) => h.outline as string);
+    const base = { label: p.label, verses: vs, ust, names, budget, tq: data.tq, events, asides: data.asides, owner, divided, tqGap: mode === "letter", opening, openingLine, steer };
     let res = mode === "sayings" ? null : summarise({ ...base, obs });
     if (res !== null && gate(res.key || "x", res.text, res.detail, true, budget, vs.length).some((f) => f.startsWith("b:") || f.startsWith("f:"))) {
       // Body chain after tQ and the UST, when the first pick leans (b) or is too thin (f): Tyndale's first

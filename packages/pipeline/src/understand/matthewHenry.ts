@@ -66,10 +66,28 @@ export function mhcOutline(osis: string): Map<string, string> {
   );
   const out = new Map<string, string>();
   for (const m of flat.matchAll(/([^()]+?)\s*\((\d+)(?:-(\d+))?\)/g)) {
-    const line = (m[1] ?? "").trim();
-    if (line !== "") out.set(`${m[2]}-${m[3] ?? m[2]}`, line);
+    // The heading's own words ran into the first line ("Chapter Outline The apostle Paul asserts…", Galatians 1),
+    // and a line split at a reference left its tail as a line ("and to practise the duties…", Colossians 3):
+    // the first is cut off, the second is no line at all (build 8, 16 Oct 2026).
+    const line = (m[1] ?? "").trim().replace(/^Chapter (?:Outline|\d+)\s+/, "");
+    if (line !== "" && !/^[a-z]/.test(line)) out.set(`${m[2]}-${m[3] ?? m[2]}`, line);
   }
   return out;
+}
+
+const FINITE = /^(?:is|are|was|were|has|have|had|would|should|will|shall|may|can|must|[a-z]{3,}(?:s|ed))$/;
+const NOT_BEFORE_VERB = /^(?:of|the|a|an|to|and|his|her|their|its|our|in|on|for|by|with|from)$/i;
+
+/**
+ * An outline line that says who did what ("Herod causes the infants of Bethlehem to be massacred."), not a label
+ * ("The plague of frogs.", "Christian salutations."): only a statement may lead a summary (build 8). A finite
+ * verb is a lower-case word ending in -s or -ed, or an auxiliary, that is not the line's last word and does not
+ * follow an article, possessive or preposition.
+ */
+export function isStatement(line: string): boolean {
+  const words = line.replace(/[.,;:!?]/g, "").split(/\s+/).filter((w) => w !== "");
+  if (/, [A-Z]/.test(line)) return false;
+  return words.some((w, i) => i > 0 && i < words.length - 1 && FINITE.test(w) && !NOT_BEFORE_VERB.test(words[i - 1] ?? ""));
 }
 
 const TOKEN =

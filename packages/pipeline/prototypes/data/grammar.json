@@ -1,15 +1,11 @@
 {
- "_why": "Build 6 item H (15 Oct 2026): each grammar term on the word screen's Form line, with the first sentence of the matching unfoldingWord Grammar article's Summary (or Glossary), word for word. Built by `yada grammar --write` (packages/pipeline/src/grammar.ts). 'status' is 'draft' until John approves it in the review tool's Extracts queue; only approved entries are written into the app (apps/mobile/src/data/grammar.generated.ts). Since John's review, six Greek terms take a sentence from Machen's New Testament Greek for Beginners (1923, public domain) instead, spelling slips are corrected with a note saying so, a sentence shared by two terms is held, and 'rejected' lists sentences that never return as drafts. This table is an adapted copy, published under CC BY-SA 4.0 like its unfoldingWord sources.",
+ "_why": "Build 6 item H (15 Oct 2026): each grammar term on the word screen's Form line, with the first sentence of the matching unfoldingWord Grammar article's Summary (or Glossary), word for word. Built by `yada grammar --write` (packages/pipeline/src/grammar.ts). 'status' is 'draft' until John approves it in the review tool's Extracts queue; only approved entries are written into the app (apps/mobile/src/data/grammar.generated.ts). Since John's review, six Greek terms take a sentence from Machen's New Testament Greek for Beginners (1923, public domain) instead; since build 8 the aorist is Burton's (1903), the Hebrew absolute, construct and cohortative Gesenius' (1910, Wikisource), and the Aramaic determined state Winer's (1845); spelling slips are corrected with a note saying so, a sentence shared by two terms is held, and 'rejected' lists sentences that never return as drafts. This table is an adapted copy, published under CC BY-SA 4.0 like its unfoldingWord sources.",
  "pins": {
   "en_ugg": "e358acbf9c86ae0f0c381df0ccf5e1ddd7e54a84",
   "en_uhg": "ddad74ff2632140569c8ab49cf2950bd4cccf768",
   "en_uag": "6babf1977048702caa3bddf12f57507e318caf0e"
  },
  "gaps": [
-  {
-   "key": "aramaic:determined",
-   "reason": "state_determined.rst is filed as state_absolute (“state_absolute”), a copy of another article"
-  },
   {
    "key": "aramaic:infinitive construct",
    "reason": "no en_uag/infinitive_construct.rst"
@@ -52,6 +48,17 @@
    "rejected": [
     "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state."
    ]
+  },
+  {
+   "key": "aramaic:determined",
+   "label": "determined",
+   "language": "aramaic",
+   "text": "In addition to the absolute and construct state, we have here also the status emphaticus, or emphatic state, as it is termed, and which was designed originally to express the noun with the definite article.",
+   "ref": "winer/grammarofchaldee00wine_djvu.txt §32.1, p. 87",
+   "paragraph": "In addition to the absolute and construct state, we have here also the status emphaticus, or emphatic state, as it is termed, and which was designed originally to express the noun with the definite article.",
+   "tokens": 884,
+   "status": "approved",
+   "source": "winer"
   },
   {
    "key": "aramaic:construct",
@@ -383,11 +390,13 @@
    "key": "greek:aorist",
    "label": "aorist",
    "language": "greek",
-   "text": "Aorist is a verb tense-form used to express an unspecified kind of action (in other words - only that some form of action has occurred or occurs), without reference to its duration or completeness.",
-   "ref": "en_ugg/content/tense_aorist.rst Glossary",
-   "paragraph": "Aorist is a verb tense-form used to express an unspecified kind of action (in other words - only that some form of action has occurred or occurs), without reference to its duration or completeness.",
+   "text": "The constant characteristic of the Aorist tense in all of its moods, including the participle, is that it represents the action denoted by it indefinitely; i.e. simply as an event, neither on the one hand picturing it in progress, nor on the other affirming the existence of its result.",
+   "ref": "burton/cu31924021607449_djvu.txt §35, p. 16",
+   "paragraph": "The constant characteristic of the Aorist tense in all of its moods, including the participle, is that it represents the action denoted by it indefinitely; i.e. simply as an event, neither on the one hand picturing it in progress, nor on the other affirming the existence of its result.",
    "tokens": 11572,
-   "status": "rejected",
+   "status": "approved",
+   "note": "The scan's OCR reads “7¢.e.”; the printed page has “i.e.” (checked against the page image, 16 Oct 2026).",
+   "source": "burton",
    "rejected": [
     "Aorist is a verb tense-form used to express an unspecified kind of action (in other words - only that some form of action has occurred or occurs), without reference to its duration or completeness."
    ]
@@ -570,11 +579,12 @@
    "key": "hebrew:absolute",
    "label": "absolute",
    "language": "hebrew",
-   "text": "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state.",
-   "ref": "en_uhg/content/state_absolute.rst Summary",
-   "paragraph": "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state. A word in the absolute state can take a prefix but not a suffix.",
+   "text": "Thus in Hebrew only the noun which stands before a genitive suffers a change, and in grammatical language is said to be dependent, or in the construct state, while a noun which has not a genitive after it is said to be in the absolute state.",
+   "ref": "gesenius/page271-rev8193852.wiki + gesenius/page154-rev8193761.wiki §89a, p. 247",
+   "paragraph": "Thus in Hebrew only the noun which stands before a genitive suffers a change, and in grammatical language is said to be dependent, or in the construct state, while a noun which has not a genitive after it is said to be in the absolute state.",
    "tokens": 73589,
-   "status": "rejected",
+   "status": "approved",
+   "source": "gesenius",
    "rejected": [
     "The absolute state is the standard form of a word (noun, adjective, participle, or infinitive) in contrast to a modified form called the construct state."
    ]
@@ -583,11 +593,12 @@
    "key": "hebrew:construct",
    "label": "construct",
    "language": "hebrew",
-   "text": "The construct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state.",
-   "ref": "en_uhg/content/state_construct.rst Summary",
-   "paragraph": "The construct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state. The construct state is used when a word takes a suffix or is connected to another term in a construct chain.",
+   "text": "Thus in Hebrew only the noun which stands before a genitive suffers a change, and in grammatical language is said to be dependent, or in the construct state, while a noun which has not a genitive after it is said to be in the absolute state.",
+   "ref": "gesenius/page271-rev8193852.wiki + gesenius/page154-rev8193761.wiki §89a, p. 247",
+   "paragraph": "Thus in Hebrew only the noun which stands before a genitive suffers a change, and in grammatical language is said to be dependent, or in the construct state, while a noun which has not a genitive after it is said to be in the absolute state.",
    "tokens": 60507,
-   "status": "rejected",
+   "status": "approved",
+   "source": "gesenius",
    "rejected": [
     "The construct state is a modified form of a word (noun, adjective, participle, or infinitive) in contrast to the standard form called the absolute state."
    ]
@@ -810,11 +821,12 @@
    "key": "hebrew:cohortative",
    "label": "cohortative",
    "language": "hebrew",
-   "text": "The cohortative form is used to express indirect commands and other similar actions with varying degrees of desirability as determined by the context.",
-   "ref": "en_uhg/content/verb_cohortative.rst Summary",
-   "paragraph": "The cohortative form is used to express indirect commands and other similar actions with varying degrees of desirability as determined by the context.",
+   "text": "The cohortative expresses the direction of the will to an action and thus denotes especially self-encouragement (in the 1st plur. an exhortation to others at the same time), a resolution or a wish, as an optative, &c., see § 108.",
+   "ref": "gesenius/page271-rev8193852.wiki + gesenius/page154-rev8193761.wiki §48e, p. 130",
+   "paragraph": "The cohortative expresses the direction of the will to an action and thus denotes especially self-encouragement (in the 1st plur. an exhortation to others at the same time), a resolution or a wish, as an optative, &c., see § 108.",
    "tokens": 576,
-   "status": "rejected",
+   "status": "approved",
+   "source": "gesenius",
    "rejected": [
     "The cohortative form is used to express indirect commands and other similar actions with varying degrees of desirability as determined by the context."
    ]

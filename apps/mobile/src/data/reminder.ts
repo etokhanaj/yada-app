@@ -15,7 +15,7 @@ import { system } from "../../modules/yada-system";
 import { loadMcheyne, loadYourPlan } from "./plans";
 import { type Db, getChapter, getTexts } from "./queries";
 import { loadProgress } from "./startHere";
-import { loadSettings, saveSetting } from "./user";
+import { loadDays, loadSettings, saveSetting } from "./user";
 import { label as psalmsLabel, parsePsalter, setForChoice } from "../lib/dailyPsalms";
 import { MCHEYNE_READINGS, nextPortion, portionLabel } from "../lib/plans";
 import { excerptOf } from "../lib/reader";
@@ -33,10 +33,15 @@ import {
   psalmForDay,
   type ReminderPrefs,
   type ReminderText,
+  rhythmLine,
+  weekLine,
+  WEEKLY_AT,
+  withLine,
   upcomingTimes,
 } from "../lib/reminder";
 import { nextPassage } from "../lib/startHere";
 import { rangeRef, type ReminderRequest, type RichReminder, richVerses } from "../lib/systemSurfaces";
+import { rhythmOf, todayKey } from "../lib/rhythm";
 
 const CATEGORY = "reading";
 
@@ -190,9 +195,14 @@ async function scheduleNow(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs)
   ]);
   const times = upcomingTimes(new Date(), prefs);
   const next = prefs.kind === "next" ? await nextText(user, core) : null;
-  for (const at of times) {
-    const one = prefs.kind === "today" ? await todayText(core, at) : next;
-    if (one === null) continue;
+  const days = await loadDays(user);
+  const rhythm = rhythmLine(rhythmOf(days, todayKey(new Date())));
+  for (const [i, at] of times.entries()) {
+    const found = prefs.kind === "today" ? await todayText(core, at) : next;
+    if (found === null) continue;
+    // One line at most: Sunday's week in review, else the rhythm on the first reminder only (build 8 plan §H).
+    const line = prefs.weekly && at.getDay() === 0 ? weekLine(days, at) : i === 0 ? rhythm : null;
+    const one = { ...found, text: withLine(found.text, line) };
     // One per day: scheduling again replaces it rather than adding a second.
     const id = `reminder-${at.getFullYear()}-${at.getMonth() + 1}-${at.getDate()}`;
     if (system !== null) {
@@ -227,6 +237,22 @@ async function scheduleNow(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs)
       await Notifications.scheduleNotificationAsync({
         identifier: id,
         content: { title: one.text.title, body: one.text.body, categoryIdentifier: CATEGORY, data: { target: one.target } },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
+      });
+    }
+  }
+  // The week in review on its own only when no reminder falls on that Sunday: one notification a day at most,
+  // besides the evening psalms (John, 17 Oct 2026).
+  if (prefs.weekly) {
+    const sundays = upcomingTimes(new Date(), { ...prefs, ...WEEKLY_AT, days: [false, false, false, false, false, false, true] });
+    for (const at of sundays) {
+      if (times.some((t) => t.toDateString() === at.toDateString())) continue;
+      const line = weekLine(days, at);
+      if (line === null) continue;
+      const id = `reminder-week-${at.getFullYear()}-${at.getMonth() + 1}-${at.getDate()}`;
+      await Notifications.scheduleNotificationAsync({
+        identifier: id,
+        content: { title: "Your week", body: line, data: {} },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
       });
     }

@@ -4,7 +4,7 @@ import type { BundleManifest, StudyInfo, UnderstandInfo } from "@yada/schema";
 
 export const BUNDLED_MANIFEST: BundleManifest = {
   "format": 2,
-  "generated_at": "2026-10-16T05:49:55.145Z",
+  "generated_at": "2026-10-16T17:16:12.351Z",
   "min_app_version": "1.0.0",
   "schema_versions": [
     "1.3.0"
@@ -13,10 +13,10 @@ export const BUNDLED_MANIFEST: BundleManifest = {
     {
       "name": "core",
       "kind": "core",
-      "version": 6,
-      "file": "core.v6.db",
-      "sha256": "ff0e41a631b933156d80eaa3a5399b1c31959adc115508689a26199f27224bce",
-      "bytes": 95625216,
+      "version": 7,
+      "file": "core.v7.db",
+      "sha256": "93cafaa17d2e551e3b74bfbf18379a89ca96e32f473e546e458760918ff685ba",
+      "bytes": 95653888,
       "format": 2,
       "schema_version": "1.3.0",
       "review_gate": "reviewed",
@@ -19576,6 +19576,2452 @@ export const BUNDLED_MANIFEST: BundleManifest = {
       }
     },
     {
+      "book": "1CH",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/1ch-001.m4a",
+          "sha256": "4b71acd9d02266e22065df1faffccb680ea2aee470501dc2ee7d040c0c4db04a",
+          "bytes": 1714764,
+          "timings": "audio/heart/web/1ch-001.json",
+          "timings_sha256": "5c17904973c007e346acbc4b0ba164738425f877e76286d6e03989b15876c353",
+          "duration": 299.15
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/1ch-002.m4a",
+          "sha256": "31317f97fff2fbe7b88fac12c8859766f2942a9dcadfbd8c86f03d1247ac26d7",
+          "bytes": 2205845,
+          "timings": "audio/heart/web/1ch-002.json",
+          "timings_sha256": "3296ebbe3516b9d2244a385e8b6e6a5228f0318f439ad7ab8398001c5644c6ca",
+          "duration": 375.25
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/1ch-003.m4a",
+          "sha256": "52594af4ccf15d28eeaf76ece45587f219d7d924022de1e7595c8c0f23fcad2a",
+          "bytes": 911764,
+          "timings": "audio/heart/web/1ch-003.json",
+          "timings_sha256": "62684fd9395d87d442f9875d18ee55031093f69d765fc72d78c973ad2f8744b3",
+          "duration": 156.675
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/1ch-004.m4a",
+          "sha256": "43feb76651a337a6527f75e0709f46031b2c142dead697cfeb5bc00dc01aad3a",
+          "bytes": 1914495,
+          "timings": "audio/heart/web/1ch-004.json",
+          "timings_sha256": "f6004ad3cf4873d3375bcdf357ba541bed0d23a0e7e636e05e5531ee64382b0e",
+          "duration": 324.325
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/1ch-005.m4a",
+          "sha256": "c40baaeae623f4c838bced44f29def1d6d3d24249cfd6a9bff4f711c9935a8e3",
+          "bytes": 1388272,
+          "timings": "audio/heart/web/1ch-005.json",
+          "timings_sha256": "e94b776e186f163f1718cd0d071e09f3cd7feeb5b47ee5885f6017d9003bff7d",
+          "duration": 230.2
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/1ch-006.m4a",
+          "sha256": "8dc40b64ac5d757f8b39baec9d72d05b00fd99e255e503a3cf989d12619993f5",
+          "bytes": 3161581,
+          "timings": "audio/heart/web/1ch-006.json",
+          "timings_sha256": "8fb90099683427095cd42843dd842fb24a2fe0fa312f66925ec7388020869860",
+          "duration": 540
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/1ch-007.m4a",
+          "sha256": "c96a1a6c239804ecb40e78e85702543fdf7e2accf555503a2748ef8e5d63b6f5",
+          "bytes": 1832427,
+          "timings": "audio/heart/web/1ch-007.json",
+          "timings_sha256": "aec0f2c6efb547547f715c932735219c83a6ecccee6871201aaa0dacb4a49dd4",
+          "duration": 310.35
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/1ch-008.m4a",
+          "sha256": "1d58d0d3d4679f9c923e42c73c67ef4426c75e33df668b2a433a41a195bef252",
+          "bytes": 1226179,
+          "timings": "audio/heart/web/1ch-008.json",
+          "timings_sha256": "72af7c84f28054f94c2ac036febffc88d6f8c529acf3dfbd2217d7cad89218fa",
+          "duration": 215.5
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/1ch-009.m4a",
+          "sha256": "4c8f4a74d2e4b6a0c9435656834198344d39c5d531e69b1867caac47ec7b91dd",
+          "bytes": 2134462,
+          "timings": "audio/heart/web/1ch-009.json",
+          "timings_sha256": "e6967d49c4b8186bf5ec85cd9c81f63d2817310bca1d6e3c24ed4315814180f6",
+          "duration": 358.05
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/1ch-010.m4a",
+          "sha256": "9d2324e726761cbaa648945b5069f67937b76ee8f01acd1794b1aa3307db8d43",
+          "bytes": 749225,
+          "timings": "audio/heart/web/1ch-010.json",
+          "timings_sha256": "58c0078239e233ef9743752bfc7c68d61ba4072288f7dc534de4b89f6a92331b",
+          "duration": 123.95
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/1ch-011.m4a",
+          "sha256": "fd0d46e46c7089980947dbf78593dd77fa7ae523bc95eef73b458102330e59f2",
+          "bytes": 2081132,
+          "timings": "audio/heart/web/1ch-011.json",
+          "timings_sha256": "1db8c740a570bebfbab1204fc534bd170ebe54caa7d43f9ea34681393992f805",
+          "duration": 350.525
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/1ch-012.m4a",
+          "sha256": "60694d03b05302628be89486cf29a2fd00f65796a6f49ef9a2aa432f0de44a16",
+          "bytes": 2174105,
+          "timings": "audio/heart/web/1ch-012.json",
+          "timings_sha256": "b73e6184e1f773478046babaeb28295f66530baed93391f085590dee9010394b",
+          "duration": 362.025
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/1ch-013.m4a",
+          "sha256": "27434a19859611a3af489e962622ff392350f6b72249f5847aee851d44ce5dc2",
+          "bytes": 748483,
+          "timings": "audio/heart/web/1ch-013.json",
+          "timings_sha256": "62174daec67bed3886f76dadd5fe8801a7ab253430667c2becc34a66132a93d2",
+          "duration": 123.225
+        },
+        {
+          "chapter": 14,
+          "file": "audio/heart/web/1ch-014.m4a",
+          "sha256": "b269147168a4b55a655abd9a8a598ef81eed03d86463f6ca52e23641b08b7888",
+          "bytes": 752084,
+          "timings": "audio/heart/web/1ch-014.json",
+          "timings_sha256": "2a8e229d18f27fb292f356db20ed364b0d43f446a498104369bb1981d8c893cd",
+          "duration": 126.7
+        },
+        {
+          "chapter": 15,
+          "file": "audio/heart/web/1ch-015.m4a",
+          "sha256": "d479d304a8ee2fb3e3ef5f021f6951e25fdd9d1f895870459d4554e53feaa1a1",
+          "bytes": 1498576,
+          "timings": "audio/heart/web/1ch-015.json",
+          "timings_sha256": "50abc9b0eba18da16f615f50debc1dfcc36b9d1891c496d80dcf29f4605114d8",
+          "duration": 247.95
+        },
+        {
+          "chapter": 16,
+          "file": "audio/heart/web/1ch-016.m4a",
+          "sha256": "5abeafa7f69cf02340dc0405552b9cbb65a7097cbc8914570b17540d57b33054",
+          "bytes": 1827227,
+          "timings": "audio/heart/web/1ch-016.json",
+          "timings_sha256": "43fba1becbd8340bd4b53c51bf9d70538ee161f2900a7b1236d37228d4632dbf",
+          "duration": 308.1
+        },
+        {
+          "chapter": 17,
+          "file": "audio/heart/web/1ch-017.m4a",
+          "sha256": "5046a0fbd22691111b85c84e8dc98a3150272eecf9074cdeee5270d61fd85b92",
+          "bytes": 1456502,
+          "timings": "audio/heart/web/1ch-017.json",
+          "timings_sha256": "14d8f7023a54c519130793849f6c8ca863f079811dd254e25d4cbffa0977d473",
+          "duration": 242.65
+        },
+        {
+          "chapter": 18,
+          "file": "audio/heart/web/1ch-018.m4a",
+          "sha256": "3de1b95c7d16da4cbd92cf81de4a697aa7cae110a6f0e254f47a59806545232e",
+          "bytes": 916800,
+          "timings": "audio/heart/web/1ch-018.json",
+          "timings_sha256": "c816ab750b110ba8a7cc70f84ed0d202c92ba77d141f6475728ad11cc38aedf6",
+          "duration": 152.825
+        },
+        {
+          "chapter": 19,
+          "file": "audio/heart/web/1ch-019.m4a",
+          "sha256": "329f77ea99e191660ba79bfcfd32007695503f5d0af2a5e051895d6915a374c2",
+          "bytes": 1243253,
+          "timings": "audio/heart/web/1ch-019.json",
+          "timings_sha256": "ad6114f5c0a0bcbfd9ae6f38e0eac678eead39993310aabd872f5160d384d129",
+          "duration": 204.15
+        },
+        {
+          "chapter": 20,
+          "file": "audio/heart/web/1ch-020.m4a",
+          "sha256": "77bb959cb00d3b1c6014fc0d7259de7a847dce12447a7955ee59d3c37cf346f4",
+          "bytes": 553358,
+          "timings": "audio/heart/web/1ch-020.json",
+          "timings_sha256": "77a97b8ba221c43ded42c6ff034a1a15ffd821306b61b496389f1ecac0c489a9",
+          "duration": 89.75
+        },
+        {
+          "chapter": 21,
+          "file": "audio/heart/web/1ch-021.m4a",
+          "sha256": "1298c71d4bea9ef7f931b690bc120eb757ae01e0483f5b7d8835bd39629ac10c",
+          "bytes": 1846107,
+          "timings": "audio/heart/web/1ch-021.json",
+          "timings_sha256": "1486a80de7e84300fabe031011cc022bbd6ed6665e7447e59c850ad235b22f6a",
+          "duration": 307
+        },
+        {
+          "chapter": 22,
+          "file": "audio/heart/web/1ch-022.m4a",
+          "sha256": "e36cd16823460f80a99d8bd3e47d856e2a718c188eb9977f70a678a6b6a43aad",
+          "bytes": 1220607,
+          "timings": "audio/heart/web/1ch-022.json",
+          "timings_sha256": "889a90a96d444d09578dbc1ccd8789e82d2c6334b64593c7a83dea8293d079f7",
+          "duration": 201.05
+        },
+        {
+          "chapter": 23,
+          "file": "audio/heart/web/1ch-023.m4a",
+          "sha256": "07788ac142aabed526c36be07b4398680fea1ad8c596eb11495d887fc276d869",
+          "bytes": 1499034,
+          "timings": "audio/heart/web/1ch-023.json",
+          "timings_sha256": "97ff03d0bfb70e5c4f781c06d82112255ab0df8689633fa830bedbed802f1d26",
+          "duration": 253.25
+        },
+        {
+          "chapter": 24,
+          "file": "audio/heart/web/1ch-024.m4a",
+          "sha256": "db2adeddba236b8701c130b5698b620d7a64cb7c42074ac50cfa1ed4a4b4593c",
+          "bytes": 1290340,
+          "timings": "audio/heart/web/1ch-024.json",
+          "timings_sha256": "64ebf4f90dc2f97c180a8a18c99a876db2035b7f187aa3b80b71ec395d86041e",
+          "duration": 219.5
+        },
+        {
+          "chapter": 25,
+          "file": "audio/heart/web/1ch-025.m4a",
+          "sha256": "88bf1c28e01d7947d74971c49bc9da3d64622793104ee672e30d2bc2890d51a4",
+          "bytes": 1195013,
+          "timings": "audio/heart/web/1ch-025.json",
+          "timings_sha256": "2863e8b8ce9e69caffcc3231d0d062a77d8b1b5968564084e9cff673e1e83716",
+          "duration": 203.875
+        },
+        {
+          "chapter": 26,
+          "file": "audio/heart/web/1ch-026.m4a",
+          "sha256": "7eba02cb198f0517f4a53e54fc35e82d428dcb917c58f4d5b21b225e62979393",
+          "bytes": 1620855,
+          "timings": "audio/heart/web/1ch-026.json",
+          "timings_sha256": "442f2e4bcf965d3874223a1565dbc9f74b466a7c3529f7311efad799a2ae594a",
+          "duration": 272.025
+        },
+        {
+          "chapter": 27,
+          "file": "audio/heart/web/1ch-027.m4a",
+          "sha256": "d2fe93ab7ce3d0dfa584479ada0d185af127b753a0ca6d6c40c2685f3ac08a03",
+          "bytes": 1777875,
+          "timings": "audio/heart/web/1ch-027.json",
+          "timings_sha256": "11e49bd8a94e88fe5f34326388540c80e05c2823cb617f2b59531a84bbbdd48f",
+          "duration": 298.7
+        },
+        {
+          "chapter": 28,
+          "file": "audio/heart/web/1ch-028.m4a",
+          "sha256": "b19842f7c894a41c7335716892a5d2de61e075c407cdbe5e503a7119905f2a4e",
+          "bytes": 1589116,
+          "timings": "audio/heart/web/1ch-028.json",
+          "timings_sha256": "c45b110f9ea38bd148347d4e20ea9ce4aa99f9d8673f2f30a077b3e58209f704",
+          "duration": 262.15
+        },
+        {
+          "chapter": 29,
+          "file": "audio/heart/web/1ch-029.m4a",
+          "sha256": "327e6a0b3b3871bae547f87c41eb1d9385d43dbce921464f28abdeaccd456519",
+          "bytes": 2036212,
+          "timings": "audio/heart/web/1ch-029.json",
+          "timings_sha256": "b1a35f65df93fa36bde450ae5c1be32cd97507feb5e1e57cfca7a4b6f594cd0f",
+          "duration": 333.675
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/1ch-titles.m4a",
+        "sha256": "47ce47d4404adb150fde853f177bfd40c328cb1902f85fbedc462c9b4438500b",
+        "bytes": 459574,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.475
+          },
+          {
+            "chapter": 2,
+            "start": 2.775,
+            "end": 5.2
+          },
+          {
+            "chapter": 3,
+            "start": 5.5,
+            "end": 7.925
+          },
+          {
+            "chapter": 4,
+            "start": 8.225,
+            "end": 10.7
+          },
+          {
+            "chapter": 5,
+            "start": 11,
+            "end": 13.525
+          },
+          {
+            "chapter": 6,
+            "start": 13.825,
+            "end": 16.25
+          },
+          {
+            "chapter": 7,
+            "start": 16.55,
+            "end": 19.1
+          },
+          {
+            "chapter": 8,
+            "start": 19.4,
+            "end": 21.8
+          },
+          {
+            "chapter": 9,
+            "start": 22.1,
+            "end": 24.525
+          },
+          {
+            "chapter": 10,
+            "start": 24.825,
+            "end": 27.275
+          },
+          {
+            "chapter": 11,
+            "start": 27.575,
+            "end": 30.2
+          },
+          {
+            "chapter": 12,
+            "start": 30.5,
+            "end": 33
+          },
+          {
+            "chapter": 13,
+            "start": 33.3,
+            "end": 35.95
+          },
+          {
+            "chapter": 14,
+            "start": 36.25,
+            "end": 38.9
+          },
+          {
+            "chapter": 15,
+            "start": 39.2,
+            "end": 41.825
+          },
+          {
+            "chapter": 16,
+            "start": 42.125,
+            "end": 44.725
+          },
+          {
+            "chapter": 17,
+            "start": 45.025,
+            "end": 47.75
+          },
+          {
+            "chapter": 18,
+            "start": 48.05,
+            "end": 50.625
+          },
+          {
+            "chapter": 19,
+            "start": 50.925,
+            "end": 53.5
+          },
+          {
+            "chapter": 20,
+            "start": 53.8,
+            "end": 56.4
+          },
+          {
+            "chapter": 21,
+            "start": 56.7,
+            "end": 59.425
+          },
+          {
+            "chapter": 22,
+            "start": 59.725,
+            "end": 62.375
+          },
+          {
+            "chapter": 23,
+            "start": 62.675,
+            "end": 65.425
+          },
+          {
+            "chapter": 24,
+            "start": 65.725,
+            "end": 68.45
+          },
+          {
+            "chapter": 25,
+            "start": 68.75,
+            "end": 71.525
+          },
+          {
+            "chapter": 26,
+            "start": 71.825,
+            "end": 74.575
+          },
+          {
+            "chapter": 27,
+            "start": 74.875,
+            "end": 77.775
+          },
+          {
+            "chapter": 28,
+            "start": 78.075,
+            "end": 80.725
+          },
+          {
+            "chapter": 29,
+            "start": 81.025,
+            "end": 83.775
+          }
+        ]
+      }
+    },
+    {
+      "book": "1KI",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/1ki-001.m4a",
+          "sha256": "fa664e147362450b8a59ab543207be663a5fedc73c5d70fcb8683dce1634bbd3",
+          "bytes": 3000291,
+          "timings": "audio/heart/web/1ki-001.json",
+          "timings_sha256": "db48590b2785e236cbdc5a0697eebc1bc3989339a9bccaecf27f9dae0c4b1bea",
+          "duration": 499.675
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/1ki-002.m4a",
+          "sha256": "a2301f442b0373d3c156c4f79da495cadb5beadee8676f65fa1d7702fca4fa71",
+          "bytes": 2914246,
+          "timings": "audio/heart/web/1ki-002.json",
+          "timings_sha256": "b48b9db938950c75e94d9271e1e08eea1fcd740fcf533cb0ae2ba5143bd5a768",
+          "duration": 481.65
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/1ki-003.m4a",
+          "sha256": "a239831b7a016ab291ac13e7030bb60b8ad61fcc73c7e84cf48ee93504e8b7b3",
+          "bytes": 1667626,
+          "timings": "audio/heart/web/1ki-003.json",
+          "timings_sha256": "5e7e78109e7ec2dca75406d7d021c3eee6407cf7ec04fcb01d68eff41823a508",
+          "duration": 276.875
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/1ki-004.m4a",
+          "sha256": "b94f29512a14331a3ecfc6597d9b56a4cdb446b8243a98253916a6ddbcf67dff",
+          "bytes": 1560613,
+          "timings": "audio/heart/web/1ki-004.json",
+          "timings_sha256": "da345cc01130bacda9a4a575d2295f9232507667aa65597f568620cbe4544ae9",
+          "duration": 262.225
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/1ki-005.m4a",
+          "sha256": "9a0b5b6766bd47141be1557b9ea3adf7ac0bdb3d56700bd6afe5333aa19c37af",
+          "bytes": 1082452,
+          "timings": "audio/heart/web/1ki-005.json",
+          "timings_sha256": "58a4ec4ef32b33c2ced16cfe662146a45847e5865a73fbf0aa7d10435f6c3463",
+          "duration": 180.15
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/1ki-006.m4a",
+          "sha256": "5c936840c25dc450433d62b83a2ab651055520c0b74435d1b0c9d5a39a75e2e3",
+          "bytes": 1997206,
+          "timings": "audio/heart/web/1ki-006.json",
+          "timings_sha256": "36bde2140f28d48dc16936f8b88a535d8c01fec74523a539bebcd82db8e262c5",
+          "duration": 332.075
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/1ki-007.m4a",
+          "sha256": "678713396c904164125aaa99f40faa10b50a30f152ef9de9e4dea4344bdf8513",
+          "bytes": 2916482,
+          "timings": "audio/heart/web/1ki-007.json",
+          "timings_sha256": "297f7dd757a37cc2b4d2842e75e2ddf2a7d5fda5503860f8b6057af07184c977",
+          "duration": 482.025
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/1ki-008.m4a",
+          "sha256": "1fc2f1762cd5113ece1a14f3aadf3edb52db425bbdfc029ae8591ea80b89a9af",
+          "bytes": 4106627,
+          "timings": "audio/heart/web/1ki-008.json",
+          "timings_sha256": "0e58151bc683bfc4af46062cefd28fa50f8cafad7246a81f3d3cb0581ca86562",
+          "duration": 680.225
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/1ki-009.m4a",
+          "sha256": "7c58a9fbaa187b66d0f892cd2bbb4d4732393ad585931b3a36713c1703774afe",
+          "bytes": 1623847,
+          "timings": "audio/heart/web/1ki-009.json",
+          "timings_sha256": "bfeb5b5a7c7843c8f3d949ad37793458bcc10ff66000fd01cb7fc81fb15a94c5",
+          "duration": 269.6
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/1ki-010.m4a",
+          "sha256": "4067ddcd6625db9de49ae98a6680e1dd93f5f7943c15cc3994c14165c8bb0e9e",
+          "bytes": 1688774,
+          "timings": "audio/heart/web/1ki-010.json",
+          "timings_sha256": "ccc9a591fb99c22f222db4394eb9de2c08954d99d60323e5eeef004c79fbf6fa",
+          "duration": 279.55
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/1ki-011.m4a",
+          "sha256": "49c09921bb9370e578cb44a4825e8afcc86239b7f018eb9ec0b3ac585ef1d174",
+          "bytes": 2546231,
+          "timings": "audio/heart/web/1ki-011.json",
+          "timings_sha256": "25f09818a137cd2ba57837425726c8a08af84659cfd774408981bf671b1e728e",
+          "duration": 423.15
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/1ki-012.m4a",
+          "sha256": "24a378d969897cd5e4e1f0c4d2c1c808a3231155174a8e2a560824bafef099f1",
+          "bytes": 2033204,
+          "timings": "audio/heart/web/1ki-012.json",
+          "timings_sha256": "2d31900cfbe09dd64cd93b2b447445c0f827d8ecfe21a9c133e6f1299b941cb2",
+          "duration": 335.025
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/1ki-013.m4a",
+          "sha256": "6d60f9a7aa1e15a394a23893dfc11385556f61972ffac7fb469f085d576f6cfa",
+          "bytes": 2056164,
+          "timings": "audio/heart/web/1ki-013.json",
+          "timings_sha256": "02d4dba2883e9f7e6c417adb027dd04a03b7a0454421eb4b4f6420fbf5d23f15",
+          "duration": 339.8
+        },
+        {
+          "chapter": 14,
+          "file": "audio/heart/web/1ki-014.m4a",
+          "sha256": "dd3f0fb8cf6ef4350ce72bb484a050004b9b3cc7c583fc5332877aa49a6b429c",
+          "bytes": 1960081,
+          "timings": "audio/heart/web/1ki-014.json",
+          "timings_sha256": "933f54a7e8c863f4e21054c9fd648463f8deb5068dc0cbde43b05ff5c0e6bf91",
+          "duration": 323.725
+        },
+        {
+          "chapter": 15,
+          "file": "audio/heart/web/1ki-015.m4a",
+          "sha256": "28136090faf54d600b347b4d8fe0f0a63829d2f24e1e5dbb18cca636985b4bf4",
+          "bytes": 1925430,
+          "timings": "audio/heart/web/1ki-015.json",
+          "timings_sha256": "f4636ca0c0fe0f5b921297046a6d12e2f9b3721046b4732ab64c09b93d088a8e",
+          "duration": 320.95
+        },
+        {
+          "chapter": 16,
+          "file": "audio/heart/web/1ki-016.m4a",
+          "sha256": "dbd808a6d1bdf0213b4e5bc677e5bb1095af851ea754219d383711193ec074f8",
+          "bytes": 2005680,
+          "timings": "audio/heart/web/1ki-016.json",
+          "timings_sha256": "d04a19f87e757452935073b1467ed5fc09c83576e367a67f74e3e6b00a07c798",
+          "duration": 333.675
+        },
+        {
+          "chapter": 17,
+          "file": "audio/heart/web/1ki-017.m4a",
+          "sha256": "6a423d6d3681a21c34df0b80c88d6e65039718502ffbb7685156667073b29c37",
+          "bytes": 1231257,
+          "timings": "audio/heart/web/1ki-017.json",
+          "timings_sha256": "d6c599638663a34983b4afab68d65dca2214bddb0c1211d3134d8b1d2dbc686a",
+          "duration": 204.35
+        },
+        {
+          "chapter": 18,
+          "file": "audio/heart/web/1ki-018.m4a",
+          "sha256": "c72b6570983344962c3eb85a7d67a4237aafc6a323e89db5aefb0de8a68e1311",
+          "bytes": 2662006,
+          "timings": "audio/heart/web/1ki-018.json",
+          "timings_sha256": "e06bab70a037feeb556fd2d98d474b8b1ca0d26558a9a61f5293b7414e35cfbc",
+          "duration": 441.25
+        },
+        {
+          "chapter": 19,
+          "file": "audio/heart/web/1ki-019.m4a",
+          "sha256": "fe1cd65beca43db303ed51a23194ceb6ce95dbe64d3501526312d82bdc0fe23a",
+          "bytes": 1429168,
+          "timings": "audio/heart/web/1ki-019.json",
+          "timings_sha256": "16a0f7fd459ffb05eed2168af9b0794f0f7c954173328055f497c3a7e14a2078",
+          "duration": 235.5
+        },
+        {
+          "chapter": 20,
+          "file": "audio/heart/web/1ki-020.m4a",
+          "sha256": "21fd7b5faa2fe68c79f9c10110a7d125ad166432773cf56da0c0c80993df84a8",
+          "bytes": 2811561,
+          "timings": "audio/heart/web/1ki-020.json",
+          "timings_sha256": "bb3a584907f1a866c1421040ca6ee8265a99fda1c0606529a117ed36e3c5264d",
+          "duration": 465.3
+        },
+        {
+          "chapter": 21,
+          "file": "audio/heart/web/1ki-021.m4a",
+          "sha256": "032f1aae053a0be9b27ce612c48a261777da484b72454b3e8705ec607defb023",
+          "bytes": 1753050,
+          "timings": "audio/heart/web/1ki-021.json",
+          "timings_sha256": "3a9a4589cdc599e63ccc51f60dae77d9e0e9d3865ea9cd4d189535d64f6ed1d1",
+          "duration": 289.575
+        },
+        {
+          "chapter": 22,
+          "file": "audio/heart/web/1ki-022.m4a",
+          "sha256": "c90d4fd5b15f90910f168eb7c21d3f51b14beb75cf026367a290915220bbf35d",
+          "bytes": 2970125,
+          "timings": "audio/heart/web/1ki-022.json",
+          "timings_sha256": "8d89f03c21e735f3f13250237f7d363c676840951327a9e0228eeb9023b79b42",
+          "duration": 493.8
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/1ki-titles.m4a",
+        "sha256": "c5e53862005d817bb348560a0adf175b9a65a60e786b14ba8e8df205091000a1",
+        "bytes": 306907,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.175
+          },
+          {
+            "chapter": 2,
+            "start": 2.475,
+            "end": 4.675
+          },
+          {
+            "chapter": 3,
+            "start": 4.975,
+            "end": 7.15
+          },
+          {
+            "chapter": 4,
+            "start": 7.45,
+            "end": 9.675
+          },
+          {
+            "chapter": 5,
+            "start": 9.975,
+            "end": 12.25
+          },
+          {
+            "chapter": 6,
+            "start": 12.55,
+            "end": 14.775
+          },
+          {
+            "chapter": 7,
+            "start": 15.075,
+            "end": 17.4
+          },
+          {
+            "chapter": 8,
+            "start": 17.7,
+            "end": 19.825
+          },
+          {
+            "chapter": 9,
+            "start": 20.125,
+            "end": 22.375
+          },
+          {
+            "chapter": 10,
+            "start": 22.675,
+            "end": 24.85
+          },
+          {
+            "chapter": 11,
+            "start": 25.15,
+            "end": 27.55
+          },
+          {
+            "chapter": 12,
+            "start": 27.85,
+            "end": 30.025
+          },
+          {
+            "chapter": 13,
+            "start": 30.325,
+            "end": 32.675
+          },
+          {
+            "chapter": 14,
+            "start": 32.975,
+            "end": 35.4
+          },
+          {
+            "chapter": 15,
+            "start": 35.7,
+            "end": 38.075
+          },
+          {
+            "chapter": 16,
+            "start": 38.375,
+            "end": 40.8
+          },
+          {
+            "chapter": 17,
+            "start": 41.1,
+            "end": 43.625
+          },
+          {
+            "chapter": 18,
+            "start": 43.925,
+            "end": 46.275
+          },
+          {
+            "chapter": 19,
+            "start": 46.575,
+            "end": 48.975
+          },
+          {
+            "chapter": 20,
+            "start": 49.275,
+            "end": 51.7
+          },
+          {
+            "chapter": 21,
+            "start": 52,
+            "end": 54.475
+          },
+          {
+            "chapter": 22,
+            "start": 54.775,
+            "end": 57.25
+          }
+        ]
+      }
+    },
+    {
+      "book": "1SA",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/1sa-001.m4a",
+          "sha256": "9aa76f27b7df1c28c2eeffbdf056a3dab01eecb60b803bcb61b074656c608589",
+          "bytes": 1473179,
+          "timings": "audio/heart/web/1sa-001.json",
+          "timings_sha256": "e5230bfff709970fccdb3384be6a58e2d57ffc97b4b3e914873c8fe4e93b5424",
+          "duration": 245.275
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/1sa-002.m4a",
+          "sha256": "4f2d62d7dfa7ac63d48380273cdbe70f873cbf12d101ab2c2c44d47a2c614a20",
+          "bytes": 2128765,
+          "timings": "audio/heart/web/1sa-002.json",
+          "timings_sha256": "bda66b0c1d4454f143f45bc8cf394f0b50348fc2d86da445ca118db61cdb6894",
+          "duration": 355.325
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/1sa-003.m4a",
+          "sha256": "9dca38402d5013f137153d681772a3fe3cc781bd0daab2cea8ab93a68efad17c",
+          "bytes": 1068011,
+          "timings": "audio/heart/web/1sa-003.json",
+          "timings_sha256": "6bbded422bfbd2f6ee6eade2e5b0e6067fa7b965061c24c27a5e3f7156a14df8",
+          "duration": 180.125
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/1sa-004.m4a",
+          "sha256": "7b4569f032910d8a0bf1bf5fd5d268eadf919eaf2ac17d23709562c70c8219dd",
+          "bytes": 1414022,
+          "timings": "audio/heart/web/1sa-004.json",
+          "timings_sha256": "b3ecd3192b0e7abb1ad02da20fe160ec07efc6254b2ef2fc9d99465e836fdf7e",
+          "duration": 234.325
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/1sa-005.m4a",
+          "sha256": "c344b3a7ae9ad593835192b4db70afb79c69dfb2451486cdb864e10aab71b402",
+          "bytes": 813910,
+          "timings": "audio/heart/web/1sa-005.json",
+          "timings_sha256": "c429e98e0c93b835d1f2f6d2b42d5652d451ba7f0d103c28dd91f50b0c30fb80",
+          "duration": 133.25
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/1sa-006.m4a",
+          "sha256": "f4ae99ecf0185ec45d4ab4a94ec9bed58691cc257272759f6edfe31bb6753678",
+          "bytes": 1430439,
+          "timings": "audio/heart/web/1sa-006.json",
+          "timings_sha256": "7617574dd5e418abac674379c42f67d00735fff2e3dc8176842ad50f99db31a4",
+          "duration": 236.1
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/1sa-007.m4a",
+          "sha256": "f03060ea6e5f48fbcffce0dd4c6e2c83e8674d66e23a3ef3aff1c366ed2ad0c1",
+          "bytes": 1014136,
+          "timings": "audio/heart/web/1sa-007.json",
+          "timings_sha256": "f8a5f61a7059ba8c0d50e88cb25b71f820cfe7e8d50ae01c783a85c38a9e8040",
+          "duration": 168.125
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/1sa-008.m4a",
+          "sha256": "8ec8939d4c318c06107ac679ca319c602bcab2f22b793c95f7aa4e10971b119b",
+          "bytes": 1037399,
+          "timings": "audio/heart/web/1sa-008.json",
+          "timings_sha256": "6970680c265bc0a796cdbd5aae7f0f3c4b30620d7c7f67cfb2b5c2e5c02e23ee",
+          "duration": 175.175
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/1sa-009.m4a",
+          "sha256": "8fd96c40c4189d81664223a3a89a4d768805df335b4da954b44d18a3a1a57316",
+          "bytes": 1846299,
+          "timings": "audio/heart/web/1sa-009.json",
+          "timings_sha256": "9cbf8af5cfca2fa90cf9ba54e13845bb66f55f5ca5ba00c23d1c7f1cdedae021",
+          "duration": 305.325
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/1sa-010.m4a",
+          "sha256": "421ecd0ddf86ab20896c9da76b97e88e64b0995486bd5128a40680d92ed6dc22",
+          "bytes": 1645259,
+          "timings": "audio/heart/web/1sa-010.json",
+          "timings_sha256": "950d821db0a4a3e0c84a1d79f952effe3390aa0cebde2633c3e565b3bdc6277c",
+          "duration": 272.725
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/1sa-011.m4a",
+          "sha256": "6e200cedbd5578ad227dcacbe1c2688d6c7f3bda24a5f92cb32d89e6c3bdcd93",
+          "bytes": 938216,
+          "timings": "audio/heart/web/1sa-011.json",
+          "timings_sha256": "68b65cb789df166051c146faac0507bf2f992b52d3ce4d8d2e8ca9d8a066d584",
+          "duration": 155.3
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/1sa-012.m4a",
+          "sha256": "cfe12f301a8a604239406ea9c5ca857c5c228101c34ee7186c958b97629d17e5",
+          "bytes": 1510286,
+          "timings": "audio/heart/web/1sa-012.json",
+          "timings_sha256": "48bcf95e3613220804f19ad08e028cf5f3380df514d375784515981588cb77f2",
+          "duration": 249.875
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/1sa-013.m4a",
+          "sha256": "bbc0214efa707a5831f3558cac078d02a05b4dba61d1b11b67fcada9a78368e2",
+          "bytes": 1443262,
+          "timings": "audio/heart/web/1sa-013.json",
+          "timings_sha256": "fede465a9a85ced19d81c331f54e3d2d13c93076630f1eba5493417119486dd6",
+          "duration": 237.325
+        },
+        {
+          "chapter": 14,
+          "file": "audio/heart/web/1sa-014.m4a",
+          "sha256": "7f1ac7d325c51bbca625df9f63712d24a848f28519500a4b21dad35ec75d9051",
+          "bytes": 3222233,
+          "timings": "audio/heart/web/1sa-014.json",
+          "timings_sha256": "587fd28d657b21d3b2b71d6abeac4d7fc85701e05141804d410d478dca8d59f5",
+          "duration": 533.275
+        },
+        {
+          "chapter": 15,
+          "file": "audio/heart/web/1sa-015.m4a",
+          "sha256": "33cf978bee4e74e2ae1a068661831ca4c6fb49e513cf32cc1916056d162d9d02",
+          "bytes": 1935751,
+          "timings": "audio/heart/web/1sa-015.json",
+          "timings_sha256": "d2324c7c9f288cfdb9b3f8290784e9f6d576a0093fd65b2d93789f1369789c81",
+          "duration": 322.7
+        },
+        {
+          "chapter": 16,
+          "file": "audio/heart/web/1sa-016.m4a",
+          "sha256": "ee418facfd7bc064c32a0eeddea592a2a85f26df0f504a8889962803afb35357",
+          "bytes": 1334098,
+          "timings": "audio/heart/web/1sa-016.json",
+          "timings_sha256": "f4cab221a00cb40abcbc14fb53d83a47bf8466f1b8c35b8cf1b5cc5bc938636e",
+          "duration": 222.775
+        },
+        {
+          "chapter": 17,
+          "file": "audio/heart/web/1sa-017.m4a",
+          "sha256": "6cfebd58b368b06ea91df32deb0f3fd23f4a50196b83e779d6877b6fb1db9fb0",
+          "bytes": 3307497,
+          "timings": "audio/heart/web/1sa-017.json",
+          "timings_sha256": "ab814584c220d04719251a9a5abac7b81025f1a76ebb38b1e236ae88e3bcd681",
+          "duration": 549.125
+        },
+        {
+          "chapter": 18,
+          "file": "audio/heart/web/1sa-018.m4a",
+          "sha256": "d2af487f8c46812eef298e3261b64c4cca57d8d8741a7db9c99f9ed17c37d5d3",
+          "bytes": 1635610,
+          "timings": "audio/heart/web/1sa-018.json",
+          "timings_sha256": "0897b5f245ff9800d6bb4c915c92f9229869d7a8a2a9bafc9633323289597da7",
+          "duration": 270.65
+        },
+        {
+          "chapter": 19,
+          "file": "audio/heart/web/1sa-019.m4a",
+          "sha256": "8e48db1ae1c4f3221abbf136ce6174d728bb4899210c0c3fde1edd8aae3d7569",
+          "bytes": 1381651,
+          "timings": "audio/heart/web/1sa-019.json",
+          "timings_sha256": "68b5ca310d96fa6748427b9df0dcfe0f6b48447aa6f7744590cd73c8f423770e",
+          "duration": 229.925
+        },
+        {
+          "chapter": 20,
+          "file": "audio/heart/web/1sa-020.m4a",
+          "sha256": "a7911723fbfcca0bbe0186d7013df478525e53b221b1dd54cdbfde727111af51",
+          "bytes": 2484495,
+          "timings": "audio/heart/web/1sa-020.json",
+          "timings_sha256": "5554c632e4cae109f52406679a0bc53546516d4526a459377da7223cc8b1f958",
+          "duration": 412.65
+        },
+        {
+          "chapter": 21,
+          "file": "audio/heart/web/1sa-021.m4a",
+          "sha256": "67d684dc33e1f181d20d093380ee18d294d6c065f74a40ecb514a106438f18cd",
+          "bytes": 980296,
+          "timings": "audio/heart/web/1sa-021.json",
+          "timings_sha256": "576c6b2993a4fd38d5e1d43f89b73e56373c10b63c2cb1ab8bddb92cf97abf82",
+          "duration": 159.5
+        },
+        {
+          "chapter": 22,
+          "file": "audio/heart/web/1sa-022.m4a",
+          "sha256": "a427bd84820f689297a9753f9fe1298e842f880741a4003a0d723876b6f6c308",
+          "bytes": 1488119,
+          "timings": "audio/heart/web/1sa-022.json",
+          "timings_sha256": "20fccc75c20c01f30ce3474ad0cb551e2a82bc77a4a64d3e5c62291205bfe047",
+          "duration": 245.725
+        },
+        {
+          "chapter": 23,
+          "file": "audio/heart/web/1sa-023.m4a",
+          "sha256": "b9d518ad38f3d7324961668fb4efe844f7b5646faa6887b814acef7920368377",
+          "bytes": 1664863,
+          "timings": "audio/heart/web/1sa-023.json",
+          "timings_sha256": "49da96b8d2511354c12c4e29b3ac20cb6d70f407a1e8acb5e4593de21155396a",
+          "duration": 274.95
+        },
+        {
+          "chapter": 24,
+          "file": "audio/heart/web/1sa-024.m4a",
+          "sha256": "286fc971a7fa98e1546365efa1ef38f4da5b256e7f8a81d46ae1639c9245e374",
+          "bytes": 1275235,
+          "timings": "audio/heart/web/1sa-024.json",
+          "timings_sha256": "6709549aeb9c872ba438a351ab6b2d06d9e016ae7a21ca4dbbbd833ffdfeea20",
+          "duration": 209.5
+        },
+        {
+          "chapter": 25,
+          "file": "audio/heart/web/1sa-025.m4a",
+          "sha256": "0c0611ca419bb9b67536f8c4c2c31a7a0fdecc917cb370e3c8473f1b52e52490",
+          "bytes": 2740832,
+          "timings": "audio/heart/web/1sa-025.json",
+          "timings_sha256": "17147951dd13ad2d0d9b6eaf82a1e8c08b815fdd6156cfb9c2df93775ef74b5e",
+          "duration": 455.175
+        },
+        {
+          "chapter": 26,
+          "file": "audio/heart/web/1sa-026.m4a",
+          "sha256": "1aa1b27ee1219c9a14193eb95586712c696c14be116018805fd9223c85059987",
+          "bytes": 1677353,
+          "timings": "audio/heart/web/1sa-026.json",
+          "timings_sha256": "a6a79f4312e869a6b0f432c083df21d419bd3e93261afbf12459ac9112b7ab58",
+          "duration": 277.175
+        },
+        {
+          "chapter": 27,
+          "file": "audio/heart/web/1sa-027.m4a",
+          "sha256": "92b4b8e6b1abae605e69f722fc2c5c2ba8648d56d1dfc28df144c625605470a6",
+          "bytes": 780647,
+          "timings": "audio/heart/web/1sa-027.json",
+          "timings_sha256": "f4d34cf773237a005d14bb7dcbaf39e3acda5514cdee1fa6649a18dd53544dca",
+          "duration": 127.775
+        },
+        {
+          "chapter": 28,
+          "file": "audio/heart/web/1sa-028.m4a",
+          "sha256": "d70ab716bcc3c406115f2a93c3c86db0277e8f64c39412525311599e827c1459",
+          "bytes": 1593674,
+          "timings": "audio/heart/web/1sa-028.json",
+          "timings_sha256": "017c7f25d6f5a2553cf6f3a45ba0d2d2327b071c6c4d765a900662add87bfa6b",
+          "duration": 264.875
+        },
+        {
+          "chapter": 29,
+          "file": "audio/heart/web/1sa-029.m4a",
+          "sha256": "251da5ca773512bd190b00124ab6275726e71dc86c78bc9d3a463562a5b572d0",
+          "bytes": 833859,
+          "timings": "audio/heart/web/1sa-029.json",
+          "timings_sha256": "75b2de20a765757caa8971ed09d55597ef8dca1a3b1a8f33b9f3a0c045d4b2e1",
+          "duration": 136.225
+        },
+        {
+          "chapter": 30,
+          "file": "audio/heart/web/1sa-030.m4a",
+          "sha256": "aaac5625259a1145cc4247f9720e51060f0874659148d440b084212e4e83662b",
+          "bytes": 1879808,
+          "timings": "audio/heart/web/1sa-030.json",
+          "timings_sha256": "0919c3d04ae4903e417a1530d4233d2a550d8ec572bf30a1befff91c696ccf36",
+          "duration": 309.625
+        },
+        {
+          "chapter": 31,
+          "file": "audio/heart/web/1sa-031.m4a",
+          "sha256": "1388e9c1c34244237456178d4eb0c5526ef801b6913c62a6b1c1c0776940c210",
+          "bytes": 707550,
+          "timings": "audio/heart/web/1sa-031.json",
+          "timings_sha256": "14b55b48a2fba1e2d38fda31b4c60a275a99e426ddd2ab3d8bfde1ad8342433d",
+          "duration": 117.45
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/1sa-titles.m4a",
+        "sha256": "f1fcd55db14a0a13f9c32d15457b8493e734e1c3865da45bb035b7905e7302c2",
+        "bytes": 453661,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.275
+          },
+          {
+            "chapter": 2,
+            "start": 2.575,
+            "end": 4.85
+          },
+          {
+            "chapter": 3,
+            "start": 5.15,
+            "end": 7.375
+          },
+          {
+            "chapter": 4,
+            "start": 7.675,
+            "end": 10
+          },
+          {
+            "chapter": 5,
+            "start": 10.3,
+            "end": 12.7
+          },
+          {
+            "chapter": 6,
+            "start": 13,
+            "end": 15.25
+          },
+          {
+            "chapter": 7,
+            "start": 15.55,
+            "end": 17.975
+          },
+          {
+            "chapter": 8,
+            "start": 18.275,
+            "end": 20.475
+          },
+          {
+            "chapter": 9,
+            "start": 20.775,
+            "end": 23.1
+          },
+          {
+            "chapter": 10,
+            "start": 23.4,
+            "end": 25.625
+          },
+          {
+            "chapter": 11,
+            "start": 25.925,
+            "end": 28.425
+          },
+          {
+            "chapter": 12,
+            "start": 28.725,
+            "end": 31.075
+          },
+          {
+            "chapter": 13,
+            "start": 31.375,
+            "end": 33.8
+          },
+          {
+            "chapter": 14,
+            "start": 34.1,
+            "end": 36.55
+          },
+          {
+            "chapter": 15,
+            "start": 36.85,
+            "end": 39.225
+          },
+          {
+            "chapter": 16,
+            "start": 39.525,
+            "end": 41.95
+          },
+          {
+            "chapter": 17,
+            "start": 42.25,
+            "end": 44.825
+          },
+          {
+            "chapter": 18,
+            "start": 45.125,
+            "end": 47.525
+          },
+          {
+            "chapter": 19,
+            "start": 47.825,
+            "end": 50.25
+          },
+          {
+            "chapter": 20,
+            "start": 50.55,
+            "end": 53
+          },
+          {
+            "chapter": 21,
+            "start": 53.3,
+            "end": 55.825
+          },
+          {
+            "chapter": 22,
+            "start": 56.125,
+            "end": 58.675
+          },
+          {
+            "chapter": 23,
+            "start": 58.975,
+            "end": 61.55
+          },
+          {
+            "chapter": 24,
+            "start": 61.85,
+            "end": 64.45
+          },
+          {
+            "chapter": 25,
+            "start": 64.75,
+            "end": 67.4
+          },
+          {
+            "chapter": 26,
+            "start": 67.7,
+            "end": 70.25
+          },
+          {
+            "chapter": 27,
+            "start": 70.55,
+            "end": 73.325
+          },
+          {
+            "chapter": 28,
+            "start": 73.625,
+            "end": 76.075
+          },
+          {
+            "chapter": 29,
+            "start": 76.375,
+            "end": 78.95
+          },
+          {
+            "chapter": 30,
+            "start": 79.25,
+            "end": 81.6
+          },
+          {
+            "chapter": 31,
+            "start": 81.9,
+            "end": 84.35
+          }
+        ]
+      }
+    },
+    {
+      "book": "2CH",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/2ch-001.m4a",
+          "sha256": "0f30d05d58cdbb29cb50a88e3d690c432bb3ccf30d8ae3fa7b37efde0aae3277",
+          "bytes": 1051141,
+          "timings": "audio/heart/web/2ch-001.json",
+          "timings_sha256": "6c93a0f1d952d80bf8aa079da45f96a4782beef522f41ae860598589bea167ba",
+          "duration": 173.925
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/2ch-002.m4a",
+          "sha256": "ca33ca869cb399137bc87b622f002314569bacab50dcda029cdec4211b73e6c4",
+          "bytes": 1316234,
+          "timings": "audio/heart/web/2ch-002.json",
+          "timings_sha256": "1c24d0441a47c6a43aa9995944d895e7c32da954db1138c304127b04bfe75eca",
+          "duration": 214.975
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/2ch-003.m4a",
+          "sha256": "ebd04e1a0fa29a71bc45baf4d44c91b20d3b2375d47da95e1f0fec88b2660f07",
+          "bytes": 958890,
+          "timings": "audio/heart/web/2ch-003.json",
+          "timings_sha256": "b1203ece056861014791b4b58667053c1d9830e3286ba5772e419aa791cc6e9e",
+          "duration": 157.575
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/2ch-004.m4a",
+          "sha256": "08faefc8d4f1945a14e01b3c0e3eba7cc832622c0d55592f9fc0afe7b4b08fb6",
+          "bytes": 1127128,
+          "timings": "audio/heart/web/2ch-004.json",
+          "timings_sha256": "4d2f240fa86dade83fa5fa1cd3459887fdcaf652acbdfbdc6f7c58177ec37bce",
+          "duration": 186.625
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/2ch-005.m4a",
+          "sha256": "41d4209e01191ddc2fc973854f4f9c9c1d5563b151255b587f6aadc42c5bb9d2",
+          "bytes": 940423,
+          "timings": "audio/heart/web/2ch-005.json",
+          "timings_sha256": "a85665a0232f0d018454f5a633d746c0e8c1ccc9a13ae53ba16b0d46b2bba0ec",
+          "duration": 155.3
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/2ch-006.m4a",
+          "sha256": "6f097ccf57b5d2e70772f987dd9558b4b472b6dab5032fcc21f863f52a52eeb4",
+          "bytes": 2679601,
+          "timings": "audio/heart/web/2ch-006.json",
+          "timings_sha256": "02ed8d94d061aa19c90df1bfe00db5b21f4a19be95dad3f356eaaf7b68a0ec7a",
+          "duration": 443.55
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/2ch-007.m4a",
+          "sha256": "dc82cce41d4962139600ff0cefda07c09b25cbac3fe16a000e258c34b0ef0b9f",
+          "bytes": 1478773,
+          "timings": "audio/heart/web/2ch-007.json",
+          "timings_sha256": "1dccf6502178ae3a6273dedf24fb4ac6ff2f8dbf35cc860088aa3666b41ee072",
+          "duration": 243.55
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/2ch-008.m4a",
+          "sha256": "2719961098f487b7d0a0f60e76710d786e40dcc0c2e03ba7902a959ca8b63b44",
+          "bytes": 1087129,
+          "timings": "audio/heart/web/2ch-008.json",
+          "timings_sha256": "f6f2fe7bf221a0277ddd423bd6af41f515a4a888c97b0dedce3c9a374af142a4",
+          "duration": 179.625
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/2ch-009.m4a",
+          "sha256": "e82a8267e4e0db0e542b0e5ea79a79d6fc02d2f8bc8033b5438e9017f0501f32",
+          "bytes": 1788062,
+          "timings": "audio/heart/web/2ch-009.json",
+          "timings_sha256": "be971124a234a0c7d1bc1f1ca03198b03b5bcb7d6d5c7b2b382f22f19950f77c",
+          "duration": 297.45
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/2ch-010.m4a",
+          "sha256": "8977c016f707909cdba7e3841e714323506e64089aa672ddb72b279d6a39a1a5",
+          "bytes": 1121722,
+          "timings": "audio/heart/web/2ch-010.json",
+          "timings_sha256": "78f4bc9d7b909a751c13e95bc63f1845a95625a9f164e7c9b165236e76acbe9d",
+          "duration": 185.55
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/2ch-011.m4a",
+          "sha256": "0c9c533cf9669d5c4f40c475e79a3a431df4f751da408b1f9425aff2cfe242d2",
+          "bytes": 1071924,
+          "timings": "audio/heart/web/2ch-011.json",
+          "timings_sha256": "76435fda4c609a770fbb8bf467072d74aef59412a0a29b296003422161a50320",
+          "duration": 180.825
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/2ch-012.m4a",
+          "sha256": "d212e5fd4bbc5759b21e7b06a4e7c500181c3d70533c8bf779830acde57b6ca7",
+          "bytes": 995021,
+          "timings": "audio/heart/web/2ch-012.json",
+          "timings_sha256": "5a7a8ff8cb461b95d2f24804a24830c412c9d392d4c80af49efe6db462ac9953",
+          "duration": 164.975
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/2ch-013.m4a",
+          "sha256": "5e084970f258326237f1bb9e66719955dc424e1be650aed6fa50adaa14f5c2ca",
+          "bytes": 1356041,
+          "timings": "audio/heart/web/2ch-013.json",
+          "timings_sha256": "1de819231b992d69594928a241f82230f7045e37e93162222f812c87b4c3be00",
+          "duration": 223.3
+        },
+        {
+          "chapter": 14,
+          "file": "audio/heart/web/2ch-014.m4a",
+          "sha256": "23251f28a39254091a8b95afffcf57bc74b78b4dfa6816fab8565c31bf7bc967",
+          "bytes": 924773,
+          "timings": "audio/heart/web/2ch-014.json",
+          "timings_sha256": "4f65761ef8d634dc97ebea4906a04f6efbcb93aa4873bf5576e39c43fef2716e",
+          "duration": 152.15
+        },
+        {
+          "chapter": 15,
+          "file": "audio/heart/web/2ch-015.m4a",
+          "sha256": "b79e8eccbd060f765936c2087cea1d46ce42e9cc44edcbf324be34272d12cf25",
+          "bytes": 1020490,
+          "timings": "audio/heart/web/2ch-015.json",
+          "timings_sha256": "8a87e6d03a87c540866d54d29f76d533d14a69507f633c6ed05645cf73b24557",
+          "duration": 170.075
+        },
+        {
+          "chapter": 16,
+          "file": "audio/heart/web/2ch-016.m4a",
+          "sha256": "4dd09f5bde54bf181fdc12148a92e77eac9e4ba3581f7099209546c9f39b2286",
+          "bytes": 934727,
+          "timings": "audio/heart/web/2ch-016.json",
+          "timings_sha256": "df1cbcd7a4bfa49fbf3b8396821f20dd04da24b045b704007245c75565911ce4",
+          "duration": 153.975
+        },
+        {
+          "chapter": 17,
+          "file": "audio/heart/web/2ch-017.m4a",
+          "sha256": "9e1e5ae0d718925b19fc13089244565c473beeb7cfde9f7f6ee60b1a0356ffd9",
+          "bytes": 999008,
+          "timings": "audio/heart/web/2ch-017.json",
+          "timings_sha256": "2e990b9ace339aefafaeccd566e26755d5cfd3da0a9457b9dd21c99f3cf70e13",
+          "duration": 166.25
+        },
+        {
+          "chapter": 18,
+          "file": "audio/heart/web/2ch-018.m4a",
+          "sha256": "0f814c9397df0fbe62e4cd6ef87029191d4a8fe4f5ab1ea9ede9c011f33b039a",
+          "bytes": 2050243,
+          "timings": "audio/heart/web/2ch-018.json",
+          "timings_sha256": "50f62e26ddf7d49eb07fb4ef16f4360edf9ea7bd2a8ffaaea48c3bd5cfa8fcfc",
+          "duration": 339.725
+        },
+        {
+          "chapter": 19,
+          "file": "audio/heart/web/2ch-019.m4a",
+          "sha256": "9a295c85199ddff542a4a9291e7642cb2c7a8fe425ad1c66b1f42212ca89a4d7",
+          "bytes": 754621,
+          "timings": "audio/heart/web/2ch-019.json",
+          "timings_sha256": "0b46056c6bff41fcd29ba6dc364eae3d840b87f14ddd655887d04b1ae7a2b5ba",
+          "duration": 122.6
+        },
+        {
+          "chapter": 20,
+          "file": "audio/heart/web/2ch-020.m4a",
+          "sha256": "98a13c9e32aa8f0f78338341f72693b23f19ca63662000c950664fa48b68cab1",
+          "bytes": 2344990,
+          "timings": "audio/heart/web/2ch-020.json",
+          "timings_sha256": "5ce80e77a69e46b8820df00c1f67d1e854e0f5827f65bb0aae36edb481d6a3f0",
+          "duration": 387.225
+        },
+        {
+          "chapter": 21,
+          "file": "audio/heart/web/2ch-021.m4a",
+          "sha256": "f349cafc4b5181087cf51305bb3aed679bc1b51a484ecad5ee50b3cc6eda505c",
+          "bytes": 1255455,
+          "timings": "audio/heart/web/2ch-021.json",
+          "timings_sha256": "4976b66d0493652daeb1c12d7b8f9c382ea24eb8d9b8606dbc8d9a5dfabaf9a7",
+          "duration": 207.575
+        },
+        {
+          "chapter": 22,
+          "file": "audio/heart/web/2ch-022.m4a",
+          "sha256": "013fa560ae6034a9ac8a710ec3b0f6b70a6081cb2f0f79849abd30c239397ca3",
+          "bytes": 909405,
+          "timings": "audio/heart/web/2ch-022.json",
+          "timings_sha256": "734a75ec76cbd694163b1a2b740c029d75e3d98086e40e871e37818285da5aa4",
+          "duration": 149.275
+        },
+        {
+          "chapter": 23,
+          "file": "audio/heart/web/2ch-023.m4a",
+          "sha256": "746d6b37cc1277de83a4360789d5813a2d83d067d643bfb073591e28349f0a8f",
+          "bytes": 1486010,
+          "timings": "audio/heart/web/2ch-023.json",
+          "timings_sha256": "baf1716504f9d1eeab7801697e8a69ff3fd495b1d8befa38f008c7fa7c937c93",
+          "duration": 243.675
+        },
+        {
+          "chapter": 24,
+          "file": "audio/heart/web/2ch-024.m4a",
+          "sha256": "ddc068ba235a77cc5124a9310469c29ac3add2ac066a9c7d8cfab9ea4da824bd",
+          "bytes": 1821214,
+          "timings": "audio/heart/web/2ch-024.json",
+          "timings_sha256": "2111827021d279c863cb93f6629d6afaf7ee1a930ca3ee91e500612a6982094f",
+          "duration": 298.45
+        },
+        {
+          "chapter": 25,
+          "file": "audio/heart/web/2ch-025.m4a",
+          "sha256": "f5d1b444c0c4e88c347530ad676257417335dba93c11403f471b1ce3cba254e6",
+          "bytes": 1930579,
+          "timings": "audio/heart/web/2ch-025.json",
+          "timings_sha256": "c09666bf870e3b4bc22ad46c7ac96efa5dd1b94acb822a14b31bcd364c586bd2",
+          "duration": 318.4
+        },
+        {
+          "chapter": 26,
+          "file": "audio/heart/web/2ch-026.m4a",
+          "sha256": "f4bfe7b3a009447449ef514057d2df3a961722486ee181d00b688a9a7e3afe6d",
+          "bytes": 1488104,
+          "timings": "audio/heart/web/2ch-026.json",
+          "timings_sha256": "de29b4a32a2ea84f0052471c73adf49ed8447a5baf758bea4a14aee738d404e5",
+          "duration": 246.25
+        },
+        {
+          "chapter": 27,
+          "file": "audio/heart/web/2ch-027.m4a",
+          "sha256": "da0be4204813a7efaeff1ec273153916e806639e32611b684527b41bae9d8cf6",
+          "bytes": 493117,
+          "timings": "audio/heart/web/2ch-027.json",
+          "timings_sha256": "2cdaa256c0479917baf7cad7db189eec1b10307c7e2d4e46875b5541840cf349",
+          "duration": 81.725
+        },
+        {
+          "chapter": 28,
+          "file": "audio/heart/web/2ch-028.m4a",
+          "sha256": "192099ea4b0dd1088ba27c74051d15ca56b3c60856cf66f46c6fd9e2baa063c3",
+          "bytes": 1824146,
+          "timings": "audio/heart/web/2ch-028.json",
+          "timings_sha256": "f23b8228e72acca06234ffdafc97a1ae234fa167d4a117a76da8a43f94dc23c6",
+          "duration": 300.6
+        },
+        {
+          "chapter": 29,
+          "file": "audio/heart/web/2ch-029.m4a",
+          "sha256": "efdc583b62737d331f242cc8149b0e2f2e14eea1e59e86724a1db9a47e6c17a7",
+          "bytes": 2327881,
+          "timings": "audio/heart/web/2ch-029.json",
+          "timings_sha256": "b6baba5263fe02caa4a513028bf335d5b36f80b2a15972739ad13865318ac51f",
+          "duration": 384.6
+        },
+        {
+          "chapter": 30,
+          "file": "audio/heart/web/2ch-030.m4a",
+          "sha256": "0df11b31a10bbb7fcd756938b5980ad64673bd3a43c94a280dfbbff8b1b02d2f",
+          "bytes": 1856760,
+          "timings": "audio/heart/web/2ch-030.json",
+          "timings_sha256": "7c8bf898d32610bf2da901544fe567865e342f42c6e73604e397a0130e89cc3d",
+          "duration": 305.725
+        },
+        {
+          "chapter": 31,
+          "file": "audio/heart/web/2ch-031.m4a",
+          "sha256": "b0dfd144388240a42ebcaaf818974a8893d6bbb915e935d2ead3df2296f63588",
+          "bytes": 1585579,
+          "timings": "audio/heart/web/2ch-031.json",
+          "timings_sha256": "c75773002db17d22673730b5fcadacd5e4f5664820abfb96afea680aba2fadde",
+          "duration": 261.375
+        },
+        {
+          "chapter": 32,
+          "file": "audio/heart/web/2ch-032.m4a",
+          "sha256": "6b72f884a1beb1d30237247330faeb203b56989c305dc9c6b361eb6dc884b98c",
+          "bytes": 2240149,
+          "timings": "audio/heart/web/2ch-032.json",
+          "timings_sha256": "fad402666120fbbeead00e466737fd1ee795bfbdc88c9a02c7f968e1a7012961",
+          "duration": 368.15
+        },
+        {
+          "chapter": 33,
+          "file": "audio/heart/web/2ch-033.m4a",
+          "sha256": "4e550afb64b980b05c2117b55960111e838cc82918e104df841b4c79023aaa7e",
+          "bytes": 1579609,
+          "timings": "audio/heart/web/2ch-033.json",
+          "timings_sha256": "9bb850e9e3e1c343f8f874d61b6bd2e0a04b9aaa39d86748ff7e76308a45e301",
+          "duration": 259.875
+        },
+        {
+          "chapter": 34,
+          "file": "audio/heart/web/2ch-034.m4a",
+          "sha256": "7cd8986852d067e903e6ba39b3f22806ea31dcf2c7dbfee12cd71d6cac34418e",
+          "bytes": 2343872,
+          "timings": "audio/heart/web/2ch-034.json",
+          "timings_sha256": "22a184a4e0ebee33009577a58fc02479d8898989d35efe657edeb4bd3e5ef97a",
+          "duration": 383.5
+        },
+        {
+          "chapter": 35,
+          "file": "audio/heart/web/2ch-035.m4a",
+          "sha256": "0d54facfa18797d6562c6365f2e222ac07a87f6e7b1acc344e54a69fc1e55861",
+          "bytes": 1927296,
+          "timings": "audio/heart/web/2ch-035.json",
+          "timings_sha256": "63e16443bff1ce83d7aaa315186ac49ad4f038e06136bd0493be23ac75f21a42",
+          "duration": 317.75
+        },
+        {
+          "chapter": 36,
+          "file": "audio/heart/web/2ch-036.m4a",
+          "sha256": "e08f2828029b34b0943a218968ad82a7544ff620800b0ea9e077fdb24c3b3758",
+          "bytes": 1515094,
+          "timings": "audio/heart/web/2ch-036.json",
+          "timings_sha256": "5e6a822b8452624dadb8b5be3fda6546951d2577b94709cb15618fac7e68f60e",
+          "duration": 248.3
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/2ch-titles.m4a",
+        "sha256": "f57663e720b7ce560bf7596975465cbb383ee7f477a3290d2ba3e70603cff7c0",
+        "bytes": 597856,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.45
+          },
+          {
+            "chapter": 2,
+            "start": 2.75,
+            "end": 5.225
+          },
+          {
+            "chapter": 3,
+            "start": 5.525,
+            "end": 8
+          },
+          {
+            "chapter": 4,
+            "start": 8.3,
+            "end": 10.875
+          },
+          {
+            "chapter": 5,
+            "start": 11.175,
+            "end": 13.675
+          },
+          {
+            "chapter": 6,
+            "start": 13.975,
+            "end": 16.475
+          },
+          {
+            "chapter": 7,
+            "start": 16.775,
+            "end": 19.375
+          },
+          {
+            "chapter": 8,
+            "start": 19.675,
+            "end": 22.1
+          },
+          {
+            "chapter": 9,
+            "start": 22.4,
+            "end": 24.95
+          },
+          {
+            "chapter": 10,
+            "start": 25.25,
+            "end": 27.725
+          },
+          {
+            "chapter": 11,
+            "start": 28.025,
+            "end": 30.725
+          },
+          {
+            "chapter": 12,
+            "start": 31.025,
+            "end": 33.55
+          },
+          {
+            "chapter": 13,
+            "start": 33.85,
+            "end": 36.5
+          },
+          {
+            "chapter": 14,
+            "start": 36.8,
+            "end": 39.5
+          },
+          {
+            "chapter": 15,
+            "start": 39.8,
+            "end": 42.475
+          },
+          {
+            "chapter": 16,
+            "start": 42.775,
+            "end": 45.425
+          },
+          {
+            "chapter": 17,
+            "start": 45.725,
+            "end": 48.5
+          },
+          {
+            "chapter": 18,
+            "start": 48.8,
+            "end": 51.5
+          },
+          {
+            "chapter": 19,
+            "start": 51.8,
+            "end": 54.45
+          },
+          {
+            "chapter": 20,
+            "start": 54.75,
+            "end": 57.4
+          },
+          {
+            "chapter": 21,
+            "start": 57.7,
+            "end": 60.45
+          },
+          {
+            "chapter": 22,
+            "start": 60.75,
+            "end": 63.475
+          },
+          {
+            "chapter": 23,
+            "start": 63.775,
+            "end": 66.55
+          },
+          {
+            "chapter": 24,
+            "start": 66.85,
+            "end": 69.7
+          },
+          {
+            "chapter": 25,
+            "start": 70,
+            "end": 72.85
+          },
+          {
+            "chapter": 26,
+            "start": 73.15,
+            "end": 75.975
+          },
+          {
+            "chapter": 27,
+            "start": 76.275,
+            "end": 79.275
+          },
+          {
+            "chapter": 28,
+            "start": 79.575,
+            "end": 82.375
+          },
+          {
+            "chapter": 29,
+            "start": 82.675,
+            "end": 85.525
+          },
+          {
+            "chapter": 30,
+            "start": 85.825,
+            "end": 88.375
+          },
+          {
+            "chapter": 31,
+            "start": 88.675,
+            "end": 91.475
+          },
+          {
+            "chapter": 32,
+            "start": 91.775,
+            "end": 94.5
+          },
+          {
+            "chapter": 33,
+            "start": 94.8,
+            "end": 97.55
+          },
+          {
+            "chapter": 34,
+            "start": 97.85,
+            "end": 100.625
+          },
+          {
+            "chapter": 35,
+            "start": 100.925,
+            "end": 103.825
+          },
+          {
+            "chapter": 36,
+            "start": 104.125,
+            "end": 106.9
+          }
+        ]
+      }
+    },
+    {
+      "book": "2KI",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/2ki-001.m4a",
+          "sha256": "9d58067014c9260cf938bd1d02a150ccddc989487569019a5743881ad69b704b",
+          "bytes": 1255364,
+          "timings": "audio/heart/web/2ki-001.json",
+          "timings_sha256": "84d013c54093182255059d46fbd38ea9262724c36b13860d920734ef19feebd7",
+          "duration": 205.45
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/2ki-002.m4a",
+          "sha256": "f916bcbd66a44747b48aa3c991e1cfcecf4ca65ecd5148e2d7266afe4a7c6f15",
+          "bytes": 1558720,
+          "timings": "audio/heart/web/2ki-002.json",
+          "timings_sha256": "98e60e4f1249445a3c3d5183c268bce267bcf89af6d65d17454d01740406e42a",
+          "duration": 256.45
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/2ki-003.m4a",
+          "sha256": "fc8f40a89147166340adf2f9dce937f039f20141ce3854e9acc8ea8bf74b7ce8",
+          "bytes": 1669256,
+          "timings": "audio/heart/web/2ki-003.json",
+          "timings_sha256": "69fb5c39409fd798f5cd9e271f776af595449b7eaf403360c7f7022070724e11",
+          "duration": 278
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/2ki-004.m4a",
+          "sha256": "2a4b70fba6f0e0bad9f45bd5be4323db98b71caebaf12ed8ea962c9dee883bae",
+          "bytes": 2482728,
+          "timings": "audio/heart/web/2ki-004.json",
+          "timings_sha256": "411c60764a53d7d67f1280521474ba8fca020f2c5f348f4d2f27408e9c74d658",
+          "duration": 413.875
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/2ki-005.m4a",
+          "sha256": "507ed78aa2c78ef3d49eb437f2efdc89f5b6ff8c2d0f7df8e1e3c24ebd9512b4",
+          "bytes": 1889157,
+          "timings": "audio/heart/web/2ki-005.json",
+          "timings_sha256": "e2fdeb3b44ffe82bb0ab4fda8d9e0dd48443e1c9af4f8b836fcce2bc017a393c",
+          "duration": 310.2
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/2ki-006.m4a",
+          "sha256": "117cb1ff5485bf8ae10d3b40413c3c86c3e4e5ad560fa18b58fd7c48293a4617",
+          "bytes": 1926738,
+          "timings": "audio/heart/web/2ki-006.json",
+          "timings_sha256": "5fefae32547a82e770dd566d3d1ec0325d8b535ffddc14875d9ad154934ee3ab",
+          "duration": 321.35
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/2ki-007.m4a",
+          "sha256": "dc9d96185a630558c509c9f397fb3a8e0d31601a91efd0b04dfba3563d9fcbde",
+          "bytes": 1571036,
+          "timings": "audio/heart/web/2ki-007.json",
+          "timings_sha256": "eb3316c7ea6bda1e051a54d785b84119f5940afbb7f3978ff045cf9fc961a226",
+          "duration": 255.85
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/2ki-008.m4a",
+          "sha256": "db1121dc839b6318b7bf045056f83dd5dbaf76ee9933c6bf587bb6c3abdbe3a9",
+          "bytes": 1857187,
+          "timings": "audio/heart/web/2ki-008.json",
+          "timings_sha256": "09b2f5c01e6f9bc07f74e5b208e165613197dd4481994756bf3d3905694a4b6e",
+          "duration": 307.4
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/2ki-009.m4a",
+          "sha256": "5b78ce425d64a1f5a8b7e90be77c43715d7e50fc07389c0bab4adb481f1395db",
+          "bytes": 2357845,
+          "timings": "audio/heart/web/2ki-009.json",
+          "timings_sha256": "4d73c9c81a8c770e5fc317a83074c3e9ed1dce32535093d5d1b7fd984c7f4e26",
+          "duration": 387.275
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/2ki-010.m4a",
+          "sha256": "ef12c8d2150c8d0b35e1323db443a426ae3792b45e0ef24e21ddbd97f3061c68",
+          "bytes": 2340077,
+          "timings": "audio/heart/web/2ki-010.json",
+          "timings_sha256": "3ec09d0cac76d7b50e38de78e8c4447badb8a9f842f21b51d932bc7ef0e60ab0",
+          "duration": 386.15
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/2ki-011.m4a",
+          "sha256": "958de9396cd9d557ea96d8841212e3232249236b5ad5c559acb7650f948b4dce",
+          "bytes": 1376731,
+          "timings": "audio/heart/web/2ki-011.json",
+          "timings_sha256": "d45feb30d2c84630981111498ea2792a7176726b8e56b79ff44c4ecc78ec2f6f",
+          "duration": 226.025
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/2ki-012.m4a",
+          "sha256": "eab9aa3ea33b75c90f16cf52a47522ece56f3694a2927a789b19ecf1b297aef5",
+          "bytes": 1347639,
+          "timings": "audio/heart/web/2ki-012.json",
+          "timings_sha256": "c239d7b17403b7f7cb0f0237800a93455c8ca58539572882e24604daef62c050",
+          "duration": 221.225
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/2ki-013.m4a",
+          "sha256": "395bcf15f17e19555460c2797590114704d7c460cb0ac88c514fb75aa8ede75b",
+          "bytes": 1575952,
+          "timings": "audio/heart/web/2ki-013.json",
+          "timings_sha256": "671cbeab40f4410bfbf143e0fbca8f8336adbfa6175202d21880fa1ac62b1c69",
+          "duration": 261.425
+        },
+        {
+          "chapter": 14,
+          "file": "audio/heart/web/2ki-014.m4a",
+          "sha256": "c1b8b64604c6018793473bf59ef97d3905cdd56c84cd74a7baefb09402ac650b",
+          "bytes": 1776065,
+          "timings": "audio/heart/web/2ki-014.json",
+          "timings_sha256": "b0050ca4587e797b448443c896f233226caf84766bafd7c3ae49644e953a80e6",
+          "duration": 294.25
+        },
+        {
+          "chapter": 15,
+          "file": "audio/heart/web/2ki-015.m4a",
+          "sha256": "f70baa6438005ac2d22f41ff6cd12eb43613952f9394480e9f73249886f57557",
+          "bytes": 2185413,
+          "timings": "audio/heart/web/2ki-015.json",
+          "timings_sha256": "1e48be2792ee6b225e19928bc879efb6b9563d72b302a42e66a4c3836b4c00f8",
+          "duration": 364
+        },
+        {
+          "chapter": 16,
+          "file": "audio/heart/web/2ki-016.m4a",
+          "sha256": "767426a31d2f6634b6b310f996255fa875386adb0d6d859b91a0142ae37d95d0",
+          "bytes": 1306003,
+          "timings": "audio/heart/web/2ki-016.json",
+          "timings_sha256": "e7d1a81c23fff2b81d37860d99af73afb395976ea363826b18ab5aa1df83c13d",
+          "duration": 214.525
+        },
+        {
+          "chapter": 17,
+          "file": "audio/heart/web/2ki-017.m4a",
+          "sha256": "c07b729ce355c5c3e5295f65491ab3503136a1d72dc2507233b47df2247d3568",
+          "bytes": 2576302,
+          "timings": "audio/heart/web/2ki-017.json",
+          "timings_sha256": "30786d2a2d3bf21c3138876da588317201352685d51297c04e580f953e361f06",
+          "duration": 425.5
+        },
+        {
+          "chapter": 18,
+          "file": "audio/heart/web/2ki-018.m4a",
+          "sha256": "cb40757888a1dbf4df82dd2f29d0c80e24c886f9c707bf68d57867f3c2252680",
+          "bytes": 2410321,
+          "timings": "audio/heart/web/2ki-018.json",
+          "timings_sha256": "d4ee7c4378de16337c5283f6d78af2fd6f5537e88e707fcbf737eaa7d85e8ba9",
+          "duration": 399.4
+        },
+        {
+          "chapter": 19,
+          "file": "audio/heart/web/2ki-019.m4a",
+          "sha256": "d7307c902c9c6672aa47501adfb6310cff0ede0284ee7153d071d7e3c1d61139",
+          "bytes": 2191977,
+          "timings": "audio/heart/web/2ki-019.json",
+          "timings_sha256": "ba489635528f7dbd06eaa904b70a0613aea2a9477b3dbe462a931d53dd82b42a",
+          "duration": 365.125
+        },
+        {
+          "chapter": 20,
+          "file": "audio/heart/web/2ki-020.m4a",
+          "sha256": "7b65a6b64d3f46d2d85ff6a77f83bbd8c4cd01ff59fb6b6005f3037a92e39924",
+          "bytes": 1265374,
+          "timings": "audio/heart/web/2ki-020.json",
+          "timings_sha256": "618d36542bc75e5670235a3a435a4f8b446c2ff87b0b40010f0fb124b0e1647e",
+          "duration": 209.675
+        },
+        {
+          "chapter": 21,
+          "file": "audio/heart/web/2ki-021.m4a",
+          "sha256": "e82dd30dc931c1535f1aa15b8d6d8005c8fc59cc623fdfd0414003736df8d873",
+          "bytes": 1492854,
+          "timings": "audio/heart/web/2ki-021.json",
+          "timings_sha256": "4cd3dd2a90ec3656df1245f10d6e7c8657c5b4961e915a0ab2c2c3d17cbc76e4",
+          "duration": 246.425
+        },
+        {
+          "chapter": 22,
+          "file": "audio/heart/web/2ki-022.m4a",
+          "sha256": "8c34275bbdfaaece6fedfed18eed520022446475c763909c8de283de6acfda08",
+          "bytes": 1308289,
+          "timings": "audio/heart/web/2ki-022.json",
+          "timings_sha256": "ad766856ab9704f1bf123fd508279f6fd55dde516d439bae28bae1ba021a0a17",
+          "duration": 214.875
+        },
+        {
+          "chapter": 23,
+          "file": "audio/heart/web/2ki-023.m4a",
+          "sha256": "a87d2d721bfbf5ab3fdeb324d029f7ae99fe28b53591f5160ea141c422b25764",
+          "bytes": 2881414,
+          "timings": "audio/heart/web/2ki-023.json",
+          "timings_sha256": "d39177b028c6408ce59685fac5199c1a5d7fc8e70cc3f7bcae1198e22210d707",
+          "duration": 469.775
+        },
+        {
+          "chapter": 24,
+          "file": "audio/heart/web/2ki-024.m4a",
+          "sha256": "66fa76d60a932906a8971aff0ebcf37bf674ef5d878e7319aaadfb768197cf84",
+          "bytes": 1220903,
+          "timings": "audio/heart/web/2ki-024.json",
+          "timings_sha256": "399b050bed1f0ff7270f7b4f5b7eff15102c2776d17a8dd70c19227e8368f7d5",
+          "duration": 200.8
+        },
+        {
+          "chapter": 25,
+          "file": "audio/heart/web/2ki-025.m4a",
+          "sha256": "2d6c6c2deeab868d23b4b3ddc8e89efe9a1727f299513b1928b6f5ee6c0479c4",
+          "bytes": 1922920,
+          "timings": "audio/heart/web/2ki-025.json",
+          "timings_sha256": "48e55b80b1e9c4fe24a02c62ec29cb8cc2c79b4de2f6d31e683fbc6f7b3b3b72",
+          "duration": 315.35
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/2ki-titles.m4a",
+        "sha256": "ad66366e0361905ab14fd5129b4e7761383e7120e1b6f08b83dabc631d27971a",
+        "bytes": 370899,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.25
+          },
+          {
+            "chapter": 2,
+            "start": 2.55,
+            "end": 4.825
+          },
+          {
+            "chapter": 3,
+            "start": 5.125,
+            "end": 7.45
+          },
+          {
+            "chapter": 4,
+            "start": 7.75,
+            "end": 10.075
+          },
+          {
+            "chapter": 5,
+            "start": 10.375,
+            "end": 12.7
+          },
+          {
+            "chapter": 6,
+            "start": 13,
+            "end": 15.3
+          },
+          {
+            "chapter": 7,
+            "start": 15.6,
+            "end": 17.975
+          },
+          {
+            "chapter": 8,
+            "start": 18.275,
+            "end": 20.475
+          },
+          {
+            "chapter": 9,
+            "start": 20.775,
+            "end": 23.15
+          },
+          {
+            "chapter": 10,
+            "start": 23.45,
+            "end": 25.7
+          },
+          {
+            "chapter": 11,
+            "start": 26,
+            "end": 28.5
+          },
+          {
+            "chapter": 12,
+            "start": 28.8,
+            "end": 31.125
+          },
+          {
+            "chapter": 13,
+            "start": 31.425,
+            "end": 33.85
+          },
+          {
+            "chapter": 14,
+            "start": 34.15,
+            "end": 36.675
+          },
+          {
+            "chapter": 15,
+            "start": 36.975,
+            "end": 39.425
+          },
+          {
+            "chapter": 16,
+            "start": 39.725,
+            "end": 42.15
+          },
+          {
+            "chapter": 17,
+            "start": 42.45,
+            "end": 45.05
+          },
+          {
+            "chapter": 18,
+            "start": 45.35,
+            "end": 47.825
+          },
+          {
+            "chapter": 19,
+            "start": 48.125,
+            "end": 50.575
+          },
+          {
+            "chapter": 20,
+            "start": 50.875,
+            "end": 53.35
+          },
+          {
+            "chapter": 21,
+            "start": 53.65,
+            "end": 56.2
+          },
+          {
+            "chapter": 22,
+            "start": 56.5,
+            "end": 59.025
+          },
+          {
+            "chapter": 23,
+            "start": 59.325,
+            "end": 61.9
+          },
+          {
+            "chapter": 24,
+            "start": 62.2,
+            "end": 64.8
+          },
+          {
+            "chapter": 25,
+            "start": 65.1,
+            "end": 67.775
+          }
+        ]
+      }
+    },
+    {
+      "book": "2SA",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/2sa-001.m4a",
+          "sha256": "5d3902a78c3e4c807bdc6e05fb7ee4e576cf26d744399927111e3a325900d8ac",
+          "bytes": 1381725,
+          "timings": "audio/heart/web/2sa-001.json",
+          "timings_sha256": "bfa7abcb61dddb4c51b79ba7449958b7417a49c9427a60564b51013bef1ec174",
+          "duration": 231.375
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/2sa-002.m4a",
+          "sha256": "af03dcee92cb8468a934bfb8d461c336fbdc0faf28c4c3bb9f8f697d62f41d93",
+          "bytes": 1801871,
+          "timings": "audio/heart/web/2sa-002.json",
+          "timings_sha256": "8a12c3a63786fd5244acdff87ef5b93244450da0bd675ba033706b734653e200",
+          "duration": 300.225
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/2sa-003.m4a",
+          "sha256": "e1a97bf4214cb3b830b99be762aa66b35b3649bd440d9138830cb6dfccfb9701",
+          "bytes": 2310405,
+          "timings": "audio/heart/web/2sa-003.json",
+          "timings_sha256": "c4e141af9260b64ef79c848c0f49693fb02e0fad4dc8672f9ab1a527357611ad",
+          "duration": 381.675
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/2sa-004.m4a",
+          "sha256": "4d487a222915094927218cdcb4147fddb5fc374f46cd9e3a2ead736c1cc1f3bf",
+          "bytes": 827561,
+          "timings": "audio/heart/web/2sa-004.json",
+          "timings_sha256": "285be4ae8db20e8c1b9b5cc6ff7ca7a80351c421bcbc9da6f91f13638956c22e",
+          "duration": 135.65
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/2sa-005.m4a",
+          "sha256": "956b2dac2a6a2772aafbb3979c281f835ee7a94f0027e1db8bdf700d4b8d8f48",
+          "bytes": 1284659,
+          "timings": "audio/heart/web/2sa-005.json",
+          "timings_sha256": "443a3e5cd849c2e6c2ec04fa436f41d850199327a5f86486c4ba3d4bb581dce4",
+          "duration": 214.45
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/2sa-006.m4a",
+          "sha256": "d17468dcd867698b7cb0923a315ebe97e53b7b5cf38f9e6b0f49534147276749",
+          "bytes": 1311361,
+          "timings": "audio/heart/web/2sa-006.json",
+          "timings_sha256": "72a4bec34b25bfb6d89a8320117f6ae3a58fd052dd9abb086ea350a7a0c27ff9",
+          "duration": 216.575
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/2sa-007.m4a",
+          "sha256": "a6c5e5d60df2a1d75c588fd705a8a4c71a03d6dd4713edefb6964b113d54ffde",
+          "bytes": 1595216,
+          "timings": "audio/heart/web/2sa-007.json",
+          "timings_sha256": "80e8f6e1c707f9a9b983ef85f9bbffefc39ad33fba125645ef7fd1f4f43ebb43",
+          "duration": 265.425
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/2sa-008.m4a",
+          "sha256": "240c8881aa8738300b5ef7e0877db9b0b50a20fc31ef30b2a0a4560a622e2456",
+          "bytes": 990146,
+          "timings": "audio/heart/web/2sa-008.json",
+          "timings_sha256": "a30b376f7e8b6030a1bc322538967de7a045de2ab7892518235359a6949a0b0b",
+          "duration": 163.4
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/2sa-009.m4a",
+          "sha256": "e8a9d0bf29168283b5f3fbb194fbc5b81684469e76b8a8d28d5aada3eb714e04",
+          "bytes": 778099,
+          "timings": "audio/heart/web/2sa-009.json",
+          "timings_sha256": "c56a8732e57651bae146aa138c50452a5589c974da3cc58cad3a8cc7a0e627f1",
+          "duration": 129.625
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/2sa-010.m4a",
+          "sha256": "73048ff222d698b4377cbb2713aa4fa7e047170128a2367eb1574dce4bc16e79",
+          "bytes": 1207227,
+          "timings": "audio/heart/web/2sa-010.json",
+          "timings_sha256": "ca9e3d485ea19edf6a5abfb3e38aa7dc8e108217a20f14c8bd080cc77e63e859",
+          "duration": 198.575
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/2sa-011.m4a",
+          "sha256": "fcbb164e10a50e62ac62fd9ab7b88fb8b817fcafa0fbb609d2188dd98bebf37c",
+          "bytes": 1539326,
+          "timings": "audio/heart/web/2sa-011.json",
+          "timings_sha256": "718d4861935d185dac2faa6866af4488685e451405b2950e48e84303239b2f5a",
+          "duration": 255.025
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/2sa-012.m4a",
+          "sha256": "c098eb07bbdb37987decad46d5ed02afb0adc528c4ee654be981c2bacd3eb639",
+          "bytes": 1921897,
+          "timings": "audio/heart/web/2sa-012.json",
+          "timings_sha256": "9f65a80ad530de0bc58bc011603a9ed7fb9ecc71facf2cecf8b74e7648535f1f",
+          "duration": 317.05
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/2sa-013.m4a",
+          "sha256": "469482920bce4586b2dfef74d99707ef1a5ed22dcfad81fb0364cc3f7c604d25",
+          "bytes": 2260309,
+          "timings": "audio/heart/web/2sa-013.json",
+          "timings_sha256": "9b1639c1014308529df7563732a64b8d20a3f1ff29a09bc12a7ef2da603ee0f5",
+          "duration": 375.775
+        },
+        {
+          "chapter": 14,
+          "file": "audio/heart/web/2sa-014.m4a",
+          "sha256": "ba7098a571a89e61101c8f5e3a84b47e0c25608d14aae6038da770dba45a4432",
+          "bytes": 2120791,
+          "timings": "audio/heart/web/2sa-014.json",
+          "timings_sha256": "c5aa1065329b6f63a4ce7892c8f864a28e279374dd96299ccc80b32a8143f30b",
+          "duration": 349.85
+        },
+        {
+          "chapter": 15,
+          "file": "audio/heart/web/2sa-015.m4a",
+          "sha256": "b56360b2c9c41fa5a5bf49957109a80e91cc8767426854e2a2e9b6a284b34ad3",
+          "bytes": 2200468,
+          "timings": "audio/heart/web/2sa-015.json",
+          "timings_sha256": "5c9f5f9468851c9dee5e64af7fd84d94ee6b132082197b4cbaaaf03e74ecfa75",
+          "duration": 365.4
+        },
+        {
+          "chapter": 16,
+          "file": "audio/heart/web/2sa-016.m4a",
+          "sha256": "cc032146eb9f389a48d93ae69ff8312aad8c2759280748cbb41ad65354ce8861",
+          "bytes": 1438759,
+          "timings": "audio/heart/web/2sa-016.json",
+          "timings_sha256": "5ae33ed27e5249c00ba7b807fead97130aedd14887e736d63dd60bdf83ab8304",
+          "duration": 238.575
+        },
+        {
+          "chapter": 17,
+          "file": "audio/heart/web/2sa-017.m4a",
+          "sha256": "0af3c5d307776a33f84b79c7ada208610c9d8ef3d69051d78e3b35c0f875d053",
+          "bytes": 1857625,
+          "timings": "audio/heart/web/2sa-017.json",
+          "timings_sha256": "6a0e216686060bdc4986af5020b30d5f740c596aff2c074bc4d7c4f258fdeda6",
+          "duration": 307.525
+        },
+        {
+          "chapter": 18,
+          "file": "audio/heart/web/2sa-018.m4a",
+          "sha256": "e303b885878db1ac514df99b2f12b6cbdd25d07a38fd31fc5c30ce9971b687c4",
+          "bytes": 2173961,
+          "timings": "audio/heart/web/2sa-018.json",
+          "timings_sha256": "7b0c1e23cc32b2662ce820c2f32bfdd9fa3218dfff7569bf2633c3eecea465eb",
+          "duration": 358.05
+        },
+        {
+          "chapter": 19,
+          "file": "audio/heart/web/2sa-019.m4a",
+          "sha256": "f3c313ada5c63feb5fcde881aa8affbcb985539dedceff979cbd5d2c0b8d6051",
+          "bytes": 2751149,
+          "timings": "audio/heart/web/2sa-019.json",
+          "timings_sha256": "69adf6faed2d1be325756de2a11e029011af55221c32d1fbe9f96447d40f9be0",
+          "duration": 455.925
+        },
+        {
+          "chapter": 20,
+          "file": "audio/heart/web/2sa-020.m4a",
+          "sha256": "0bedc00b388fc7287b3b54f39b646b931a7ca52869251f6fbd78eae975a13708",
+          "bytes": 1708804,
+          "timings": "audio/heart/web/2sa-020.json",
+          "timings_sha256": "162a048d2f25374f957f6f308f37a76259ae5fb9b7ac9714737a1adc621aa619",
+          "duration": 280.725
+        },
+        {
+          "chapter": 21,
+          "file": "audio/heart/web/2sa-021.m4a",
+          "sha256": "8520e1983828583423847b96ad7784d9a102be16c67a1a77b9296f7ba4e579e5",
+          "bytes": 1541447,
+          "timings": "audio/heart/web/2sa-021.json",
+          "timings_sha256": "6f4dbb922f920f88d2235b43fd4859d3b4a2abecd15a17fcd1459a7c4c7e21eb",
+          "duration": 253.675
+        },
+        {
+          "chapter": 22,
+          "file": "audio/heart/web/2sa-022.m4a",
+          "sha256": "93be13966130ac136091250c488cc1ea0c8c02d7b9d3b16d7958cc1451c6ef8a",
+          "bytes": 1957388,
+          "timings": "audio/heart/web/2sa-022.json",
+          "timings_sha256": "d05c4fd0d618cec1ef5b166612780fa4a810697da7d4bc19b2a55105097ff204",
+          "duration": 333.275
+        },
+        {
+          "chapter": 23,
+          "file": "audio/heart/web/2sa-023.m4a",
+          "sha256": "1cf72f380f443bc0ab477564c968f0f9d4c6df80308fc72dcdbc24603a1f8acf",
+          "bytes": 1824399,
+          "timings": "audio/heart/web/2sa-023.json",
+          "timings_sha256": "335446012292dc6217e1937a3babcae032695b6875c6f999c8f8ab5c3355bdbf",
+          "duration": 307.175
+        },
+        {
+          "chapter": 24,
+          "file": "audio/heart/web/2sa-024.m4a",
+          "sha256": "652e55052a013f958fd1d93936352a6dd4dbc642603314fcbb45219df23ab363",
+          "bytes": 1691055,
+          "timings": "audio/heart/web/2sa-024.json",
+          "timings_sha256": "c8ddd294740f9bd64d4376eae5ccd08d4e775f4521f9fc04ec42382aae78439a",
+          "duration": 278.775
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/2sa-titles.m4a",
+        "sha256": "7b84fe793db45561f37a7aeb85f58fe3336d887aafb7725e4abf276850ef3ca7",
+        "bytes": 374517,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.35
+          },
+          {
+            "chapter": 2,
+            "start": 2.65,
+            "end": 4.975
+          },
+          {
+            "chapter": 3,
+            "start": 5.275,
+            "end": 7.625
+          },
+          {
+            "chapter": 4,
+            "start": 7.925,
+            "end": 10.3
+          },
+          {
+            "chapter": 5,
+            "start": 10.6,
+            "end": 13
+          },
+          {
+            "chapter": 6,
+            "start": 13.3,
+            "end": 15.675
+          },
+          {
+            "chapter": 7,
+            "start": 15.975,
+            "end": 18.475
+          },
+          {
+            "chapter": 8,
+            "start": 18.775,
+            "end": 21.025
+          },
+          {
+            "chapter": 9,
+            "start": 21.325,
+            "end": 23.7
+          },
+          {
+            "chapter": 10,
+            "start": 24,
+            "end": 26.35
+          },
+          {
+            "chapter": 11,
+            "start": 26.65,
+            "end": 29.2
+          },
+          {
+            "chapter": 12,
+            "start": 29.5,
+            "end": 31.9
+          },
+          {
+            "chapter": 13,
+            "start": 32.2,
+            "end": 34.725
+          },
+          {
+            "chapter": 14,
+            "start": 35.025,
+            "end": 37.6
+          },
+          {
+            "chapter": 15,
+            "start": 37.9,
+            "end": 40.375
+          },
+          {
+            "chapter": 16,
+            "start": 40.675,
+            "end": 43.2
+          },
+          {
+            "chapter": 17,
+            "start": 43.5,
+            "end": 46.175
+          },
+          {
+            "chapter": 18,
+            "start": 46.475,
+            "end": 48.975
+          },
+          {
+            "chapter": 19,
+            "start": 49.275,
+            "end": 51.775
+          },
+          {
+            "chapter": 20,
+            "start": 52.075,
+            "end": 54.65
+          },
+          {
+            "chapter": 21,
+            "start": 54.95,
+            "end": 57.575
+          },
+          {
+            "chapter": 22,
+            "start": 57.875,
+            "end": 60.5
+          },
+          {
+            "chapter": 23,
+            "start": 60.8,
+            "end": 63.425
+          },
+          {
+            "chapter": 24,
+            "start": 63.725,
+            "end": 66.425
+          }
+        ]
+      }
+    },
+    {
       "book": "DEU",
       "translation": "WEB",
       "narrator": "heart",
@@ -20065,6 +22511,164 @@ export const BUNDLED_MANIFEST: BundleManifest = {
             "chapter": 34,
             "start": 90.85,
             "end": 93.425
+          }
+        ]
+      }
+    },
+    {
+      "book": "EST",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/est-001.m4a",
+          "sha256": "ff8611c556c6f799d25bb7a856379b4b9f2d2fe7898d88cc534895682f0ab85a",
+          "bytes": 1420031,
+          "timings": "audio/heart/web/est-001.json",
+          "timings_sha256": "21226ea872a0c74479758f08fc4b2294df3b47d97ca5463ce0d06918e8a8e52f",
+          "duration": 234.5
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/est-002.m4a",
+          "sha256": "d41dc015160921d98e2e59c88c3d7624cf22e5e73f1ac17a025adec3752ee509",
+          "bytes": 1592513,
+          "timings": "audio/heart/web/est-002.json",
+          "timings_sha256": "ffd2a8d7aa878e8c06db9621bfc4fedc941f426016724d9dbaf56ad0b38f2a27",
+          "duration": 261.95
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/est-003.m4a",
+          "sha256": "7bfbcabfad82f3d6372e2730043cd960464d7b5ec2907a63e1bf5ae9aafdc829",
+          "bytes": 1143558,
+          "timings": "audio/heart/web/est-003.json",
+          "timings_sha256": "c6d47efc9e9fc7e544dadc366302f1b7eb5fbe3c2019733a5c1164dd20f45d78",
+          "duration": 185.8
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/est-004.m4a",
+          "sha256": "70dd1076ea3baba68e8f95cc43f3a2889412afc49c19c03372f49683a60c3f1a",
+          "bytes": 1003583,
+          "timings": "audio/heart/web/est-004.json",
+          "timings_sha256": "0e5d524efe44ab32f4ee35f2b28afb64d558fae9c2548c17c9495a8fbf9e5a31",
+          "duration": 167.925
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/est-005.m4a",
+          "sha256": "7c7d058a63384ea10bad364aa813b979e505e58e31e0f1e08ba4a4c280247105",
+          "bytes": 920553,
+          "timings": "audio/heart/web/est-005.json",
+          "timings_sha256": "fdc0611fa781e569271e6655f07632b05078333ee74d4cc0e70a821579f89323",
+          "duration": 151.025
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/est-006.m4a",
+          "sha256": "c512a256d48d52b1e3d33fe16bc75f1049e47c1571d9f7c1514ff56381c97b30",
+          "bytes": 900238,
+          "timings": "audio/heart/web/est-006.json",
+          "timings_sha256": "c5cc3506c52bc3f61f280bfcf3ccb744c3905ce1e2ce956efe9e2211466f5ee4",
+          "duration": 148.525
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/est-007.m4a",
+          "sha256": "2efa0b8a5383260aa1eabebc969e4bc260a481f97f9a0cd23f97d8ef3fd4ae6a",
+          "bytes": 682414,
+          "timings": "audio/heart/web/est-007.json",
+          "timings_sha256": "9d2fab59089e7e630184d926a3aa49a66748fa3c7e2d75e8f40b5b4f21af0188",
+          "duration": 111.35
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/est-008.m4a",
+          "sha256": "fe05bfab070b624b30d4ebb0b9e46e5ce1094f6657ca252ffb0d7eb705cd1038",
+          "bytes": 1286881,
+          "timings": "audio/heart/web/est-008.json",
+          "timings_sha256": "8c8ee7d8c9b6983a23df98d06244a3deaadc519d971adc1b7742522c4bd6644f",
+          "duration": 211.3
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/est-009.m4a",
+          "sha256": "5b5de5728c56c127f5b81f6b2c758e77fb49bce751929adf9b353e708ff269d4",
+          "bytes": 2051041,
+          "timings": "audio/heart/web/est-009.json",
+          "timings_sha256": "c91595f3f712f3f68786045b435c6ea17bc3b2ca373320162636bed81f53f938",
+          "duration": 337.425
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/est-010.m4a",
+          "sha256": "b3c2a019ef8f859cdf07b26d4f4e98b0d253a3c201343de2bafb4685c1ab4f65",
+          "bytes": 185882,
+          "timings": "audio/heart/web/est-010.json",
+          "timings_sha256": "118f861221a949f288558b79f642ff79beace711026f3b319e2befdb9662670a",
+          "duration": 29.9
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/est-titles.m4a",
+        "sha256": "29dcb4a785f8879d2359f4ce76eab3a56072356ace806ed13cd9ce6aa87ca2bb",
+        "bytes": 124145,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.05
+          },
+          {
+            "chapter": 2,
+            "start": 2.35,
+            "end": 4.35
+          },
+          {
+            "chapter": 3,
+            "start": 4.65,
+            "end": 6.65
+          },
+          {
+            "chapter": 4,
+            "start": 6.95,
+            "end": 8.95
+          },
+          {
+            "chapter": 5,
+            "start": 9.25,
+            "end": 11.275
+          },
+          {
+            "chapter": 6,
+            "start": 11.575,
+            "end": 13.525
+          },
+          {
+            "chapter": 7,
+            "start": 13.825,
+            "end": 15.875
+          },
+          {
+            "chapter": 8,
+            "start": 16.175,
+            "end": 18.1
+          },
+          {
+            "chapter": 9,
+            "start": 18.4,
+            "end": 20.45
+          },
+          {
+            "chapter": 10,
+            "start": 20.75,
+            "end": 22.75
           }
         ]
       }
@@ -20643,6 +23247,155 @@ export const BUNDLED_MANIFEST: BundleManifest = {
             "chapter": 40,
             "start": 97.75,
             "end": 99.875
+          }
+        ]
+      }
+    },
+    {
+      "book": "EZR",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/ezr-001.m4a",
+          "sha256": "21db132274741fdd58fe811dbb881c3b7783cee4ec8b3b686469c99c7c1d2f87",
+          "bytes": 758748,
+          "timings": "audio/heart/web/ezr-001.json",
+          "timings_sha256": "4e7fe3da366ce3078ff4dd1db2490afb621ed8c2df85140887aea2236343a521",
+          "duration": 123.325
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/ezr-003.m4a",
+          "sha256": "b98913d4d53b241c9ca45ec38e07910692281d26bed2d3170b00fec62ee33b4f",
+          "bytes": 1124774,
+          "timings": "audio/heart/web/ezr-003.json",
+          "timings_sha256": "659ff0891830289ee575582c268dfa65702a4e98137ec1ac77e3d894e194a61b",
+          "duration": 182.225
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/ezr-004.m4a",
+          "sha256": "6f77ef5a85d2a75ae421447c2cace0b6e8aad91f83b28a8ad09404efe6182c7f",
+          "bytes": 1548538,
+          "timings": "audio/heart/web/ezr-004.json",
+          "timings_sha256": "2a1fbef051edaa6b7397a21e1e5bd626b5baf979769668c4d3c73925d62538c4",
+          "duration": 253.925
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/ezr-005.m4a",
+          "sha256": "2675bdc3ce79bafd50c247cf382845ebb3780ff318b09b685442bbbdb1883c91",
+          "bytes": 1139081,
+          "timings": "audio/heart/web/ezr-005.json",
+          "timings_sha256": "b119a20331c1d87a4745e88091d401007b9bd010acb9151a1c4990fca263d9dd",
+          "duration": 187
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/ezr-006.m4a",
+          "sha256": "96d562fdf8fc5cdf48555dd06ef6359b393ffe201b410121abe141fc0d61c01f",
+          "bytes": 1604583,
+          "timings": "audio/heart/web/ezr-006.json",
+          "timings_sha256": "757d59282ddb199b7fb4ffff7e3bff86ab0f20646b928ab89e080b8e7ba49766",
+          "duration": 261.925
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/ezr-007.m4a",
+          "sha256": "c3258f80146e264be76edea87b81c696314acd0b37377f5ab2b2be1cc212e36c",
+          "bytes": 1726239,
+          "timings": "audio/heart/web/ezr-007.json",
+          "timings_sha256": "0007471be2bfe84f3d822b6d8a593d8a8e60a28e9b40b9789023ffabbf014217",
+          "duration": 284.85
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/ezr-008.m4a",
+          "sha256": "5f32fadb01a300598753bc2a09ab8967fc52ddb708b05c50d31815fa827b4b6c",
+          "bytes": 2047572,
+          "timings": "audio/heart/web/ezr-008.json",
+          "timings_sha256": "3e48896dece7fc882f3d6d074a0345f65c87dee113d07f9040dba2cd6cc7dc0f",
+          "duration": 339.2
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/ezr-009.m4a",
+          "sha256": "c52d5a81b20e4118e66098977a40879c7dbaf2991c0111f781d281784360c429",
+          "bytes": 1223398,
+          "timings": "audio/heart/web/ezr-009.json",
+          "timings_sha256": "896a5faff9aa1f2926a2b55fc33c1e2dba8dc2ca7f1a5a3c7507559e59ab3ca4",
+          "duration": 199.6
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/ezr-010.m4a",
+          "sha256": "b67dac9dd6ca2f18d9a3c9acb8b5afebc5c6d42ba10762d61fcd5a382efd6fe8",
+          "bytes": 2105212,
+          "timings": "audio/heart/web/ezr-010.json",
+          "timings_sha256": "45d297a4fb9a1308bc1701e90b6d63499a37d5ea5e4dd7fabd5c285545030bde",
+          "duration": 352.65
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/ezr-titles.m4a",
+        "sha256": "b30bbf4421c14ace10fdf79b6bd4411e58c977d03e39588367e05e49b60d1831",
+        "bytes": 123133,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 1.875
+          },
+          {
+            "chapter": 2,
+            "start": 2.175,
+            "end": 4.2
+          },
+          {
+            "chapter": 3,
+            "start": 4.5,
+            "end": 6.525
+          },
+          {
+            "chapter": 4,
+            "start": 6.825,
+            "end": 8.85
+          },
+          {
+            "chapter": 5,
+            "start": 9.15,
+            "end": 11.2
+          },
+          {
+            "chapter": 6,
+            "start": 11.5,
+            "end": 13.525
+          },
+          {
+            "chapter": 7,
+            "start": 13.825,
+            "end": 15.925
+          },
+          {
+            "chapter": 8,
+            "start": 16.225,
+            "end": 18.15
+          },
+          {
+            "chapter": 9,
+            "start": 18.45,
+            "end": 20.5
+          },
+          {
+            "chapter": 10,
+            "start": 20.8,
+            "end": 22.875
           }
         ]
       }
@@ -21391,6 +24144,177 @@ export const BUNDLED_MANIFEST: BundleManifest = {
           "timings": "audio/heart/web/jdg-002.json",
           "timings_sha256": "a90edadc19d4fadae62bd1183d027d3bbaf12f8f823922c3e55d2aef08302a9f",
           "duration": 220.75
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/jdg-003.m4a",
+          "sha256": "c77ccb23ec525b314a18cae6d56afd1b15c7dee174c547296da6715c411e7c61",
+          "bytes": 1716620,
+          "timings": "audio/heart/web/jdg-003.json",
+          "timings_sha256": "013927cf9c4a2c8f579676fb25b394cc53b1a654829bbbfceec465274d0ae55d",
+          "duration": 285.25
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/jdg-004.m4a",
+          "sha256": "864c12060c20e816dd78dc67f16cf6a6c377a5eeb1e07b2d466721196ac4041d",
+          "bytes": 1519046,
+          "timings": "audio/heart/web/jdg-004.json",
+          "timings_sha256": "c195d3398cf6fe69e24a73c690e85bef35861b32090b38d841218a8fd72803ac",
+          "duration": 250.125
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/jdg-005.m4a",
+          "sha256": "61f2a19d4843da8b2ab7b130ab59df5bc23ec554235f666bfac45dcca994626c",
+          "bytes": 1635526,
+          "timings": "audio/heart/web/jdg-005.json",
+          "timings_sha256": "b79dbf54881a16fca809f429bb890f885333ea4b2532f7b6e830868185259303",
+          "duration": 275.225
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/jdg-006.m4a",
+          "sha256": "60e736cadb0856b1ce45895d3260419946718085241f1e91f5acf6f88566c154",
+          "bytes": 2477402,
+          "timings": "audio/heart/web/jdg-006.json",
+          "timings_sha256": "d440975dcff3de8e04091b4e756b7c8db09d0c82e1edd4ec8d91851f4012f049",
+          "duration": 407.6
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/jdg-007.m4a",
+          "sha256": "5432b6b4ece58466633a80c944e20a994af2f0f0ef77b076cbe31192c38dca0d",
+          "bytes": 1854092,
+          "timings": "audio/heart/web/jdg-007.json",
+          "timings_sha256": "b4afaa25bd34fadc5e7d6c981b7cc6aea17534d782596ee7a03d2301cf7fbab1",
+          "duration": 304.75
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/jdg-008.m4a",
+          "sha256": "b8291f39280c98772cbc811b516e3d7cede182fb4b90fa81564575637940a82e",
+          "bytes": 1931396,
+          "timings": "audio/heart/web/jdg-008.json",
+          "timings_sha256": "624c12762b8775fb6833e95059b7f8305212051a1e1f6cace10389f829957c7a",
+          "duration": 320.7
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/jdg-009.m4a",
+          "sha256": "41cb70a732a432631d793c4fc5c22e3480a2590dfa53ae06698a23249874b65a",
+          "bytes": 3222323,
+          "timings": "audio/heart/web/jdg-009.json",
+          "timings_sha256": "b1a07d1d01e53e22485c1e9d26a4ee2c367c506c1154257c4787135ed27a2f3f",
+          "duration": 533.35
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/jdg-010.m4a",
+          "sha256": "ee25ab18b0551b5ae39117784e10707db536536fc19789458a7a423aab8626bf",
+          "bytes": 989749,
+          "timings": "audio/heart/web/jdg-010.json",
+          "timings_sha256": "44c6bb97d7ed27fbdaa4225387fb2abbcecc75873c752d850ca2cf3db0c13482",
+          "duration": 164.175
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/jdg-011.m4a",
+          "sha256": "91d1f68e754bb3944181eba90d14fa852dddc76f43fd99665fe1886ae49b1b13",
+          "bytes": 2427638,
+          "timings": "audio/heart/web/jdg-011.json",
+          "timings_sha256": "b74188ed2f98ab2592928370f284cb4bae9d52e5f5fb22b7519f94ea567f476d",
+          "duration": 401.75
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/jdg-012.m4a",
+          "sha256": "441daf45433b82ccdd5092990b8b9c79f78ad5cf6a6c6bd30abc96273004ca53",
+          "bytes": 845937,
+          "timings": "audio/heart/web/jdg-012.json",
+          "timings_sha256": "a4e087c49639308589c51da4198ff7db8409ec9c617afd2e9fc184e90cf6bb55",
+          "duration": 140.55
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/jdg-013.m4a",
+          "sha256": "a058471cab28ca6ec505d9338113956c084322ce6c8ab6bdf4e52ccbf7f24de7",
+          "bytes": 1390860,
+          "timings": "audio/heart/web/jdg-013.json",
+          "timings_sha256": "851c8c425f9e4ed49580f9c16e4862e28911b1f445c85b966474b9a1820e7612",
+          "duration": 230.575
+        },
+        {
+          "chapter": 14,
+          "file": "audio/heart/web/jdg-014.m4a",
+          "sha256": "3495be5a34961bacc5e56957c27bdbb012ecc66cd8579e7bbf0bfe774da82c97",
+          "bytes": 1285882,
+          "timings": "audio/heart/web/jdg-014.json",
+          "timings_sha256": "b437cdea31aa2827d275cacbc6c1d26d2216e5dfaa51265105da2397eef349da",
+          "duration": 211.5
+        },
+        {
+          "chapter": 15,
+          "file": "audio/heart/web/jdg-015.m4a",
+          "sha256": "e3477f6629b48bd3c67cdc90b49118ded4b8d4a36cc0510046d06a6d3b865294",
+          "bytes": 1218539,
+          "timings": "audio/heart/web/jdg-015.json",
+          "timings_sha256": "ac25d2d45f02eb66d3d7563a4f5bec1bd0dd1b9b024113948a249f2808399db6",
+          "duration": 202.925
+        },
+        {
+          "chapter": 16,
+          "file": "audio/heart/web/jdg-016.m4a",
+          "sha256": "6d650d32306583438d11cad7639167ab9908eaccbe42d94b9ab9470faa6108c7",
+          "bytes": 2039871,
+          "timings": "audio/heart/web/jdg-016.json",
+          "timings_sha256": "f5eb296a1579bac23e911ac026a2f30cbe0e293ff76c37a67727b55127a9bdb8",
+          "duration": 336.05
+        },
+        {
+          "chapter": 17,
+          "file": "audio/heart/web/jdg-017.m4a",
+          "sha256": "e1ddd215e3b012a4220bbfc00b10a61326e9a49633d5ceb511435768812f3eb7",
+          "bytes": 752936,
+          "timings": "audio/heart/web/jdg-017.json",
+          "timings_sha256": "b9786a9cbaf6ea7b533e071aab813b8ffffaaed63da2037952759b1fea2c8fc6",
+          "duration": 124.775
+        },
+        {
+          "chapter": 18,
+          "file": "audio/heart/web/jdg-018.m4a",
+          "sha256": "f66f7376131c506676e50120ec14a9b52f2ca35045c46856fc69e824044d471e",
+          "bytes": 1971063,
+          "timings": "audio/heart/web/jdg-018.json",
+          "timings_sha256": "288b22ca307586af00202cc61f74d0ec17e180fd31be6e85b643e93bcac560b8",
+          "duration": 325.5
+        },
+        {
+          "chapter": 19,
+          "file": "audio/heart/web/jdg-019.m4a",
+          "sha256": "a9c3b507a45ed9d64cf75e3a3578d9ebcd316082161cee58adacd8f5f456a20c",
+          "bytes": 2063298,
+          "timings": "audio/heart/web/jdg-019.json",
+          "timings_sha256": "18fa4623aaf3aacb37f19491e7400f32e1151aaad4ae7aaebdd664c225901914",
+          "duration": 339.775
+        },
+        {
+          "chapter": 20,
+          "file": "audio/heart/web/jdg-020.m4a",
+          "sha256": "7b1f5dd4318c545f690d2fbfa71d9367b3d69f16ae6e98d2d89e778a302d3440",
+          "bytes": 2919122,
+          "timings": "audio/heart/web/jdg-020.json",
+          "timings_sha256": "0b5dca5f8ac3c6a27e6d6257d2a5b1bc09e7a239640d0149a17750911c151c79",
+          "duration": 481
+        },
+        {
+          "chapter": 21,
+          "file": "audio/heart/web/jdg-021.m4a",
+          "sha256": "2ef262f2f07443b856944a9b235b5b02db1c2e89c222dd29995e2c8d469192a2",
+          "bytes": 1445281,
+          "timings": "audio/heart/web/jdg-021.json",
+          "timings_sha256": "1d078f9c51db1b785258da8a66b547e5bd57d6dcf0d9da043797de0fc3ee28cb",
+          "duration": 239.425
         }
       ],
       "titles": {
@@ -21502,6 +24426,594 @@ export const BUNDLED_MANIFEST: BundleManifest = {
             "chapter": 21,
             "start": 49.225,
             "end": 51.55
+          }
+        ]
+      }
+    },
+    {
+      "book": "JOB",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/job-001.m4a",
+          "sha256": "c8fdf86eafe9f42489a7397724a328b84e0cbfe4e80d9b2180f40b0291229bde",
+          "bytes": 1301814,
+          "timings": "audio/heart/web/job-001.json",
+          "timings_sha256": "550ea4ed2c20b1516c06e931cc550d148f45c786978af8fd91d3d1ec77167cd2",
+          "duration": 215.275
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/job-002.m4a",
+          "sha256": "beee825a486dd963bbee0225675a863ccf43e356bf79169f38c2e7992bc5b065",
+          "bytes": 773673,
+          "timings": "audio/heart/web/job-002.json",
+          "timings_sha256": "fcc1e99634f978f889bdce328bd99b1bceb0cb27bd362cdc98b2748902090fed",
+          "duration": 127.9
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/job-003.m4a",
+          "sha256": "6892aed820a61aa0a03a0cc51418bc6fcb30a0e89d054b51a56a6dc69c639477",
+          "bytes": 863601,
+          "timings": "audio/heart/web/job-003.json",
+          "timings_sha256": "def80a095392318c20367028a94335ba7bae3245cee5e4eed90390b71c825fb8",
+          "duration": 149.1
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/job-004.m4a",
+          "sha256": "cd1d316d5a972c45bd6754e9970b81d6dbd3c83480c30e74b271bbe83f0ef048",
+          "bytes": 708595,
+          "timings": "audio/heart/web/job-004.json",
+          "timings_sha256": "05b9da9bac66a790ce5f9630e4dbfa6cae9703387e5f4dc5e7ef35fe45a28422",
+          "duration": 120.75
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/job-005.m4a",
+          "sha256": "736d69531e3dc9065f8abe9ebc7af27f5998bc3501615aadfb8b4911b71f2a09",
+          "bytes": 903836,
+          "timings": "audio/heart/web/job-005.json",
+          "timings_sha256": "68e211b4012106cc08f69928d39db7e49f124c86f89b6c7df488f88f2d8e1df3",
+          "duration": 156.225
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/job-006.m4a",
+          "sha256": "84bd2db6efcb290c993f12a596fa80eaf1cc3782f01fb64cd2e4266db6a15314",
+          "bytes": 1043734,
+          "timings": "audio/heart/web/job-006.json",
+          "timings_sha256": "9857e224077ca915f04a2b1bf17b4e340555e0df364e05e01e590adbc1f8a197",
+          "duration": 179.45
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/job-007.m4a",
+          "sha256": "28ae4f3707bae78810565055db65f4c5581f57668cb3e2aebc7b062b2fe40d9f",
+          "bytes": 767248,
+          "timings": "audio/heart/web/job-007.json",
+          "timings_sha256": "0caa6a7138cbc338c6516e30cb85f612cd6a9ceb450f933c954679342e146492",
+          "duration": 131.65
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/job-008.m4a",
+          "sha256": "002ab42c71d2dcc59157942a5e009a5bd1e29e0b55a18bc9d11ccf4b4364048f",
+          "bytes": 702969,
+          "timings": "audio/heart/web/job-008.json",
+          "timings_sha256": "93191dabbcb0bc62d879584002ae7ec6e8b9a9904b9bf2006a925ba5974af911",
+          "duration": 121.25
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/job-009.m4a",
+          "sha256": "795db32d3c8e6b4608d4b1847c996317502b562bfd1e73ba3bfd891f7ebcde5f",
+          "bytes": 1125840,
+          "timings": "audio/heart/web/job-009.json",
+          "timings_sha256": "a761fc9b1e1b678ad1203e495c6f6595aa83bcf970b18e457e686c0af84d8011",
+          "duration": 194.5
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/job-010.m4a",
+          "sha256": "db2f26873d99d6c51e9e5a4a5d164d147e37548ac699168f937f5f9a787cba75",
+          "bytes": 784076,
+          "timings": "audio/heart/web/job-010.json",
+          "timings_sha256": "fefc99bef4d05da12ed385dac966835788960b556a4c6210e3617f7dc40a3017",
+          "duration": 135.55
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/job-011.m4a",
+          "sha256": "48b63f901126ebc735c0954ab18200a3950c973af531e8a4db313192caefba47",
+          "bytes": 703082,
+          "timings": "audio/heart/web/job-011.json",
+          "timings_sha256": "fd83ea48fd41ec1734cd52ee564d3682ba6414d9eb6138d25919c2724867eb09",
+          "duration": 121.025
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/job-012.m4a",
+          "sha256": "4ce959ad84b2e77a6167bf484a2c174a55e5a6b578eae52b489342b643619490",
+          "bytes": 867921,
+          "timings": "audio/heart/web/job-012.json",
+          "timings_sha256": "061a59e5de41b746e53b39418a9a61d1928f72915445ddc25de89bc62861f94b",
+          "duration": 148
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/job-013.m4a",
+          "sha256": "37684c29ee36fe31fd88ebc774d6cb985690b0875c0cf87da3f9260ba15984e4",
+          "bytes": 862836,
+          "timings": "audio/heart/web/job-013.json",
+          "timings_sha256": "bfd74f223f7f2e2f6bd62610789ae5475194e58e1b9a37eda2601832f0599f43",
+          "duration": 151.425
+        },
+        {
+          "chapter": 14,
+          "file": "audio/heart/web/job-014.m4a",
+          "sha256": "1c7c36fe1f53244070febcc538649c0689116d199b4ad7bf78aba0312ef8121a",
+          "bytes": 793430,
+          "timings": "audio/heart/web/job-014.json",
+          "timings_sha256": "d43d8acc7f7f687869e2842f05199c611c8b55376714aad4e5a2a33486286d17",
+          "duration": 135.4
+        },
+        {
+          "chapter": 15,
+          "file": "audio/heart/web/job-015.m4a",
+          "sha256": "f0f480ac24b8c4cec84f50f5d4b22f3f644dc43b72ba3f8e0728c3c1580ae4be",
+          "bytes": 1188063,
+          "timings": "audio/heart/web/job-015.json",
+          "timings_sha256": "8a2dc236691b019aaec4635f28f1bbb7bcbf693fa38ca79dbb6b5387d538a6f6",
+          "duration": 205.4
+        },
+        {
+          "chapter": 16,
+          "file": "audio/heart/web/job-016.m4a",
+          "sha256": "465d7d1842aacf77d394ec307a4d1c0ae30c1c0b7adc527fe01b846b4cbd331a",
+          "bytes": 781111,
+          "timings": "audio/heart/web/job-016.json",
+          "timings_sha256": "081da0d31201e3d5f16a158c47a55451118327dc1ebc8742c9a77b6c5321a1de",
+          "duration": 134.925
+        },
+        {
+          "chapter": 17,
+          "file": "audio/heart/web/job-017.m4a",
+          "sha256": "cb0a91629cb458bffc95a1d516e74e24085d0949bb5226d95391d67a76bd6586",
+          "bytes": 537103,
+          "timings": "audio/heart/web/job-017.json",
+          "timings_sha256": "de99147577a674822cca3d936af4b34ed6cc751027e28732bc67963f65539e9b",
+          "duration": 92.1
+        },
+        {
+          "chapter": 18,
+          "file": "audio/heart/web/job-018.m4a",
+          "sha256": "58fa78b639471b94b5b5cfd3b62377eebde46c346b0f3f1cd7579dde04a9543f",
+          "bytes": 663695,
+          "timings": "audio/heart/web/job-018.json",
+          "timings_sha256": "06047889c8522fd91f102842bdab01faa0b4cbff0f5edcafa334f8d35a803d2c",
+          "duration": 115.15
+        },
+        {
+          "chapter": 19,
+          "file": "audio/heart/web/job-019.m4a",
+          "sha256": "29e427684ccb83bd1d0482785c185a251b8665416a9ff310ed7e3aeb3ebbc657",
+          "bytes": 955468,
+          "timings": "audio/heart/web/job-019.json",
+          "timings_sha256": "f0371c895dcd5b117b0292361f69774e0550e59768a939201f0bf0ea06990aec",
+          "duration": 165.225
+        },
+        {
+          "chapter": 20,
+          "file": "audio/heart/web/job-020.m4a",
+          "sha256": "f0c3b5dff4c32efeaf4a852c3bc45f594eb39a155cf627f039b1c3efcf115520",
+          "bytes": 1027930,
+          "timings": "audio/heart/web/job-020.json",
+          "timings_sha256": "68a0837c754c4f743df15d6de5b31b0d8fbdbc13b3135fac26502bde15564d43",
+          "duration": 177.225
+        },
+        {
+          "chapter": 21,
+          "file": "audio/heart/web/job-021.m4a",
+          "sha256": "cb8f83d3018a43220acf1003c5f47b52575fdd18a842eef0dc575b97d9031d37",
+          "bytes": 1078304,
+          "timings": "audio/heart/web/job-021.json",
+          "timings_sha256": "7d9cb538ac144bafb524f17a551f545993a017e4dc4d8f4d41dbc14a9c5e487d",
+          "duration": 186.475
+        },
+        {
+          "chapter": 22,
+          "file": "audio/heart/web/job-022.m4a",
+          "sha256": "ba524bd99d9fa0ca130304975ad17fd83eb2b467635216ac87c0e2e1f486d7ee",
+          "bytes": 977473,
+          "timings": "audio/heart/web/job-022.json",
+          "timings_sha256": "86d2d1a706b28dc91de10b2f80f0d10f9f58eddce6dd9ece9fb3ff786b6ce3f6",
+          "duration": 168.475
+        },
+        {
+          "chapter": 23,
+          "file": "audio/heart/web/job-023.m4a",
+          "sha256": "9589136f3cb261e2cab3df3a89dd2e661fd8a9299029bd1756ec8ab55685a33c",
+          "bytes": 575430,
+          "timings": "audio/heart/web/job-023.json",
+          "timings_sha256": "f022e16b52115222ada355a7d0220bf46c5504b85d99eb9797b466f0a0055460",
+          "duration": 98.075
+        },
+        {
+          "chapter": 24,
+          "file": "audio/heart/web/job-024.m4a",
+          "sha256": "eb4824e11f7390ae7b576b95ef381fff17b4925b9f1076c00af99aa09e029bbb",
+          "bytes": 1001086,
+          "timings": "audio/heart/web/job-024.json",
+          "timings_sha256": "27a554df091a20b3c7096da6b464e5ef2f3e4eab3c1ed2173467615dc3a0f542",
+          "duration": 169.025
+        },
+        {
+          "chapter": 25,
+          "file": "audio/heart/web/job-025.m4a",
+          "sha256": "2bbf0d5f130739961bad3de43b0decca29c8a9de390bfa7d07b2915e73f218e2",
+          "bytes": 172375,
+          "timings": "audio/heart/web/job-025.json",
+          "timings_sha256": "9eef1d13163dccc9e753bc1a6f486f7046658216d0708040c8e1e297a959dcc4",
+          "duration": 29.675
+        },
+        {
+          "chapter": 26,
+          "file": "audio/heart/web/job-026.m4a",
+          "sha256": "b157e2a0c2a6bf89b7bba8368b24898f92b6125db353ac090b89c73857f5a7f3",
+          "bytes": 447133,
+          "timings": "audio/heart/web/job-026.json",
+          "timings_sha256": "79a27e99037ac379fb713d26209480982fd1ff8939039594298106ffbd62f221",
+          "duration": 76.55
+        },
+        {
+          "chapter": 27,
+          "file": "audio/heart/web/job-027.m4a",
+          "sha256": "c5218078b94a22b26b5469f7693c2822de30d536970d784aa1b72fe332eda153",
+          "bytes": 775206,
+          "timings": "audio/heart/web/job-027.json",
+          "timings_sha256": "eec20d27997038b12c06a8f65e3147763a7b3c619284779a86556e419953a247",
+          "duration": 133.775
+        },
+        {
+          "chapter": 28,
+          "file": "audio/heart/web/job-028.m4a",
+          "sha256": "9000c3a6210759709cce893abfa2a94f330f42a4b33882824345c729144a4d55",
+          "bytes": 918956,
+          "timings": "audio/heart/web/job-028.json",
+          "timings_sha256": "5e1bd9f5458b536bdb1abe66d25024d446e3cf1e6d345fdb3c8d7c0a7dbbbe13",
+          "duration": 158.3
+        },
+        {
+          "chapter": 29,
+          "file": "audio/heart/web/job-029.m4a",
+          "sha256": "8795784dd21e433312f7e8c9ee5c76cb093228061c409d7096477c8ef9ce9556",
+          "bytes": 773962,
+          "timings": "audio/heart/web/job-029.json",
+          "timings_sha256": "5038d8810c99ae33a5c99a74d914db96f77beeed5511b6737ac55f8e79e28a34",
+          "duration": 133.15
+        },
+        {
+          "chapter": 30,
+          "file": "audio/heart/web/job-030.m4a",
+          "sha256": "b52e7820f62de9020fc24587a9245681b9af397a8acfda6f75422f833cc2d351",
+          "bytes": 1085718,
+          "timings": "audio/heart/web/job-030.json",
+          "timings_sha256": "16c992277a14a3a595c6152cbed29ff2c0aa796506947985e5898c4320006328",
+          "duration": 184.45
+        },
+        {
+          "chapter": 31,
+          "file": "audio/heart/web/job-031.m4a",
+          "sha256": "c6eb0830a89d16d0d4ace5dae2c73ed5a1865486213da9c63ff9d29b6cfb4308",
+          "bytes": 1362561,
+          "timings": "audio/heart/web/job-031.json",
+          "timings_sha256": "728b2ad968dc63dcc128897ba445aaf3ca366f0845824b602b625608e8d36b44",
+          "duration": 235.275
+        },
+        {
+          "chapter": 32,
+          "file": "audio/heart/web/job-032.m4a",
+          "sha256": "927def4e76a8169fbf95452f15847bc970ee056c4ab378d6f42b0cc0ee737d53",
+          "bytes": 829214,
+          "timings": "audio/heart/web/job-032.json",
+          "timings_sha256": "b4404f87daf1018e84567606bf252594c976048ac9574d1951fabe345afa6ebd",
+          "duration": 139.925
+        },
+        {
+          "chapter": 33,
+          "file": "audio/heart/web/job-033.m4a",
+          "sha256": "d92b6e202996b4ad18902fbf1320a8ce2f55872828a722dd4f404b3d60f86306",
+          "bytes": 1100688,
+          "timings": "audio/heart/web/job-033.json",
+          "timings_sha256": "95abd89fa46923fcf44903e3f94a8a6ff9d22d5a374ebc6e2fe0e3d55972a02b",
+          "duration": 190.65
+        },
+        {
+          "chapter": 34,
+          "file": "audio/heart/web/job-034.m4a",
+          "sha256": "6e1eca212670e33163e27ec18a3705d9bbc80ebba1be0fdc698001de6bfe5b42",
+          "bytes": 1276570,
+          "timings": "audio/heart/web/job-034.json",
+          "timings_sha256": "413784689958f220bac6e8cf5deeeca4fbdef8d12c9e0b31c5569e398423787d",
+          "duration": 219.95
+        },
+        {
+          "chapter": 35,
+          "file": "audio/heart/web/job-035.m4a",
+          "sha256": "39757e09573cb122946b94b43a785440142afa4ff9785d70fa3c075e4d8f499e",
+          "bytes": 535397,
+          "timings": "audio/heart/web/job-035.json",
+          "timings_sha256": "a97c16801d6f11b88e95abf17edbecf63a62ca02d93dab1474b5c27d1cf63d70",
+          "duration": 92.175
+        },
+        {
+          "chapter": 36,
+          "file": "audio/heart/web/job-036.m4a",
+          "sha256": "42c074ddb128758cdca79a84820f561bda48c5a63df9f861a88d1675d2667d00",
+          "bytes": 1100519,
+          "timings": "audio/heart/web/job-036.json",
+          "timings_sha256": "aea739ed1fe2a09f4369c73081521d6d8bb4593ba631d2379c9ac02122e21d83",
+          "duration": 189.6
+        },
+        {
+          "chapter": 37,
+          "file": "audio/heart/web/job-037.m4a",
+          "sha256": "86079517ab87af4b8fc0ccb36badc3f9fc44ddfc8f26eeddb860a6a1f54d626e",
+          "bytes": 835282,
+          "timings": "audio/heart/web/job-037.json",
+          "timings_sha256": "7a5ad3dd35f0a75d25733a859dd2432a73e709117ddf2e75c85a29175805c2dd",
+          "duration": 143.625
+        },
+        {
+          "chapter": 38,
+          "file": "audio/heart/web/job-038.m4a",
+          "sha256": "28ed62b0323ed044f407f3e101ab1abbba114b1dad770c49f87b5e2ff12ec329",
+          "bytes": 1265953,
+          "timings": "audio/heart/web/job-038.json",
+          "timings_sha256": "7689153ac121f3e90abb3a77f07aa0a5dd5ac4453d51f44844384f1f4b7e928f",
+          "duration": 219.275
+        },
+        {
+          "chapter": 39,
+          "file": "audio/heart/web/job-039.m4a",
+          "sha256": "c018822eeffa69afa5515b483234a65ea3165fe2804263f4b89142d94406f2e0",
+          "bytes": 1037844,
+          "timings": "audio/heart/web/job-039.json",
+          "timings_sha256": "66232f7f9683dae560b2fa28590768c619562e6785b9418889bbf0bd4c691644",
+          "duration": 177.725
+        },
+        {
+          "chapter": 40,
+          "file": "audio/heart/web/job-040.m4a",
+          "sha256": "3164b5647b3d834d7c0141b2b822c4f90003779f2b99c47de3ae20d56cc3a8ac",
+          "bytes": 764425,
+          "timings": "audio/heart/web/job-040.json",
+          "timings_sha256": "50a40597edbe3dd16fb7be6aabb1b1cb5bf07cc4b2f073e90c23e4da8bb44bfc",
+          "duration": 133.225
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/job-titles.m4a",
+        "sha256": "fe6321a0ff5a51bc7fc5bbf3e5081cb1a6cd70ee015e85bf4fa4aef8149683d9",
+        "bytes": 544866,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 1.875
+          },
+          {
+            "chapter": 2,
+            "start": 2.175,
+            "end": 4.025
+          },
+          {
+            "chapter": 3,
+            "start": 4.325,
+            "end": 6.15
+          },
+          {
+            "chapter": 4,
+            "start": 6.45,
+            "end": 8.35
+          },
+          {
+            "chapter": 5,
+            "start": 8.65,
+            "end": 10.6
+          },
+          {
+            "chapter": 6,
+            "start": 10.9,
+            "end": 12.8
+          },
+          {
+            "chapter": 7,
+            "start": 13.1,
+            "end": 15.05
+          },
+          {
+            "chapter": 8,
+            "start": 15.35,
+            "end": 17.175
+          },
+          {
+            "chapter": 9,
+            "start": 17.475,
+            "end": 19.375
+          },
+          {
+            "chapter": 10,
+            "start": 19.675,
+            "end": 21.575
+          },
+          {
+            "chapter": 11,
+            "start": 21.875,
+            "end": 23.925
+          },
+          {
+            "chapter": 12,
+            "start": 24.225,
+            "end": 26.15
+          },
+          {
+            "chapter": 13,
+            "start": 26.45,
+            "end": 28.45
+          },
+          {
+            "chapter": 14,
+            "start": 28.75,
+            "end": 30.8
+          },
+          {
+            "chapter": 15,
+            "start": 31.1,
+            "end": 33.15
+          },
+          {
+            "chapter": 16,
+            "start": 33.45,
+            "end": 35.475
+          },
+          {
+            "chapter": 17,
+            "start": 35.775,
+            "end": 37.875
+          },
+          {
+            "chapter": 18,
+            "start": 38.175,
+            "end": 40.15
+          },
+          {
+            "chapter": 19,
+            "start": 40.45,
+            "end": 42.45
+          },
+          {
+            "chapter": 20,
+            "start": 42.75,
+            "end": 44.8
+          },
+          {
+            "chapter": 21,
+            "start": 45.1,
+            "end": 47.25
+          },
+          {
+            "chapter": 22,
+            "start": 47.55,
+            "end": 49.625
+          },
+          {
+            "chapter": 23,
+            "start": 49.925,
+            "end": 52.125
+          },
+          {
+            "chapter": 24,
+            "start": 52.425,
+            "end": 54.575
+          },
+          {
+            "chapter": 25,
+            "start": 54.875,
+            "end": 57.075
+          },
+          {
+            "chapter": 26,
+            "start": 57.375,
+            "end": 59.55
+          },
+          {
+            "chapter": 27,
+            "start": 59.85,
+            "end": 62.125
+          },
+          {
+            "chapter": 28,
+            "start": 62.425,
+            "end": 64.475
+          },
+          {
+            "chapter": 29,
+            "start": 64.775,
+            "end": 66.975
+          },
+          {
+            "chapter": 30,
+            "start": 67.275,
+            "end": 69.2
+          },
+          {
+            "chapter": 31,
+            "start": 69.5,
+            "end": 71.6
+          },
+          {
+            "chapter": 32,
+            "start": 71.9,
+            "end": 73.975
+          },
+          {
+            "chapter": 33,
+            "start": 74.275,
+            "end": 76.4
+          },
+          {
+            "chapter": 34,
+            "start": 76.7,
+            "end": 78.825
+          },
+          {
+            "chapter": 35,
+            "start": 79.125,
+            "end": 81.225
+          },
+          {
+            "chapter": 36,
+            "start": 81.525,
+            "end": 83.65
+          },
+          {
+            "chapter": 37,
+            "start": 83.95,
+            "end": 86.125
+          },
+          {
+            "chapter": 38,
+            "start": 86.425,
+            "end": 88.5
+          },
+          {
+            "chapter": 39,
+            "start": 88.8,
+            "end": 90.925
+          },
+          {
+            "chapter": 40,
+            "start": 91.225,
+            "end": 93.175
+          },
+          {
+            "chapter": 41,
+            "start": 93.475,
+            "end": 95.55
+          },
+          {
+            "chapter": 42,
+            "start": 95.85,
+            "end": 97.95
           }
         ]
       }
@@ -22257,6 +25769,206 @@ export const BUNDLED_MANIFEST: BundleManifest = {
       }
     },
     {
+      "book": "NEH",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/neh-001.m4a",
+          "sha256": "bf3f20805524f018343c95aecfda5dbc03d674cb0f123d63de163d5e9b84b089",
+          "bytes": 779341,
+          "timings": "audio/heart/web/neh-001.json",
+          "timings_sha256": "16153e3f3322fb19fc4c3d121263ff13ab019dcaba3e7f1c18c50f31cd28fdcb",
+          "duration": 128.575
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/neh-002.m4a",
+          "sha256": "28bcba369c5900b54707743c7e197eb662a447e1c5a30cbe43e4bda7d06d0cec",
+          "bytes": 1337680,
+          "timings": "audio/heart/web/neh-002.json",
+          "timings_sha256": "4d05c312dc77815e604b8069d135d366269c7ba89739a886cf5fe5eb66d77518",
+          "duration": 220.425
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/neh-003.m4a",
+          "sha256": "7aa989fa7f90333e150e87ea1c335e698a885c5785a86882baf9417010d17289",
+          "bytes": 1946337,
+          "timings": "audio/heart/web/neh-003.json",
+          "timings_sha256": "22b6e729af0363fd99e09f972927111f79dd4e7e507d723e15ef8057c346fa1d",
+          "duration": 322.05
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/neh-004.m4a",
+          "sha256": "1a881d2384a4891ffac164c06208c6e32ab1adec8178f7313df54a43d8af4204",
+          "bytes": 1303784,
+          "timings": "audio/heart/web/neh-004.json",
+          "timings_sha256": "0dbb18e49b0523b1f7c9f1d6a2ac96fd5dddfcfd2351ff2534bcd35e23ac8ad5",
+          "duration": 216.525
+        },
+        {
+          "chapter": 5,
+          "file": "audio/heart/web/neh-005.m4a",
+          "sha256": "e60cc5b9f59e01577274d043f6b444f18ff024fcdb606b2a7b5c426e46873438",
+          "bytes": 1298665,
+          "timings": "audio/heart/web/neh-005.json",
+          "timings_sha256": "1beafe8ba5d2629473bb24f2765c4fc3c14f040920a3287f1d3b684eef47be21",
+          "duration": 213.975
+        },
+        {
+          "chapter": 6,
+          "file": "audio/heart/web/neh-006.m4a",
+          "sha256": "f8a8fd7f545e0627ef402dcb78eb3a849d253cb6f5c3a854a5f8b10625bb0c80",
+          "bytes": 1140969,
+          "timings": "audio/heart/web/neh-006.json",
+          "timings_sha256": "c0918edd2c2f145686c6831daebab816de1772e87e1f3f8cfce435904e6703b7",
+          "duration": 189.575
+        },
+        {
+          "chapter": 7,
+          "file": "audio/heart/web/neh-007.m4a",
+          "sha256": "17f8b3002f6bf728785c693f9157c36b0d3ac707abc705bbca918791daf18920",
+          "bytes": 2868010,
+          "timings": "audio/heart/web/neh-007.json",
+          "timings_sha256": "0d145c21b62f3140bc3c7166064790c5c0b905732bb8252893ed1d73f70842e0",
+          "duration": 479.975
+        },
+        {
+          "chapter": 8,
+          "file": "audio/heart/web/neh-008.m4a",
+          "sha256": "51692c99ea9468dcce193ab07915c7aa79e065240768892ec1a2bd6646a49f37",
+          "bytes": 1407031,
+          "timings": "audio/heart/web/neh-008.json",
+          "timings_sha256": "4952144b591dee72a6ae029b46d3a453670ae32d9b0d812c7499a45f64f6e3df",
+          "duration": 228.65
+        },
+        {
+          "chapter": 9,
+          "file": "audio/heart/web/neh-009.m4a",
+          "sha256": "8f3c5b55bddefb9e513c2bdb9f75737f2b78b4c347987b38a4ad850bd53047dc",
+          "bytes": 2728314,
+          "timings": "audio/heart/web/neh-009.json",
+          "timings_sha256": "fd655f8763873cffa376d611de91e209ba3e418beefb1a03805ca4e06cbf192b",
+          "duration": 447.15
+        },
+        {
+          "chapter": 10,
+          "file": "audio/heart/web/neh-010.m4a",
+          "sha256": "d6798052fc8451548dcaae43ff6881295130693c30642aa5836c95a085db0152",
+          "bytes": 1495072,
+          "timings": "audio/heart/web/neh-010.json",
+          "timings_sha256": "e02f4564db4057a2c08ca92d977743d192bf551957a7858633e648708481c077",
+          "duration": 256.925
+        },
+        {
+          "chapter": 11,
+          "file": "audio/heart/web/neh-011.m4a",
+          "sha256": "45742121b35caca643c873d785e13cf1be5734a3c35921eab699d89cf6846be1",
+          "bytes": 1713941,
+          "timings": "audio/heart/web/neh-011.json",
+          "timings_sha256": "53c07c64dfa9b31e07bc610a4fe888c03367e142729d7b8edafe1cdbbe321257",
+          "duration": 286.8
+        },
+        {
+          "chapter": 12,
+          "file": "audio/heart/web/neh-012.m4a",
+          "sha256": "7e67896c9fed372f907d9fb406a5edc91f06a987c797dbd4d8a519398ee2f7a9",
+          "bytes": 2294126,
+          "timings": "audio/heart/web/neh-012.json",
+          "timings_sha256": "9e9e9df49d6cb23a628c7f1ebd20d05eb780016acbd7c1e71216c9adb8736c17",
+          "duration": 383.35
+        },
+        {
+          "chapter": 13,
+          "file": "audio/heart/web/neh-013.m4a",
+          "sha256": "920ecbc7a5d0e3fe56be2378c434f6d5ff80375322e0d96d3a71d3e5f25ae1ae",
+          "bytes": 1930754,
+          "timings": "audio/heart/web/neh-013.json",
+          "timings_sha256": "6d7b634305f4542459f9b2d6c8ddb0daa267ec7cfd09a4361be4c0a85168ea22",
+          "duration": 319.475
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/neh-titles.m4a",
+        "sha256": "b7c3f67f34c4fc1bc1ccfabd704f884136463f4870765a98dce800cceaf1a6d7",
+        "bytes": 172852,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.175
+          },
+          {
+            "chapter": 2,
+            "start": 2.475,
+            "end": 4.675
+          },
+          {
+            "chapter": 3,
+            "start": 4.975,
+            "end": 7.125
+          },
+          {
+            "chapter": 4,
+            "start": 7.425,
+            "end": 9.6
+          },
+          {
+            "chapter": 5,
+            "start": 9.9,
+            "end": 12.2
+          },
+          {
+            "chapter": 6,
+            "start": 12.5,
+            "end": 14.725
+          },
+          {
+            "chapter": 7,
+            "start": 15.025,
+            "end": 17.325
+          },
+          {
+            "chapter": 8,
+            "start": 17.625,
+            "end": 19.725
+          },
+          {
+            "chapter": 9,
+            "start": 20.025,
+            "end": 22.2
+          },
+          {
+            "chapter": 10,
+            "start": 22.5,
+            "end": 24.675
+          },
+          {
+            "chapter": 11,
+            "start": 24.975,
+            "end": 27.35
+          },
+          {
+            "chapter": 12,
+            "start": 27.65,
+            "end": 29.925
+          },
+          {
+            "chapter": 13,
+            "start": 30.225,
+            "end": 32.625
+          }
+        ]
+      }
+    },
+    {
       "book": "NUM",
       "translation": "WEB",
       "narrator": "heart",
@@ -22774,6 +26486,80 @@ export const BUNDLED_MANIFEST: BundleManifest = {
             "chapter": 36,
             "start": 87,
             "end": 89.3
+          }
+        ]
+      }
+    },
+    {
+      "book": "RUT",
+      "translation": "WEB",
+      "narrator": "heart",
+      "narrator_name": "Heart",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/heart/web/rut-001.m4a",
+          "sha256": "e0feb315414e86f0ea77e3a742b608835f0172d27b3e60300b1423f678580b7b",
+          "bytes": 1235504,
+          "timings": "audio/heart/web/rut-001.json",
+          "timings_sha256": "9b4a7873b79eb96dd8c90f0331b9346b2d751171663d3c54918484e575310bf0",
+          "duration": 206.05
+        },
+        {
+          "chapter": 2,
+          "file": "audio/heart/web/rut-002.m4a",
+          "sha256": "b990689442af7a66955b6930808071e552424e893b0f350e32521cedfff1eacc",
+          "bytes": 1413781,
+          "timings": "audio/heart/web/rut-002.json",
+          "timings_sha256": "c3785db390f80c1989392fe0699c25a6437c80a6a329db8138784e76d6b5f0fd",
+          "duration": 232.55
+        },
+        {
+          "chapter": 3,
+          "file": "audio/heart/web/rut-003.m4a",
+          "sha256": "0c0c649ed25cb4fa6ee7080b64f18470f65993dc453aaeda00aafe5585d1f161",
+          "bytes": 965833,
+          "timings": "audio/heart/web/rut-003.json",
+          "timings_sha256": "466f2275ea4fc9773fd18810868061b1f72f38563593d6a1255c87299d50e8fd",
+          "duration": 161.55
+        },
+        {
+          "chapter": 4,
+          "file": "audio/heart/web/rut-004.m4a",
+          "sha256": "a9c9bef36b81e1581991fc6da688799946c72d43ab11a8b2edbd7c0c842634c0",
+          "bytes": 1345999,
+          "timings": "audio/heart/web/rut-004.json",
+          "timings_sha256": "cc86393e273f329eb2fc73615de4e8673d879babc97a63c4b17ed3b0179e598e",
+          "duration": 223.1
+        }
+      ],
+      "titles": {
+        "file": "audio/heart/rut-titles.m4a",
+        "sha256": "a9787b16be99cda7f708e88bb0e6135343c6c1dfbef89444aae67cb07a6c0c00",
+        "bytes": 45490,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 1.85
+          },
+          {
+            "chapter": 2,
+            "start": 2.15,
+            "end": 4.025
+          },
+          {
+            "chapter": 3,
+            "start": 4.325,
+            "end": 6.225
+          },
+          {
+            "chapter": 4,
+            "start": 6.525,
+            "end": 8.425
           }
         ]
       }
@@ -40553,6 +44339,2452 @@ export const BUNDLED_MANIFEST: BundleManifest = {
       }
     },
     {
+      "book": "1CH",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/1ch-001.m4a",
+          "sha256": "9fddb788172798f79789aa6edc47a76a4dd891069def62c423349b56235ed5b9",
+          "bytes": 2223345,
+          "timings": "audio/george/kjv/1ch-001.json",
+          "timings_sha256": "3a8601e53dfd4975af7bdcc53c2df4b45859ee15a7fbe82aa25f7d1021f5969d",
+          "duration": 370.7
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/1ch-002.m4a",
+          "sha256": "245b3f57002e0519ddea858d38eabdbb0fb207fe51de3d807dc4d92e1d38e073",
+          "bytes": 2587531,
+          "timings": "audio/george/kjv/1ch-002.json",
+          "timings_sha256": "825aaa7cf561c89d77433b6c7abae2259bca93a8e3489414f34b6588bf77ab00",
+          "duration": 433.675
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/1ch-003.m4a",
+          "sha256": "7cdd59eaadf5064b55ea715c0241df26ec6cdac71297d15f95a77f3f7a7d32c2",
+          "bytes": 1116493,
+          "timings": "audio/george/kjv/1ch-003.json",
+          "timings_sha256": "7b255e578a38e3e114bf421d70cb9fa21f4c69d7f16db1068b154a31fef144da",
+          "duration": 186.5
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/1ch-004.m4a",
+          "sha256": "3f9e073f447e7157a9137c4b48980f68de76ab4edc43360c1eda419fcabcf66f",
+          "bytes": 2281971,
+          "timings": "audio/george/kjv/1ch-004.json",
+          "timings_sha256": "463fced3d4a172345a490be0c74c154437a918f03c4d5b5d7512264d2270cbdd",
+          "duration": 379.55
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/1ch-005.m4a",
+          "sha256": "b359b437d486aca04fe690d7a2cc00961aade5915d2c717940ad8eec6e53c7a7",
+          "bytes": 1637593,
+          "timings": "audio/george/kjv/1ch-005.json",
+          "timings_sha256": "4f1799c6101739fb58dd7b6600e6b6ea3c182f13a7e0ea09d770aa9eeafe6b44",
+          "duration": 268.2
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/1ch-006.m4a",
+          "sha256": "66b3e05a196a4b18ae0bc236a06262ece0003e8719bc175b4114556932a3bbd5",
+          "bytes": 3591278,
+          "timings": "audio/george/kjv/1ch-006.json",
+          "timings_sha256": "96f94d9ada870b75ea12cbc774bb932d3bf8070c234c5268bed68fa10c8b8e27",
+          "duration": 600.325
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/1ch-007.m4a",
+          "sha256": "b2002ec92df7eb0a8c4be420d6005ce2f07730f2f0bdeaeed13524a303f7669e",
+          "bytes": 2333138,
+          "timings": "audio/george/kjv/1ch-007.json",
+          "timings_sha256": "8511dcde023d8f13514c7714ab9b8c484d851d2d1c33c1e604da4db9c7328ff8",
+          "duration": 385.1
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/1ch-008.m4a",
+          "sha256": "2501b633fc9b97b66f1e18c0412292d387e021a2bc2bf243ea980922eee48cb3",
+          "bytes": 1468257,
+          "timings": "audio/george/kjv/1ch-008.json",
+          "timings_sha256": "4de9eb2e4a96c130c281409dca24fe45ce9f73b2d39679781df3f5ad0b45bd4e",
+          "duration": 250.3
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/1ch-009.m4a",
+          "sha256": "07a697a0dc4f3bd952ba96f26dd184fb8b2ddb66d4e0774455e153cb22fd255d",
+          "bytes": 2460494,
+          "timings": "audio/george/kjv/1ch-009.json",
+          "timings_sha256": "631fd8fc440f49b05ec4b62d76fb86a94b2ac51c61e88e390f300e9463f08870",
+          "duration": 407.075
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/1ch-010.m4a",
+          "sha256": "fbbd95458de37f6d027dc1640737221ffb6ca392f1ce65058e013f7aec63a2ba",
+          "bytes": 874724,
+          "timings": "audio/george/kjv/1ch-010.json",
+          "timings_sha256": "cc54c72cd8fcc7b7c12d65a550ad599e95a809f8559a08751bc3e55491aae9a4",
+          "duration": 143.65
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/1ch-011.m4a",
+          "sha256": "2e0359f999b8a201683e36c04d9f5ac9e19cbe0012921ec6f5e0c2e333c94795",
+          "bytes": 2444377,
+          "timings": "audio/george/kjv/1ch-011.json",
+          "timings_sha256": "7a6a9c6997a9bdb45c7a6e56dbefe21bcf7642f73a71cc4b8d0c753cf7da0c86",
+          "duration": 405.55
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/1ch-012.m4a",
+          "sha256": "e539535cb743ad1bee0bcf1d9573b15c698aed2a66e42e2f64e1f991a9535fe5",
+          "bytes": 2447589,
+          "timings": "audio/george/kjv/1ch-012.json",
+          "timings_sha256": "95e0d4bde379385eca91b80d2547cf88eec58e5e9c536d985d31c7b66f208d3b",
+          "duration": 400.925
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/1ch-013.m4a",
+          "sha256": "9b8ef3213890a1fd2ee3d533c94c75a20bfd92905baa9783a782dbc5944cba41",
+          "bytes": 892986,
+          "timings": "audio/george/kjv/1ch-013.json",
+          "timings_sha256": "c96612ddd8f225c5d8648da7dcfbf4a9ec32b4ba0210edbdad2898d07d6c7b83",
+          "duration": 146.525
+        },
+        {
+          "chapter": 14,
+          "file": "audio/george/kjv/1ch-014.m4a",
+          "sha256": "264b2ad94d35e4372a5eb507a3404eb9198f9ffd496d0ce8292848413fd18ce1",
+          "bytes": 956638,
+          "timings": "audio/george/kjv/1ch-014.json",
+          "timings_sha256": "a7dbdc09cae229671f5b1baf3fe036c75a8632b0587c9e9c92847dafc91603f8",
+          "duration": 157.025
+        },
+        {
+          "chapter": 15,
+          "file": "audio/george/kjv/1ch-015.m4a",
+          "sha256": "f7e88383b953bcfa718ae82477acb97b9387e60a9ba98521ee252f186584279e",
+          "bytes": 1771069,
+          "timings": "audio/george/kjv/1ch-015.json",
+          "timings_sha256": "ab4d6edb7275fef5d52802b6d148fe0cfeb0efd915621b34ed72cdc424e96f16",
+          "duration": 293.175
+        },
+        {
+          "chapter": 16,
+          "file": "audio/george/kjv/1ch-016.m4a",
+          "sha256": "5ec48b41459036f9241298e1cc80f8013c400849283ffa882cb6116374823c8f",
+          "bytes": 2133655,
+          "timings": "audio/george/kjv/1ch-016.json",
+          "timings_sha256": "49095c6854f70a80e82b8facd111eef1cd8794d81a6e2c4b052cf0364043d8e3",
+          "duration": 354.975
+        },
+        {
+          "chapter": 17,
+          "file": "audio/george/kjv/1ch-017.m4a",
+          "sha256": "5392fe3199ea47ed2c5c7fef402001565810e129b3244ed3adbf19ef08b10af9",
+          "bytes": 1763143,
+          "timings": "audio/george/kjv/1ch-017.json",
+          "timings_sha256": "2d7c2b4910931f05269480d83f829ab331b579c681fb12dc891c23149e0476de",
+          "duration": 290.55
+        },
+        {
+          "chapter": 18,
+          "file": "audio/george/kjv/1ch-018.m4a",
+          "sha256": "3cf4891a3978db87b78adf74c8ff893c6527a3d140b638ab9dec5f1e0ae53413",
+          "bytes": 1078503,
+          "timings": "audio/george/kjv/1ch-018.json",
+          "timings_sha256": "e23e7667cbb8bd683b890b1dd9de1e9479f23c96e2ea1002570db1b375f2030e",
+          "duration": 177.35
+        },
+        {
+          "chapter": 19,
+          "file": "audio/george/kjv/1ch-019.m4a",
+          "sha256": "2f0f6aec4f973a5ffc493e90ee5a599c619809ef6d3ad2cd535c9609ba8e3e06",
+          "bytes": 1497263,
+          "timings": "audio/george/kjv/1ch-019.json",
+          "timings_sha256": "9c7b37630a62381c27ab9766cd485c8f698a057311984dd85ad8bb420cdd51e6",
+          "duration": 241.725
+        },
+        {
+          "chapter": 20,
+          "file": "audio/george/kjv/1ch-020.m4a",
+          "sha256": "f51fceae3879548a4929b53b6d3270c50f230be294c045dc241fde10aceaca8f",
+          "bytes": 686239,
+          "timings": "audio/george/kjv/1ch-020.json",
+          "timings_sha256": "9e8604b26c1f706e885a40b95d9e3ef8253f8a1054d360b315719e2df1409102",
+          "duration": 111.275
+        },
+        {
+          "chapter": 21,
+          "file": "audio/george/kjv/1ch-021.m4a",
+          "sha256": "0268467b2d285bfbcd72f827c339be938749c6f7d5f53e9f9707b4fb551be34c",
+          "bytes": 2249267,
+          "timings": "audio/george/kjv/1ch-021.json",
+          "timings_sha256": "9990f704546a7b19295f99454de4defc1660f06d0900bb25fb6d0d6e3e272a7b",
+          "duration": 366.3
+        },
+        {
+          "chapter": 22,
+          "file": "audio/george/kjv/1ch-022.m4a",
+          "sha256": "1cfc60bdcfe40a7d5c0cd0d3041652d98bd6f7e31414ad064899d73d776a187f",
+          "bytes": 1464788,
+          "timings": "audio/george/kjv/1ch-022.json",
+          "timings_sha256": "0a4c68f13cfbb8c76abd2cb205be684688984455b4ea932d2e243a1e66c0f4a4",
+          "duration": 238.525
+        },
+        {
+          "chapter": 23,
+          "file": "audio/george/kjv/1ch-023.m4a",
+          "sha256": "41eb8a3baf4660ffd691e8f527340962b2329c8b8a168d4d2a553e0e62cbc4f0",
+          "bytes": 1793573,
+          "timings": "audio/george/kjv/1ch-023.json",
+          "timings_sha256": "fa23c126ce42a88abc5c3a3e2912d16284648ad42b2fa4f03f3622134bc97367",
+          "duration": 295.275
+        },
+        {
+          "chapter": 24,
+          "file": "audio/george/kjv/1ch-024.m4a",
+          "sha256": "52695ee5d2f9a5db25e0deb0b37889fd80d5134c785a7dbb64e999754cdfe0b5",
+          "bytes": 1584225,
+          "timings": "audio/george/kjv/1ch-024.json",
+          "timings_sha256": "ac0f1a5cc04042bb2b932096c3f9ab8247be96d770997e55d1f5b6171bbc845c",
+          "duration": 261.075
+        },
+        {
+          "chapter": 25,
+          "file": "audio/george/kjv/1ch-025.m4a",
+          "sha256": "e6812dd7c5d2b56b11d97201be3857f2879326d679eaef9c8c5c2c9776de520b",
+          "bytes": 1457652,
+          "timings": "audio/george/kjv/1ch-025.json",
+          "timings_sha256": "7bb02fb3f759c3896f950ff318ec3884b3c348dc8f738f1bc0920710556af5d4",
+          "duration": 242.625
+        },
+        {
+          "chapter": 26,
+          "file": "audio/george/kjv/1ch-026.m4a",
+          "sha256": "1e5ab22291a0ab42c22defcb4ff00b8234a7094ec34798417b9637455c6a69cc",
+          "bytes": 1875341,
+          "timings": "audio/george/kjv/1ch-026.json",
+          "timings_sha256": "42e988376d1fac9fcc4c8b73ac02b0e71241692747ffd34653723389d3aa55a1",
+          "duration": 309.625
+        },
+        {
+          "chapter": 27,
+          "file": "audio/george/kjv/1ch-027.m4a",
+          "sha256": "38914cc88a0a5c8e72ef86655caa190361a53cee5e8fecd071506ed402a3c886",
+          "bytes": 2127530,
+          "timings": "audio/george/kjv/1ch-027.json",
+          "timings_sha256": "8abc087f0be416a02df90f140145da35f083ed2258841f21f6e1457827d13f88",
+          "duration": 350.9
+        },
+        {
+          "chapter": 28,
+          "file": "audio/george/kjv/1ch-028.m4a",
+          "sha256": "213a993a3b259c1ea33d6ed05820c5e531c8aee9b433f1798843a9da9e57379a",
+          "bytes": 1959823,
+          "timings": "audio/george/kjv/1ch-028.json",
+          "timings_sha256": "58bb37a30c1df21c45555bac9252c404b1bdb17cc89f02337d11e2a1e3e0ad5f",
+          "duration": 316.3
+        },
+        {
+          "chapter": 29,
+          "file": "audio/george/kjv/1ch-029.m4a",
+          "sha256": "afa7e9acdd62954e45b39d7b1170409dcd5c2519214797f0a7a1bd37493227db",
+          "bytes": 2336845,
+          "timings": "audio/george/kjv/1ch-029.json",
+          "timings_sha256": "d9aa1a9723f194130fe4c1943cf046d01e3fd400f90b9117b3fd203027cba9f5",
+          "duration": 379.45
+        }
+      ],
+      "titles": {
+        "file": "audio/george/1ch-titles.m4a",
+        "sha256": "3175228c20eca3ccffbc576a7b154695d71237ab44b1ffe250abd371aeb5d94b",
+        "bytes": 555480,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.875
+          },
+          {
+            "chapter": 2,
+            "start": 3.175,
+            "end": 5.975
+          },
+          {
+            "chapter": 3,
+            "start": 6.275,
+            "end": 9.1
+          },
+          {
+            "chapter": 4,
+            "start": 9.4,
+            "end": 12.25
+          },
+          {
+            "chapter": 5,
+            "start": 12.55,
+            "end": 15.575
+          },
+          {
+            "chapter": 6,
+            "start": 15.875,
+            "end": 18.725
+          },
+          {
+            "chapter": 7,
+            "start": 19.025,
+            "end": 22.05
+          },
+          {
+            "chapter": 8,
+            "start": 22.35,
+            "end": 25.175
+          },
+          {
+            "chapter": 9,
+            "start": 25.475,
+            "end": 28.45
+          },
+          {
+            "chapter": 10,
+            "start": 28.75,
+            "end": 31.65
+          },
+          {
+            "chapter": 11,
+            "start": 31.95,
+            "end": 34.975
+          },
+          {
+            "chapter": 12,
+            "start": 35.275,
+            "end": 38.275
+          },
+          {
+            "chapter": 13,
+            "start": 38.575,
+            "end": 41.675
+          },
+          {
+            "chapter": 14,
+            "start": 41.975,
+            "end": 45.05
+          },
+          {
+            "chapter": 15,
+            "start": 45.35,
+            "end": 48.4
+          },
+          {
+            "chapter": 16,
+            "start": 48.7,
+            "end": 51.775
+          },
+          {
+            "chapter": 17,
+            "start": 52.075,
+            "end": 55.3
+          },
+          {
+            "chapter": 18,
+            "start": 55.6,
+            "end": 58.625
+          },
+          {
+            "chapter": 19,
+            "start": 58.925,
+            "end": 61.925
+          },
+          {
+            "chapter": 20,
+            "start": 62.225,
+            "end": 65.3
+          },
+          {
+            "chapter": 21,
+            "start": 65.6,
+            "end": 68.75
+          },
+          {
+            "chapter": 22,
+            "start": 69.05,
+            "end": 72.25
+          },
+          {
+            "chapter": 23,
+            "start": 72.55,
+            "end": 75.825
+          },
+          {
+            "chapter": 24,
+            "start": 76.125,
+            "end": 79.4
+          },
+          {
+            "chapter": 25,
+            "start": 79.7,
+            "end": 83.05
+          },
+          {
+            "chapter": 26,
+            "start": 83.35,
+            "end": 86.575
+          },
+          {
+            "chapter": 27,
+            "start": 86.875,
+            "end": 90.25
+          },
+          {
+            "chapter": 28,
+            "start": 90.55,
+            "end": 93.725
+          },
+          {
+            "chapter": 29,
+            "start": 94.025,
+            "end": 97.3
+          }
+        ]
+      }
+    },
+    {
+      "book": "1KI",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/1ki-001.m4a",
+          "sha256": "8863831cd1f1b05910edf151d821d1cb140ab399e9617e69d01248d214774848",
+          "bytes": 3562778,
+          "timings": "audio/george/kjv/1ki-001.json",
+          "timings_sha256": "326e07f7c12bc3e1d8182b69cc8b32575cbbd51f93238fcc22de355058c30784",
+          "duration": 585.5
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/1ki-002.m4a",
+          "sha256": "0d30069b5a0e8106ba9196059062a548f54e68770f1089aa5b4b7f30e7ec5e82",
+          "bytes": 3593824,
+          "timings": "audio/george/kjv/1ki-002.json",
+          "timings_sha256": "5629fa7e34cda53f83c4f26c137258d6b890d971edde2c0eeead5a6b505ec18e",
+          "duration": 582.15
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/1ki-003.m4a",
+          "sha256": "a2b01071e03a3cb6955e11d754ec2c2acd06184862886385c91bc04c6ad2c1b6",
+          "bytes": 2020814,
+          "timings": "audio/george/kjv/1ki-003.json",
+          "timings_sha256": "e22395698508c81287096c7cbde3b896a8bd0ec0f8a4e5dc449e16846e49ae57",
+          "duration": 330.4
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/1ki-004.m4a",
+          "sha256": "d4ccabe57aebf008f405106f4c11b0239732b966bb5ba3be235293ef103fe79d",
+          "bytes": 1892587,
+          "timings": "audio/george/kjv/1ki-004.json",
+          "timings_sha256": "b864d24bd504a41bdc1a9dceab412800ee5f3191c7ebb6da89328692aab30d05",
+          "duration": 310.425
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/1ki-005.m4a",
+          "sha256": "72ff4a71e4d975a1c0c28977c2849e2a9c7912a46a2e75203fd9fc9f917cc33a",
+          "bytes": 1302361,
+          "timings": "audio/george/kjv/1ki-005.json",
+          "timings_sha256": "c906935058e7cd7d9a55fd691ee7a6c1d0aff722b1dfb9163582839a33d039ee",
+          "duration": 212.3
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/1ki-006.m4a",
+          "sha256": "5eb2650a428abc906757f0648bb73a80af38750a7c6e5c827b5e2d9910f28d03",
+          "bytes": 2387760,
+          "timings": "audio/george/kjv/1ki-006.json",
+          "timings_sha256": "f74562009c7c9ffcbca66c37ee1017a5f3159610e052fdea429767274507b7e1",
+          "duration": 392.075
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/1ki-007.m4a",
+          "sha256": "d35a99ccb67e5fb64aa9a5f1cf3d35890b0e15f2da8c137b154880e4f093fad7",
+          "bytes": 3528311,
+          "timings": "audio/george/kjv/1ki-007.json",
+          "timings_sha256": "87efed9e68aca4da43a765022b657850fc51c114bf306d6017eba90a45751360",
+          "duration": 575.975
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/1ki-008.m4a",
+          "sha256": "51d2320ae51c180bc313252bea83fded07fa1b5792f6653b4638dbdee9d14706",
+          "bytes": 4894106,
+          "timings": "audio/george/kjv/1ki-008.json",
+          "timings_sha256": "5519464f7ed0f56570483cadab0fbbbc2505eeab615f53cf82ec77afbe7cefb7",
+          "duration": 796.5
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/1ki-009.m4a",
+          "sha256": "e8f237748675fca84a419dd08be9f114ff142a06996ff07b9df253232004143f",
+          "bytes": 1921748,
+          "timings": "audio/george/kjv/1ki-009.json",
+          "timings_sha256": "5863dc09976be5d217c3b7feb98e080f5784f510f60209f034804615f7408922",
+          "duration": 312.375
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/1ki-010.m4a",
+          "sha256": "f6f6f41c5cc043c12112ac1f22fe53b509242164de1de3a1ee02841ce462c58f",
+          "bytes": 1977464,
+          "timings": "audio/george/kjv/1ki-010.json",
+          "timings_sha256": "6dd163563d0f336287d76d1821a461c39107cda4063916151a9d1621fd2e81bc",
+          "duration": 323.575
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/1ki-011.m4a",
+          "sha256": "56777a81e41c170e62f7c1915cb17a05f2837b51cc962f8b5e0b52fa4105f0ed",
+          "bytes": 3004109,
+          "timings": "audio/george/kjv/1ki-011.json",
+          "timings_sha256": "be1d0669b239558b07ccb0a20dfc35cea0e92bf9c98df184d40081a51f69dd62",
+          "duration": 489.15
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/1ki-012.m4a",
+          "sha256": "4e540ada2bf7535aa98407b425e362bda831382c4d433a21c0b0c1e2c10c2972",
+          "bytes": 2449059,
+          "timings": "audio/george/kjv/1ki-012.json",
+          "timings_sha256": "afc8dad2c3493f9fc459a64cb80da20dea4cdc030d88ac193fa097143916c630",
+          "duration": 397.75
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/1ki-013.m4a",
+          "sha256": "df0b72394826bbe143ee2cacf80f698c760a50f6d56437dac58d4488e384b33b",
+          "bytes": 2497452,
+          "timings": "audio/george/kjv/1ki-013.json",
+          "timings_sha256": "ac690caf8ed047706cae1fafb6c598882d3b7100255be51686050333d7475357",
+          "duration": 405.625
+        },
+        {
+          "chapter": 14,
+          "file": "audio/george/kjv/1ki-014.m4a",
+          "sha256": "5e90719a4720367ba5e23f8f87d92d88938ebf9b3d454c18b10098fc50cf8bc8",
+          "bytes": 2317831,
+          "timings": "audio/george/kjv/1ki-014.json",
+          "timings_sha256": "fbcf6f819c8ad331f0af7e4be3f4463914c9e521f99607a0c467069d3e0812de",
+          "duration": 376.075
+        },
+        {
+          "chapter": 15,
+          "file": "audio/george/kjv/1ki-015.m4a",
+          "sha256": "a71ed7b50187a0a74147ae1e5adff85dabfd9afcd8000f90a9ccc9f6333f18fc",
+          "bytes": 2264906,
+          "timings": "audio/george/kjv/1ki-015.json",
+          "timings_sha256": "d994cc94c3e83a223d46f5ea5e7be8a4c2b69b8d452b85c7853b0f0ff6d374ee",
+          "duration": 369.9
+        },
+        {
+          "chapter": 16,
+          "file": "audio/george/kjv/1ki-016.m4a",
+          "sha256": "bea7316f629d06ced65db441d6a24ca0cc98fdd890206c3c7093b1dab33cd127",
+          "bytes": 2344042,
+          "timings": "audio/george/kjv/1ki-016.json",
+          "timings_sha256": "c4f73a48023bb67c0d20a8b36cd8a99ff9bd4d5daf8aa920de298af91cef8244",
+          "duration": 384.2
+        },
+        {
+          "chapter": 17,
+          "file": "audio/george/kjv/1ki-017.m4a",
+          "sha256": "153a9a3908f129f4e2f1139f563b93efea7c4d158016299f50f5678c7ea5d2bf",
+          "bytes": 1503744,
+          "timings": "audio/george/kjv/1ki-017.json",
+          "timings_sha256": "0dcd84bd7cd98a6735550bc946b082bd79ba8ffe95d1265cbbbfb3467e6f4272",
+          "duration": 245.825
+        },
+        {
+          "chapter": 18,
+          "file": "audio/george/kjv/1ki-018.m4a",
+          "sha256": "09c9bbe56e8eed9635d05f0997239ad97508e4e151fa41d7b2a2bc2c2220adba",
+          "bytes": 3292050,
+          "timings": "audio/george/kjv/1ki-018.json",
+          "timings_sha256": "2e9d8902cfca2481f58ee9f6e10676ad84433203a0f203ea4aec5dc54036f719",
+          "duration": 536.85
+        },
+        {
+          "chapter": 19,
+          "file": "audio/george/kjv/1ki-019.m4a",
+          "sha256": "e0e6f83a126acaf9ece8f337d4ec2a001f407d4cca61e5f09225195a563cc894",
+          "bytes": 1727698,
+          "timings": "audio/george/kjv/1ki-019.json",
+          "timings_sha256": "801d0be240d736dc3933cffdfcf888b577842037444cf1d10564f94883b7e974",
+          "duration": 280.1
+        },
+        {
+          "chapter": 20,
+          "file": "audio/george/kjv/1ki-020.m4a",
+          "sha256": "4587811bfb8635f2285faa378cc94c8338f026d3d2483975b10fb1f3cb4584c1",
+          "bytes": 3488638,
+          "timings": "audio/george/kjv/1ki-020.json",
+          "timings_sha256": "651fc2cf72a1f7b2fa3a6e7242957d95e9dfbba7a9c6c1f4826f9ffb9a58e061",
+          "duration": 566.825
+        },
+        {
+          "chapter": 21,
+          "file": "audio/george/kjv/1ki-021.m4a",
+          "sha256": "9502afd6f132164c50d9d2f149d722744bcf628c0711e3d76b542366feea2caa",
+          "bytes": 2107733,
+          "timings": "audio/george/kjv/1ki-021.json",
+          "timings_sha256": "762c6b5e71532f8f96c28e510e455d1aaa09436a3806031887070f9b01d8c34d",
+          "duration": 343.8
+        },
+        {
+          "chapter": 22,
+          "file": "audio/george/kjv/1ki-022.m4a",
+          "sha256": "1a997323240bedad2a11b29d53c11cfb9e9605ad8f72241ab2b8939daa3608dd",
+          "bytes": 3637337,
+          "timings": "audio/george/kjv/1ki-022.json",
+          "timings_sha256": "ab982dc783f1d1d0f68fd54307ff6ae8b3a7155848c6483bd5188ccc886f8825",
+          "duration": 591.45
+        }
+      ],
+      "titles": {
+        "file": "audio/george/1ki-titles.m4a",
+        "sha256": "f909d3327024fe0a0fbffec335ea38878777caf0db38bb51fade3929b84dacd1",
+        "bytes": 379596,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.6
+          },
+          {
+            "chapter": 2,
+            "start": 2.9,
+            "end": 5.475
+          },
+          {
+            "chapter": 3,
+            "start": 5.775,
+            "end": 8.45
+          },
+          {
+            "chapter": 4,
+            "start": 8.75,
+            "end": 11.325
+          },
+          {
+            "chapter": 5,
+            "start": 11.625,
+            "end": 14.375
+          },
+          {
+            "chapter": 6,
+            "start": 14.675,
+            "end": 17.3
+          },
+          {
+            "chapter": 7,
+            "start": 17.6,
+            "end": 20.35
+          },
+          {
+            "chapter": 8,
+            "start": 20.65,
+            "end": 23.175
+          },
+          {
+            "chapter": 9,
+            "start": 23.475,
+            "end": 26.15
+          },
+          {
+            "chapter": 10,
+            "start": 26.45,
+            "end": 29.125
+          },
+          {
+            "chapter": 11,
+            "start": 29.425,
+            "end": 32.2
+          },
+          {
+            "chapter": 12,
+            "start": 32.5,
+            "end": 35.2
+          },
+          {
+            "chapter": 13,
+            "start": 35.5,
+            "end": 38.4
+          },
+          {
+            "chapter": 14,
+            "start": 38.7,
+            "end": 41.55
+          },
+          {
+            "chapter": 15,
+            "start": 41.85,
+            "end": 44.675
+          },
+          {
+            "chapter": 16,
+            "start": 44.975,
+            "end": 47.75
+          },
+          {
+            "chapter": 17,
+            "start": 48.05,
+            "end": 51
+          },
+          {
+            "chapter": 18,
+            "start": 51.3,
+            "end": 54.05
+          },
+          {
+            "chapter": 19,
+            "start": 54.35,
+            "end": 57.15
+          },
+          {
+            "chapter": 20,
+            "start": 57.45,
+            "end": 60.25
+          },
+          {
+            "chapter": 21,
+            "start": 60.55,
+            "end": 63.425
+          },
+          {
+            "chapter": 22,
+            "start": 63.725,
+            "end": 66.6
+          }
+        ]
+      }
+    },
+    {
+      "book": "1SA",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/1sa-001.m4a",
+          "sha256": "80d19bb64611a3c65b232ad038320ba27d3bef753d3fd0e3284db094f914e141",
+          "bytes": 1828393,
+          "timings": "audio/george/kjv/1sa-001.json",
+          "timings_sha256": "fb19caa04c1df224d214eb653ce1bd2079a7cd9c83a2a093c10fcc44ee51bc02",
+          "duration": 298.9
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/1sa-002.m4a",
+          "sha256": "585d5d4e47451ec21a37a57055ac0c59f85bfae6cac2979473ef074398784608",
+          "bytes": 2586587,
+          "timings": "audio/george/kjv/1sa-002.json",
+          "timings_sha256": "ea1e794c78617ade27ec20e436856e235f0be0ccec4c522e53dd9e8473eaf07f",
+          "duration": 421.55
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/1sa-003.m4a",
+          "sha256": "b20b4a4835b3f4da4d57db6aef19b33fc5be2281f48dcbf66a00b10ca397b624",
+          "bytes": 1351724,
+          "timings": "audio/george/kjv/1sa-003.json",
+          "timings_sha256": "5dec07f3c598e8219b288ef43757e36354360d2ff73f21be04838b21d87ccfd9",
+          "duration": 220.425
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/1sa-004.m4a",
+          "sha256": "1f5450538109e69cd7e36be11707335b3b042d4e7328c366a3c1a34cee4e9423",
+          "bytes": 1725711,
+          "timings": "audio/george/kjv/1sa-004.json",
+          "timings_sha256": "aaa5c7590dd47d74c3b07a5a4836082efa135a59563a4a389e1aa099bc8f9ce3",
+          "duration": 279.2
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/1sa-005.m4a",
+          "sha256": "3c17c314dd5baf7ace2da45e356a735324d6a14f82259f5ab428ae7335787b92",
+          "bytes": 979817,
+          "timings": "audio/george/kjv/1sa-005.json",
+          "timings_sha256": "f527613a9ebd701a496f8f0eb8ff8cff7f93e718100df6f495a0df83b9c7ea79",
+          "duration": 157.925
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/1sa-006.m4a",
+          "sha256": "3275958ae701c1541851dfe26f68987891f0d119e86b6b205cfa19b9d49e5286",
+          "bytes": 1699264,
+          "timings": "audio/george/kjv/1sa-006.json",
+          "timings_sha256": "d0f87d53f542d2355087e1459953e87948d2aa86fda3ecfd287935bb63fd36af",
+          "duration": 276.325
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/1sa-007.m4a",
+          "sha256": "706cfad095c163af0131ea52498312296d93e52aaffcc2e98f7d7e564ede8631",
+          "bytes": 1252180,
+          "timings": "audio/george/kjv/1sa-007.json",
+          "timings_sha256": "3cf85ef0ee9b03554ec9563726a2c23bb56815dfa8c949c4feae9c4115932377",
+          "duration": 202.85
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/1sa-008.m4a",
+          "sha256": "1d6c3d84cf5ce2247c7fbfa9ee77c69bb13fe3a51e38d15128ea9c0a0b95357d",
+          "bytes": 1268254,
+          "timings": "audio/george/kjv/1sa-008.json",
+          "timings_sha256": "4221e9e6abda72ec107adb128071838c7b7622a6f4c43c8972761f59a7d12d5c",
+          "duration": 208.35
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/1sa-009.m4a",
+          "sha256": "b9bf6c8d873322b052c670754dd879334cf7e0a158ad170c41e641761e00dac0",
+          "bytes": 2208941,
+          "timings": "audio/george/kjv/1sa-009.json",
+          "timings_sha256": "63b0bdcfa1e66ac7a46c2954d79451d25ff8fe6067cfded8323e5346cdfc1111",
+          "duration": 359.225
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/1sa-010.m4a",
+          "sha256": "94aef12c7095ef9a368edc62c130c7638d9a052bcbd82d5f69750ae2362d1a4c",
+          "bytes": 1952132,
+          "timings": "audio/george/kjv/1sa-010.json",
+          "timings_sha256": "f4dcf6b70d516dd168d06ed22ff4562202aa036dd75bd540e7d0ccf8b9dc6e29",
+          "duration": 318.825
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/1sa-011.m4a",
+          "sha256": "c54a2b5863892718706bbe63caea6c3a459b10ca8aa94d677a508f26a42abfe1",
+          "bytes": 1153709,
+          "timings": "audio/george/kjv/1sa-011.json",
+          "timings_sha256": "3ae93e0f81eff580bb94d66436dababe462b2e1fbd8c04f4fb1f17986ae004de",
+          "duration": 186.275
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/1sa-012.m4a",
+          "sha256": "c8bb04effbff41054d5ff258f4382543818670205aaaf9241f0010180affc8e6",
+          "bytes": 1790872,
+          "timings": "audio/george/kjv/1sa-012.json",
+          "timings_sha256": "03695e10a2e4205d16338c8bf8d3747aef928af04a9f498b426b64d4de4aa0e8",
+          "duration": 292.075
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/1sa-013.m4a",
+          "sha256": "e0ccd5ad562e706926b9bc20efcacb8e59c4ce1e4b8a6a8a7132b21d491442e8",
+          "bytes": 1710193,
+          "timings": "audio/george/kjv/1sa-013.json",
+          "timings_sha256": "c25b44225b1acc9b68e8016a852acf13fcb9dbc1dad63fdae66c90d210c68039",
+          "duration": 277.9
+        },
+        {
+          "chapter": 14,
+          "file": "audio/george/kjv/1sa-014.m4a",
+          "sha256": "7d28f8afcc01238cbd638484ff453bb039529aea22a9a5e52b4624b0471c284b",
+          "bytes": 3901828,
+          "timings": "audio/george/kjv/1sa-014.json",
+          "timings_sha256": "6d4bcc27843475214f1e8e701bf5a5e123b160964ac3bdd2a536533a2eaf50ac",
+          "duration": 634.4
+        },
+        {
+          "chapter": 15,
+          "file": "audio/george/kjv/1sa-015.m4a",
+          "sha256": "161b88c1693329169cf02b6e2fd7b421a4b1ca321fed8cf01b796e73d07bb005",
+          "bytes": 2362879,
+          "timings": "audio/george/kjv/1sa-015.json",
+          "timings_sha256": "d90dc5201a46e296573e8528662c77b43efd7ed2143285db0eacd886a3cd753c",
+          "duration": 384.275
+        },
+        {
+          "chapter": 16,
+          "file": "audio/george/kjv/1sa-016.m4a",
+          "sha256": "8e7cd9e988914e2e40695c8500eeb901702c0811fcd01d3c9c6edb2687501ec3",
+          "bytes": 1672110,
+          "timings": "audio/george/kjv/1sa-016.json",
+          "timings_sha256": "a13f9f6d4fc8ae8941a20873b0453990cd4ec193c0d91f1f36549fc5732d307d",
+          "duration": 270.775
+        },
+        {
+          "chapter": 17,
+          "file": "audio/george/kjv/1sa-017.m4a",
+          "sha256": "28674774b6b8f36367cc7aaa9cfb350ae661b8d7444467287ded3b5eff6188f9",
+          "bytes": 3994038,
+          "timings": "audio/george/kjv/1sa-017.json",
+          "timings_sha256": "8640dac847a06bebd31db7daaa996d57f22cd5d8302f9b0e8bca6d5502ec1876",
+          "duration": 652.45
+        },
+        {
+          "chapter": 18,
+          "file": "audio/george/kjv/1sa-018.m4a",
+          "sha256": "4256c9c7160170d63c7aca5b8ebe5df2a9cb73d2690cf8d2890dad68dbf678b2",
+          "bytes": 1988593,
+          "timings": "audio/george/kjv/1sa-018.json",
+          "timings_sha256": "14172f3fd7a6a1d85a246682c91f7861b68142313bf6ca22b8fd2c172bc87f5a",
+          "duration": 326.675
+        },
+        {
+          "chapter": 19,
+          "file": "audio/george/kjv/1sa-019.m4a",
+          "sha256": "cf3a272b3d80bff960574076efe819d08e97e3600fefc0303d015a78e98025ac",
+          "bytes": 1677335,
+          "timings": "audio/george/kjv/1sa-019.json",
+          "timings_sha256": "9e6c6601b8ca0aa6fb60184842bd73d4c343f09966d9bf5d535b0360907e4a76",
+          "duration": 274.2
+        },
+        {
+          "chapter": 20,
+          "file": "audio/george/kjv/1sa-020.m4a",
+          "sha256": "621778a40d886cf6b1a2837f8d2f0c7ca58560a9d18d8192b23d7bf557559f89",
+          "bytes": 3037417,
+          "timings": "audio/george/kjv/1sa-020.json",
+          "timings_sha256": "398af68238ad7dcb4b23d548b8f8f26356a86a41a8c738b2cc2d5e5eba1093f6",
+          "duration": 497.475
+        },
+        {
+          "chapter": 21,
+          "file": "audio/george/kjv/1sa-021.m4a",
+          "sha256": "765a864eeb7d0295ee4d3859ed61af3684a908922cf82e1a86a743a5a4cf60d3",
+          "bytes": 1142629,
+          "timings": "audio/george/kjv/1sa-021.json",
+          "timings_sha256": "fe198c6160dfb8114823972d13e1e2c283f32e8b7f4c9d6157383b69cee4e3b7",
+          "duration": 184.375
+        },
+        {
+          "chapter": 22,
+          "file": "audio/george/kjv/1sa-022.m4a",
+          "sha256": "a1e0f17de2acf7d8ca2e55ffe44b46ddb7a25ba9462fc8fa2042b15b718fdd6d",
+          "bytes": 1711541,
+          "timings": "audio/george/kjv/1sa-022.json",
+          "timings_sha256": "8e5ec4a290195d9e74f0882a301fba5faacf629bdc3651766dca1d303e6ff99e",
+          "duration": 281.275
+        },
+        {
+          "chapter": 23,
+          "file": "audio/george/kjv/1sa-023.m4a",
+          "sha256": "616023ed46434655f8c071641c807ca7333723507442fc2b35f7fff594bd6caa",
+          "bytes": 2019780,
+          "timings": "audio/george/kjv/1sa-023.json",
+          "timings_sha256": "0255b7bc6f6d7ea0eaa941ea5ce2d3006129e5c3f5fbb5c062be84f05560ee75",
+          "duration": 331.25
+        },
+        {
+          "chapter": 24,
+          "file": "audio/george/kjv/1sa-024.m4a",
+          "sha256": "1445758263f2a199abbe84f3c5f85102761cb7bc347353e9b43d8434b9b1dfd6",
+          "bytes": 1573838,
+          "timings": "audio/george/kjv/1sa-024.json",
+          "timings_sha256": "4acefe08817306d78145c2c8b2359136b9cbd8df5e7cf749cd0985466bf67d4b",
+          "duration": 255.775
+        },
+        {
+          "chapter": 25,
+          "file": "audio/george/kjv/1sa-025.m4a",
+          "sha256": "b19edfbaa7adcfecc514dc31bffa685a2c86c512e63fe0c55509b7fef48f9df4",
+          "bytes": 3354217,
+          "timings": "audio/george/kjv/1sa-025.json",
+          "timings_sha256": "c9855ac020830ea74c71e55c8877086ef2b3434f0bb9c39c61eca200716bc8d4",
+          "duration": 545.3
+        },
+        {
+          "chapter": 26,
+          "file": "audio/george/kjv/1sa-026.m4a",
+          "sha256": "ea38740cdf50b67760b324472273fca20b167c1e1b3928e7b7359d8f915e20d0",
+          "bytes": 2022703,
+          "timings": "audio/george/kjv/1sa-026.json",
+          "timings_sha256": "6b88797f12dc234a6863a76f7e274a819fb42c319c34658f9beec360571b2089",
+          "duration": 328.975
+        },
+        {
+          "chapter": 27,
+          "file": "audio/george/kjv/1sa-027.m4a",
+          "sha256": "8503baeb3fd828bb2c3ab55be7dd412f010226dcfc4c04b039b38c74810c149d",
+          "bytes": 913778,
+          "timings": "audio/george/kjv/1sa-027.json",
+          "timings_sha256": "ab785c4e55eb591817bdd10479a149712841b2b21f2b5d92591dfc2820db51d9",
+          "duration": 148.525
+        },
+        {
+          "chapter": 28,
+          "file": "audio/george/kjv/1sa-028.m4a",
+          "sha256": "157f44e4aedd130f91b2711d80dcbb708c097b39bfa66ac8b5d326ea8f9c33ba",
+          "bytes": 1983170,
+          "timings": "audio/george/kjv/1sa-028.json",
+          "timings_sha256": "d32f491851a0a1506816b690bfcc1e563be7b93d6b4a76da0aab64c817898b8e",
+          "duration": 320.875
+        },
+        {
+          "chapter": 29,
+          "file": "audio/george/kjv/1sa-029.m4a",
+          "sha256": "dc52a0f9d551b4f0ffa2f953610e2cfabcf204e664de79e589225fe2981a6d95",
+          "bytes": 973744,
+          "timings": "audio/george/kjv/1sa-029.json",
+          "timings_sha256": "18ff452ba65fd7439ff009205499083d404b53800d7ebe96fd90b06f7644e9c0",
+          "duration": 157.6
+        },
+        {
+          "chapter": 30,
+          "file": "audio/george/kjv/1sa-030.m4a",
+          "sha256": "22195cb154eb8a342fb5685c0a69201ea88c1c845939cda688f81c99a864f9ff",
+          "bytes": 2217444,
+          "timings": "audio/george/kjv/1sa-030.json",
+          "timings_sha256": "b159413722fb33c1b02060b34247a5d9a7db22553a30bb1e270b55520a18ac4a",
+          "duration": 360.9
+        },
+        {
+          "chapter": 31,
+          "file": "audio/george/kjv/1sa-031.m4a",
+          "sha256": "004cebff1bb0f979c5b5dff335df7c9830959668ee9fa8f5861a1775caa32075",
+          "bytes": 838155,
+          "timings": "audio/george/kjv/1sa-031.json",
+          "timings_sha256": "f7462c44ffa5a6124fef57c385892baa3b5ca6aa9c5468c3d3561436b7932db3",
+          "duration": 136.65
+        }
+      ],
+      "titles": {
+        "file": "audio/george/1sa-titles.m4a",
+        "sha256": "4583a37cba90938c92cac603ad070585efd4fa8724687470743a2ca7fc035a21",
+        "bytes": 553722,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.65
+          },
+          {
+            "chapter": 2,
+            "start": 2.95,
+            "end": 5.625
+          },
+          {
+            "chapter": 3,
+            "start": 5.925,
+            "end": 8.625
+          },
+          {
+            "chapter": 4,
+            "start": 8.925,
+            "end": 11.55
+          },
+          {
+            "chapter": 5,
+            "start": 11.85,
+            "end": 14.75
+          },
+          {
+            "chapter": 6,
+            "start": 15.05,
+            "end": 17.725
+          },
+          {
+            "chapter": 7,
+            "start": 18.025,
+            "end": 20.85
+          },
+          {
+            "chapter": 8,
+            "start": 21.15,
+            "end": 23.75
+          },
+          {
+            "chapter": 9,
+            "start": 24.05,
+            "end": 26.775
+          },
+          {
+            "chapter": 10,
+            "start": 27.075,
+            "end": 29.725
+          },
+          {
+            "chapter": 11,
+            "start": 30.025,
+            "end": 32.925
+          },
+          {
+            "chapter": 12,
+            "start": 33.225,
+            "end": 36
+          },
+          {
+            "chapter": 13,
+            "start": 36.3,
+            "end": 39.25
+          },
+          {
+            "chapter": 14,
+            "start": 39.55,
+            "end": 42.475
+          },
+          {
+            "chapter": 15,
+            "start": 42.775,
+            "end": 45.625
+          },
+          {
+            "chapter": 16,
+            "start": 45.925,
+            "end": 48.775
+          },
+          {
+            "chapter": 17,
+            "start": 49.075,
+            "end": 52.15
+          },
+          {
+            "chapter": 18,
+            "start": 52.45,
+            "end": 55.225
+          },
+          {
+            "chapter": 19,
+            "start": 55.525,
+            "end": 58.425
+          },
+          {
+            "chapter": 20,
+            "start": 58.725,
+            "end": 61.625
+          },
+          {
+            "chapter": 21,
+            "start": 61.925,
+            "end": 64.85
+          },
+          {
+            "chapter": 22,
+            "start": 65.15,
+            "end": 68.075
+          },
+          {
+            "chapter": 23,
+            "start": 68.375,
+            "end": 71.425
+          },
+          {
+            "chapter": 24,
+            "start": 71.725,
+            "end": 74.7
+          },
+          {
+            "chapter": 25,
+            "start": 75,
+            "end": 78.175
+          },
+          {
+            "chapter": 26,
+            "start": 78.475,
+            "end": 81.5
+          },
+          {
+            "chapter": 27,
+            "start": 81.8,
+            "end": 84.95
+          },
+          {
+            "chapter": 28,
+            "start": 85.25,
+            "end": 88.1
+          },
+          {
+            "chapter": 29,
+            "start": 88.4,
+            "end": 91.4
+          },
+          {
+            "chapter": 30,
+            "start": 91.7,
+            "end": 94.575
+          },
+          {
+            "chapter": 31,
+            "start": 94.875,
+            "end": 97.925
+          }
+        ]
+      }
+    },
+    {
+      "book": "2CH",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/2ch-001.m4a",
+          "sha256": "44bc41aba561f3bd85e656cc46d883b869f4c54212e190dde9fd0f547044976c",
+          "bytes": 1281719,
+          "timings": "audio/george/kjv/2ch-001.json",
+          "timings_sha256": "49d052ea8693983fa32619eabb90b86f140cc8702f814fcecfaf7375da5a394e",
+          "duration": 207.575
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/2ch-002.m4a",
+          "sha256": "9115a53c733efcaf5e2536502d38f69163a3e091240581de006324a6e5e0a4dc",
+          "bytes": 1498193,
+          "timings": "audio/george/kjv/2ch-002.json",
+          "timings_sha256": "82e772880c7c1c5784a01c4b19933dd9493422e6b9a7c8fa121506ff421b86d3",
+          "duration": 242.25
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/2ch-003.m4a",
+          "sha256": "e1d65f4dbdcafad8f1db209a9255284ba914380c2c7693bd37e35dd8ac427932",
+          "bytes": 1158945,
+          "timings": "audio/george/kjv/2ch-003.json",
+          "timings_sha256": "6a04353b03f78160e97b14a3eec0ead7b6c1fdcd1a191444cfbb5a0764dd53b1",
+          "duration": 187.125
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/2ch-004.m4a",
+          "sha256": "1e8158f3238bb13c6e199cb7cc76e651ea8114e1e41a13f5320dee29ac4fc00f",
+          "bytes": 1373349,
+          "timings": "audio/george/kjv/2ch-004.json",
+          "timings_sha256": "41ecaa5781b0f951841cd2f6b970e5f0e449b8aa43f5dc84f58f86d5d5b89649",
+          "duration": 225.325
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/2ch-005.m4a",
+          "sha256": "8acf845963918a59a0260b573acf01ef1520516d6762b960421e9d100b798500",
+          "bytes": 1142569,
+          "timings": "audio/george/kjv/2ch-005.json",
+          "timings_sha256": "9caa33fbe7c3faeba8545a5143d2d1c91028fa35310bc34c1fb57e31742d7d56",
+          "duration": 184.3
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/2ch-006.m4a",
+          "sha256": "1e087070a8180f123ef866418c926845597f927e08148addc173e3ab5e8e68d3",
+          "bytes": 3255320,
+          "timings": "audio/george/kjv/2ch-006.json",
+          "timings_sha256": "ad1cd4363ab7a0d04cbc0a9126893915dd24364b48712fdd069ed42b53d2af64",
+          "duration": 529.9
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/2ch-007.m4a",
+          "sha256": "c308e8f7c4d0f7023dcd4192e5d459e424ae25e49bf85ab637114804d691f3c0",
+          "bytes": 1714383,
+          "timings": "audio/george/kjv/2ch-007.json",
+          "timings_sha256": "dd8030333452484d2ccdd6bb2205fdd6790a7fade9713719e79dcb8ba7b52cfb",
+          "duration": 278.4
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/2ch-008.m4a",
+          "sha256": "101685925f0a7503879fee1e77b5fd98ba7f2437ea48d5173aa927bb3895a4a7",
+          "bytes": 1258302,
+          "timings": "audio/george/kjv/2ch-008.json",
+          "timings_sha256": "698bbf4fda5c006f3ecc3f227542b25c71400cbb10befcd9398db30f722e83b6",
+          "duration": 204.4
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/2ch-009.m4a",
+          "sha256": "cc5578c41695ea7cbab1ebe3c3860f64bf8a63772305a03242d8706be81ede75",
+          "bytes": 2104824,
+          "timings": "audio/george/kjv/2ch-009.json",
+          "timings_sha256": "2eb25a6510f9a71891872001a4654b1252228246076b37d027c2b4bafe25113b",
+          "duration": 343.275
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/2ch-010.m4a",
+          "sha256": "89ec115acbb7442314e0fefea438b8d6346078bd471d88b60f659dfa22755870",
+          "bytes": 1336699,
+          "timings": "audio/george/kjv/2ch-010.json",
+          "timings_sha256": "e3537ff0ce4c0e313690852e2b4e8c9cc5983f5b46067b19c7de30fcecc70a16",
+          "duration": 217.225
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/2ch-011.m4a",
+          "sha256": "9263f7c1fca6d5b4d2045130e280ee66a55870858f7c7cca22852e928d0d5707",
+          "bytes": 1271016,
+          "timings": "audio/george/kjv/2ch-011.json",
+          "timings_sha256": "f359f5e6cdb611f30fca1b21fa9f8ee06b9f34536dd77995eb7f87acdb4029f4",
+          "duration": 209.65
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/2ch-012.m4a",
+          "sha256": "293b260c5c21f49878fe6335eccf59e5449742e64e38c7d4e66cab858e1569f0",
+          "bytes": 1185265,
+          "timings": "audio/george/kjv/2ch-012.json",
+          "timings_sha256": "adee94f30b541b51ec368dfc8294d892e48bcfb1cf118e238645722a61eb51de",
+          "duration": 192.475
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/2ch-013.m4a",
+          "sha256": "86ec0b2b0a3aab416232ea4a99e398cdfd0fbd9a8fd7e5222e83e1f6cef27ee4",
+          "bytes": 1607401,
+          "timings": "audio/george/kjv/2ch-013.json",
+          "timings_sha256": "b5b37a3c1124aa2fd629d86662a93ea1b7c1a5335fe92718be927c9a9fa3263e",
+          "duration": 262.65
+        },
+        {
+          "chapter": 14,
+          "file": "audio/george/kjv/2ch-014.m4a",
+          "sha256": "b2415afb8aa074ed46e51fb5467f1c5bf57e255c65eaed4a869f7b2e24604b55",
+          "bytes": 1122847,
+          "timings": "audio/george/kjv/2ch-014.json",
+          "timings_sha256": "8688f5b3ca46845ff45b009cbf6edaae1c8ab5a54775d60b80a07c2ae6c836de",
+          "duration": 181.475
+        },
+        {
+          "chapter": 15,
+          "file": "audio/george/kjv/2ch-015.m4a",
+          "sha256": "a308806c9f338f1001b65c72267b889cf05e0c64ae1dff7e12a7d6767683def9",
+          "bytes": 1201724,
+          "timings": "audio/george/kjv/2ch-015.json",
+          "timings_sha256": "6fa1a9d001faccf047a1f1e8d0767d7a582138fc82cb61c5b35e9121848ea9e3",
+          "duration": 197.25
+        },
+        {
+          "chapter": 16,
+          "file": "audio/george/kjv/2ch-016.m4a",
+          "sha256": "b49df0de9d2e1cce10dcca21f703edb79a79f18db9f52e0e6347db6e9e598a81",
+          "bytes": 1114401,
+          "timings": "audio/george/kjv/2ch-016.json",
+          "timings_sha256": "c6792b0ee45dc400f545e861ac79b152fd6d964cbaaa35f90a926ca38ea808cc",
+          "duration": 181.5
+        },
+        {
+          "chapter": 17,
+          "file": "audio/george/kjv/2ch-017.m4a",
+          "sha256": "ecff95c6138043bc58020207c8625334f37e87a42632ac45b0017987ff5a9237",
+          "bytes": 1177471,
+          "timings": "audio/george/kjv/2ch-017.json",
+          "timings_sha256": "bf11a9bd71c53e6e9aee846579f2bd90cd2dbadf11879d4067391f3e4342494a",
+          "duration": 194.15
+        },
+        {
+          "chapter": 18,
+          "file": "audio/george/kjv/2ch-018.m4a",
+          "sha256": "2f379e994c56cb11cec91602a006258ef0422c868081897e678f4f9d65e95489",
+          "bytes": 2500735,
+          "timings": "audio/george/kjv/2ch-018.json",
+          "timings_sha256": "179041273f6f05dbac9ce35493adbf69ad01d6cd3c9294ef67fbcee354d8cccb",
+          "duration": 405.95
+        },
+        {
+          "chapter": 19,
+          "file": "audio/george/kjv/2ch-019.m4a",
+          "sha256": "23fd66e0f1e62fd6a04d42423b5a5168e8649a1ed33440f44eaf923db22baa98",
+          "bytes": 858590,
+          "timings": "audio/george/kjv/2ch-019.json",
+          "timings_sha256": "31ecba6ef608190415a889f844f7f76511f0dc0c54162581522f1164d7dc176d",
+          "duration": 138.1
+        },
+        {
+          "chapter": 20,
+          "file": "audio/george/kjv/2ch-020.m4a",
+          "sha256": "955740bb91b2683935954f8dda17c610c7b4064e05561fd0aaca6056b8732abb",
+          "bytes": 2794152,
+          "timings": "audio/george/kjv/2ch-020.json",
+          "timings_sha256": "cbe010de1ef581560426a198a2f28e35c6f4d982950fd4882b4c3886ddd384e5",
+          "duration": 455.9
+        },
+        {
+          "chapter": 21,
+          "file": "audio/george/kjv/2ch-021.m4a",
+          "sha256": "b9d6743e9adafbbb6feb6f1c5098d9c7cd30f03a5629ebbefe9a8b680af5a031",
+          "bytes": 1500415,
+          "timings": "audio/george/kjv/2ch-021.json",
+          "timings_sha256": "9e499a8803cbb0e82805f5582f20c02dc576d3e4a6fb51c165f22cc8a47b6673",
+          "duration": 243.875
+        },
+        {
+          "chapter": 22,
+          "file": "audio/george/kjv/2ch-022.m4a",
+          "sha256": "fb84b8415b3ebff34add3d5aca11f326b3d0fb9e05d7dbe916fc905d529ed072",
+          "bytes": 1075881,
+          "timings": "audio/george/kjv/2ch-022.json",
+          "timings_sha256": "9c06cb2448886483f4f1746bc28ed5984afbe7b90e12a498a6d87c747af224fa",
+          "duration": 175.45
+        },
+        {
+          "chapter": 23,
+          "file": "audio/george/kjv/2ch-023.m4a",
+          "sha256": "d10f97818e9f092ecfec1171abea21864c82e0f3bccd423ad95128c17803fc46",
+          "bytes": 1769833,
+          "timings": "audio/george/kjv/2ch-023.json",
+          "timings_sha256": "a8ec214bfae9efc73a75215f73d1d7b770789fe64f955ccb6ba40b6a877f652b",
+          "duration": 285.425
+        },
+        {
+          "chapter": 24,
+          "file": "audio/george/kjv/2ch-024.m4a",
+          "sha256": "547615b6ff265b384085c2a1a27e3f24558493f1d7a912592181d7423b39cffe",
+          "bytes": 2145111,
+          "timings": "audio/george/kjv/2ch-024.json",
+          "timings_sha256": "5847e01384bbd5f8fe3de651cabda6bd2c16073ff5e25c00fdcac224086701d2",
+          "duration": 348.85
+        },
+        {
+          "chapter": 25,
+          "file": "audio/george/kjv/2ch-025.m4a",
+          "sha256": "d2d85c9d2f91844308cfcfd3731876e8006dc7a072a69ad1c30443672f9e63fd",
+          "bytes": 2263591,
+          "timings": "audio/george/kjv/2ch-025.json",
+          "timings_sha256": "803d7f125661e72adf27323c9a2f3a34d167b37dacb17c18454553a90c8bab88",
+          "duration": 368.125
+        },
+        {
+          "chapter": 26,
+          "file": "audio/george/kjv/2ch-026.m4a",
+          "sha256": "53f23c460137156c7c29dee1c71319c0cb50ddbf64d8e570b2aa54c31bf2a7db",
+          "bytes": 1750273,
+          "timings": "audio/george/kjv/2ch-026.json",
+          "timings_sha256": "1a9fe96ed69c2a471f1f4302804847c00db0d3942be022bc2067bc5d8a9c7b8b",
+          "duration": 284.55
+        },
+        {
+          "chapter": 27,
+          "file": "audio/george/kjv/2ch-027.m4a",
+          "sha256": "5b4be5c8bc66c94ab34311aba91cc88772fec8e612deb822d177bbb70274550b",
+          "bytes": 579735,
+          "timings": "audio/george/kjv/2ch-027.json",
+          "timings_sha256": "729c3c50727206d552c85857a163599b20055cfff73d9340e113ff223c587d46",
+          "duration": 94.7
+        },
+        {
+          "chapter": 28,
+          "file": "audio/george/kjv/2ch-028.m4a",
+          "sha256": "17480c9fec2f4d2294fa05f8ff89245183e48eb3533dad05f27d4853996672a5",
+          "bytes": 2109169,
+          "timings": "audio/george/kjv/2ch-028.json",
+          "timings_sha256": "e8e5f6dab7c0fc3ea9db1935e37fe2c99de618d28eac7fdaf94c8c75e7186e78",
+          "duration": 342.55
+        },
+        {
+          "chapter": 29,
+          "file": "audio/george/kjv/2ch-029.m4a",
+          "sha256": "858e8fcf7d04ac4579578ffdeb5ce9e5fe52b4f85d690920f9577c5bd2602212",
+          "bytes": 2768514,
+          "timings": "audio/george/kjv/2ch-029.json",
+          "timings_sha256": "ca672dcffb88b9e6869b3330673d54d0d3de8dfe13da6b966f3d445464b8b55a",
+          "duration": 451.525
+        },
+        {
+          "chapter": 30,
+          "file": "audio/george/kjv/2ch-030.m4a",
+          "sha256": "fc5ef0d111a85d21c2b0bce5cbb02f673104397bca5fcfb4bbace072144c516b",
+          "bytes": 2115240,
+          "timings": "audio/george/kjv/2ch-030.json",
+          "timings_sha256": "771d7c3a0c049b8fefb6abe908f7e6b63857a095dd75a3c5e08ee9122e3b028a",
+          "duration": 343.7
+        },
+        {
+          "chapter": 31,
+          "file": "audio/george/kjv/2ch-031.m4a",
+          "sha256": "d93b2e953bb810959945cea695ca0732383b3bce87aa3edd7d15c6ca783a3f9d",
+          "bytes": 1797751,
+          "timings": "audio/george/kjv/2ch-031.json",
+          "timings_sha256": "0b996deccdd33efe1142e939af6e35124ebd0d93e49d6482b1e44a034e5e0bb7",
+          "duration": 287.475
+        },
+        {
+          "chapter": 32,
+          "file": "audio/george/kjv/2ch-032.m4a",
+          "sha256": "80ee09f737093e4e3307b8d9daf4780b42d26a8b03e110a9479881f6f634221c",
+          "bytes": 2577666,
+          "timings": "audio/george/kjv/2ch-032.json",
+          "timings_sha256": "b9a165e1e80dd08cdfc6a0149627a44d9ea22a4a94fd96cb5a6105dc15d23c4b",
+          "duration": 418.825
+        },
+        {
+          "chapter": 33,
+          "file": "audio/george/kjv/2ch-033.m4a",
+          "sha256": "2c6af9df16455212591c4edaa25557333b7d031363245c9b461863c07cd23c38",
+          "bytes": 1795017,
+          "timings": "audio/george/kjv/2ch-033.json",
+          "timings_sha256": "8e7c2a0a6136e8783e749d2ed3f1df119bffdac7b1d78b0d55fd8bb9b0163ccf",
+          "duration": 291.275
+        },
+        {
+          "chapter": 34,
+          "file": "audio/george/kjv/2ch-034.m4a",
+          "sha256": "a2acc683b262d5fab331fec53bf7fc2bf9d05bccbfb3f5a2e154ac99e1307d81",
+          "bytes": 2774755,
+          "timings": "audio/george/kjv/2ch-034.json",
+          "timings_sha256": "ec91681ecaeacd1082a742441e48e42ee721f292def6c25d0e8190525c0f5605",
+          "duration": 446.075
+        },
+        {
+          "chapter": 35,
+          "file": "audio/george/kjv/2ch-035.m4a",
+          "sha256": "01e43cf9efeeb63fb5bb8af2c76dd95a5cf3d0bc8f2bd5c797e7340b1f1cba03",
+          "bytes": 2242052,
+          "timings": "audio/george/kjv/2ch-035.json",
+          "timings_sha256": "9a2676c363910f95f47f6bac037784d256b21a403481eec5a5ecb150af25cf13",
+          "duration": 361.175
+        },
+        {
+          "chapter": 36,
+          "file": "audio/george/kjv/2ch-036.m4a",
+          "sha256": "234b3c00b6fcddf90e6abb53e69e303db47cb62453999e0c51fbf0b30c19c656",
+          "bytes": 1771365,
+          "timings": "audio/george/kjv/2ch-036.json",
+          "timings_sha256": "b2873dac6fa71f21395547117646aaaf24a75ccdbb43e26773d0c2adfb158896",
+          "duration": 286.025
+        }
+      ],
+      "titles": {
+        "file": "audio/george/2ch-titles.m4a",
+        "sha256": "8acc1810639b11f26f5189a05efd6f49676dd6b504f7599c2df02632f944765a",
+        "bytes": 762706,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 3
+          },
+          {
+            "chapter": 2,
+            "start": 3.3,
+            "end": 6.25
+          },
+          {
+            "chapter": 3,
+            "start": 6.55,
+            "end": 9.475
+          },
+          {
+            "chapter": 4,
+            "start": 9.775,
+            "end": 12.75
+          },
+          {
+            "chapter": 5,
+            "start": 13.05,
+            "end": 16.15
+          },
+          {
+            "chapter": 6,
+            "start": 16.45,
+            "end": 19.425
+          },
+          {
+            "chapter": 7,
+            "start": 19.725,
+            "end": 22.825
+          },
+          {
+            "chapter": 8,
+            "start": 23.125,
+            "end": 26
+          },
+          {
+            "chapter": 9,
+            "start": 26.3,
+            "end": 29.325
+          },
+          {
+            "chapter": 10,
+            "start": 29.625,
+            "end": 32.65
+          },
+          {
+            "chapter": 11,
+            "start": 32.95,
+            "end": 36.05
+          },
+          {
+            "chapter": 12,
+            "start": 36.35,
+            "end": 39.45
+          },
+          {
+            "chapter": 13,
+            "start": 39.75,
+            "end": 43
+          },
+          {
+            "chapter": 14,
+            "start": 43.3,
+            "end": 46.5
+          },
+          {
+            "chapter": 15,
+            "start": 46.8,
+            "end": 49.95
+          },
+          {
+            "chapter": 16,
+            "start": 50.25,
+            "end": 53.4
+          },
+          {
+            "chapter": 17,
+            "start": 53.7,
+            "end": 57.075
+          },
+          {
+            "chapter": 18,
+            "start": 57.375,
+            "end": 60.45
+          },
+          {
+            "chapter": 19,
+            "start": 60.75,
+            "end": 63.925
+          },
+          {
+            "chapter": 20,
+            "start": 64.225,
+            "end": 67.4
+          },
+          {
+            "chapter": 21,
+            "start": 67.7,
+            "end": 71.025
+          },
+          {
+            "chapter": 22,
+            "start": 71.325,
+            "end": 74.625
+          },
+          {
+            "chapter": 23,
+            "start": 74.925,
+            "end": 78.275
+          },
+          {
+            "chapter": 24,
+            "start": 78.575,
+            "end": 81.95
+          },
+          {
+            "chapter": 25,
+            "start": 82.25,
+            "end": 85.725
+          },
+          {
+            "chapter": 26,
+            "start": 86.025,
+            "end": 89.375
+          },
+          {
+            "chapter": 27,
+            "start": 89.675,
+            "end": 93.225
+          },
+          {
+            "chapter": 28,
+            "start": 93.525,
+            "end": 96.8
+          },
+          {
+            "chapter": 29,
+            "start": 97.1,
+            "end": 100.475
+          },
+          {
+            "chapter": 30,
+            "start": 100.775,
+            "end": 103.95
+          },
+          {
+            "chapter": 31,
+            "start": 104.25,
+            "end": 107.3
+          },
+          {
+            "chapter": 32,
+            "start": 107.6,
+            "end": 111.025
+          },
+          {
+            "chapter": 33,
+            "start": 111.325,
+            "end": 114.675
+          },
+          {
+            "chapter": 34,
+            "start": 114.975,
+            "end": 118.375
+          },
+          {
+            "chapter": 35,
+            "start": 118.675,
+            "end": 122.225
+          },
+          {
+            "chapter": 36,
+            "start": 122.525,
+            "end": 125.925
+          }
+        ]
+      }
+    },
+    {
+      "book": "2KI",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/2ki-001.m4a",
+          "sha256": "1079cde5bb9920f15b33be1a4616198416d1b21b30571586b18a783a656c51e5",
+          "bytes": 1545526,
+          "timings": "audio/george/kjv/2ki-001.json",
+          "timings_sha256": "cb1e56d4f9e30f184d4a11a11f72e9e91a36eb7e881697a5fa8aa0b8645d3d6e",
+          "duration": 247
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/2ki-002.m4a",
+          "sha256": "925a13aa6311c26484fee8d8bbbbea925a40b4f8f1ea2979515264a401382ef8",
+          "bytes": 1999408,
+          "timings": "audio/george/kjv/2ki-002.json",
+          "timings_sha256": "283dd2b80596a2befbb9f039ca1f1704cf51901c80e3c6ccd6b86e6a866ddfb7",
+          "duration": 321.05
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/2ki-003.m4a",
+          "sha256": "95edae29f75b507f1a973361f6e551238a5d8be20750b6e6958af9c590ddc271",
+          "bytes": 1978995,
+          "timings": "audio/george/kjv/2ki-003.json",
+          "timings_sha256": "adcf30ea2aaa8778e3b788d54065a18f2759e00770d17ceda25a2081965cd096",
+          "duration": 323.625
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/2ki-004.m4a",
+          "sha256": "31d9e83c83dabd9a7a0b3ca4daa8b7047bf0fdcedf3b94b023195285562807cf",
+          "bytes": 3093322,
+          "timings": "audio/george/kjv/2ki-004.json",
+          "timings_sha256": "4c2f5e434b1af531ad9430bf7e4881f49167b6d9b3ea565e1b3c359c81896775",
+          "duration": 504.425
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/2ki-005.m4a",
+          "sha256": "7afb31ad11ee8cbc0ff8fa358246a0d1ba42fd9de46698e770718ee88c7c22ad",
+          "bytes": 2230390,
+          "timings": "audio/george/kjv/2ki-005.json",
+          "timings_sha256": "142ec229f909f1713123ffc12ecb003c9c7ddbf1efab922b42e5bb8c38bbc978",
+          "duration": 361.075
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/2ki-006.m4a",
+          "sha256": "150292fe3bfc10163132944733d279cb55ec1438276bef584a6792f73b2a59df",
+          "bytes": 2355333,
+          "timings": "audio/george/kjv/2ki-006.json",
+          "timings_sha256": "427f6d849dedf40df3cb5c207cd3545d59a01f1b90ef571518c48b57f51778ad",
+          "duration": 383.6
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/2ki-007.m4a",
+          "sha256": "5336517102a54ec8700645db12e9aa0b010eae3f2a9ebdfac749404861b3a7ae",
+          "bytes": 1806696,
+          "timings": "audio/george/kjv/2ki-007.json",
+          "timings_sha256": "3c619233dd4881356d71c55c9bccbfa6f8f6db3954cd88e171ef8390c8694bee",
+          "duration": 293.375
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/2ki-008.m4a",
+          "sha256": "be9c0806c78633833cd9e42b390f74dd03a4fe1a669d891573518cef8b927395",
+          "bytes": 2239499,
+          "timings": "audio/george/kjv/2ki-008.json",
+          "timings_sha256": "4a73d73e761d5e9de3063aaaa9dbc14e91684ca23d769695f04a43e7a69b3ae0",
+          "duration": 364.65
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/2ki-009.m4a",
+          "sha256": "39f22901a3fc1b4e4efb9081721203c7e2f70918a4a496369c29b1e59e3c7ec3",
+          "bytes": 2828108,
+          "timings": "audio/george/kjv/2ki-009.json",
+          "timings_sha256": "e3f9303e6c649ad4d58e273a549bc4d386de9738d6dbf7138e28f552edf692b3",
+          "duration": 459.2
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/2ki-010.m4a",
+          "sha256": "d98a34a7c5f20fee7699057793de8f2c742e292321fa9c23915e627c2ccefbba",
+          "bytes": 2779195,
+          "timings": "audio/george/kjv/2ki-010.json",
+          "timings_sha256": "a00cfd25af46956da852ad8d57648212d2db26eff1b18b14b4400beb66189b11",
+          "duration": 453.675
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/2ki-011.m4a",
+          "sha256": "2985862820cdb544767eaf790c3faa09fb01700b1cc490546f408119cfb0606a",
+          "bytes": 1658918,
+          "timings": "audio/george/kjv/2ki-011.json",
+          "timings_sha256": "cd39cf43e7267173f26bafef7fd52f28fed7667be73008a122a2976058dad563",
+          "duration": 267.75
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/2ki-012.m4a",
+          "sha256": "ecf0592b7b9fd3bfe820da154ccf4bb16af761f0d1f21e1974854673319e5766",
+          "bytes": 1563595,
+          "timings": "audio/george/kjv/2ki-012.json",
+          "timings_sha256": "0f754efc997d6c0b47989c7af89722190e3463f55fcd5d18d28304858ba5b473",
+          "duration": 254.75
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/2ki-013.m4a",
+          "sha256": "e114a2ba4eee56be472f89f56a54d0e040e4950c5a9276cd6eb3c1f7e7f183e6",
+          "bytes": 1912589,
+          "timings": "audio/george/kjv/2ki-013.json",
+          "timings_sha256": "be1cc9106ea295a9469877670d78f647c8d8f653281a6fdc52e6f41f86b037aa",
+          "duration": 311.625
+        },
+        {
+          "chapter": 14,
+          "file": "audio/george/kjv/2ki-014.m4a",
+          "sha256": "96a38d8ad938819d1875365695f302c0f51e5a15908f738fb9fc748692afaed9",
+          "bytes": 2081650,
+          "timings": "audio/george/kjv/2ki-014.json",
+          "timings_sha256": "22d24ea4e670d081eac89e859b5e136f1552d6b43c84b776ccff2a27db6f2da8",
+          "duration": 340.375
+        },
+        {
+          "chapter": 15,
+          "file": "audio/george/kjv/2ki-015.m4a",
+          "sha256": "8abfad36777b4f8d048e0e879f5d3d949adee17d8395078228667d0b3f2cd138",
+          "bytes": 2584961,
+          "timings": "audio/george/kjv/2ki-015.json",
+          "timings_sha256": "d4cd2ff69f0040f60e20afef8798dd7dc00b1ec9d670a7cf504d479c2a4c8a29",
+          "duration": 423
+        },
+        {
+          "chapter": 16,
+          "file": "audio/george/kjv/2ki-016.m4a",
+          "sha256": "ed0b16f50cd60527ba27fb956b1dcf8e13623ef3ab20fcd2df3def0c13224f9f",
+          "bytes": 1519961,
+          "timings": "audio/george/kjv/2ki-016.json",
+          "timings_sha256": "f84c42cd9d25afa39cb7b0d44bdc0bdae719753a366b91a1a038c5dc10886698",
+          "duration": 247.8
+        },
+        {
+          "chapter": 17,
+          "file": "audio/george/kjv/2ki-017.m4a",
+          "sha256": "69c0a09f36cc3deb89c54b424fb501eba43a5af7352e043ef698dca345cf0a78",
+          "bytes": 2917445,
+          "timings": "audio/george/kjv/2ki-017.json",
+          "timings_sha256": "e0a632a645273e35548aa6e44bff73f8d89ddf56e1a2b6447820caf9336b0b5f",
+          "duration": 475.15
+        },
+        {
+          "chapter": 18,
+          "file": "audio/george/kjv/2ki-018.m4a",
+          "sha256": "5df4cb943c3940549ac56287eafde4903311c170bfdd3020a8388ab36ca81a93",
+          "bytes": 2857084,
+          "timings": "audio/george/kjv/2ki-018.json",
+          "timings_sha256": "3713a8b05bcdee38f81cec5b1d49fa671335191cfe53f799e55efe86907ebc07",
+          "duration": 465.1
+        },
+        {
+          "chapter": 19,
+          "file": "audio/george/kjv/2ki-019.m4a",
+          "sha256": "0839001e718677d32ec6a65937fb474b2a27473d5e5f1a181d02275ae8e9141a",
+          "bytes": 2710533,
+          "timings": "audio/george/kjv/2ki-019.json",
+          "timings_sha256": "153187631aeac2f23bbb88d0dd80ab5adad3abb5fe11bfba54ab8b55280e0501",
+          "duration": 439.65
+        },
+        {
+          "chapter": 20,
+          "file": "audio/george/kjv/2ki-020.m4a",
+          "sha256": "ce5ac920430de3fc933859c9bf20be99de69a4826a0abc8b532806431ffd36b3",
+          "bytes": 1537664,
+          "timings": "audio/george/kjv/2ki-020.json",
+          "timings_sha256": "251f8831cf76efeca2381c5eb0f90c6bced5055ac7381959be60e1d50e32c890",
+          "duration": 250.6
+        },
+        {
+          "chapter": 21,
+          "file": "audio/george/kjv/2ki-021.m4a",
+          "sha256": "581c2db6daa14093077714b2ccf4cc569f16b6037ee051c52e299aab2544ef20",
+          "bytes": 1719649,
+          "timings": "audio/george/kjv/2ki-021.json",
+          "timings_sha256": "37998e4063a07ef2a0563b69f16e6dc932cc83f0650a847cfff26f8cdfd0da34",
+          "duration": 279.975
+        },
+        {
+          "chapter": 22,
+          "file": "audio/george/kjv/2ki-022.m4a",
+          "sha256": "c70b5f6b8310ea99c6da7ee83432637419ea0372bd29bbfd25d9e39a13c1833f",
+          "bytes": 1583893,
+          "timings": "audio/george/kjv/2ki-022.json",
+          "timings_sha256": "b6ec3c0f89baa30144495ec9bdc43431b846e41200f29d8209d32f278bfd35cb",
+          "duration": 256.45
+        },
+        {
+          "chapter": 23,
+          "file": "audio/george/kjv/2ki-023.m4a",
+          "sha256": "9df1fd85e8a6152e30e4c940f330b4abc0916d4df35d452372068faf94c25961",
+          "bytes": 3351779,
+          "timings": "audio/george/kjv/2ki-023.json",
+          "timings_sha256": "2c5a2f77ce0b3cde5af75614720c4db75b22b17a9d2b2b2db49148522a4c03e6",
+          "duration": 541.125
+        },
+        {
+          "chapter": 24,
+          "file": "audio/george/kjv/2ki-024.m4a",
+          "sha256": "1654347113756d0a8f91ca758c51d3fdd71654556b0e775602d21ad0d01eff75",
+          "bytes": 1404602,
+          "timings": "audio/george/kjv/2ki-024.json",
+          "timings_sha256": "6bfa06e05d9ef14417541a2520799a72fc3b4427cd31a7054d8ca2b59c290b27",
+          "duration": 229.225
+        },
+        {
+          "chapter": 25,
+          "file": "audio/george/kjv/2ki-025.m4a",
+          "sha256": "e5389c27c456db5c7a902ca6f118d0a3780c83e890bb59ef9e06df2e0c838bdf",
+          "bytes": 2234503,
+          "timings": "audio/george/kjv/2ki-025.json",
+          "timings_sha256": "bba3f46552d1469f0ef3678cd5c8d3ed4113c1554888fca388fdf0b18f15884f",
+          "duration": 362.975
+        }
+      ],
+      "titles": {
+        "file": "audio/george/2ki-titles.m4a",
+        "sha256": "38439e6f0ce6178825065fb07b33e25d0952fa65be39560e08e31facd91eaa2c",
+        "bytes": 482045,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.85
+          },
+          {
+            "chapter": 2,
+            "start": 3.15,
+            "end": 5.9
+          },
+          {
+            "chapter": 3,
+            "start": 6.2,
+            "end": 8.975
+          },
+          {
+            "chapter": 4,
+            "start": 9.275,
+            "end": 12.075
+          },
+          {
+            "chapter": 5,
+            "start": 12.375,
+            "end": 15.275
+          },
+          {
+            "chapter": 6,
+            "start": 15.575,
+            "end": 18.325
+          },
+          {
+            "chapter": 7,
+            "start": 18.625,
+            "end": 21.525
+          },
+          {
+            "chapter": 8,
+            "start": 21.825,
+            "end": 24.525
+          },
+          {
+            "chapter": 9,
+            "start": 24.825,
+            "end": 27.65
+          },
+          {
+            "chapter": 10,
+            "start": 27.95,
+            "end": 30.8
+          },
+          {
+            "chapter": 11,
+            "start": 31.1,
+            "end": 34.05
+          },
+          {
+            "chapter": 12,
+            "start": 34.35,
+            "end": 37.25
+          },
+          {
+            "chapter": 13,
+            "start": 37.55,
+            "end": 40.575
+          },
+          {
+            "chapter": 14,
+            "start": 40.875,
+            "end": 43.875
+          },
+          {
+            "chapter": 15,
+            "start": 44.175,
+            "end": 47.1
+          },
+          {
+            "chapter": 16,
+            "start": 47.4,
+            "end": 50.35
+          },
+          {
+            "chapter": 17,
+            "start": 50.65,
+            "end": 53.725
+          },
+          {
+            "chapter": 18,
+            "start": 54.025,
+            "end": 56.85
+          },
+          {
+            "chapter": 19,
+            "start": 57.15,
+            "end": 60.125
+          },
+          {
+            "chapter": 20,
+            "start": 60.425,
+            "end": 63.4
+          },
+          {
+            "chapter": 21,
+            "start": 63.7,
+            "end": 66.75
+          },
+          {
+            "chapter": 22,
+            "start": 67.05,
+            "end": 70.1
+          },
+          {
+            "chapter": 23,
+            "start": 70.4,
+            "end": 73.5
+          },
+          {
+            "chapter": 24,
+            "start": 73.8,
+            "end": 76.975
+          },
+          {
+            "chapter": 25,
+            "start": 77.275,
+            "end": 80.55
+          }
+        ]
+      }
+    },
+    {
+      "book": "2SA",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/2sa-001.m4a",
+          "sha256": "f0b667bcffa8261ec3d041440d5a583b0a69ac8bfbc358b49f12c87c29c9f059",
+          "bytes": 1705827,
+          "timings": "audio/george/kjv/2sa-001.json",
+          "timings_sha256": "e82071f113c12d99a2ee5d3144d444e8418113698d16d5f5845002ac895b1197",
+          "duration": 279.325
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/2sa-002.m4a",
+          "sha256": "6bd9f1690ad29ef269191ae43259f6d9efb31770187dde78af7c2a84db9f7dbf",
+          "bytes": 2210191,
+          "timings": "audio/george/kjv/2sa-002.json",
+          "timings_sha256": "c62190bb0321ab1cfde03f898e920465413168005a0d51daea7b992574684afb",
+          "duration": 361.025
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/2sa-003.m4a",
+          "sha256": "794a06349deb2087167b1cdcd856757f6c4e4374c5f218d8e9af73deaf61535d",
+          "bytes": 2719941,
+          "timings": "audio/george/kjv/2sa-003.json",
+          "timings_sha256": "860a0852114f641fb7c439649308885568323ec92af746159e583e3ed77f8486",
+          "duration": 443.15
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/2sa-004.m4a",
+          "sha256": "81d5e0bea979ddfab71a7ab59e72b7e7f6fbbbd6dd8700b447b9abe6a2054611",
+          "bytes": 973893,
+          "timings": "audio/george/kjv/2sa-004.json",
+          "timings_sha256": "78d7955cd1e95ae017ab559add914c5baffd547df12cf11e21147b661796957f",
+          "duration": 158.475
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/2sa-005.m4a",
+          "sha256": "44096cb5831c53df181527d03d4aee3c5582d93d1535966e04fa62a82aaba6d0",
+          "bytes": 1598514,
+          "timings": "audio/george/kjv/2sa-005.json",
+          "timings_sha256": "7ac1433f7b73b65269959169ce8a72d10a4db44e9780629a2354047aa344516d",
+          "duration": 260.8
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/2sa-006.m4a",
+          "sha256": "f779b72245f1697855ebf40769975e49092c4a0f1dc9c904a50ceef08329474e",
+          "bytes": 1631440,
+          "timings": "audio/george/kjv/2sa-006.json",
+          "timings_sha256": "e0693b737882675ba6a1a43ea881386f4873ffe4a438fdbdfa23cb1e36829021",
+          "duration": 265.875
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/2sa-007.m4a",
+          "sha256": "3f5d5ff4366c60612c2c8eedbd6144aaa8ac29f35e3194a69eecd8a01a761832",
+          "bytes": 1930854,
+          "timings": "audio/george/kjv/2sa-007.json",
+          "timings_sha256": "90b319ebaac7ca9c8bb83cfd6cdf49354063e6ac9254a4973ac9214ad85c5b84",
+          "duration": 316.475
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/2sa-008.m4a",
+          "sha256": "30aafa6df35c3d6ecafd6b7800783be922766c9e4ea4489735a455fdb8d74e01",
+          "bytes": 1187871,
+          "timings": "audio/george/kjv/2sa-008.json",
+          "timings_sha256": "832fa264322e0758384d20ed36fd69781a7d14c20ab94c30a6ec5ec04825c6e4",
+          "duration": 194.575
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/2sa-009.m4a",
+          "sha256": "2647689e5f2aa608b22f72e90bbd333d77894666b805182f8cde60e624d880bb",
+          "bytes": 966247,
+          "timings": "audio/george/kjv/2sa-009.json",
+          "timings_sha256": "54f2016e8ed46fcfb9e487e4adbddc4be7bd2ee66b5006aff845b57041028f72",
+          "duration": 158.225
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/2sa-010.m4a",
+          "sha256": "47e4812641e5ddef1972020fbec10a01778c6e72c43c9cc441893696eaab2ba5",
+          "bytes": 1412548,
+          "timings": "audio/george/kjv/2sa-010.json",
+          "timings_sha256": "6b23c5ec8d05a9502abb8574684f9ce7be60e8a58706707b29d9c1d3330359a0",
+          "duration": 230.475
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/2sa-011.m4a",
+          "sha256": "e91e23ee86cb73eff6c4b7b6e206e0a532192cb7fc06639c4f5857f58ba74d7b",
+          "bytes": 1928073,
+          "timings": "audio/george/kjv/2sa-011.json",
+          "timings_sha256": "cd2b07431bfe9e097940f2acd42c34115a7428ba605f4c70af18c242daec6ab2",
+          "duration": 316.425
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/2sa-012.m4a",
+          "sha256": "0426ce8ad318ba13a15500014c34f3ac26df6b522ab117b4b99d078db70e5de7",
+          "bytes": 2333203,
+          "timings": "audio/george/kjv/2sa-012.json",
+          "timings_sha256": "05e03543c0a3c01a7bb19d839884c743f5704002394f6f7279d14474f861ae68",
+          "duration": 378.925
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/2sa-013.m4a",
+          "sha256": "8efed66313a8805f68fa25dfc2d116d64d9915743db4db7f0b1ccf8db3bedd41",
+          "bytes": 2765182,
+          "timings": "audio/george/kjv/2sa-013.json",
+          "timings_sha256": "280071905225542f3e018ea04728354facdf64837cafa849ea4878757bc8c92a",
+          "duration": 451.025
+        },
+        {
+          "chapter": 14,
+          "file": "audio/george/kjv/2sa-014.m4a",
+          "sha256": "5081f8af2490c433c0fcd495f8bff42e5be7ee20821d3d5216e79e91e2810a6a",
+          "bytes": 2500516,
+          "timings": "audio/george/kjv/2sa-014.json",
+          "timings_sha256": "a641eda4495ceb386cd7b99a13bd73beb5492559c638f3b32f116bf25a79fa85",
+          "duration": 410.925
+        },
+        {
+          "chapter": 15,
+          "file": "audio/george/kjv/2sa-015.m4a",
+          "sha256": "c520e617cb385734abeb11ac418814288d80460b37e7c79197cd211d22426fc6",
+          "bytes": 2642172,
+          "timings": "audio/george/kjv/2sa-015.json",
+          "timings_sha256": "456f95afaf233f83a1d373ec85a128d0aef058c40bdf9f3f674385fa43ae749d",
+          "duration": 430
+        },
+        {
+          "chapter": 16,
+          "file": "audio/george/kjv/2sa-016.m4a",
+          "sha256": "4a622b7c9ede6ca49745e4b801f286b18e62983423927af3635867e8d3cb0289",
+          "bytes": 1751006,
+          "timings": "audio/george/kjv/2sa-016.json",
+          "timings_sha256": "53820b28dfdae538d4457f6a9c763d7b3c8b38f2b9335c17babc00015399e67a",
+          "duration": 283.65
+        },
+        {
+          "chapter": 17,
+          "file": "audio/george/kjv/2sa-017.m4a",
+          "sha256": "ee34c3dccb02f49075b595032f1d46244da9c27ee64db67bd6201486948fc80c",
+          "bytes": 2242419,
+          "timings": "audio/george/kjv/2sa-017.json",
+          "timings_sha256": "849e44b2741d47121c33bdaf71c8310b7718e3024b9d988020dcad81a5d9a526",
+          "duration": 364.35
+        },
+        {
+          "chapter": 18,
+          "file": "audio/george/kjv/2sa-018.m4a",
+          "sha256": "2dd5edaa3336eb35e7a97b4285177022bd28d0c2f963ee7b81fea4770cacc3fb",
+          "bytes": 2607591,
+          "timings": "audio/george/kjv/2sa-018.json",
+          "timings_sha256": "ae3584d1b6771ba7733efa402ede2005bcd0a12a40d31f8a39a498fccd5f86bf",
+          "duration": 423.55
+        },
+        {
+          "chapter": 19,
+          "file": "audio/george/kjv/2sa-019.m4a",
+          "sha256": "fd2bb8b8fb9aa3aa1ba6c353659a9d69b051789bd5160d2e30be138016fdf3a1",
+          "bytes": 3363889,
+          "timings": "audio/george/kjv/2sa-019.json",
+          "timings_sha256": "0411c6834026b398f7f62a0656bbfcfe8a1dc4ec64b720a319e538ea869b01ef",
+          "duration": 549.15
+        },
+        {
+          "chapter": 20,
+          "file": "audio/george/kjv/2sa-020.m4a",
+          "sha256": "de54ecd8b5dfb91a0129ebd5e5ae96e8e7262c5528b03beabb60e822b0f45b5b",
+          "bytes": 2008137,
+          "timings": "audio/george/kjv/2sa-020.json",
+          "timings_sha256": "f51e6772f8a545f59b064ec22ea3bcd4aee5c96c60f4fc506d0aa7db9c84e4a3",
+          "duration": 327.75
+        },
+        {
+          "chapter": 21,
+          "file": "audio/george/kjv/2sa-021.m4a",
+          "sha256": "b5129e5cf991ce4d0825570512da4b4682d098fbe31c0801926a8b3c80bff10d",
+          "bytes": 1795020,
+          "timings": "audio/george/kjv/2sa-021.json",
+          "timings_sha256": "6c4928abc717aef11f0371ef749b3f811f463ca83723c03086476430766f6acf",
+          "duration": 292.475
+        },
+        {
+          "chapter": 22,
+          "file": "audio/george/kjv/2sa-022.m4a",
+          "sha256": "286526aef55c5000e2a802955318fabccec86a827ced162c6370a8631705d525",
+          "bytes": 2442905,
+          "timings": "audio/george/kjv/2sa-022.json",
+          "timings_sha256": "50ec2ea1410834cc3b0b215b2cac3bc6a17e2453868c3539123aafbcd6ad25d1",
+          "duration": 404.85
+        },
+        {
+          "chapter": 23,
+          "file": "audio/george/kjv/2sa-023.m4a",
+          "sha256": "940b47f4791785f5b071674cce3bf44897b7b8dddedc05cd413f8c4b463a2012",
+          "bytes": 2182481,
+          "timings": "audio/george/kjv/2sa-023.json",
+          "timings_sha256": "53057e34c414f6e38006973eb2e5e2e32d5feebd15425d595efd8c4745fa17b1",
+          "duration": 360.9
+        },
+        {
+          "chapter": 24,
+          "file": "audio/george/kjv/2sa-024.m4a",
+          "sha256": "5ba34dd703722ddf9430ab1cfff67cc76c16307ea2dc3de77494b47896463f55",
+          "bytes": 2014275,
+          "timings": "audio/george/kjv/2sa-024.json",
+          "timings_sha256": "33176c3f8cb5dbdc16a2a5856c956e0fb8e4a3d759890fcf8f2578d274e44087",
+          "duration": 327.475
+        }
+      ],
+      "titles": {
+        "file": "audio/george/2sa-titles.m4a",
+        "sha256": "828feadd34e365f60e5b8f2524de615ceb9802083d1cdb115fb8e78ad680e0cc",
+        "bytes": 464545,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.825
+          },
+          {
+            "chapter": 2,
+            "start": 3.125,
+            "end": 5.9
+          },
+          {
+            "chapter": 3,
+            "start": 6.2,
+            "end": 9
+          },
+          {
+            "chapter": 4,
+            "start": 9.3,
+            "end": 12.125
+          },
+          {
+            "chapter": 5,
+            "start": 12.425,
+            "end": 15.4
+          },
+          {
+            "chapter": 6,
+            "start": 15.7,
+            "end": 18.5
+          },
+          {
+            "chapter": 7,
+            "start": 18.8,
+            "end": 21.75
+          },
+          {
+            "chapter": 8,
+            "start": 22.05,
+            "end": 24.825
+          },
+          {
+            "chapter": 9,
+            "start": 25.125,
+            "end": 27.95
+          },
+          {
+            "chapter": 10,
+            "start": 28.25,
+            "end": 31.125
+          },
+          {
+            "chapter": 11,
+            "start": 31.425,
+            "end": 34.4
+          },
+          {
+            "chapter": 12,
+            "start": 34.7,
+            "end": 37.625
+          },
+          {
+            "chapter": 13,
+            "start": 37.925,
+            "end": 41
+          },
+          {
+            "chapter": 14,
+            "start": 41.3,
+            "end": 44.25
+          },
+          {
+            "chapter": 15,
+            "start": 44.55,
+            "end": 47.525
+          },
+          {
+            "chapter": 16,
+            "start": 47.825,
+            "end": 50.825
+          },
+          {
+            "chapter": 17,
+            "start": 51.125,
+            "end": 54.25
+          },
+          {
+            "chapter": 18,
+            "start": 54.55,
+            "end": 57.4
+          },
+          {
+            "chapter": 19,
+            "start": 57.7,
+            "end": 60.7
+          },
+          {
+            "chapter": 20,
+            "start": 61,
+            "end": 64
+          },
+          {
+            "chapter": 21,
+            "start": 64.3,
+            "end": 67.4
+          },
+          {
+            "chapter": 22,
+            "start": 67.7,
+            "end": 70.775
+          },
+          {
+            "chapter": 23,
+            "start": 71.075,
+            "end": 74.25
+          },
+          {
+            "chapter": 24,
+            "start": 74.55,
+            "end": 77.7
+          }
+        ]
+      }
+    },
+    {
       "book": "DEU",
       "translation": "KJV",
       "narrator": "george",
@@ -41042,6 +47274,164 @@ export const BUNDLED_MANIFEST: BundleManifest = {
             "chapter": 34,
             "start": 103.075,
             "end": 106.1
+          }
+        ]
+      }
+    },
+    {
+      "book": "EST",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/est-001.m4a",
+          "sha256": "4cf4f2e7f7fde6e6cfef6cdb0b2aa9c7de31887ca4205be4285fd2514ffae809",
+          "bytes": 1697699,
+          "timings": "audio/george/kjv/est-001.json",
+          "timings_sha256": "1f560a42e65f24316e1872c251d3f90205a93a8cf39ab9369b80dd62f4b83623",
+          "duration": 274.125
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/est-002.m4a",
+          "sha256": "28d95440b4a33defc37efaf197876aaf401ae18f6e25b2de24d5c335b2bcb253",
+          "bytes": 1877505,
+          "timings": "audio/george/kjv/est-002.json",
+          "timings_sha256": "e435ad45f4ea5e6cf69617dda79285b1ab996b208234ee956b499b32746be67d",
+          "duration": 306.225
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/est-003.m4a",
+          "sha256": "955c64ca877e8e2b60b919062ecec618923d68435a5adc46d16cc79f39618ea2",
+          "bytes": 1318516,
+          "timings": "audio/george/kjv/est-003.json",
+          "timings_sha256": "9e0eddca3b9887bdba04c2eccdb04f0cc7e90e6005b548b6645814027da0c3f9",
+          "duration": 211
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/est-004.m4a",
+          "sha256": "00e11a15023b57039ab219339f83beebe05ad955ba51a6fb39d1751d851f3353",
+          "bytes": 1230583,
+          "timings": "audio/george/kjv/est-004.json",
+          "timings_sha256": "afa5a166a712f3cfd9d766012a09d97248a0aca44590e20f3d0ead1fc1ccfe2f",
+          "duration": 201.45
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/est-005.m4a",
+          "sha256": "fed44820e42c5ff98b34f750d344d9e2254f21f3932b3fea9685d390e91f0b7e",
+          "bytes": 1120420,
+          "timings": "audio/george/kjv/est-005.json",
+          "timings_sha256": "6f34f2fd867ce462b26ccf35cb924fba25641d5b92abb3833c6c859ba27428d4",
+          "duration": 181.95
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/est-006.m4a",
+          "sha256": "e83c7980b7cf5e7d1f36cd3cce7b3fbcd12223b5cfac7b1d41cf8491eeaa96d7",
+          "bytes": 1080971,
+          "timings": "audio/george/kjv/est-006.json",
+          "timings_sha256": "4db4b06c66e4de7814c3f33054e66366bd6f888ebba1c61d1c74b1e574b98306",
+          "duration": 175.275
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/est-007.m4a",
+          "sha256": "081196961c097382351ebef2a1b85856422d8a6c5207f67b1a985c7252ec17a9",
+          "bytes": 813028,
+          "timings": "audio/george/kjv/est-007.json",
+          "timings_sha256": "ba8825a11e10cf596297497bda9183d4b08c3628bde33773ef042a33618e051b",
+          "duration": 131.25
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/est-008.m4a",
+          "sha256": "26df3839b97adcf35e14762a7fe5f5bca274914d3fdff48059e478f12bdf31c7",
+          "bytes": 1512847,
+          "timings": "audio/george/kjv/est-008.json",
+          "timings_sha256": "b999cac9c6fe059d58cc3d597bfcf7d4cf6d1beac4fe59033bf2bb52c3b16688",
+          "duration": 243.95
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/est-009.m4a",
+          "sha256": "40b425e6f9ef57e118ffaa255169f41e087de58dd198aa617ac256e16bab1d33",
+          "bytes": 2356528,
+          "timings": "audio/george/kjv/est-009.json",
+          "timings_sha256": "3bad1442aede5c82addd6e744ef1c997aa8e37bab985640059b4825dc8f98410",
+          "duration": 383.6
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/est-010.m4a",
+          "sha256": "4ef5e2524ce90360a8cb376c7087b86611c8b0f08d7e984ac19a3a7fa049834c",
+          "bytes": 214660,
+          "timings": "audio/george/kjv/est-010.json",
+          "timings_sha256": "06125618ef2f44e6fba7f6c5bbc02a2ab1500718ee33aac674e6cf70866fa8d7",
+          "duration": 34.15
+        }
+      ],
+      "titles": {
+        "file": "audio/george/est-titles.m4a",
+        "sha256": "d736405b6adac76db4451df8d6e93e8e6fc150ada034dcde8a0b0434704ac1fc",
+        "bytes": 150159,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.175
+          },
+          {
+            "chapter": 2,
+            "start": 2.475,
+            "end": 4.65
+          },
+          {
+            "chapter": 3,
+            "start": 4.95,
+            "end": 7.175
+          },
+          {
+            "chapter": 4,
+            "start": 7.475,
+            "end": 9.65
+          },
+          {
+            "chapter": 5,
+            "start": 9.95,
+            "end": 12.275
+          },
+          {
+            "chapter": 6,
+            "start": 12.575,
+            "end": 14.775
+          },
+          {
+            "chapter": 7,
+            "start": 15.075,
+            "end": 17.4
+          },
+          {
+            "chapter": 8,
+            "start": 17.7,
+            "end": 19.85
+          },
+          {
+            "chapter": 9,
+            "start": 20.15,
+            "end": 22.4
+          },
+          {
+            "chapter": 10,
+            "start": 22.7,
+            "end": 24.925
           }
         ]
       }
@@ -41620,6 +48010,164 @@ export const BUNDLED_MANIFEST: BundleManifest = {
             "chapter": 40,
             "start": 113.5,
             "end": 116.1
+          }
+        ]
+      }
+    },
+    {
+      "book": "EZR",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/ezr-001.m4a",
+          "sha256": "a46464e6ad22186700fcb77240d1326ace0254da42a7470c069104caa1740a55",
+          "bytes": 860403,
+          "timings": "audio/george/kjv/ezr-001.json",
+          "timings_sha256": "6c58e9a803aaa4ad7725833f409f028226ebedd572821621a95713c61241b955",
+          "duration": 139.725
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/ezr-002.m4a",
+          "sha256": "67b3fad59e3a370a652097d8093f494dbc14a6586c753647d9fc2e7635b1ec23",
+          "bytes": 2799768,
+          "timings": "audio/george/kjv/ezr-002.json",
+          "timings_sha256": "0a8146b191cdc8818ca2218afd7e9931d35ea3795626abe5051ba043cfbf4e12",
+          "duration": 464
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/ezr-003.m4a",
+          "sha256": "68a6fd04c0e57f79e157192875155bbbc284970220b8588543b9be632219d3ce",
+          "bytes": 1282145,
+          "timings": "audio/george/kjv/ezr-003.json",
+          "timings_sha256": "983fa59598c3faf6205de95878ab0a60a2d1acc705923054d54647abe3564ed8",
+          "duration": 206.075
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/ezr-004.m4a",
+          "sha256": "ad8ba6eb97ba4beffbabe5726be1dcfd3acd99f700962bf272db3e54ba498fa6",
+          "bytes": 1841445,
+          "timings": "audio/george/kjv/ezr-004.json",
+          "timings_sha256": "faabc6f142409cc9172c55c027a3dbb6d1025ce45758fb5999d4881f7289d713",
+          "duration": 297.95
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/ezr-005.m4a",
+          "sha256": "6120739102b3977a207b7d2f1ac76ae4d410279fae6150713c704647000e72ff",
+          "bytes": 1331430,
+          "timings": "audio/george/kjv/ezr-005.json",
+          "timings_sha256": "c07f574a5d6eb3551e0939c4188b578dbc69eca095ca01f597699ec4aa2280fb",
+          "duration": 215.3
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/ezr-006.m4a",
+          "sha256": "676bd5238835740d00ce2a9ece3a19b0e126d0d6330728cdc157c353b0f78d4e",
+          "bytes": 1806002,
+          "timings": "audio/george/kjv/ezr-006.json",
+          "timings_sha256": "e48bb276fad913a02d803abe1c1e0d4b5a2aba3798bbff4dfaaf377325acc826",
+          "duration": 293.025
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/ezr-007.m4a",
+          "sha256": "420af957dacc9952031bde9d72833016e45a3476be67ac17e0aec2ad14e73903",
+          "bytes": 1977813,
+          "timings": "audio/george/kjv/ezr-007.json",
+          "timings_sha256": "1680473dd476f88350547f9235491be2ff21bd691b54d72833815dfe56c85269",
+          "duration": 320.725
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/ezr-008.m4a",
+          "sha256": "cb09505b4be637acc9d3c7f1cb98ba73b8f82fc95f802df1d680b8a61fbe8742",
+          "bytes": 2452374,
+          "timings": "audio/george/kjv/ezr-008.json",
+          "timings_sha256": "a70be7962a77ae056921d94cff699310a3455acd1d1c1f4eceb3da50a6fee3f8",
+          "duration": 404.4
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/ezr-009.m4a",
+          "sha256": "7fadd0ad7dc5c8c4646cfabe301f70bd3b546ad3a2e379f9df7e68621061794b",
+          "bytes": 1427604,
+          "timings": "audio/george/kjv/ezr-009.json",
+          "timings_sha256": "37347ed3038dc5052f489b3b25f1acbab0e4b93f102d33c324289dcbf61ebeb0",
+          "duration": 229.925
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/ezr-010.m4a",
+          "sha256": "84c3a01505b4b9b7955b46fc84a52645e48c144fc143b6fe82720e7755c52bee",
+          "bytes": 2565461,
+          "timings": "audio/george/kjv/ezr-010.json",
+          "timings_sha256": "8437d8717a1d7ecfffd4a07b8bdc8da6c57541a9acd6c11abab4b7148753332b",
+          "duration": 423.925
+        }
+      ],
+      "titles": {
+        "file": "audio/george/ezr-titles.m4a",
+        "sha256": "59d857eb21c94409bf9dec517bc4f07935243001eb3ebe427e96f2d98da21489",
+        "bytes": 147439,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.2
+          },
+          {
+            "chapter": 2,
+            "start": 2.5,
+            "end": 4.675
+          },
+          {
+            "chapter": 3,
+            "start": 4.975,
+            "end": 7.225
+          },
+          {
+            "chapter": 4,
+            "start": 7.525,
+            "end": 9.65
+          },
+          {
+            "chapter": 5,
+            "start": 9.95,
+            "end": 12.25
+          },
+          {
+            "chapter": 6,
+            "start": 12.55,
+            "end": 14.75
+          },
+          {
+            "chapter": 7,
+            "start": 15.05,
+            "end": 17.4
+          },
+          {
+            "chapter": 8,
+            "start": 17.7,
+            "end": 19.85
+          },
+          {
+            "chapter": 9,
+            "start": 20.15,
+            "end": 22.35
+          },
+          {
+            "chapter": 10,
+            "start": 22.65,
+            "end": 24.85
           }
         ]
       }
@@ -42359,6 +48907,186 @@ export const BUNDLED_MANIFEST: BundleManifest = {
           "timings": "audio/george/kjv/jdg-001.json",
           "timings_sha256": "b489381ce63bc2f3ed39abbe6d6dcd9034ccc07b349f57010dca59d5e4bdbb3b",
           "duration": 396.1
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/jdg-002.m4a",
+          "sha256": "1fbda8c21d164147ad4f200f651ab4e193035f1f72ffc41067783e5f455177c0",
+          "bytes": 1601928,
+          "timings": "audio/george/kjv/jdg-002.json",
+          "timings_sha256": "4e2d0930af89a794d16152294e47892548740113e0fddf1ecccf109db7239c8b",
+          "duration": 261.225
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/jdg-003.m4a",
+          "sha256": "2edc490cb73853ebff7ac51e06a8cdfbba96787e12ee30b2fd60a6ca3270e416",
+          "bytes": 2040205,
+          "timings": "audio/george/kjv/jdg-003.json",
+          "timings_sha256": "6a27e3b57c66c85d0004a0b30105646cc3ae7ee39a030cb83cf2e3d5a7a99ed7",
+          "duration": 333.025
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/jdg-004.m4a",
+          "sha256": "476d74429e4494c06f9e05f2015f76a1c543c1a23f7dfa4df7a2ec160937ffd6",
+          "bytes": 1809266,
+          "timings": "audio/george/kjv/jdg-004.json",
+          "timings_sha256": "5ab4bf640057fb8da602e631b0bd7e4f7c9dc70f6ea5ae1c05b1fb8cfd27b3fa",
+          "duration": 295.875
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/jdg-005.m4a",
+          "sha256": "18955fbec320bb93bc84fc47b7dfcf00c141adbc1cd3cc715aa8ff6afeadadd1",
+          "bytes": 1954005,
+          "timings": "audio/george/kjv/jdg-005.json",
+          "timings_sha256": "0197778f4f55af6d6cc0279bf1c101d3b8fe8e34775014bcdc9d5997f188cb13",
+          "duration": 319.575
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/jdg-006.m4a",
+          "sha256": "312de2758c869d7441b5105f6113ed3c618d892bbc6d4535e6c79dbcf7a2e2df",
+          "bytes": 2921585,
+          "timings": "audio/george/kjv/jdg-006.json",
+          "timings_sha256": "335967493a92108481271d0c40ae48907cbe4af67b07f9fede1fafa9f81d29d4",
+          "duration": 478.175
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/jdg-007.m4a",
+          "sha256": "03446d3d31693cab84a393a8571e10fc0a79ea0dc8fdbeaabb4e45804b8b5ac8",
+          "bytes": 2199346,
+          "timings": "audio/george/kjv/jdg-007.json",
+          "timings_sha256": "e73526d700931e67780c9dcc97001658e5ed7d0d322193bdc49a1b556103109e",
+          "duration": 356.5
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/jdg-008.m4a",
+          "sha256": "b1d24f3d04fa3285c484a1e4915b4916fa6f77f15dd026de6723d38e7dfa60af",
+          "bytes": 2329236,
+          "timings": "audio/george/kjv/jdg-008.json",
+          "timings_sha256": "eb174c6ec5141160dfcb0f69dcb524337901765c4bc25862c0833cab8c1bc18c",
+          "duration": 381.6
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/jdg-009.m4a",
+          "sha256": "b6c37965bf7f06af06d1eb76eeeb0a2083d850729e23b41e4bc62e335f0c177f",
+          "bytes": 3832222,
+          "timings": "audio/george/kjv/jdg-009.json",
+          "timings_sha256": "149dae3269f1857df6ea499fa17b788c73e7b73626f9fd54401c80999aa71822",
+          "duration": 626.925
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/jdg-010.m4a",
+          "sha256": "0e61454bb2f5fdfe63963173dfaae54588975ca2d901ce74ceff74d01f6b4477",
+          "bytes": 1181870,
+          "timings": "audio/george/kjv/jdg-010.json",
+          "timings_sha256": "233e6786f86949d0c8a548dacaefceac29bf9140535a97a4cdd378634120ba88",
+          "duration": 191.525
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/jdg-011.m4a",
+          "sha256": "ed6e6a3e202a5cf0357b367f80ca9b3ad0c54d2440e31e4eee47dff4d2c734c7",
+          "bytes": 2913534,
+          "timings": "audio/george/kjv/jdg-011.json",
+          "timings_sha256": "89be9e93d42efcaf169f77dcf6a313d4914498167a279f7fb430673e65b08ba3",
+          "duration": 476.55
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/jdg-012.m4a",
+          "sha256": "7cca02da5d2e27b25b5cc474f63845c5b536888cd8588457d409452f4e3c8d43",
+          "bytes": 1013512,
+          "timings": "audio/george/kjv/jdg-012.json",
+          "timings_sha256": "e5faa2a93c3e319ea254ac6060013198a3824c73c6da30969399d65ce80fa0c3",
+          "duration": 166.45
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/jdg-013.m4a",
+          "sha256": "b3d5920055e19f202c9868fb5a5a5f58c607bb25cbdb3a06f91c2cf2e844e73b",
+          "bytes": 1722009,
+          "timings": "audio/george/kjv/jdg-013.json",
+          "timings_sha256": "4ec9e09260edca7ffb8dff9d1261c8e4060c5bb1f569812fc098b48925a4fb7e",
+          "duration": 282.275
+        },
+        {
+          "chapter": 14,
+          "file": "audio/george/kjv/jdg-014.m4a",
+          "sha256": "54fe67b5f4cd6c64e5f8c68ca6c010232cd1f61b685c950c44c635be987bc8ac",
+          "bytes": 1590076,
+          "timings": "audio/george/kjv/jdg-014.json",
+          "timings_sha256": "950569f8f6ae11093c5fb66a5e8fe3188d007db1665bbce1d776fe6d82c9231f",
+          "duration": 256.25
+        },
+        {
+          "chapter": 15,
+          "file": "audio/george/kjv/jdg-015.m4a",
+          "sha256": "b7ca8cf1c3bd0dba3aafa86abc596c97b7a0470a0b415b2dd45ca273fe6aa804",
+          "bytes": 1466263,
+          "timings": "audio/george/kjv/jdg-015.json",
+          "timings_sha256": "0b79c7ab74af87e3b29305de328eee8f3f21d32356bb30dda2a2d3f6d1449a77",
+          "duration": 240.325
+        },
+        {
+          "chapter": 16,
+          "file": "audio/george/kjv/jdg-016.m4a",
+          "sha256": "76ab21acbea6e5ad4d79272136b3a8845fed7c19a41516da75c22f5cb7df0434",
+          "bytes": 2479703,
+          "timings": "audio/george/kjv/jdg-016.json",
+          "timings_sha256": "62452527ad4fe67aca431eb776557e227889dbd91946fb0238a62c5a9237ca92",
+          "duration": 402.375
+        },
+        {
+          "chapter": 17,
+          "file": "audio/george/kjv/jdg-017.m4a",
+          "sha256": "197aa55676b50d5517df2114a2f7d0681f29002ed28b0d58e53d402e89a711d1",
+          "bytes": 885210,
+          "timings": "audio/george/kjv/jdg-017.json",
+          "timings_sha256": "6908f9f7c03f74b62690d1922d4e52b72c5185dfc31d9d4007e0400b37dc529a",
+          "duration": 144.1
+        },
+        {
+          "chapter": 18,
+          "file": "audio/george/kjv/jdg-018.m4a",
+          "sha256": "50179d1fa05d2f284c4d1f57a33b3545d59bb79bf1302c59e30f16449d937da8",
+          "bytes": 2332759,
+          "timings": "audio/george/kjv/jdg-018.json",
+          "timings_sha256": "b9c7683f73be02bd9d50a250a26233b17c830736dea9d8c054c419f20d6ea36d",
+          "duration": 381.75
+        },
+        {
+          "chapter": 19,
+          "file": "audio/george/kjv/jdg-019.m4a",
+          "sha256": "9ab41d84c6a4a2c3bebca8e70291fc0efaf03434ee7da5bf401e59e32cbeed5d",
+          "bytes": 2517785,
+          "timings": "audio/george/kjv/jdg-019.json",
+          "timings_sha256": "c10173d1aab22d51759647d2abb0fbd68c7c143b2fb82783b2f8d33868929279",
+          "duration": 407.325
+        },
+        {
+          "chapter": 20,
+          "file": "audio/george/kjv/jdg-020.m4a",
+          "sha256": "be4eddb182105092739fcda36412877c0dcc607ac7ae6cd1f5cc73ad1e203aed",
+          "bytes": 3433932,
+          "timings": "audio/george/kjv/jdg-020.json",
+          "timings_sha256": "c29d4a57c7bc9ee373f3f61ecbce8b98b3bc9e453dc16a303dc52e7da4102098",
+          "duration": 560.025
+        },
+        {
+          "chapter": 21,
+          "file": "audio/george/kjv/jdg-021.m4a",
+          "sha256": "0d0fb3292f8854f1d65d2c1551f3af8f7fbaaab1b9bc5a56e96b686f0d6d95ad",
+          "bytes": 1690035,
+          "timings": "audio/george/kjv/jdg-021.json",
+          "timings_sha256": "ef23e9744fafb2c6f10879b7734ca00e740166e0b74ed672d557f34d70771bf0",
+          "duration": 276.2
         }
       ],
       "titles": {
@@ -42470,6 +49198,585 @@ export const BUNDLED_MANIFEST: BundleManifest = {
             "chapter": 21,
             "start": 57.825,
             "end": 60.6
+          }
+        ]
+      }
+    },
+    {
+      "book": "JOB",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/job-001.m4a",
+          "sha256": "f74c5de7f066c3e78db97adc12a38efebc27d331108b5f1e7668af371443f182",
+          "bytes": 1507569,
+          "timings": "audio/george/kjv/job-001.json",
+          "timings_sha256": "7691bffc913d6335d93d80fbcaf8db6a096e740276aaa86b85d10f8388cb7e0a",
+          "duration": 245.825
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/job-002.m4a",
+          "sha256": "e37aaf53b9f775b9a2ad858e35daf4c57000b6d9bcf0660e9533080c66ef40c1",
+          "bytes": 917007,
+          "timings": "audio/george/kjv/job-002.json",
+          "timings_sha256": "ad2b3ec40ef0ee53d38398f8a1ecdaa842ffbcdfb56376f279218298a585c028",
+          "duration": 149.375
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/job-003.m4a",
+          "sha256": "2f06f0bbe82a83a6c55c5793dfe51de12d6fec4dd6e33c2f51a884ce65a3dbdf",
+          "bytes": 1042711,
+          "timings": "audio/george/kjv/job-003.json",
+          "timings_sha256": "939582421b9ea7d940092681aba3861d76d46f711452f6364bb796cbf8e4e4dc",
+          "duration": 176.125
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/job-004.m4a",
+          "sha256": "d3cc6f1b97bde8a92624468cb60cb0704b7a8d7ef492f80cfaf70a5c2d24830f",
+          "bytes": 879200,
+          "timings": "audio/george/kjv/job-004.json",
+          "timings_sha256": "053400af7568a35742fa208af28d4ae7212dcbf6e2918cffe9ea6efc4932c47e",
+          "duration": 144.425
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/job-005.m4a",
+          "sha256": "62292b2aed498c3f3187cda30c0919435bc0c760922c96e5b7dcb9a636cc79d1",
+          "bytes": 1124419,
+          "timings": "audio/george/kjv/job-005.json",
+          "timings_sha256": "c5c072ead152216d8f15231f540be03c0fc252644b3ba90366ec15dae23ad5af",
+          "duration": 189.6
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/job-006.m4a",
+          "sha256": "804a3c74112946420adfedb50dbe4b8c584e43c9dda93c3228e820bda1ae3363",
+          "bytes": 1272896,
+          "timings": "audio/george/kjv/job-006.json",
+          "timings_sha256": "82fc3f3691e633f709f1e9f2a82abdd73b7471ecf0a42abc83affae9d6379e10",
+          "duration": 211.6
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/job-007.m4a",
+          "sha256": "ddfcf94092ee8c00869aae12bf0e6d07738380b09b3e4bdd7b590c1148260510",
+          "bytes": 967517,
+          "timings": "audio/george/kjv/job-007.json",
+          "timings_sha256": "142dc7fc54056c765d00ef91f0301a5f02222d4103d6a6178f38886ef1e989cb",
+          "duration": 162.125
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/job-008.m4a",
+          "sha256": "7b652de75ea38b37b37f1a24a9e5804884f2d545375a192dc6b7cf436844d467",
+          "bytes": 847588,
+          "timings": "audio/george/kjv/job-008.json",
+          "timings_sha256": "c560f778d224be9046a9cd24a8bcafb8488599fe3f61b61850c80929fbd806ec",
+          "duration": 141.75
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/job-009.m4a",
+          "sha256": "b830fe178a3f1162649c39945dd8fe963740cf38940e6bbab540c2eb6d7fcf3c",
+          "bytes": 1365437,
+          "timings": "audio/george/kjv/job-009.json",
+          "timings_sha256": "7ec67cc82d5e28967a4b595d4ffd9593b54caf20537934938cd7f0d0579615f9",
+          "duration": 229.025
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/job-010.m4a",
+          "sha256": "5d022e9687bd37c8a2c519c08fe0ddbfd9f7405327b4db66e503d7d81fca985d",
+          "bytes": 1057624,
+          "timings": "audio/george/kjv/job-010.json",
+          "timings_sha256": "5ebbee23d69e104aeba839c1dc05b0472ede675dea65e93bc6a824641e7bf98c",
+          "duration": 175.575
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/job-011.m4a",
+          "sha256": "873ed6a0f526fb525351b33352229a3f122041f65c0f336fc5b8ea2f65ad6f89",
+          "bytes": 863973,
+          "timings": "audio/george/kjv/job-011.json",
+          "timings_sha256": "efedbde3d5d0cd07cbc918874c4631da601536635700f06db0dfe9abe3b564cf",
+          "duration": 144.675
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/job-012.m4a",
+          "sha256": "091b14bc4c36e85325f323636dea93daa837fe1ef579e58e9fd3405ce8b14abd",
+          "bytes": 1035976,
+          "timings": "audio/george/kjv/job-012.json",
+          "timings_sha256": "9acc1309f5698f210d7edb389759e6a7b96079f4a8ae6f0f50bbf263dd80a714",
+          "duration": 173.65
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/job-013.m4a",
+          "sha256": "145991c39bbb4dfb7d29d3cefd75d45b5241c2d6a0e85d6caa2e46e6aaf99af7",
+          "bytes": 1067422,
+          "timings": "audio/george/kjv/job-013.json",
+          "timings_sha256": "5c693a60b324e3c04a46506cd8fa7b95a3700dc4c356799218fe5c1c15b8d0d2",
+          "duration": 181.55
+        },
+        {
+          "chapter": 14,
+          "file": "audio/george/kjv/job-014.m4a",
+          "sha256": "9674d445ca41f532f13de5f58c83b9c64121627bf37e25a6f623a61e140911fd",
+          "bytes": 1003874,
+          "timings": "audio/george/kjv/job-014.json",
+          "timings_sha256": "325b198a53218d0a0fff5507900755d41e8ef127c2ae9a8b31c7b4f4db22bfb4",
+          "duration": 166.25
+        },
+        {
+          "chapter": 15,
+          "file": "audio/george/kjv/job-015.m4a",
+          "sha256": "9f900049d06856b619469acaae78efdc2d87e38ce6bd832e61dc62144b04d574",
+          "bytes": 1433780,
+          "timings": "audio/george/kjv/job-015.json",
+          "timings_sha256": "9ec790c481de372af9c4d1ed8414027039682fabe8c9ad97f115ece906f36f06",
+          "duration": 241.325
+        },
+        {
+          "chapter": 16,
+          "file": "audio/george/kjv/job-016.m4a",
+          "sha256": "af975744fe5d8a53a4b2516b8d0514cdfdc1a03e214f5287b107b9b6dff033e0",
+          "bytes": 946455,
+          "timings": "audio/george/kjv/job-016.json",
+          "timings_sha256": "781f62f3ee18d1dbab1bcf36fe4809d5cfc5332cd68f196ea49aaede7bd1c078",
+          "duration": 158.775
+        },
+        {
+          "chapter": 17,
+          "file": "audio/george/kjv/job-017.m4a",
+          "sha256": "b336e1fb253c4868b64dc29ed255cc6f842663a0757ec65b4984888d5d10162d",
+          "bytes": 653549,
+          "timings": "audio/george/kjv/job-017.json",
+          "timings_sha256": "2b7aa2547e0068c03ed6dd9c808c04481bf7fd84a0d642de84857ac655bac8a9",
+          "duration": 108.85
+        },
+        {
+          "chapter": 18,
+          "file": "audio/george/kjv/job-018.m4a",
+          "sha256": "380d7d5169474bb22027e1e6cf3cec81b6bd660c2446de87c225a2eb827168b8",
+          "bytes": 800227,
+          "timings": "audio/george/kjv/job-018.json",
+          "timings_sha256": "632673b841d4c126664329949b0a7f525f17e5261264bb902dea9d28e4b0a677",
+          "duration": 134.05
+        },
+        {
+          "chapter": 19,
+          "file": "audio/george/kjv/job-019.m4a",
+          "sha256": "c86b13ccbc71f61e2b0635e70f4ef6be953630bf14c1faec8654f57fb41d1b12",
+          "bytes": 1147020,
+          "timings": "audio/george/kjv/job-019.json",
+          "timings_sha256": "9240b1bd70a20089bb26fed4b18f90daddf47d9369118407fdc00b18eb085905",
+          "duration": 193.9
+        },
+        {
+          "chapter": 20,
+          "file": "audio/george/kjv/job-020.m4a",
+          "sha256": "d656aedbb806e28a5f577e4f0244b709cc7971deec44ac8417b47b4daf9daa80",
+          "bytes": 1249355,
+          "timings": "audio/george/kjv/job-020.json",
+          "timings_sha256": "8c790f4b814e916b1809872829011a90b448eee1f2a253954ceff864031bd411",
+          "duration": 207.4
+        },
+        {
+          "chapter": 21,
+          "file": "audio/george/kjv/job-021.m4a",
+          "sha256": "f36ac1c0a8800f90f2cb1f5e9f9d0ef18bf9a2fa5043e0bffdafdd25e47cae8b",
+          "bytes": 1308391,
+          "timings": "audio/george/kjv/job-021.json",
+          "timings_sha256": "8fd99513b18d0588331e7b3005f647476fa96ede1e555f4dd8475017f1e7093e",
+          "duration": 218.675
+        },
+        {
+          "chapter": 22,
+          "file": "audio/george/kjv/job-022.m4a",
+          "sha256": "8c19d705a96f3ab12cceffb9835b30bc7d0abdaaa4dfaa02b421f30a5dfbd0d1",
+          "bytes": 1230151,
+          "timings": "audio/george/kjv/job-022.json",
+          "timings_sha256": "7d1765341bae1ab5ff3cb8350a6ef2048a9f794afc299203ad8cf430a0f79de4",
+          "duration": 206.5
+        },
+        {
+          "chapter": 23,
+          "file": "audio/george/kjv/job-023.m4a",
+          "sha256": "dfd2b82b0dcd175faad6d41e1efb07b46cef002915ed449a17f4083056555e3b",
+          "bytes": 696292,
+          "timings": "audio/george/kjv/job-023.json",
+          "timings_sha256": "99593799bce0a3534e4abf0ad97f02f891a707bfa3ba66a64f549034c7388665",
+          "duration": 116.375
+        },
+        {
+          "chapter": 24,
+          "file": "audio/george/kjv/job-024.m4a",
+          "sha256": "a68637e3f609dcb847dded8f051b3bc9adb29096822160a9f490e1717e68d64f",
+          "bytes": 1211274,
+          "timings": "audio/george/kjv/job-024.json",
+          "timings_sha256": "7982ba3654808b81f7789e10e9ac9b526c0059db7c0271a9a4588a8e4f7ca359",
+          "duration": 199.85
+        },
+        {
+          "chapter": 25,
+          "file": "audio/george/kjv/job-025.m4a",
+          "sha256": "3cdef069f1aba2d8c1c2494791f945944aea9ced9323d83bc74a73d0e747a7d9",
+          "bytes": 226218,
+          "timings": "audio/george/kjv/job-025.json",
+          "timings_sha256": "4ba12ff0f9abd6dac464bb08c0da8af0d61deb37c0c730716cce725676a6e3b7",
+          "duration": 38.45
+        },
+        {
+          "chapter": 26,
+          "file": "audio/george/kjv/job-026.m4a",
+          "sha256": "2818d1e167c33bce7547ec42ddae6853376ed5c3bc744ca0b2af99564a0db5f0",
+          "bytes": 543360,
+          "timings": "audio/george/kjv/job-026.json",
+          "timings_sha256": "8cad69ef9f327d40572ddd00700123e2f34974fedc36a438cce89c32edc6d388",
+          "duration": 91.025
+        },
+        {
+          "chapter": 27,
+          "file": "audio/george/kjv/job-027.m4a",
+          "sha256": "d2504acb08fb135cc42d0e711152604b38c5f5c8f1ce9b5a86a46bdcfcebb27d",
+          "bytes": 930042,
+          "timings": "audio/george/kjv/job-027.json",
+          "timings_sha256": "0aef6f981ee5546787f7fc78ccd69bb953f1f36328fb3c85693a355091229a23",
+          "duration": 155.1
+        },
+        {
+          "chapter": 28,
+          "file": "audio/george/kjv/job-028.m4a",
+          "sha256": "f3f9ac1c723f7a1beec9a5ba98c788f0bb24f95f2baf2127c9db22d1ff9bc40b",
+          "bytes": 1136780,
+          "timings": "audio/george/kjv/job-028.json",
+          "timings_sha256": "c2b63159a7ad5bb7de30086e6b6d7bca9c200b3f2db3bb2d2f64200d6695950f",
+          "duration": 191.375
+        },
+        {
+          "chapter": 29,
+          "file": "audio/george/kjv/job-029.m4a",
+          "sha256": "8599be30884b815baad8b0eb0761211cc2eeb5ad5589e99472139ad3fb9d856a",
+          "bytes": 940523,
+          "timings": "audio/george/kjv/job-029.json",
+          "timings_sha256": "7ab6b894c6e54bca3a7e4128aa49785f23b112bad83423404c6b76ff7401be5c",
+          "duration": 158.475
+        },
+        {
+          "chapter": 30,
+          "file": "audio/george/kjv/job-030.m4a",
+          "sha256": "984abbabb1af5bf5240229b70b797b0376a5edcd954beef9eedc68f25d08ef77",
+          "bytes": 1291648,
+          "timings": "audio/george/kjv/job-030.json",
+          "timings_sha256": "ba0471dcdd8506bd902152f4caf4961645677b02fc3bc9846349e83e46ad8084",
+          "duration": 214.5
+        },
+        {
+          "chapter": 31,
+          "file": "audio/george/kjv/job-031.m4a",
+          "sha256": "b1b68f75d16b8d96ec936eebb3bec4d28c77f81b69138be0733b4b2a4dbc69a5",
+          "bytes": 1654672,
+          "timings": "audio/george/kjv/job-031.json",
+          "timings_sha256": "41c4804e885fdad88a40e7bbc946f72c8f0073756120f3d43f9ba14a4c026a0a",
+          "duration": 276.475
+        },
+        {
+          "chapter": 32,
+          "file": "audio/george/kjv/job-032.m4a",
+          "sha256": "97a1b6570e52c8f7cd168ecce951eeee86c62f61343052a8a0c3abe8ea044443",
+          "bytes": 985720,
+          "timings": "audio/george/kjv/job-032.json",
+          "timings_sha256": "d3428e9feac0695f652b80319e0873ac4d6bce6c28b6edc42a1942b22eaeb18f",
+          "duration": 163.25
+        },
+        {
+          "chapter": 33,
+          "file": "audio/george/kjv/job-033.m4a",
+          "sha256": "749e781d41cbe88b2134aa690beb24dcba1981a9088b396c441831f4da1f6e89",
+          "bytes": 1335397,
+          "timings": "audio/george/kjv/job-033.json",
+          "timings_sha256": "35a98770b18a156d0d664d0d9daee86ebfeebd91bc944ecf7f292801c1e29240",
+          "duration": 223
+        },
+        {
+          "chapter": 34,
+          "file": "audio/george/kjv/job-034.m4a",
+          "sha256": "0f9bb85daa8c6b9c7b2572494e133ece9589c42cfc3f23d6398a789c2d42ad50",
+          "bytes": 1561606,
+          "timings": "audio/george/kjv/job-034.json",
+          "timings_sha256": "2310df36bce8111239967947b5f7d298c3fbdfba694c621f1a0a42e1fe7b1460",
+          "duration": 262.025
+        },
+        {
+          "chapter": 35,
+          "file": "audio/george/kjv/job-035.m4a",
+          "sha256": "d3500ac5c78d1a87d42373ffcf02291d92ee76ed2a5e1cd517db0f5825b7b3f0",
+          "bytes": 672366,
+          "timings": "audio/george/kjv/job-035.json",
+          "timings_sha256": "c05f1c8ec880b4b8ad8428188bf2b35576dd1a99f3c4ee9556dcec67753a29cf",
+          "duration": 113.175
+        },
+        {
+          "chapter": 36,
+          "file": "audio/george/kjv/job-036.m4a",
+          "sha256": "18573df942ec808d991f8796ff015055794070ce90cf399431ddcdf7d5acb5e5",
+          "bytes": 1328116,
+          "timings": "audio/george/kjv/job-036.json",
+          "timings_sha256": "0733bbea7442bf4a653d641958663df08cef04481c3dd6246c1e0b2e918b6f54",
+          "duration": 223.45
+        },
+        {
+          "chapter": 37,
+          "file": "audio/george/kjv/job-037.m4a",
+          "sha256": "1a6ddce4c1265c4546ceaee728e2edfb455f6832bbd6d26c99e596c6af9c2f3f",
+          "bytes": 1038268,
+          "timings": "audio/george/kjv/job-037.json",
+          "timings_sha256": "943790ae7121e86c3f0f366322ad8aff65e785093d22b93a01d26b8e82215cdb",
+          "duration": 174.925
+        },
+        {
+          "chapter": 38,
+          "file": "audio/george/kjv/job-038.m4a",
+          "sha256": "0224d4f56e149df9c33e43681a26f82a74c53bc0f87b14e010a87d69ae2c2208",
+          "bytes": 1664987,
+          "timings": "audio/george/kjv/job-038.json",
+          "timings_sha256": "1c8a0bdda689f1c00e813677021402092a89c7a67fea268fdd6017cd0f3dc3e0",
+          "duration": 280.45
+        },
+        {
+          "chapter": 39,
+          "file": "audio/george/kjv/job-039.m4a",
+          "sha256": "ba09b39ecd9ef87708fa4244bb8d907ed39a9d456ef8f22773f30854d2321d67",
+          "bytes": 1221832,
+          "timings": "audio/george/kjv/job-039.json",
+          "timings_sha256": "b17dd0edd4d885cf573ae4dfeb89d06adf7195cbc6fb31e801ee8bc0d70f4742",
+          "duration": 205.875
+        }
+      ],
+      "titles": {
+        "file": "audio/george/job-titles.m4a",
+        "sha256": "b898293c32df2118a3321622a311a843cb1f130f6ac424e43ff4fb3e5065c33e",
+        "bytes": 652417,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.175
+          },
+          {
+            "chapter": 2,
+            "start": 2.475,
+            "end": 4.6
+          },
+          {
+            "chapter": 3,
+            "start": 4.9,
+            "end": 7.05
+          },
+          {
+            "chapter": 4,
+            "start": 7.35,
+            "end": 9.45
+          },
+          {
+            "chapter": 5,
+            "start": 9.75,
+            "end": 12
+          },
+          {
+            "chapter": 6,
+            "start": 12.3,
+            "end": 14.425
+          },
+          {
+            "chapter": 7,
+            "start": 14.725,
+            "end": 17
+          },
+          {
+            "chapter": 8,
+            "start": 17.3,
+            "end": 19.35
+          },
+          {
+            "chapter": 9,
+            "start": 19.65,
+            "end": 21.825
+          },
+          {
+            "chapter": 10,
+            "start": 22.125,
+            "end": 24.325
+          },
+          {
+            "chapter": 11,
+            "start": 24.625,
+            "end": 26.925
+          },
+          {
+            "chapter": 12,
+            "start": 27.225,
+            "end": 29.525
+          },
+          {
+            "chapter": 13,
+            "start": 29.825,
+            "end": 32.25
+          },
+          {
+            "chapter": 14,
+            "start": 32.55,
+            "end": 34.925
+          },
+          {
+            "chapter": 15,
+            "start": 35.225,
+            "end": 37.625
+          },
+          {
+            "chapter": 16,
+            "start": 37.925,
+            "end": 40.275
+          },
+          {
+            "chapter": 17,
+            "start": 40.575,
+            "end": 43.125
+          },
+          {
+            "chapter": 18,
+            "start": 43.425,
+            "end": 45.725
+          },
+          {
+            "chapter": 19,
+            "start": 46.025,
+            "end": 48.425
+          },
+          {
+            "chapter": 20,
+            "start": 48.725,
+            "end": 51.125
+          },
+          {
+            "chapter": 21,
+            "start": 51.425,
+            "end": 53.9
+          },
+          {
+            "chapter": 22,
+            "start": 54.2,
+            "end": 56.675
+          },
+          {
+            "chapter": 23,
+            "start": 56.975,
+            "end": 59.525
+          },
+          {
+            "chapter": 24,
+            "start": 59.825,
+            "end": 62.35
+          },
+          {
+            "chapter": 25,
+            "start": 62.65,
+            "end": 65.325
+          },
+          {
+            "chapter": 26,
+            "start": 65.625,
+            "end": 68.125
+          },
+          {
+            "chapter": 27,
+            "start": 68.425,
+            "end": 71.125
+          },
+          {
+            "chapter": 28,
+            "start": 71.425,
+            "end": 73.85
+          },
+          {
+            "chapter": 29,
+            "start": 74.15,
+            "end": 76.625
+          },
+          {
+            "chapter": 30,
+            "start": 76.925,
+            "end": 79.225
+          },
+          {
+            "chapter": 31,
+            "start": 79.525,
+            "end": 82.05
+          },
+          {
+            "chapter": 32,
+            "start": 82.35,
+            "end": 84.925
+          },
+          {
+            "chapter": 33,
+            "start": 85.225,
+            "end": 87.8
+          },
+          {
+            "chapter": 34,
+            "start": 88.1,
+            "end": 90.725
+          },
+          {
+            "chapter": 35,
+            "start": 91.025,
+            "end": 93.725
+          },
+          {
+            "chapter": 36,
+            "start": 94.025,
+            "end": 96.6
+          },
+          {
+            "chapter": 37,
+            "start": 96.9,
+            "end": 99.625
+          },
+          {
+            "chapter": 38,
+            "start": 99.925,
+            "end": 102.475
+          },
+          {
+            "chapter": 39,
+            "start": 102.775,
+            "end": 105.375
+          },
+          {
+            "chapter": 40,
+            "start": 105.675,
+            "end": 108
+          },
+          {
+            "chapter": 41,
+            "start": 108.3,
+            "end": 110.85
+          },
+          {
+            "chapter": 42,
+            "start": 111.15,
+            "end": 113.675
           }
         ]
       }
@@ -43225,6 +50532,206 @@ export const BUNDLED_MANIFEST: BundleManifest = {
       }
     },
     {
+      "book": "NEH",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/neh-001.m4a",
+          "sha256": "c008bc7a22e3d1958df7f544d76e6355d78fe87af17c54a167ea25aee1c2e2ba",
+          "bytes": 914006,
+          "timings": "audio/george/kjv/neh-001.json",
+          "timings_sha256": "1c82a3f956cb54b737785e6954d7bee6087afac452104c6dcc9108e07df18545",
+          "duration": 147.775
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/neh-002.m4a",
+          "sha256": "7d87f65af370daa0ef497dc7ad9df0ee9587d6e66d7f4e3fe02d8604a6c39153",
+          "bytes": 1625932,
+          "timings": "audio/george/kjv/neh-002.json",
+          "timings_sha256": "89f74b76a5a6288165bd598e411f0d9680b5a6b4245240b2db66c9345585e04e",
+          "duration": 262.475
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/neh-003.m4a",
+          "sha256": "3241cad4e03024bb0590e03bc49ce48180adcd8bdabfa6910e9a206b55d82ffb",
+          "bytes": 2222385,
+          "timings": "audio/george/kjv/neh-003.json",
+          "timings_sha256": "ab9a5bd52ff7a2a177d16b9b6e9133aca9ebd184e239d9c6e413d3e69a11b0ee",
+          "duration": 362.225
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/neh-004.m4a",
+          "sha256": "c371fac1d27cacfa3f7ffa9fdea684307a6d8bd39fb607ad23e76a9a8123aa20",
+          "bytes": 1619222,
+          "timings": "audio/george/kjv/neh-004.json",
+          "timings_sha256": "cd50c0edb021ba3e925f53e2d697b4f293758e32ef0c844da710d389b182b3e5",
+          "duration": 264.15
+        },
+        {
+          "chapter": 5,
+          "file": "audio/george/kjv/neh-005.m4a",
+          "sha256": "db113e07ede9b0ef8ad02f8b0323f25ba2215ee4c4e326fa88693f15ab984a1e",
+          "bytes": 1490581,
+          "timings": "audio/george/kjv/neh-005.json",
+          "timings_sha256": "336f6e841c8c508e4d1be3f46c985961ff675aebe9a2211cc44e2e1954916adc",
+          "duration": 241.925
+        },
+        {
+          "chapter": 6,
+          "file": "audio/george/kjv/neh-006.m4a",
+          "sha256": "7b5652e4ffd03a4b55f6e28707d84334ae88311789195c37461456cd650cf309",
+          "bytes": 1386613,
+          "timings": "audio/george/kjv/neh-006.json",
+          "timings_sha256": "0a8d4e4d1b3a5f9e3b7ade7374b81941dc1786b517759548457957b1b439d200",
+          "duration": 226.225
+        },
+        {
+          "chapter": 7,
+          "file": "audio/george/kjv/neh-007.m4a",
+          "sha256": "20e7b621312df1084794b68220c5dfa54ccda49aaa9280bd452e6736e94f4153",
+          "bytes": 3216413,
+          "timings": "audio/george/kjv/neh-007.json",
+          "timings_sha256": "e51e48670698f825d41eec594058e2dd342bf1880b82ab61336bc3f3fb28aafa",
+          "duration": 530.225
+        },
+        {
+          "chapter": 8,
+          "file": "audio/george/kjv/neh-008.m4a",
+          "sha256": "a3a11b36be89343399e4af8036a0b644c4e7aa011a0cf8089d0d636f7571f642",
+          "bytes": 1614659,
+          "timings": "audio/george/kjv/neh-008.json",
+          "timings_sha256": "1ade61bcfb3f91fc1e5e5b64acca59c8033fed08dee0dd522e3f223c5fb20292",
+          "duration": 260.95
+        },
+        {
+          "chapter": 9,
+          "file": "audio/george/kjv/neh-009.m4a",
+          "sha256": "beebd2e056f78f283ccf90c60f018c7ebfafd83c2e1334782ba56a6c1850bf8b",
+          "bytes": 3249688,
+          "timings": "audio/george/kjv/neh-009.json",
+          "timings_sha256": "3b97852d1bb09d6ef68453189046632d861a8583e72281f92ea26a4a39235be9",
+          "duration": 525.4
+        },
+        {
+          "chapter": 10,
+          "file": "audio/george/kjv/neh-010.m4a",
+          "sha256": "50eb65b13695f493c342fd2f073e85956c70847286dafe8cae011b5b9e14ccc0",
+          "bytes": 1719478,
+          "timings": "audio/george/kjv/neh-010.json",
+          "timings_sha256": "d33bddcfdba18cc6a6c9a418820599c7551e99d51269c66aa8fcf2433d8fca28",
+          "duration": 287.975
+        },
+        {
+          "chapter": 11,
+          "file": "audio/george/kjv/neh-011.m4a",
+          "sha256": "1a3d2bc05fccf1d852a874751e245030b35bc32066626299bc346d5150f60b00",
+          "bytes": 2011547,
+          "timings": "audio/george/kjv/neh-011.json",
+          "timings_sha256": "f740ee8656fe89389c93fbb9776edf7e52a3a31a168d4cf159c90468bd988b3e",
+          "duration": 332.25
+        },
+        {
+          "chapter": 12,
+          "file": "audio/george/kjv/neh-012.m4a",
+          "sha256": "6b1af36bd3461efd83b383ca1abd66cee694186f05a36a8d2ba40c8a87dadcf9",
+          "bytes": 2621821,
+          "timings": "audio/george/kjv/neh-012.json",
+          "timings_sha256": "3c5ed86592acb0955fb3bf66d669c4e58567f484a935fbf1e6041d4b20bdf8e2",
+          "duration": 433.35
+        },
+        {
+          "chapter": 13,
+          "file": "audio/george/kjv/neh-013.m4a",
+          "sha256": "c730843c27a98d73588a75f44db26a98a83d8e6b1450cef3f6059c0286e1e5c1",
+          "bytes": 2308645,
+          "timings": "audio/george/kjv/neh-013.json",
+          "timings_sha256": "332a92889f91da6e9b1177184f7f39be89871920bdb6d15c2bd8a6a0b212c520",
+          "duration": 374.875
+        }
+      ],
+      "titles": {
+        "file": "audio/george/neh-titles.m4a",
+        "sha256": "44198b942d1f9bd6ccddb96e3aa2475b982e9f84c4d93357523828f7651d3877",
+        "bytes": 219863,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.55
+          },
+          {
+            "chapter": 2,
+            "start": 2.85,
+            "end": 5.35
+          },
+          {
+            "chapter": 3,
+            "start": 5.65,
+            "end": 8.175
+          },
+          {
+            "chapter": 4,
+            "start": 8.475,
+            "end": 10.975
+          },
+          {
+            "chapter": 5,
+            "start": 11.275,
+            "end": 13.975
+          },
+          {
+            "chapter": 6,
+            "start": 14.275,
+            "end": 16.775
+          },
+          {
+            "chapter": 7,
+            "start": 17.075,
+            "end": 19.775
+          },
+          {
+            "chapter": 8,
+            "start": 20.075,
+            "end": 22.575
+          },
+          {
+            "chapter": 9,
+            "start": 22.875,
+            "end": 25.475
+          },
+          {
+            "chapter": 10,
+            "start": 25.775,
+            "end": 28.35
+          },
+          {
+            "chapter": 11,
+            "start": 28.65,
+            "end": 31.375
+          },
+          {
+            "chapter": 12,
+            "start": 31.675,
+            "end": 34.325
+          },
+          {
+            "chapter": 13,
+            "start": 34.625,
+            "end": 37.425
+          }
+        ]
+      }
+    },
+    {
       "book": "NUM",
       "translation": "KJV",
       "narrator": "george",
@@ -43745,6 +51252,80 @@ export const BUNDLED_MANIFEST: BundleManifest = {
           }
         ]
       }
+    },
+    {
+      "book": "RUT",
+      "translation": "KJV",
+      "narrator": "george",
+      "narrator_name": "George",
+      "kind": "computer",
+      "credit": "Made with Kokoro-82M (hexgrad), Apache License 2.0. The words are the BSB’s.",
+      "credit_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "chapters": [
+        {
+          "chapter": 1,
+          "file": "audio/george/kjv/rut-001.m4a",
+          "sha256": "c43aa7086029ca2f6787f9a9892a9aca870e8f893b37fa83ebac2615017afcb5",
+          "bytes": 1542879,
+          "timings": "audio/george/kjv/rut-001.json",
+          "timings_sha256": "9ea70e119ba704de3c7614d2d92b2e410c8cfb4ee58aa5c22a8ac60e59b3d25b",
+          "duration": 251.15
+        },
+        {
+          "chapter": 2,
+          "file": "audio/george/kjv/rut-002.m4a",
+          "sha256": "456918a4a55eb652b9f880a94f45f4ad57dfead06cdec78ded25ebfab30ab53c",
+          "bytes": 1732555,
+          "timings": "audio/george/kjv/rut-002.json",
+          "timings_sha256": "33a33939b20daf3cff2cb8b7512fbb9ef9095fdddf071fbfc3dc9df1ac414291",
+          "duration": 282.375
+        },
+        {
+          "chapter": 3,
+          "file": "audio/george/kjv/rut-003.m4a",
+          "sha256": "c9e9a6e7a28389c37c160bc8497a3a9e5693a1f076cf8dfdc081cba6fd49eb9e",
+          "bytes": 1216909,
+          "timings": "audio/george/kjv/rut-003.json",
+          "timings_sha256": "2f092ca8e73f0def490d0fc58e1f5cbbaa7ffb41c7fc64b647d59853c3ea119e",
+          "duration": 200.3
+        },
+        {
+          "chapter": 4,
+          "file": "audio/george/kjv/rut-004.m4a",
+          "sha256": "1515313d030af8d9ec3f0a18c35458aab92f12ba8f8f5e819e79413958dd1aaa",
+          "bytes": 1525443,
+          "timings": "audio/george/kjv/rut-004.json",
+          "timings_sha256": "b9bfc6925acffeb779016e11e793cdfe18ec733ce857a0bdfdc96675f286bb84",
+          "duration": 249.925
+        }
+      ],
+      "titles": {
+        "file": "audio/george/rut-titles.m4a",
+        "sha256": "7ae389aaf45336f84172aeb334c6346c1b9203d05112e2cd704ee2cc769e4ef1",
+        "bytes": 52877,
+        "spans": [
+          {
+            "chapter": 1,
+            "start": 0,
+            "end": 2.075
+          },
+          {
+            "chapter": 2,
+            "start": 2.375,
+            "end": 4.45
+          },
+          {
+            "chapter": 3,
+            "start": 4.75,
+            "end": 6.85
+          },
+          {
+            "chapter": 4,
+            "start": 7.15,
+            "end": 9.225
+          }
+        ]
+      }
     }
   ]
 };
@@ -43792,7 +51373,7 @@ export const BUNDLED_DAILY: readonly { readonly file: string; readonly sha256: s
 ];
 
 export const BUNDLED_ASSETS: Readonly<Record<string, number>> = {
-  "core.v6.db": require("../../assets/bundles/core.v6.db") as number,
+  "core.v7.db": require("../../assets/bundles/core.v7.db") as number,
   "study-jhn.v1.db": require("../../assets/bundles/study-jhn.v1.db") as number,
   "understand-jhn.v4.db": require("../../assets/bundles/understand-jhn.v4.db") as number,
   "devotional-spurgeon.v1.db": require("../../assets/bundles/devotional-spurgeon.v1.db") as number,

@@ -94,7 +94,23 @@ function namesOtherBook(sentence: string, book: BookCode): boolean {
 export function cut(paragraph: string, book: BookCode, skipAside: boolean): { text: string; words: number } | { text: null; reason: string } {
   const sentences = splitSentences(paragraph);
   const aside = (s: string): boolean => skipAside && (/\?[”’]?$/.test(s) || /[“”]/.test(s));
-  let i = 0;
+  const first = cutFrom(sentences, 0, book, aside, skipAside);
+  // Zephaniah's opening is two quotations, an 8-word line and a question before the one sentence that says
+  // what the book is about (build 8, 15 Oct 2026): when the hook leaves nothing whole, try after its last aside.
+  const last = sentences.reduce((at, s, i) => (aside(s) ? i : at), -1);
+  if (first.text !== null || last < 0) return first;
+  const after = cutFrom(sentences, last + 1, book, aside, skipAside);
+  return after.text !== null ? after : first;
+}
+
+function cutFrom(
+  sentences: string[],
+  start: number,
+  book: BookCode,
+  aside: (s: string) => boolean,
+  skipAside: boolean,
+): { text: string; words: number } | { text: null; reason: string } {
+  let i = start;
   while (i < sentences.length && (aside(sentences[i] ?? "") || namesOtherBook(sentences[i] ?? "", book))) i += 1;
   const keep: string[] = [];
   let words = 0;
@@ -116,7 +132,7 @@ export function cut(paragraph: string, book: BookCode, skipAside: boolean): { te
   // paragraph is a plain description, and a short one is still whole.
   if (skipAside && keep.length > 0 && words < INTRO_MIN_WORDS) return { text: null, reason: `only ${words} words` };
   if (keep.length === 0) {
-    const first = sentences[0] ?? "";
+    const first = sentences[start] ?? "";
     return { text: null, reason: STOP.test(first) ? "first sentence speaks to the translator" : `first sentence is ${wordCount(first)} words` };
   }
   return { text: keep.join(" "), words };

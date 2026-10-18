@@ -39,7 +39,7 @@ export interface Token {
   variant_marked: boolean;
   /** Sourced contextual gloss, and which dataset it came from. Never generated. */
   gloss?: string;
-  gloss_source?: "TAGNT" | "TAHOT" | "TBESG";
+  gloss_source?: "TAGNT" | "TAHOT" | "TBESG" | "TBESH";
 }
 
 /**

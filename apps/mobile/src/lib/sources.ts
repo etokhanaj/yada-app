@@ -108,6 +108,11 @@ const ROLE: Readonly<Record<string, { group: SourceGroup; title: string; name: s
   "unfoldingWord Hebrew Grammar (en_uhg)": { group: "Words and people", title: "Hebrew grammar terms", name: "unfoldingWord Hebrew Grammar" },
   "unfoldingWord Aramaic Grammar (en_uag)": { group: "Words and people", title: "Aramaic grammar terms", name: "unfoldingWord Aramaic Grammar" },
   "J. Gresham Machen, New Testament Greek for Beginners (Macmillan, 1923)": { group: "Words and people", title: "Greek grammar terms, six of them", name: "Machen’s Greek for Beginners" },
+  "Ernest De Witt Burton, Syntax of the Moods and Tenses in New Testament Greek (3rd edition, 1903)": { group: "Words and people", title: "The Greek aorist", name: "Burton’s Moods and Tenses" },
+  "Gesenius' Hebrew Grammar, ed. E. Kautzsch, tr. A. E. Cowley (1910), Wikisource transcription": { group: "Words and people", title: "Hebrew grammar terms, three of them", name: "Gesenius’ Hebrew Grammar" },
+  "G. B. Winer, A Grammar of the Chaldee Language, tr. H. B. Hackett (1845)": { group: "Words and people", title: "The Aramaic determined state", name: "Winer’s Chaldee Grammar" },
+  "Daily Office Lectionary, 1979 Book of Common Prayer (JSON)": { group: "Words and people", title: "Daily prayer’s readings", name: "Daily Office Lectionary" },
+  "Rain, by ezwa (Rain (1).ogg)": { group: "Words and people", title: "The sound of rain in Daily prayer", name: "Rain, by ezwa" },
   // A downloaded Old Testament text; listed only once the app handles a text that has no New Testament.
   // Build 7a: Today's own sources, rows made by data/today.ts's todaySources().
   [SPURGEON_DATASET]: { group: "Today", title: "Devotional", name: "Spurgeon, Morning and Evening" },
