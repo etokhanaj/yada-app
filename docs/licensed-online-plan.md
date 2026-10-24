@@ -53,8 +53,9 @@ that; a test showed it saves nothing, so copies simply last 30 days.)
 
 ## What John must do
 
-1. API.Bible dashboard: the app's **end-user range is 5,000 or fewer**, overage stays at 0, and note the
-   day the Starter plan took effect (`PLAN_MONTH_DAY` in `wrangler.toml`, set to 10).
+1. ~~API.Bible dashboard~~ (read 18 Oct 2026): 45 of 5,000 calls used; resets on the 9th, so
+   `PLAN_MONTH_DAY = "9"`; end-user range **0–1K**. Past 1,000 monthly users, raise the range by the end
+   of the next plan month (§17.3.b); it must stay at 5,000 or fewer for NKJV.
 2. Check NLT's and MSG's licence terms in the dashboard for anything beyond API.Bible's own.
 3. `npx wrangler r2 bucket create yada-licensed-cache`, then `npx wrangler deploy` (steps in
    `docs/licensed-translations.md`, "Deploying the proxy").

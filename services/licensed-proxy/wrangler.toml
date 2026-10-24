@@ -18,9 +18,9 @@ API_BIBLE_URL = "https://rest.api.bible"
 # with AI features) and MSG took its place. A code added here and redeployed switches on; the app
 # learns the set from each response.
 SERVED = "NKJV,NLT,MSG"
-# Day of the month the API.Bible Starter plan took effect: its 5,000 calls reset then. Check it in
-# the API.Bible dashboard; the account was set up on 10 Oct 2026.
-PLAN_MONTH_DAY = "10"
+# Day of the month the API.Bible Starter plan's 5,000 calls reset: the dashboard shows "Resets on
+# 11/9/2026" (read 18 Oct 2026).
+PLAN_MONTH_DAY = "9"
 
 # One shared copy of each chapter read (John, 18 Oct 2026; docs/licensed-online-plan.md). Bible text
 # only, no reader data, deleted daily once past 30 days. The bucket must stay private: public access
