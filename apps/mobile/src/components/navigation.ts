@@ -64,8 +64,8 @@ export function readerHref(target: ReaderTarget) {
  * (IA stress test, 15 Oct 2026).
  */
 export function openFromOutside(target: ReaderTarget | null): void {
-  // A cold launch through /open has nothing beneath it: the door replaces it, or a tap on the Live Activity after
-  // the app was killed left an empty page (review, 15 Oct 2026). The reader's ‹ Home replaces itself with Home.
+  // A cold launch through /open has nothing beneath it: the door replaces it, or a widget tap after the app was
+  // killed left an empty page (review, 15 Oct 2026). The reader's ‹ Home replaces itself with Home.
   if (!router.canDismiss()) {
     router.replace(target === null ? "/" : readerHref(target));
     return;

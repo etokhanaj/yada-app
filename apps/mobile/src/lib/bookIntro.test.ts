@@ -6,11 +6,8 @@ const meta = (status: string, text = "Paul wrote this letter to the Christians i
   JSON.stringify({ text, source: "tn", credit: "Translation Notes, adapted from unfoldingWord (book introduction, first paragraph shortened) · CC BY-SA 4.0", status });
 
 describe("book introduction (build 6, item G)", () => {
-  it("shows an approved paragraph with its credit", () => {
-    expect(parseBookIntro(meta("approved"))).toEqual({
-      text: "Paul wrote this letter to the Christians in Rome.",
-      credit: "Translation Notes, adapted from unfoldingWord (book introduction, first paragraph shortened) · CC BY-SA 4.0",
-    });
+  it("shows an approved paragraph", () => {
+    expect(parseBookIntro(meta("approved"))).toEqual({ text: "Paul wrote this letter to the Christians in Rome." });
   });
 
   it("holds back a flagged paragraph (rule 2)", () => {
@@ -22,6 +19,5 @@ describe("book introduction (build 6, item G)", () => {
     expect(parseBookIntro(undefined)).toBeNull();
     expect(parseBookIntro("{not json")).toBeNull();
     expect(parseBookIntro(meta("approved", " "))).toBeNull();
-    expect(parseBookIntro(JSON.stringify({ text: "x", status: "approved" }))).toBeNull();
   });
 });

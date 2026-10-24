@@ -12,6 +12,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { usePalette } from "../design/tokens";
 import { ICON_SHAPES, type IconName } from "./icons.generated";
+import { ON_PICTURE } from "../design/palette";
 
 export type { IconName } from "./icons.generated";
 
@@ -22,6 +23,7 @@ export function Icon({
   filled = false,
   strokeWidth = 2,
   maxScale = 2,
+  color: given,
 }: {
   name: IconName;
   size?: number;
@@ -31,12 +33,15 @@ export function Icon({
   filled?: boolean;
   strokeWidth?: number;
   maxScale?: number;
+  /** A colour from design/ for a glyph on its own ground: an avatar's initial colour (components/pray/Avatar.tsx). */
+  color?: string;
 }) {
   const palette = usePalette();
   const { fontScale } = useWindowDimensions();
   const px = Math.round(size * Math.min(Math.max(fontScale, 1), maxScale));
   const color =
-    tone === "white" ? "#FFFFFF" : tone === "muted" ? palette.mutedInk : tone === "accent" ? palette.accent : tone === "paper" ? palette.paper : palette.ink;
+    given ??
+    (tone === "white" ? ON_PICTURE.text : tone === "muted" ? palette.mutedInk : tone === "accent" ? palette.accent : tone === "paper" ? palette.paper : palette.ink);
   return (
     <Svg
       width={px}

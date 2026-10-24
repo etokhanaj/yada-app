@@ -13,6 +13,7 @@ import { create } from "zustand";
 
 import { system } from "../../modules/yada-system";
 import { loadMcheyne, loadYourPlan } from "./plans";
+import { PRAY_AGAIN_ID } from "./prayNotify";
 import { type Db, getChapter, getTexts } from "./queries";
 import { loadProgress } from "./startHere";
 import { loadDays, loadPosition, loadSettings, saveSetting } from "./user";
@@ -41,6 +42,7 @@ import {
   upcomingTimes,
 } from "../lib/reminder";
 import { nextPassage } from "../lib/startHere";
+import { GATHER_PREFIX } from "../lib/together";
 import { rangeRef, type ReminderRequest, type RichReminder, richVerses } from "../lib/systemSurfaces";
 import { rhythmOf, todayKey } from "../lib/rhythm";
 
@@ -96,10 +98,16 @@ export async function turnOn(user: SQLiteDatabase, core: Db, prefs: ReminderPref
   return now;
 }
 
+/** Every scheduled notification but the prayer ones: Pray again (PA-01) and a circle's planned time (PC-19). */
+async function cancelReading(): Promise<void> {
+  const all = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(all.filter((n) => n.identifier !== PRAY_AGAIN_ID && !n.identifier.startsWith(GATHER_PREFIX)).map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)));
+}
+
 export async function turnOff(user: SQLiteDatabase): Promise<void> {
   const prefs = { ...useReminder.getState().prefs, on: false };
   await save(user, prefs);
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  await cancelReading();
   useReminder.setState({ paused: false });
 }
 
@@ -185,7 +193,7 @@ function schedule(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs): Promise
 }
 
 async function scheduleNow(user: SQLiteDatabase, core: Db, prefs: ReminderPrefs): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  await cancelReading();
   // Decision 4 (build-6-decisions.md): a reminder replaces yesterday's. iOS runs nothing of Yada's when a local
   // notification arrives, so the ones already delivered are taken back here, each time Yada opens.
   await system?.removeDeliveredReminders().catch(() => undefined);

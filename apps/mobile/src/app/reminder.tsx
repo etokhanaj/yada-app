@@ -10,7 +10,7 @@
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useEffect, useState } from "react";
-import { Linking, Pressable, StyleSheet, Switch, View } from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
 
 import { ListRow, PageScreen } from "../components/Page";
 import { Icon } from "../components/Icon";
@@ -22,6 +22,10 @@ import { useLayout, usePalette } from "../design/tokens";
 import { loadSettings } from "../data/user";
 import { parsePsalter } from "../lib/dailyPsalms";
 import { DEFAULT_EVENING, type ReminderPrefs, type ReminderText, timeLabel } from "../lib/reminder";
+import { Toggle } from "../components/Toggle";
+import { circlesCloud, prayCloud } from "../../modules/yada-pray";
+import { loadPrayNotify, savePrayNotify } from "../data/prayNotify";
+import type { PrayNotify } from "../lib/pray";
 
 const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
 const DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -49,6 +53,12 @@ export default function ReminderScreen() {
   }, [user, core, prefs.kind]);
 
   const change = (next: ReminderPrefs) => void changeReminder(user, core, next);
+  const [pray, setPray] = useState<PrayNotify | null>(null);
+  useEffect(() => void loadPrayNotify(user).then(setPray), [user]);
+  const changePray = (next: PrayNotify) => {
+    setPray(next);
+    void savePrayNotify(user, next).catch(() => undefined);
+  };
   const everyDay = prefs.days.every(Boolean);
   const denied = permission === "denied";
 
@@ -111,7 +121,7 @@ export default function ReminderScreen() {
             title="This evening’s psalms"
             chevron={false}
             right={
-              <Switch
+              <Toggle
                 value={prefs.evening !== null}
                 onValueChange={(on) => change({ ...prefs, evening: on ? DEFAULT_EVENING : null })}
                 accessibilityLabel="This evening’s psalms"
@@ -144,9 +154,40 @@ export default function ReminderScreen() {
         subtitle="How many days you read that week"
         chevron={false}
         right={
-          <Switch value={prefs.weekly} onValueChange={(weekly) => change({ ...prefs, weekly })} accessibilityLabel="Week in review" testID="reminder-weekly" />
+          <Toggle value={prefs.weekly} onValueChange={(weekly) => change({ ...prefs, weekly })} accessibilityLabel="Week in review" testID="reminder-weekly" />
         }
       />
+
+      {/* PA-03, FL-06: the prayer notifications, apart from the reading reminder and on whether it is or not. */}
+      {prayCloud !== null && pray !== null ? (
+        <>
+          <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>Prayer</SectionTitle>
+          <ListRow
+            first
+            title="Answered prayers"
+            subtitle="When a request you prayed for is marked answered"
+            chevron={false}
+            right={<Toggle value={pray.answered} onValueChange={(answered) => changePray({ ...pray, answered })} accessibilityLabel="Answered prayers" testID="reminder-answered" />}
+          />
+          {circlesCloud !== null ? (
+            <ListRow
+              title="Circle requests"
+              subtitle="When a circle you're in has a new request"
+              chevron={false}
+              right={<Toggle value={pray.circles} onValueChange={(circles) => changePray({ ...pray, circles })} accessibilityLabel="Circle requests" testID="reminder-circles" />}
+            />
+          ) : null}
+          <ListRow
+            title="Pray again"
+            subtitle="Only when you ask for it after praying"
+            chevron={false}
+            right={<Toggle value={pray.again} onValueChange={(again) => changePray({ ...pray, again })} accessibilityLabel="Pray again" testID="reminder-pray-again" />}
+          />
+          <Chrome step="note" tone="muted" style={{ marginTop: 12 }}>
+            Prayer notifications never show what was asked.
+          </Chrome>
+        </>
+      ) : null}
 
       <SectionTitle style={{ marginTop: sectionGap, marginBottom: 6 }}>What it says</SectionTitle>
       {(

@@ -91,22 +91,22 @@ export const GRAMMAR_SENTENCES: Readonly<Record<string, string>> = {
 };
 
 export const GRAMMAR_CREDITS = {
-  "greek": "Greek Grammar, adapted from unfoldingWord (shortened to its first sentence) · CC BY-SA 4.0",
-  "hebrew": "Hebrew Grammar, adapted from unfoldingWord (shortened to its first sentence) · CC BY-SA 4.0",
-  "aramaic": "Aramaic Grammar, adapted from unfoldingWord (shortened to its first sentence) · CC BY-SA 4.0"
+  "greek": "unfoldingWord, shortened",
+  "hebrew": "unfoldingWord, shortened",
+  "aramaic": "unfoldingWord, shortened"
 } as const;
 
 /** Terms whose sentence is another grammar's, not the unfoldingWord grammar's. */
 export const GRAMMAR_ENTRY_CREDITS: Readonly<Record<string, string>> = {
-  "aramaic:determined": "Aramaic grammar from G. B. Winer, A Grammar of the Chaldee Language, tr. H. B. Hackett (1845) · Public domain",
-  "greek:accusative": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
-  "greek:aorist": "Greek grammar from Ernest De Witt Burton, Syntax of the Moods and Tenses in New Testament Greek (1903) · Public domain",
-  "greek:dative": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
-  "greek:genitive": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
-  "greek:middle": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
-  "greek:optative": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
-  "greek:perfect": "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
-  "hebrew:absolute": "Hebrew grammar from Gesenius' Hebrew Grammar, ed. E. Kautzsch, tr. A. E. Cowley (1910), Wikisource transcription · CC BY-SA 4.0",
-  "hebrew:cohortative": "Hebrew grammar from Gesenius' Hebrew Grammar, ed. E. Kautzsch, tr. A. E. Cowley (1910), Wikisource transcription · CC BY-SA 4.0",
-  "hebrew:construct": "Hebrew grammar from Gesenius' Hebrew Grammar, ed. E. Kautzsch, tr. A. E. Cowley (1910), Wikisource transcription · CC BY-SA 4.0"
+  "aramaic:determined": "Winer, 1845",
+  "greek:accusative": "Machen, 1923",
+  "greek:aorist": "Burton, 1903",
+  "greek:dative": "Machen, 1923",
+  "greek:genitive": "Machen, 1923",
+  "greek:middle": "Machen, 1923",
+  "greek:optative": "Machen, 1923",
+  "greek:perfect": "Machen, 1923",
+  "hebrew:absolute": "Gesenius, 1910, Wikisource",
+  "hebrew:cohortative": "Gesenius, 1910, Wikisource",
+  "hebrew:construct": "Gesenius, 1910, Wikisource"
 };

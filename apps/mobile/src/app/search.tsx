@@ -45,14 +45,16 @@ import {
 import { isLicensedCode } from "../data/licensed";
 import { searchProfiles } from "../data/study";
 import { licensedEnabled, useLicensedSearch } from "../data/useLicensedChapter";
-import { useLayout, usePalette } from "../design/tokens";
+import { FONTS, useLayout, usePalette } from "../design/tokens";
 import { fieldDirection } from "../lib/fieldDirection";
+import { MOMENTS, opening, tilePassages } from "../lib/moments";
 import { formatRange } from "../lib/chapters";
 import { findGuides, findTerms, firstSentence } from "../lib/dictionary";
 import { excerptOf } from "../lib/reader";
 import { createSearchLogger } from "../lib/searchLog";
 import { planSearch, type SearchPlan, splitSnippet } from "../lib/searchQuery";
 import { whoLine } from "../lib/study";
+import { psalmTitleLine } from "../lib/systemSurfaces";
 import { useSettings } from "../state/settings";
 
 const WORDS_SHOWN = 5;
@@ -220,6 +222,8 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
     <Frame inTab={inTab} field={field}>
       {input === "" && query === "" ? (
         <View testID="search-browse">
+          <SectionTitle inSheet style={styles.section}>For a moment</SectionTitle>
+          <MomentTiles onOpen={(name) => openPage({ pathname: "/moment", params: { name, reopen: inTab ? "" : "1" } })} />
           <SectionTitle inSheet style={styles.section}>Browse</SectionTitle>
           <ListRow first title="Dictionary" onPress={() => openPage({ pathname: "/dictionary", params: { back } })} testID="browse-dictionary" />
         </View>
@@ -488,4 +492,61 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 4,
   },
+});
+
+/** The tile's few words: enough to know the verse, not to read it there. */
+const TILE_WORDS = 5;
+
+/**
+ * VM-01: Search before you type offers six moments to start from, each tile its name over the opening words of its
+ * first passage (BSB). One card per moment: each is a self-contained thing you tap (CLAUDE.md cards, 24 pt radius,
+ * soft fill, no shadow). Two columns; one at accessibility sizes.
+ */
+function MomentTiles({ onOpen }: { onOpen: (name: string) => void }) {
+  const core = useCore();
+  const palette = usePalette();
+  const { ax } = useLayout();
+  const tiles = tilePassages();
+  const { data: words } = useQuery(async () => {
+    const out = new Map<string, string>();
+    for (const [name, q] of tiles) {
+      const at = ordToParts(q.start);
+      const text = (await getTexts(core, q.start)).BSB ?? "";
+      out.set(name, at.verse === 1 ? psalmTitleLine(at.book, 1, text).body : text);
+    }
+    return out;
+  }, []);
+  return (
+    <View style={[tileStyles.grid, ax ? { flexDirection: "column" } : null]}>
+      {MOMENTS.map((m) => {
+        const line = words?.get(m.name);
+        return (
+          <Pressable
+            key={m.name}
+            onPress={() => onOpen(m.name)}
+            accessibilityRole="button"
+            accessibilityLabel={`${m.name}. Verses for this moment${line !== undefined ? `, the first: ${line}` : ""}`}
+            style={({ pressed }) => [tileStyles.tile, ax ? null : tileStyles.half, { backgroundColor: pressed ? palette.fill : palette.card }]}
+            testID={`moment-${m.name}`}
+          >
+            {/* VM-01's .vmtl and .vmto: the name in Literata, the opening words beneath in its italic, muted. */}
+            <Chrome tone="ink" size={22} style={{ fontFamily: FONTS.scripture, fontWeight: "600", letterSpacing: -0.3 }}>
+              {m.name}
+            </Chrome>
+            {line !== undefined ? (
+              <Chrome tone="muted" size={15} numberOfLines={2} style={{ fontFamily: FONTS.scriptureItalic, marginTop: 14 }}>
+                {opening(line, TILE_WORDS)}
+              </Chrome>
+            ) : null}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+const tileStyles = StyleSheet.create({
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  half: { width: "48%", flexGrow: 1 },
+  tile: { borderRadius: 24, paddingVertical: 16, paddingHorizontal: 18, minHeight: 150, justifyContent: "space-between" },
 });

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  definitionSentences,
+  leadSentence,
   CREDITS,
   UW_SOURCES,
   UnderstandRefused,
@@ -140,9 +142,13 @@ describe("Translation Questions", () => {
 });
 
 describe("Translation Words", () => {
-  it("reads only the Definition section's first paragraph", () => {
-    const article = "# church, Church\n\n## Definition:\n\nIn the New Testament, the term “church” refers to all people who believe in Jesus.\n\n* more\n\n## Translation Suggestions:\n\n* Translate it as “assembly”.";
-    expect(twArticle(article, "kt")).toEqual({ term: "church", definition: "In the New Testament, the term “church” refers to all people who believe in Jesus.", kind: "kt" });
+  it("reads the whole Definition section, bullets as lines, and never the translation suggestions", () => {
+    const article = "# church, Church\n\n## Definition:\n\nIn the New Testament, the term “church” refers to all people who believe in Jesus.\n\n* more\n  * nested\n\n### Sub\n\nLast.\n\n## Translation Suggestions:\n\n* Translate it as “assembly”.";
+    expect(twArticle(article, "kt")).toEqual({
+      term: "church",
+      definition: "In the New Testament, the term “church” refers to all people who believe in Jesus.\n\n• more\n    ◦ nested\n\nSub\n\nLast.",
+      kind: "kt",
+    });
     expect(twLinkPath("rc://*/tw/dict/bible/kt/church")).toEqual(["kt", "church"]);
   });
 
@@ -234,5 +240,38 @@ describe("chapter-introduction parts", () => {
     expect(barePart("* Woe to Ariel (1–8)", 29)).toEqual({ c1: 29, v1: 1, c2: 29, v2: 8, line: "Woe to Ariel" });
     expect(barePart("* (vv. 2–19) Elijah speaks with Yahweh", 19)).toEqual({ c1: 19, v1: 2, c2: 19, v2: 19, line: "Elijah speaks with Yahweh" });
     expect(barePart("Not an item", 1)).toBeNull();
+  });
+
+});
+
+describe("a key word's sentence for a verse", () => {
+  // unfoldingWord's "word of God" article, as written (content/raw/uw-tw/en_tw/bible/kt/wordofgod.md), cut short.
+  const wordOfGod =
+    "In the Bible, the term “word of God” refers to anything that God has communicated to people. This includes spoken and written messages. Jesus is also called “the Word of God.”\n\n" +
+    "• Sometimes this term occurs as simply “the word” or “my word” or “your word” (when talking about God’s word).\n" +
+    "• In the New Testament, Jesus is called “the Word” and “the Word of God.” These titles mean that Jesus fully reveals who God is, because he is God himself.";
+
+  it("leads John 1:1 with the sentence that quotes its own words, case and all", () => {
+    expect(leadSentence(wordOfGod, "In the beginning was the Word, and the Word was with God, and the Word was God.")).toBe(
+      "In the New Testament, Jesus is called “the Word” and “the Word of God.”",
+    );
+  });
+
+  it("keeps the first sentence where it is the one the verse quotes, or where none is", () => {
+    expect(leadSentence(wordOfGod, "They spoke the word of God boldly.")).toBe("In the Bible, the term “word of God” refers to anything that God has communicated to people.");
+    expect(leadSentence(wordOfGod, "Nothing quoted here.")).toBe("In the Bible, the term “word of God” refers to anything that God has communicated to people.");
+  });
+
+  it("lets a quote's first letter differ, as John 1:14 opens “The Word”", () => {
+    expect(leadSentence(wordOfGod, "The Word became flesh and made His dwelling among us.")).toBe("In the New Testament, Jesus is called “the Word” and “the Word of God.”");
+  });
+
+  it("passes over a sentence that leans on another, ends in a colon, or is too short to say anything", () => {
+    const believe = "The terms “believe” and “believe in” have slightly different meanings:\n• To “testify” is to give “testimony.”\n• Another term with the same meaning is “trust,” used most often in the Psalms.\n• To believe something is to accept or trust that it is true.";
+    expect(leadSentence(believe, "They testify and trust.")).toBe("To believe something is to accept or trust that it is true.");
+  });
+
+  it("splits sentences after a closing quote and drops list marks", () => {
+    expect(definitionSentences("A “b.” C d.\n• E f.\n    ◦ G.\n1. H.")).toEqual(["A “b.”", "C d.", "E f.", "G.", "H."]);
   });
 });

@@ -1,5 +1,5 @@
 /**
- * Recorded-chapter fetching (BA-02, BA-05) against an in-memory file system: the cases the Phase 4
+ * Recorded-chapter fetching (BA-04, BA-05) against an in-memory file system: the cases the Phase 4
  * review found (12 Oct 2026) — two fetches of one chapter, a stop, the connection lost after launch,
  * a wrong file, a truncated timings file.
  */
@@ -54,7 +54,7 @@ vi.mock("expo-file-system", () => {
     async bytes() {
       return disk.get(this.key) ?? new Uint8Array();
     }
-    static createDownloadTask(url: string, to: File, options: { signal?: AbortSignal; onProgress?: (p: { bytesWritten: number }) => void }) {
+    static createDownloadTask(url: string, to: File, options: { signal?: AbortSignal }) {
       return {
         downloadAsync: async () => {
           // Chapters only: the book's titles file comes down beside its first chapter (LB-08).
@@ -66,7 +66,6 @@ vi.mock("expo-file-system", () => {
           const body = served.get(url);
           if (body === undefined || body === "network") throw new Error("The Internet connection appears to be offline.");
           disk.set(to.uri, body);
-          options.onProgress?.({ bytesWritten: body.length });
           return to;
         },
       };
@@ -120,7 +119,7 @@ vi.stubGlobal("fetch", async (url: string) => {
 });
 
 const recordings = await import("./recordings");
-const { booksFor, ensureChapter, isRecorded, readText, recordingOnPhone, titleOnPhone, useRecordings } = recordings;
+const { booksFor, ensureChapter, isRecorded, readText, recordingOnPhone, saveStreamed, streamChapter, titleOnPhone, useRecordings } = recordings;
 const TITLES = "http://local/audio/heart/jhn-titles.m4a";
 
 const M4A = "http://local/audio/heart/jhn-001.m4a";
@@ -140,6 +139,49 @@ beforeEach(async () => {
   served.set(M4A, audio);
   served.set(TITLES, titlesAudio);
   await recordings.refreshRecordings();
+});
+
+describe("streaming (ST-01, ST-02)", () => {
+  // First in the file: a later test swaps the cached manifest for one with a wrong sha256.
+  // The player writes the bytes to savePath as they arrive (StreamLoader.swift); this stands in for it.
+  const nativeWrites = (savePath: string, bytes: Uint8Array) => disk.set(`file://${savePath}`, bytes);
+
+  it("plays from the server with checked timings and downloads nothing first", async () => {
+    const rec = await streamChapter("JHN", 1);
+    expect(rec?.path).toBe(M4A);
+    expect(rec?.timings.book).toBe("JHN");
+    expect(rec?.stream?.savePath).toBe("doc/audio/heart/jhn-001.m4a.stream");
+    expect(downloads).toBe(0);
+    expect(onDisk()).toEqual([]);
+  });
+
+  it("keeps the streamed bytes once they check out, and the chapter then plays from the phone", async () => {
+    const rec = await streamChapter("JHN", 1);
+    nativeWrites(rec!.stream!.savePath, audio);
+    expect(await saveStreamed(rec!)).toBe(true);
+    expect(onDisk()).toEqual(["jhn-001.json", "jhn-001.m4a"]);
+    const again = await streamChapter("JHN", 1);
+    expect(again?.stream).toBeUndefined();
+    expect(again?.path).toBe("doc/audio/heart/jhn-001.m4a");
+  });
+
+  it("a file that does not match the manifest is deleted and nothing is kept", async () => {
+    const rec = await streamChapter("JHN", 1);
+    nativeWrites(rec!.stream!.savePath, new Uint8Array([1, 2, 3, 5]));
+    expect(await saveStreamed(rec!)).toBe(false);
+    expect(onDisk()).toEqual([]);
+  });
+
+  it("offline, nothing streams and the iPhone voice reads (BA-05)", async () => {
+    manifestDown = true;
+    useRecordings.setState({ online: false });
+    try {
+      expect(await streamChapter("JHN", 1)).toBeNull();
+    } finally {
+      manifestDown = false;
+      useRecordings.setState({ online: true });
+    }
+  });
 });
 
 describe("chapter names (LB-08)", () => {
@@ -173,7 +215,7 @@ describe("ensureChapter", () => {
     expect(b).toEqual(a);
   });
 
-  it("a stop leaves no partial file and does not count as offline (BA-02)", async () => {
+  it("a stop leaves no partial file and does not count as offline (BA-04)", async () => {
     disk.clear();
     const abort = new AbortController();
     const pending = ensureChapter("JHN", 1, { signal: abort.signal });

@@ -173,6 +173,26 @@ describe("people", () => {
     expect(readAboutLabel("Someone", "A name in a list.")).toBe("Passages");
   });
 
+  it("shows only the opening John approved of Pilate and the Jewish leaders, verbatim, and says so", () => {
+    const pilate = [
+      "<h>Pontius Pilate</h>",
+      "Pontius Pilate was the Roman governor of Judea from <sc>AD</sc> 26 to 36, including the time of Jesus’ death in <sc>AD</sc> 30 or 33. Pilate gave the official order for Jesus to be crucified.",
+      "As the governor of Judea, Pilate was in control of all the Roman occupation forces as well as the Temple and its funds.",
+      "<h>Passages for Further Study</h>",
+      "Mark 15:1-15",
+    ].join("\n");
+    const body = profileBody(pilate, "Pontius Pilate");
+    const shown = plainNote(body.paragraphs);
+    expect(shown.endsWith("Pilate gave the official order for Jesus to be crucified.")).toBe(true);
+    expect(shown).not.toContain("Temple and its funds");
+    expect(body).toMatchObject({ further: null, shortened: true });
+    // Tyndale's words changed and the sentence is gone: nothing, never the claims left out.
+    expect(profileBody("<h>Jewish Leaders</h>\nWhen John wrote his Gospel, Christians were being persecuted.", "Jewish Leaders").paragraphs).toEqual([]);
+    expect(profileBody(NICODEMUS, "Nicodemus").shortened).toBe(false);
+    // Shortened on the page, but still on the verses its Further Study names.
+    expect(profileCites({ ord_start: 0, ord_end: 0, text: pilate, title: "Pontius Pilate" }, "MRK", verseOrd("MRK", 15, 5))).toBe(true);
+  });
+
   it("keeps the profile's paragraphs and reads its study passages, carrying book and chapter", () => {
     const body = profileBody(NICODEMUS, "Nicodemus");
     expect(body.paragraphs[0]?.heading).toBe(false);

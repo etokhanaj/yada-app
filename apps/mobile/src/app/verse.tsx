@@ -24,7 +24,7 @@ import { useCore, useQuery } from "../data/AppData";
 import { listen } from "../data/audio";
 import { pictureFor } from "../data/pictures";
 import { dayVerse } from "../data/today";
-import { BRAND } from "../design/palette";
+import { BRAND, ON_PICTURE, SYSTEM } from "../design/palette";
 import { FONTS, useLayout } from "../design/tokens";
 import { chapterTitle } from "../lib/reader";
 import { dayOf, dayParam, parseDayParam, type Part, partOf, pictureDay, whenLabel } from "../lib/today";
@@ -32,7 +32,7 @@ import { useAccessibility } from "../state/accessibility";
 import { useSettings } from "../state/settings";
 import { FillPicture } from "../components/FillPicture";
 
-const WHITE = "#FFFFFF";
+const WHITE = ON_PICTURE.text;
 
 export default function DayVerse() {
   const params = useLocalSearchParams<{ day?: string; part?: string }>();
@@ -72,7 +72,7 @@ export default function DayVerse() {
   };
 
   const round = (child: React.ReactNode) => (
-    <View style={[styles.round, { backgroundColor: solid ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.18)" }]}>{child}</View>
+    <View style={[styles.round, { backgroundColor: solid ? ON_PICTURE.glassSolid : ON_PICTURE.glass }]}>{child}</View>
   );
   const action = (label: string, glyph: React.ReactNode, onPress: () => void, testID: string, a11y: string) => (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={a11y} style={styles.action} testID={testID}>
@@ -110,11 +110,11 @@ export default function DayVerse() {
           shouldOpenOnLongPress={false}
           actions={[
             // imageColor always set: without it @react-native-menu draws the glyph transparent (index.tsx, 10 Oct 2026).
-            { id: "read", title: verse == null ? "Read" : `Read ${chapterTitle(verse.place.book, verse.place.chapter)}`, image: "book", imageColor: "#000000" },
-            { id: "compare", title: "Compare translations", image: "rectangle.split.2x1", imageColor: "#000000" },
-            { id: "image", title: "Share as an image", image: "photo", imageColor: "#000000" },
-            { id: "earlier", title: "Earlier days", image: "calendar", imageColor: "#000000" },
-            ...(picture === undefined ? [] : [{ id: "about", title: "About this picture", image: "info.circle", imageColor: "#000000" }]),
+            { id: "read", title: verse == null ? "Read" : `Read ${chapterTitle(verse.place.book, verse.place.chapter)}`, image: "book", imageColor: SYSTEM.menuIcon },
+            { id: "compare", title: "Compare translations", image: "rectangle.split.2x1", imageColor: SYSTEM.menuIcon },
+            { id: "image", title: "Share as an image", image: "photo", imageColor: SYSTEM.menuIcon },
+            { id: "earlier", title: "Earlier days", image: "calendar", imageColor: SYSTEM.menuIcon },
+            ...(picture === undefined ? [] : [{ id: "about", title: "About this picture", image: "info.circle", imageColor: SYSTEM.menuIcon }]),
           ]}
           onPressAction={({ nativeEvent }) => menu(nativeEvent.event)}
           testID="day-verse-more"

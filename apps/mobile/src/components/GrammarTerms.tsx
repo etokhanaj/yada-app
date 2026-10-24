@@ -16,6 +16,7 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { GRAMMAR_CREDITS, GRAMMAR_ENTRY_CREDITS, GRAMMAR_SENTENCES } from "../data/grammar.generated";
+import { SourceLine } from "./SourceLine";
 import { usePalette } from "../design/tokens";
 import { Icon } from "./Icon";
 import { Chrome, Prose } from "./Type";
@@ -56,9 +57,7 @@ export function GrammarTerms({ morph }: { morph: string }) {
             {expanded ? (
               <View style={{ paddingBottom: 14 }} testID="grammar-sentence">
                 <Prose step="claim">{t.sentence}</Prose>
-                <Prose step="note" tone="muted" style={{ marginTop: 6 }}>
-                  {GRAMMAR_ENTRY_CREDITS[t.key] ?? GRAMMAR_CREDITS[t.language]}
-                </Prose>
+                <SourceLine style={{ marginTop: 6 }}>{GRAMMAR_ENTRY_CREDITS[t.key] ?? GRAMMAR_CREDITS[t.language]}</SourceLine>
               </View>
             ) : null}
           </View>

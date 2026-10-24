@@ -16,8 +16,9 @@ import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 
 import { Speech } from "../../modules/yada-speech";
 import { Icon } from "../components/Icon";
@@ -27,12 +28,14 @@ import { useAppData } from "../data/AppData";
 import { setAmbient, useAmbient } from "../data/ambient";
 import { pause as pausePlayer } from "../data/audio";
 import { countDay } from "../data/user";
-import { FONTS, useLayout, usePalette } from "../design/tokens";
+import { BRAND, ON_PICTURE, ORB_LIGHT } from "../design/palette";
+import { FONTS, useAXLevel, useLayout, usePalette } from "../design/tokens";
 import { rateFor } from "../lib/audio/session";
 import {
   aboutMinutes,
   breathSplit,
   DEFAULT_SILENCE,
+  moveOnFrom,
   SETTLE,
   SILENCE_MINUTES,
   SIT_SILENCE_SECONDS,
@@ -47,8 +50,8 @@ import { useAccessibility } from "../state/accessibility";
 import { useAudio } from "../state/audio";
 
 /** The calm ground of PR-03, PR-04 and running Silence, and the light that sits on it. */
-const NIGHT = "#10140F";
-const ON_NIGHT = "#F2F4EF";
+const NIGHT = BRAND.night;
+const ON_NIGHT = BRAND.onNight;
 
 export default function Sit() {
   const { text = "", ref = "", bsb = "", place = "" } = useLocalSearchParams<{ text?: string; ref?: string; bsb?: string; place?: string }>();
@@ -64,26 +67,29 @@ export default function Sit() {
   const refLine = `${ref}${bsb !== "" ? " · BSB" : ""}`;
   const verseId = place === "" ? null : parseVerseId(place);
 
+  const way = running === null ? null : moveOnFrom(steps, running.step, running.all);
+  const advance = () => setRunning(way?.next == null ? null : { step: way.next, all: true });
   const finished = () => {
     void countDay(user).catch(() => undefined);
-    if (running === null) return;
-    const next = running.all ? steps[steps.indexOf(running.step) + 1] : undefined;
-    setRunning(next === undefined ? null : { step: next, all: true });
+    if (running !== null) advance();
   };
   const close = () => setRunning(null);
+  // BR-01 to BR-04: moving on early skips to the next step, or alone back to the list; only a step that reaches its
+  // end counts the day.
+  const moveOn: MoveOn | undefined = way === null ? undefined : { label: way.label, accessibilityLabel: way.accessibilityLabel, onPress: advance };
 
   if (running !== null) {
     const caption = `${STEP_TITLES[running.step]}${running.all ? ` · ${steps.indexOf(running.step) + 1} of ${steps.length}` : ""}`;
     if (running.step === "settle")
       return (
-        <Calm caption={caption} onClose={close} key="settle">
-          <Breath words={["In", "Out"]} reduceMotion={reduceMotion} onDone={finished} />
+        <Calm caption={caption} onClose={close} moveOn={moveOn} key="settle">
+          <Breath reduceMotion={reduceMotion} onDone={finished} />
         </Calm>
       );
     if (running.step === "breathe" && split !== null)
       return (
-        <Calm caption={caption} onClose={close} key="breathe">
-          <BreatheVerse halves={split} refLine={refLine} onDone={finished} />
+        <Calm caption={caption} onClose={close} moveOn={moveOn} key="breathe">
+          <BreatheVerse halves={split} refLine={refLine} reduceMotion={reduceMotion} onDone={finished} />
         </Calm>
       );
     if (running.step === "sit")
@@ -118,7 +124,8 @@ export default function Sit() {
           testID={`sit-step-${s}`}
         >
           <View style={[styles.stepNumber, { backgroundColor: palette.fill }]}>
-            <Chrome step="note" tone="ink" style={{ fontWeight: "600" }}>
+            {/* Capped so the number fits its disc: at AX5 it was cut off (QA, 24 Oct 2026). */}
+            <Chrome step="note" tone="ink" style={{ fontWeight: "600" }} maxFontSizeMultiplier={1.4}>
               {i + 1}
             </Chrome>
           </View>
@@ -152,8 +159,20 @@ export default function Sit() {
   );
 }
 
-/** The calm full screen every step uses: dark or paper ground, × top left, the step's caption at the top. */
-function Calm({ caption, onClose, light = false, children }: { caption: string | null; onClose: () => void; light?: boolean; children: ReactNode }) {
+/** Settle and Breathe the verse's way on: Next names the step it goes to, or Done when the step was chosen alone. */
+interface MoveOn {
+  readonly label: string;
+  readonly accessibilityLabel: string;
+  readonly onPress: () => void;
+}
+
+/**
+ * The calm full screen every step uses: dark or paper ground, × top left, the step's caption at the top. With
+ * `moveOn` (BR-01 to BR-04), Next sits at the foot and a tap anywhere else on the ground does the same, so someone who
+ * has had enough need not find the button. Mobbin: Forest's one quiet way out at the foot
+ * (mobbin.com/screens/048a50cf-8544-49a5-9391-e0fe06cff28e), stoic.'s Finish Earlier (ea4a9e85-b8fa-4116-89cf-097d614e9cb2).
+ */
+function Calm({ caption, onClose, light = false, moveOn, children }: { caption: string | null; onClose: () => void; light?: boolean; moveOn?: MoveOn; children: ReactNode }) {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
   const ground = light ? palette.paper : NIGHT;
@@ -161,26 +180,51 @@ function Calm({ caption, onClose, light = false, children }: { caption: string |
   return (
     <View style={[StyleSheet.absoluteFill, { backgroundColor: ground }]} testID="sit-calm">
       <StatusBar style={light ? "auto" : "light"} />
+      {moveOn === undefined ? null : <Pressable style={StyleSheet.absoluteFill} onPress={moveOn.onPress} accessible={false} testID="sit-ground" />}
       <Pressable
         onPress={onClose}
         accessibilityRole="button"
         accessibilityLabel="End, back to Sit with this"
-        style={[styles.close, { top: insets.top + 4, backgroundColor: light ? palette.fill : "rgba(255,255,255,0.22)" }]}
+        style={[styles.close, { top: insets.top + 4, backgroundColor: light ? palette.fill : ON_PICTURE.glass }]}
         testID="sit-close"
       >
         <Icon name="close" size={20} tone={light ? "ink" : "paper"} />
       </Pressable>
       {caption === null ? null : (
-        <Chrome step="note" style={[styles.caption, { top: insets.top + 16, color: ink }]} accessibilityRole="header">
+        // Capped like the breath's own words, and clear of the × either side: at AX5 it ran into both (QA, 23 Oct 2026).
+        <Chrome step="note" style={[styles.caption, { top: insets.top + 16, color: ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.6}>
           {caption}
         </Chrome>
       )}
-      <View style={[styles.calmBody, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]}>{children}</View>
+      {moveOn === undefined ? (
+        // Scrolls when the words are taller than the screen: at AX5 Silence's verse ran up under the caption.
+        <ScrollView contentContainerStyle={[styles.calmScroll, { paddingTop: insets.top + 84, paddingBottom: insets.bottom + 40 }]}>{children}</ScrollView>
+      ) : (
+        <View style={[styles.calmBody, { paddingTop: insets.top + 84, paddingBottom: insets.bottom + 110 }]} pointerEvents="none">
+          {children}
+        </View>
+      )}
+      {moveOn === undefined ? null : (
+        <Pressable
+          onPress={moveOn.onPress}
+          accessibilityRole="button"
+          accessibilityLabel={moveOn.accessibilityLabel}
+          style={({ pressed }) => [styles.moveOn, { bottom: insets.bottom + 24, backgroundColor: ON_PICTURE.glass, opacity: pressed ? 0.85 : 1 }]}
+          testID="sit-next"
+        >
+          <Chrome style={{ color: ink, fontWeight: "600" }}>{moveOn.label}</Chrome>
+          <Icon name="forward" size={16} tone="paper" />
+        </Pressable>
+      )}
     </View>
   );
 }
 
-/** One breath at a time, in 4 and out 6, a haptic on each; under Reduce Motion only the words (PR-03, PR-04). */
+/**
+ * One breath at a time, in 4 and out 6 (PR-03, PR-04). The haptic follows the breath (BR-01 to BR-03): taps that rise
+ * through the in-breath, one firm tap at the turn, then stillness (BreathHaptics.swift); a phone that can't play it
+ * gets one light tap per half. Under Reduce Motion only the words move.
+ */
 function useBreath(onDone: () => void): 0 | 1 {
   const [phase, setPhase] = useState<0 | 1>(0);
   const done = useRef(onDone);
@@ -193,53 +237,150 @@ function useBreath(onDone: () => void): 0 | 1 {
       if (n === SETTLE.rounds * 2) return done.current();
       const p = (n % 2) as 0 | 1;
       setPhase(p);
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const felt = Speech?.breathe(p === 0 ? "in" : "out", p === 0 ? SETTLE.inSeconds : 0) ?? Promise.resolve(false);
+      void felt.catch(() => false).then((ok) => {
+        if (!ok && live) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      });
       timer = setTimeout(() => beat(n + 1), (p === 0 ? SETTLE.inSeconds : SETTLE.outSeconds) * 1000);
     };
     beat(0);
     return () => {
       live = false;
       if (timer !== undefined) clearTimeout(timer);
+      void Speech?.stopBreathing();
     };
   }, []);
   return phase;
 }
 
-function Breath({ words, reduceMotion, onDone }: { words: readonly [string, string]; reduceMotion: boolean; onDone: () => void }) {
+/** BR-01, BR-02 (John, 23 Oct 2026): "Breathe in" and "Breathe out" under the pace circle, as Calm Sleep words it
+ * (mobbin.com/screens/54e3f825-c301-4fc9-a3d1-3b72bc658591). */
+const BREATH_WORDS = ["Breathe in", "Breathe out"] as const;
+
+function Breath({ reduceMotion, onDone }: { reduceMotion: boolean; onDone: () => void }) {
   const phase = useBreath(onDone);
-  const scale = useRef(new Animated.Value(0.625)).current;
-  useEffect(() => {
-    if (reduceMotion) return;
-    Animated.timing(scale, {
-      toValue: phase === 0 ? 1 : 0.625,
-      duration: (phase === 0 ? SETTLE.inSeconds : SETTLE.outSeconds) * 1000,
-      easing: Easing.inOut(Easing.sin),
-      useNativeDriver: true,
-    }).start();
-  }, [phase, reduceMotion, scale]);
   return (
-    <View style={styles.centre} accessible accessibilityLiveRegion="polite" accessibilityLabel={words[phase]}>
-      {reduceMotion ? null : <Animated.View style={[styles.pace, { transform: [{ scale }] }]} />}
+    <View style={styles.centre} accessible accessibilityLiveRegion="polite" accessibilityLabel={BREATH_WORDS[phase]}>
+      <Orb phase={phase} still={reduceMotion} />
       <Chrome style={styles.breathWord} maxFontSizeMultiplier={1.6}>
-        {words[phase]}
+        {BREATH_WORDS[phase]}
       </Chrome>
       <Chrome style={styles.calmNote} maxFontSizeMultiplier={1.6}>{`In for ${SETTLE.inSeconds}, out for ${SETTLE.outSeconds}`}</Chrome>
     </View>
   );
 }
 
-/** Both halves stay on screen; the one being breathed is full, the other faint (PR-04). */
-function BreatheVerse({ halves, refLine, onDone }: { halves: [string, string]; refLine: string; onDone: () => void }) {
-  const phase = useBreath(onDone);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+/**
+ * The orb (BR-05 A, BR-06; John, 23 Oct 2026): a lit orb, its light from the centre with a soft chartreuse glow, inside
+ * a faint ring that marks a full breath. A thin arc runs round the ring with the breath and closes at the turn, then
+ * draws back on the out-breath, so how far through it you are shows at a glance. Mobbin: Calm Sleep's orb in a ring
+ * with a marker tracing it (mobbin.com/screens/6cede835-b9a2-4fd5-8dfb-77740019313f), TIDE's soft glow on a dark
+ * ground (287a15c4-8699-4f56-baee-89b6f92e71fa). Under Reduce Motion it stays still and only the words change. At AX3
+ * and up it is smaller, so the words keep their room.
+ */
+function Orb({ phase, still }: { phase: 0 | 1; still: boolean }) {
+  const size = useAXLevel() >= 3 ? 220 : 280;
+  const c = size / 2;
+  const ringR = (size * 128) / 280;
+  const coreR = (size * 112) / 280;
+  const haloR = coreR * 1.6;
+  const around = 2 * Math.PI * ringR;
+  const breath = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (still) return;
+    // SVG props can't take the native driver, and one value drives the orb, the arc and its head together.
+    Animated.timing(breath, {
+      toValue: phase === 0 ? 1 : 0,
+      duration: (phase === 0 ? SETTLE.inSeconds : SETTLE.outSeconds) * 1000,
+      easing: Easing.inOut(Easing.sin),
+      useNativeDriver: false,
+    }).start();
+  }, [phase, still, breath]);
+  const scale = still ? 0.8 : breath.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1] });
   return (
-    <View style={[styles.centre, { rowGap: 22 }]} accessible accessibilityLiveRegion="polite" accessibilityLabel={`${phase === 0 ? "In" : "Out"}: ${halves[phase]}`}>
-      {(["In", "Out"] as const).map((label, i) => (
-        <View key={label} style={{ alignItems: "center", rowGap: 6, opacity: phase === i ? 1 : 0.35 }}>
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <Animated.View style={{ position: "absolute", width: haloR * 2, height: haloR * 2, transform: [{ scale }] }}>
+        <Svg width={haloR * 2} height={haloR * 2}>
+          <Defs>
+            <RadialGradient id="orbHalo" cx="50%" cy="50%" r="50%">
+              <Stop offset="0.55" stopColor={BRAND.chartreuse} stopOpacity={0.22} />
+              <Stop offset="1" stopColor={BRAND.chartreuse} stopOpacity={0} />
+            </RadialGradient>
+            <RadialGradient id="orbCore" cx="50%" cy="44%" r="62%">
+              <Stop offset="0" stopColor={ORB_LIGHT.centre} />
+              <Stop offset="0.4" stopColor={BRAND.chartreuse} />
+              <Stop offset="0.85" stopColor={ORB_LIGHT.edge} />
+              <Stop offset="1" stopColor={ORB_LIGHT.rim} />
+            </RadialGradient>
+          </Defs>
+          <Circle cx={haloR} cy={haloR} r={haloR} fill="url(#orbHalo)" />
+          <Circle cx={haloR} cy={haloR} r={coreR} fill="url(#orbCore)" />
+        </Svg>
+      </Animated.View>
+      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+        <Circle cx={c} cy={c} r={ringR} fill="none" stroke={ON_NIGHT} strokeOpacity={0.12} strokeWidth={1.5} />
+        {still ? null : (
+          <AnimatedCircle
+            cx={c}
+            cy={c}
+            r={ringR}
+            fill="none"
+            stroke={BRAND.chartreuse}
+            strokeOpacity={0.85}
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeDasharray={`${around} ${around}`}
+            strokeDashoffset={breath.interpolate({ inputRange: [0, 1], outputRange: [around, 0] })}
+            transform={`rotate(-90 ${c} ${c})`}
+          />
+        )}
+      </Svg>
+      {still ? null : (
+        <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ rotate: breath.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] }) }] }]}>
+          <View style={[styles.orbHead, { top: c - ringR - 4.5, left: c - 4.5 }]} />
+        </Animated.View>
+      )}
+    </View>
+  );
+}
+
+/**
+ * Both halves stay on screen; the one being breathed is full, the other faint (PR-04). BR-07 (24 Oct 2026): the halves
+ * cross-fade over half a second, and a thin line under the half being breathed fills over the in-breath and draws
+ * back over the out, the orb arc's cue as a line. Under Reduce Motion the halves switch and there is no line.
+ */
+function BreatheVerse({ halves, refLine, reduceMotion, onDone }: { halves: [string, string]; refLine: string; reduceMotion: boolean; onDone: () => void }) {
+  const phase = useBreath(onDone);
+  const fade = useRef(new Animated.Value(0)).current;
+  const breath = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (reduceMotion) return;
+    Animated.timing(fade, { toValue: phase, duration: 500, easing: Easing.inOut(Easing.quad), useNativeDriver: true }).start();
+    Animated.timing(breath, {
+      toValue: phase === 0 ? 1 : 0,
+      duration: (phase === 0 ? SETTLE.inSeconds : SETTLE.outSeconds) * 1000,
+      easing: Easing.inOut(Easing.sin),
+      useNativeDriver: true,
+    }).start();
+  }, [phase, reduceMotion, fade, breath]);
+  const opacityOf = (i: 0 | 1) =>
+    reduceMotion ? (phase === i ? 1 : 0.35) : fade.interpolate({ inputRange: [0, 1], outputRange: i === 0 ? [1, 0.35] : [0.35, 1] });
+  return (
+    <View style={[styles.centre, { rowGap: 22 }]} accessible accessibilityLiveRegion="polite" accessibilityLabel={`${BREATH_WORDS[phase]}: ${halves[phase]}`}>
+      {BREATH_WORDS.map((label, i) => (
+        <Animated.View key={label} style={{ alignItems: "center", rowGap: 6, opacity: opacityOf(i as 0 | 1) }}>
           <Chrome style={styles.breathLabel}>{label}</Chrome>
           <Text style={styles.breathHalf} maxFontSizeMultiplier={1.4}>
             {halves[i]}
           </Text>
-        </View>
+          {reduceMotion || phase !== i ? null : (
+            <View style={styles.breathLine}>
+              <Animated.View style={[styles.breathLineFill, { transform: [{ scaleX: breath }] }]} />
+            </View>
+          )}
+        </Animated.View>
       ))}
       <Chrome style={styles.calmNote}>{refLine}</Chrome>
     </View>
@@ -354,7 +495,7 @@ function SilenceStep({ caption, text, onClose, onDone }: { caption: string; text
     return (
       <Calm caption={null} onClose={onClose}>
         <View style={{ rowGap: 18, alignSelf: "stretch" }}>
-          <Text style={[styles.sitVerse, { color: ON_NIGHT }]}>{text}</Text>
+          <Text style={[styles.sitVerse, { color: ON_NIGHT }]} maxFontSizeMultiplier={1.4}>{text}</Text>
           <Chrome style={[styles.calmNote, { textAlign: "center" }]} accessibilityLiveRegion="polite">
             {timeLeft(endsAt - now)}
           </Chrome>
@@ -364,7 +505,7 @@ function SilenceStep({ caption, text, onClose, onDone }: { caption: string; text
   return (
     <Calm caption={caption} onClose={onClose} light>
       <View style={{ rowGap: 22, alignSelf: "stretch", alignItems: "center" }}>
-        <Text style={[styles.sitVerse, { color: palette.ink, alignSelf: "stretch" }]}>{text}</Text>
+        <Text style={[styles.sitVerse, { color: palette.ink, alignSelf: "stretch" }]} maxFontSizeMultiplier={1.4}>{text}</Text>
         <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel="How long">
           {SILENCE_MINUTES.map((m) => (
             <Pressable
@@ -404,13 +545,17 @@ const styles = StyleSheet.create({
   begin: { marginTop: 24, minHeight: 50, borderRadius: 25, alignItems: "center", justifyContent: "center" },
   rain: { minHeight: 44, justifyContent: "center", alignSelf: "flex-start", marginTop: 8 },
   close: { position: "absolute", left: 16, zIndex: 2, width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  caption: { position: "absolute", left: 0, right: 0, textAlign: "center", fontWeight: "600", opacity: 0.75 },
+  caption: { position: "absolute", left: 68, right: 68, textAlign: "center", fontWeight: "600", opacity: 0.75 },
   calmBody: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  calmScroll: { flexGrow: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
   centre: { alignItems: "center", rowGap: 18 },
-  pace: { width: 240, height: 240, borderRadius: 120, experimental_backgroundImage: "radial-gradient(circle, rgba(219,236,154,0.55), rgba(219,236,154,0.12))" },
+  orbHead: { position: "absolute", width: 9, height: 9, borderRadius: 4.5, backgroundColor: BRAND.chartreuse },
   breathWord: { color: ON_NIGHT, fontSize: 28, lineHeight: 34, fontWeight: "600", letterSpacing: 0.5 },
   breathLabel: { color: ON_NIGHT, fontSize: 13, fontWeight: "600", letterSpacing: 0.4 },
   breathHalf: { color: ON_NIGHT, fontFamily: FONTS.scripture, fontSize: 30, lineHeight: 39, textAlign: "center" },
+  moveOn: { position: "absolute", alignSelf: "center", minHeight: 50, paddingHorizontal: 28, borderRadius: 25, flexDirection: "row", alignItems: "center", columnGap: 6 },
+  breathLine: { width: 120, height: 3, borderRadius: 2, marginTop: 8, overflow: "hidden", backgroundColor: ON_PICTURE.track },
+  breathLineFill: { flex: 1, borderRadius: 2, backgroundColor: BRAND.chartreuse, transformOrigin: "left" },
   calmNote: { color: ON_NIGHT, fontSize: 14, opacity: 0.75, textAlign: "center" },
   sitVerse: { fontFamily: FONTS.scripture, fontSize: 27, lineHeight: 39 },
   originalPill: { alignSelf: "center", minHeight: 44, paddingHorizontal: 18, borderRadius: 22, justifyContent: "center" },

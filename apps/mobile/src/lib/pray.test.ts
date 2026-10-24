@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { askedLine, daysLeft, helplineFor, inviteLine, listItemLine, mentionsSelfHarm, mineLine, offerable, parseList, peopleLine, prayedLine, regionName, requestLine } from "./pray";
+import { answeredLines, deleteCircleLine, askedLine, parsePrayNotify, prayAgainAt, prayAgainLine, recentlyAnswered, daysLeft, hashIndex, helplineFor, initialOf, inviteLine, listItemLine, mentionsSelfHarm, mineLine, offerable, parseList, peopleLine, prayedLine, regionName, requestLine, waitingLine, withinTime, yoursLine, regionOf } from "./pray";
 
 const day = 86_400_000;
 
@@ -24,6 +24,11 @@ describe("Pray for others", () => {
     expect(helplineFor("GB")).toMatchObject({ name: "Samaritans", call: "116 123" });
     expect(helplineFor("US").call).toBe("988");
     expect(helplineFor("FR")).toEqual({ name: "Find A Helpline", call: null, url: "https://findahelpline.com/fr" });
+    // The region subtag, never the script's.
+    expect(regionOf("en-GB")).toBe("GB");
+    expect(regionOf("zh-Hant-TW")).toBe("TW");
+    expect(regionOf("sr-Latn")).toBeNull();
+    expect(regionOf("en")).toBeNull();
   });
 
   it("never offers a request you prayed for or one from someone you blocked (XT-03)", () => {
@@ -84,5 +89,76 @@ describe("your private list (PR-07)", () => {
     expect(parseList(undefined)).toEqual([]);
     expect(parseList("not json")).toEqual([]);
     expect(parseList(JSON.stringify({ text: "x" }))).toEqual([]);
+  });
+});
+
+describe("Build 11 Pray helpers", () => {
+  it("gives the same id the same index, and spreads ids across the hues", () => {
+    expect(hashIndex("_abc", 6)).toBe(hashIndex("_abc", 6));
+    const seen = new Set(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"].map((x) => hashIndex(`user-${x}`, 6)));
+    expect(seen.size).toBeGreaterThan(3);
+  });
+  it("never invents an initial", () => {
+    expect([initialOf("sam"), initialOf("  "), initialOf("Ádá")]).toEqual(["S", null, "Á"]);
+  });
+  it("says how many wait, and nothing for none (XT-04)", () => {
+    expect([waitingLine(0), waitingLine(1), waitingLine(4)]).toEqual([null, "1 request waiting", "4 requests waiting"]);
+  });
+  it("describes your own request without a zero", () => {
+    const now = Date.UTC(2026, 9, 18);
+    expect(yoursLine({ expiresAt: now + 5 * 86_400_000, prayed: 2 }, now)).toBe("Yours: 2 people prayed · 5 days left");
+    expect(yoursLine({ expiresAt: now + 86_400_000, prayed: 0 }, now)).toBe("1 day left");
+  });
+});
+
+describe("prayer notifications (PA-01 to PA-03, PC-23)", () => {
+  it("has every switch on until one is turned off, and survives a bad value", () => {
+    expect(parsePrayNotify(undefined)).toEqual({ answered: true, again: true, circles: true });
+    expect(parsePrayNotify('{"again":false}')).toEqual({ answered: true, again: false, circles: true });
+    expect(parsePrayNotify('{"circles":false}').circles).toBe(false);
+    expect(parsePrayNotify("not json")).toEqual({ answered: true, again: true, circles: true });
+  });
+
+  it("sets Pray again for tomorrow at the reminder's time, and says when", () => {
+    const at = prayAgainAt(new Date(2026, 9, 31, 22, 15), { hour: 7, minute: 5 });
+    expect([at.getMonth(), at.getDate(), at.getHours(), at.getMinutes()]).toEqual([10, 1, 7, 5]);
+    expect(prayAgainLine(at)).toBe("Tomorrow at 7:05, a reminder to pray for this again.");
+  });
+
+  it("keeps an answer for a week, newest first, and never one not answered", () => {
+    const now = Date.UTC(2026, 9, 18);
+    const day = 86_400_000;
+    const list = [{ id: "a", answeredAt: now - 8 * day }, { id: "b" }, { id: "c", answeredAt: now - 2 * day }, { id: "d", answeredAt: now - day }];
+    expect(recentlyAnswered(list, now).map((r) => r.id)).toEqual(["d", "c"]);
+  });
+
+  it("names the asker when there is a first name, and never says who else prayed", () => {
+    const now = Date.UTC(2026, 9, 18);
+    expect(answeredLines({ firstName: "Anna", answeredAt: now - 2 * 86_400_000 }, now)).toEqual({ title: "Anna’s request was answered", line: "You prayed for it · 2 days ago" });
+    expect(answeredLines({ firstName: "", answeredAt: now }, now)).toEqual({ title: "A request you prayed for was answered", line: "Answered today" });
+  });
+});
+
+describe("withinTime (circles waiting on iCloud)", () => {
+  it("passes on an answer that comes in time", async () => {
+    await expect(withinTime(Promise.resolve(3), 50)).resolves.toBe(3);
+  });
+
+  it("gives up once the time is up", async () => {
+    await expect(withinTime(new Promise(() => undefined), 10)).rejects.toThrow("iCloud didn’t answer");
+  });
+
+  it("passes on a failure as it is", async () => {
+    await expect(withinTime(Promise.reject(new Error("no account")), 50)).rejects.toThrow("no account");
+  });
+});
+
+describe("deleteCircleLine (PC-06)", () => {
+  it("names how many it ends for when others are in it", () => {
+    expect(deleteCircleLine(3)).toBe("It ends for all 3 people, with every request in it. This can’t be undone.");
+  });
+
+  it("says no count when only you are in it", () => {
+    expect(deleteCircleLine(1)).toBe("It ends with every request in it. This can’t be undone.");
   });
 });

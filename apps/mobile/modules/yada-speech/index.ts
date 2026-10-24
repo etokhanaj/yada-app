@@ -29,7 +29,11 @@ export interface SpokenPhrase {
 
 /** A verse of a chapter recording: where it is, and when and where each word falls (data/recordings.ts). */
 export interface RecordedSegment {
+  /** A saved file's path, or the chapter's https URL while it streams the first time (ios/StreamLoader.swift). */
   readonly path: string;
+  /** Streaming only: where the bytes are saved as they arrive, and the file's size from the manifest. */
+  readonly savePath?: string;
+  readonly bytes?: number;
   readonly start: number;
   readonly end: number;
   readonly times: readonly number[];
@@ -49,6 +53,12 @@ export interface SpeechEvents {
   onRouteLost: (e: Record<string, never>) => void;
   /** The app went to the background while a verse played in the Personal Voice. */
   onVoiceUnavailable: (e: Record<string, never>) => void;
+  /** A streaming chapter is waiting for bytes (true) or playing again (false). */
+  onBuffering: (e: { waiting: boolean }) => void;
+  /** Every byte of a streamed chapter arrived and is at `savePath`, not yet checked. */
+  onStreamSaved: (e: { url: string; savePath: string }) => void;
+  /** The connection dropped mid-chapter; nothing was kept. */
+  onStreamFailed: (e: { url: string; savePath: string }) => void;
 }
 
 interface NativeSpeech {
@@ -70,7 +80,11 @@ interface NativeSpeech {
   /** AS-01: a quiet looped sound, faded in; stopAmbient fades it out. */
   playAmbient(uri: string, volume: number): Promise<void>;
   stopAmbient(): Promise<void>;
-  setNowPlaying(info: { title: string; artist: string; playing: boolean }): Promise<void>;
+  /** BR-01 to BR-03: the breath's haptic. "in" over `seconds`, "out" one firm tap; false where it can't play. */
+  breathe(phase: "in" | "out", seconds: number): Promise<boolean>;
+  stopBreathing(): Promise<void>;
+  /** `elapsed` and `duration` in seconds, from a recording's timings; `rate` is the reading speed. */
+  setNowPlaying(info: { title: string; artist: string; playing: boolean; elapsed?: number; duration?: number; rate?: number }): Promise<void>;
   clearNowPlaying(): Promise<void>;
   addListener<E extends keyof SpeechEvents>(event: E, listener: SpeechEvents[E]): EventSubscription;
 }

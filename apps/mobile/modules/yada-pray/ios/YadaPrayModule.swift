@@ -1,5 +1,6 @@
 import CloudKit
 import ExpoModulesCore
+import UIKit
 
 /// Pray for others (build 7 plan §2 row 18, built in build 8): requests in iCloud.studio.yada.reader's public
 /// database. A request lives 7 days and can be renewed; "N prayed" is counted from Prayed marks and shown only to the
@@ -70,11 +71,70 @@ public class YadaPrayModule: Module {
     AsyncFunction("renew") { (id: String) async throws in try await self.change(id) { $0["expiresAt"] = Date().addingTimeInterval(Self.live) as CKRecordValue } }
     AsyncFunction("remove") { (id: String) async throws in _ = try await self.db.deleteRecord(withID: CKRecord.ID(recordName: id)) }
 
+    /// Requests by id, the ones still there (Pray again's request, PA-01; answered ones you prayed for, PC-23).
+    AsyncFunction("fetch") { (ids: [String]) async throws -> [[String: Any]] in
+      let found = try await self.db.records(for: ids.prefix(100).map { CKRecord.ID(recordName: $0) })
+      return found.values.compactMap { try? $0.get() }.map(Self.payload)
+    }
+
+    /// PA-02: CloudKit itself shows the notice when a request you prayed for is marked answered, in fixed words with no
+    /// request text, so Yada needs no background code. The id carries the day it was made, so old ones can be pruned.
+    AsyncFunction("watchAnswered") { (id: String) async throws in
+      let match = NSPredicate(format: "recordID == %@ AND answeredAt > %@", CKRecord.ID(recordName: id), Date(timeIntervalSince1970: 0) as NSDate)
+      let s = CKQuerySubscription(recordType: "PrayerRequest", predicate: match, subscriptionID: "answered-\(Int(Date().timeIntervalSince1970))-\(id)", options: [.firesOnRecordUpdate])
+      let info = CKSubscription.NotificationInfo()
+      info.title = "A prayer you prayed for was answered"
+      info.alertBody = "Open Pray to see it."
+      info.soundName = "default"
+      s.notificationInfo = info
+      await MainActor.run { UIApplication.shared.registerForRemoteNotifications() }
+      // One watch per request: praying for it again (Pray again) made a second, and two notices (code review, 18 Oct 2026).
+      let same = try await self.db.allSubscriptions().map(\.subscriptionID).filter { $0.hasPrefix("answered-") && $0.hasSuffix("-\(id)") }
+      let (saved, _) = try await self.db.modifySubscriptions(saving: [s], deleting: same)
+      for (_, result) in saved { _ = try result.get() }
+    }
+
+    /// Deletes the answered-prayer watches made before `before` (seconds since 1970): all of them when the switch goes
+    /// off (PA-03), and the ones older than a request can live otherwise.
+    AsyncFunction("unwatchAnswered") { (before: Double) async throws in
+      let old = try await self.db.allSubscriptions().map(\.subscriptionID).filter { id in
+        let parts = id.split(separator: "-", maxSplits: 2)
+        return parts.count == 3 && parts[0] == "answered" && (Double(parts[1]) ?? 0) < before
+      }
+      for id in old { _ = try? await self.db.deleteSubscription(withID: id) }
+    }
+
     AsyncFunction("report") { (id: String, reason: String) async throws in
       let r = CKRecord(recordType: "Report")
       r["request"] = CKRecord.Reference(recordID: CKRecord.ID(recordName: id), action: .none)
       r["reason"] = reason as CKRecordValue
       _ = try await self.db.save(r)
+    }
+
+    /// Remove my data (App Store guideline 5.1.1(v)): every PrayerRequest, Prayed and Report the reader made, found as
+    /// `mine` finds requests (creatorUserRecordID, queryable as ___createdBy in schema.ckdb), and their answered-prayer
+    /// watches. Throws when any of it could not go, so Settings says so rather than claim it went.
+    AsyncFunction("removeMine") { () async throws in
+      let me = CKRecord.Reference(recordID: try await self.container.userRecordID(), action: .none)
+      var ids: [CKRecord.ID] = []
+      for type in ["PrayerRequest", "Prayed", "Report"] {
+        let q = CKQuery(recordType: type, predicate: NSPredicate(format: "creatorUserRecordID == %@", me))
+        var (results, cursor) = try await self.db.records(matching: q, resultsLimit: CKQueryOperation.maximumResults)
+        ids += results.map(\.0)
+        while let next = cursor {
+          (results, cursor) = try await self.db.records(continuingMatchFrom: next, resultsLimit: CKQueryOperation.maximumResults)
+          ids += results.map(\.0)
+        }
+      }
+      // 400 is CloudKit's limit on one modify request. Results carry each failure rather than throwing (YadaCircles.modify).
+      for chunk in stride(from: 0, to: ids.count, by: 400).map({ Array(ids[$0..<min($0 + 400, ids.count)]) }) {
+        let (_, deleted) = try await self.db.modifyRecords(saving: [], deleting: chunk, savePolicy: .ifServerRecordUnchanged, atomically: false)
+        for (_, result) in deleted {
+          if case .failure(let error) = result, (error as? CKError)?.code != .unknownItem { throw error }
+        }
+      }
+      let watches = try await self.db.allSubscriptions().map(\.subscriptionID).filter { $0.hasPrefix("answered-") }
+      if !watches.isEmpty { _ = try await self.db.modifySubscriptions(saving: [], deleting: watches) }
     }
   }
 

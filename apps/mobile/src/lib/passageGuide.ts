@@ -108,7 +108,7 @@ export function readerLeadLines(passage: Passage, onScreen: readonly string[]): 
 }
 
 export interface GuideRow {
-  readonly page: "verses" | "notes" | "key-words" | "check" | "about";
+  readonly page: "verses" | "notes" | "key-words" | "in-short" | "check" | "about";
   readonly title: string;
   readonly note: string;
 }
@@ -116,7 +116,8 @@ export interface GuideRow {
 /** What the passage's pages would hold, so a row is offered only where its page has something (UL-04). */
 export interface GuideContent {
   readonly studyNotes: boolean;
-  readonly keyWords: boolean;
+  /** The key word terms its verses name, each once, in order (KeyWordsPage's termsIn). */
+  readonly keyWords: readonly string[];
   readonly check: boolean;
 }
 
@@ -132,14 +133,44 @@ export function guideRows(passage: Passage, verseCount: number, content: GuideCo
   // the Sources page holds (John, 12 Oct 2026: codes only in Sources).
   if (verseCount > 0) rows.push({ page: "verses", title: "Verse by verse", note: `${verseCount} ${verseCount === 1 ? "verse" : "verses"}` });
   if (content.studyNotes) rows.push({ page: "notes", title: "Study notes", note: `Tyndale on ${range}` });
-  if (content.keyWords) rows.push({ page: "key-words", title: "Key words", note: "What its main words mean" });
+  // RU-03 (approved by John 23 Oct 2026): the row names the passage's first three key words rather than describing the page.
+  if (content.keyWords.length > 0) rows.push({ page: "key-words", title: "Key words", note: content.keyWords.slice(0, 3).join(", ") });
+  // RU-3/RU-4 (fresh-eyes review approved by John 23 Oct 2026): the summary moved from the top of the guide to a
+  // row here, since its stitched sentences read worse than the headline and the study note's own sentence. Only
+  // where it holds more than the headline the guide already shows (UL-04).
+  const short = inShort(passage);
+  if (short.lines.length > 0 || short.facts.length > 0) rows.push({ page: "in-short", title: "In short", note: "A summary from the passage’s own sentences" });
   if (content.check) rows.push({ page: "check", title: "Check what you read", note: "Questions from the passage" });
   return rows;
 }
 
-/** The Sources row's one line, as on the verse sheet; the passage's credit is on the Sources page it opens. */
-export function guideSources(): string {
-  return "Every source and licence";
+/** A closing quote or bracket may follow a sentence's last mark: “…was God.” */
+const SENTENCE_END = /[.?!][”’"')\]]*$/u;
+const SENTENCE_BREAK = /([.?!][”’"')\]]*)\s+(?=[“‘"(]?\p{Lu})/gu;
+
+/**
+ * The last whole sentence of a study note, word for word, or null when none ends with its mark. RU-3: the guide
+ * quotes the note on the passage's first verse, and its last sentence is the one that answers the passage (John 1:1:
+ * "…not only revealed God but was God."). A note cut mid-sentence ("Disciples desired to “come and see”", John
+ * 1:35) gives the sentence before it, never a fragment (rules 2 and 4: nothing on screen the source did not say).
+ */
+export function lastSentence(text: string): string | null {
+  const t = text.trim();
+  const sentences: string[] = [];
+  let from = 0;
+  for (const m of t.matchAll(SENTENCE_BREAK)) {
+    const end = (m.index ?? 0) + (m[1]?.length ?? 0);
+    sentences.push(t.slice(from, end));
+    from = (m.index ?? 0) + m[0].length;
+  }
+  sentences.push(t.slice(from));
+  return sentences.filter((s) => SENTENCE_END.test(s)).at(-1) ?? null;
+}
+
+/** "Tyndale Open Study Notes, on 1:1": where the quoted note starts (RU-03's caption). */
+export function studyNoteCaption(rangeStart: number): string {
+  const p = ordToParts(rangeStart);
+  return `Tyndale Open Study Notes, on ${p.chapter}:${p.verse}`;
 }
 
 const PROPHETS = new Set(["ISA", "JER", "LAM", "EZK", "DAN", "HOS", "JOL", "AMO", "OBA", "JON", "MIC", "NAM", "HAB", "ZEP", "HAG", "ZEC", "MAL"]);

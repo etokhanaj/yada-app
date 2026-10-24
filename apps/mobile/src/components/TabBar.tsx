@@ -21,6 +21,7 @@
  */
 
 import { router } from "expo-router";
+import { create } from "zustand";
 import type { BottomTabBarProps } from "expo-router/js-tabs";
 import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -32,12 +33,13 @@ import { GlassSurface } from "./Glass";
 import { Icon } from "./Icon";
 import { Chrome } from "./Type";
 
-type TabName = "today" | "index" | "search";
+type TabName = "today" | "index" | "pray" | "search";
 
-/** The two tabs, in the bar's order; Search is the round button apart (IA-15). */
+/** The tabs, in the bar's order; Search is the round button apart (IA-15). Pray joined them on 24 Oct 2026 (PT-46). */
 const TABS = [
   { name: "today", label: "Today" },
   { name: "index", label: "Bible" },
+  { name: "pray", label: "Pray" },
 ] as const;
 
 /** All three, in the sidebar's and the top capsule's order (TB-01): there Search is a tab like the others. */
@@ -57,11 +59,18 @@ const SAVED = [
  * Room a tab page leaves at its foot: the bar, and the mini player too while it shows (IA-17). The sidebar and the top
  * capsule take their own room, so a regular-width page needs only a margin there.
  */
+// The floating bar's measured height, mini player included. A fixed 176 left Today's Read and Listen under the
+// player at AX5, where the player alone is about 120 pt (fresh-eyes review RU-12, 23 Oct 2026).
+const useBottomBarHeight = create<{ height: number }>(() => ({ height: 0 }));
+
 export function useTabBarClearance(): number {
   const listening = useTabsPlayerShown();
   const { tabs } = useLayout();
+  const measured = useBottomBarHeight((s) => s.height);
   if (tabs !== "bottom") return 32;
-  return listening ? 176 : 120;
+  // Before the first layout, the old fixed values; after it, the bar's own height and a little air.
+  if (measured === 0) return listening ? 176 : 120;
+  return measured + 16;
 }
 
 export function TabBar(props: BottomTabBarProps) {
@@ -216,6 +225,7 @@ function BottomBar(props: BottomTabBarProps) {
   return (
     <View
       pointerEvents="box-none"
+      onLayout={(e) => useBottomBarHeight.setState({ height: Math.round(e.nativeEvent.layout.height) })}
       style={[
         styles.root,
         // `.tabs`: the page fades to paper behind the bar, so text never runs under it unreadably.
@@ -273,10 +283,12 @@ function BottomBar(props: BottomTabBarProps) {
 }
 
 /**
- * The canvas's own tab glyphs (IA-15): a sun on the horizon for Today, an open book for Bible; 1.6 stroke. Search's
- * lens is TB-01's, at 2.
+ * The canvas's own tab glyphs (IA-15): a sun on the horizon for Today, an open book for Bible, a heart in a hand for
+ * Pray (PT-46); 1.6 stroke. Search's lens is TB-01's, at 2.
  */
 function TabGlyph({ name, color }: { name: TabName; color: string }) {
+  // Pray's is the heart in a hand Pray for others uses: drawn hands read as a second open book beside Bible's.
+  if (name === "pray") return <Icon name="heart-hand" size={24} color={color} maxScale={1} />;
   if (name === "search") {
     return (
       <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" accessible={false}>

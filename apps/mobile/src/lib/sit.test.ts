@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { aboutMinutes, breathSplit, stepLine, timeLeft, wordAtLocation, wordSpans } from "./sit";
+import { aboutMinutes, breathSplit, moveOnFrom, type Step, stepLine, timeLeft, wordAtLocation, wordSpans } from "./sit";
 
 const PSALM_46_10 = "Be still, and know that I am God; I will be exalted among the nations, I will be exalted over the earth.";
 
@@ -46,5 +46,22 @@ describe("Silence (PR-06)", () => {
     expect(timeLeft(4 * 60_000)).toBe("4 min left");
     expect(timeLeft(3 * 60_000 + 1)).toBe("4 min left");
     expect(timeLeft(40_000)).toBe("Less than a minute");
+  });
+});
+
+describe("moving on from Settle and Breathe (BR-01 to BR-04)", () => {
+  const all: Step[] = ["settle", "breathe", "sit", "silence"];
+
+  it("in a run, Next names the step it goes to", () => {
+    expect(moveOnFrom(all, "settle", true)).toEqual({ next: "breathe", label: "Breathe the verse", accessibilityLabel: "Next, Breathe the verse" });
+    expect(moveOnFrom(all, "breathe", true).label).toBe("Sit with it");
+  });
+
+  it("a verse that can't be split has no Breathe step, so Settle goes straight to Sit with it", () => {
+    expect(moveOnFrom(["settle", "sit", "silence"], "settle", true).next).toBe("sit");
+  });
+
+  it("a step chosen alone reads Done and goes back to the list", () => {
+    expect(moveOnFrom(all, "settle", false)).toEqual({ next: null, label: "Done", accessibilityLabel: "Done, back to Sit with this" });
   });
 });

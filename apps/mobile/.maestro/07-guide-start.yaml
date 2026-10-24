@@ -34,8 +34,9 @@ appId: studio.yada.reader
 - waitForAnimationToEnd
 - assertVisible: "The Word became flesh"
 - assertVisible: "John 1:1–18"
-# NA-04: the same slots for every kind of writing; In short leads, then Go deeper and Sources.
-- assertVisible: "In short"
+# RU-03: the headline leads under its kind, then the study note's sentence, then Go deeper and Sources.
+- assertVisible: "What happens"
+- assertVisible: "From the study notes"
 - scrollUntilVisible:
     element:
       text: "Go deeper"

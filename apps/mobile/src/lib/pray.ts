@@ -11,6 +11,34 @@
 export const ASK_MAX = 280;
 export const HOLD_SECONDS = 20;
 
+/**
+ * How long a circle waits on iCloud before saying it didn't answer. On the QA simulator a stuck iCloud left Pray's
+ * circles empty and New circle on "Making it…" for good (24 Oct 2026).
+ */
+export const ICLOUD_WAIT_MS = 15_000;
+
+/** `work`, or a rejection once `ms` pass. The work itself carries on; only the wait for it ends. */
+export function withinTime<T>(work: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("iCloud didn’t answer")), ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+/** Delete circle's confirm (PC-06): "all 1 people" read oddly with only the creator in it (QA, 24 Oct 2026). */
+export function deleteCircleLine(joined: number): string {
+  return `${joined > 1 ? `It ends for all ${joined} people, with` : "It ends with"} every request in it. This can’t be undone.`;
+}
+
 export function daysLeft(expiresAt: number, now: number): number {
   return Math.max(0, Math.ceil((expiresAt - now) / 86_400_000));
 }
@@ -83,6 +111,19 @@ export interface Helpline {
   readonly url: string;
 }
 
+/**
+ * The phone's region from its locale ("en-GB" gives GB, "zh-Hant-TW" gives TW), with no extra module; null when the
+ * locale has none. The script subtag ("Hant", "Latn") is not a region and once built findahelpline.com/hant (code
+ * review, 23 Oct 2026).
+ */
+export function regionOf(locale: string): string | null {
+  return locale.split("-").find((t, i) => i > 0 && /^[A-Z]{2}$/.test(t)) ?? null;
+}
+
+export function phoneRegion(): string | null {
+  return regionOf(Intl.DateTimeFormat().resolvedOptions().locale);
+}
+
 /** The phone's region's line where Yada can name it with certainty; Find A Helpline for every country otherwise. */
 export function helplineFor(region: string | null): Helpline {
   const r = (region ?? "").toUpperCase();
@@ -135,4 +176,84 @@ export function regionName(region: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * A stable index from an id (FNV-1a), so a person keeps one avatar hue and a circle one tone on every screen and every
+ * phone (docs/colour-rules.md: "a person's hue comes from their id and never changes").
+ */
+export function hashIndex(id: string, n: number): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < id.length; i += 1) {
+    h ^= id.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h % n;
+}
+
+/** The letter on an avatar: the first letter of the name iCloud shares, or null when it shares none (no invented letter). */
+export function initialOf(name: string): string | null {
+  const first = name.trim().charAt(0);
+  return first === "" ? null : first.toLocaleUpperCase();
+}
+
+/** "4 requests waiting" on Pray's card (PC-01); there is no line for none, which has its own card (PC-12, PC-13; XT-04). */
+export function waitingLine(n: number): string | null {
+  return n <= 0 ? null : `${n} ${n === 1 ? "request" : "requests"} waiting`;
+}
+
+/** "Yours: 2 people prayed · 5 days left" when only your own request is out (PC-13); "No one has prayed yet" never shows. */
+export function yoursLine(r: { readonly expiresAt: number; readonly prayed?: number }, now: number): string {
+  const left = daysLeft(r.expiresAt, now);
+  const n = r.prayed ?? 0;
+  return [n <= 0 ? null : `Yours: ${n} ${n === 1 ? "person" : "people"} prayed`, left === 0 ? "Ended" : `${left} ${left === 1 ? "day" : "days"} left`].filter((x) => x !== null).join(" · ");
+}
+
+/** A circle's route params: the circle page and the welcome open with these. */
+export function circleParams(c: { readonly id: string; readonly owner: string; readonly name: string; readonly owned: boolean; readonly people: number }): Record<string, string> {
+  return { id: c.id, owner: c.owner, name: c.name, owned: c.owned ? "1" : "", people: String(c.people) };
+}
+
+/** PA-03: the two prayer notifications, both on until turned off. Kept per device, as the reading reminder is. */
+export interface PrayNotify {
+  readonly answered: boolean;
+  readonly again: boolean;
+  /** FL-06: a circle you're in has a new request. */
+  readonly circles: boolean;
+}
+
+export function parsePrayNotify(raw: string | undefined): PrayNotify {
+  try {
+    const v = JSON.parse(raw ?? "{}") as Partial<PrayNotify>;
+    return { answered: v.answered !== false, again: v.again !== false, circles: v.circles !== false };
+  } catch {
+    return { answered: true, again: true, circles: true };
+  }
+}
+
+/** PA-01: tomorrow, at the reading reminder's time, so a day has one time for Yada. */
+export function prayAgainAt(now: Date, at: { readonly hour: number; readonly minute: number }): Date {
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, at.hour, at.minute, 0, 0);
+}
+
+export function prayAgainLine(at: Date): string {
+  return `Tomorrow at ${at.getHours()}:${String(at.getMinutes()).padStart(2, "0")}, a reminder to pray for this again.`;
+}
+
+/** PC-23: an answered request you prayed for shows on Pray for a week after it was marked answered. */
+export const ANSWERED_DAYS = 7;
+
+export function recentlyAnswered<T extends { readonly answeredAt?: number }>(list: readonly T[], now: number): T[] {
+  return list
+    .filter((r) => r.answeredAt !== undefined && now - r.answeredAt <= ANSWERED_DAYS * 86_400_000)
+    .sort((a, b) => (b.answeredAt ?? 0) - (a.answeredAt ?? 0));
+}
+
+/** "Anna’s request was answered" over "You prayed for it · 2 days ago"; no first name, "A request you prayed for…". */
+export function answeredLines(r: { readonly firstName: string; readonly answeredAt?: number }, now: number): { title: string; line: string } {
+  const days = Math.floor((now - (r.answeredAt ?? now)) / 86_400_000);
+  const when = days <= 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`;
+  return r.firstName === ""
+    ? { title: "A request you prayed for was answered", line: `Answered ${when}` }
+    : { title: `${r.firstName}’s request was answered`, line: `You prayed for it · ${when}` };
 }

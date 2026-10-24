@@ -1,7 +1,7 @@
 import { verseOrd } from "@yada/schema";
 import { describe, expect, it } from "vitest";
 
-import { activityState, holdAfterStop, placeInPassage, psalmTitleLine, rangeRef, richVerses, spokenName, surfaceText, todayReading, watchPart, watchStop } from "./systemSurfaces";
+import { placeInPassage, psalmTitleLine, rangeRef, richVerses, surfaceText, todayReading, watchPart } from "./systemSurfaces";
 
 // BSB verse 1 of each psalm as core.v5 holds it (public domain).
 const PSALMS: Record<number, string> = {
@@ -57,63 +57,10 @@ describe("references and the place", () => {
   });
 });
 
-describe("the Live Activity (SX-17–23)", () => {
-  const base = {
-    book: "JHN" as const,
-    chapter: 1,
-    verse: 5,
-    text: "The Light shines in the darkness, and the darkness has not overcome it.",
-    translation: "BSB",
-    titling: false,
-    playing: true,
-    segments: [
-      { from: 1, to: 18 },
-      { from: 19, to: 34 },
-      { from: 35, to: 51 },
-    ],
-    passage: "The Word became flesh",
-    line: "Stops after 1:18",
-    stop: { kind: "passage" } as const,
-    repeat: null,
-  };
-
-  it("shows the passage, the verse and the segments (SX-17)", () => {
-    const s = activityState(base);
-    expect(s.title).toBe("The Word became flesh");
-    expect(s.ref).toBe("1:5");
-    expect(s.verse).toBe(base.text);
-    expect(s.segments).toEqual([5 / 18, 0, 0]);
-    expect(s.ring).toBeCloseTo(5 / 18);
-    expect(s.lineGlyph).toBe("stop");
-  });
-
-  it("says the chapter's name between chapters (SX-19) and the chapter where there are no passages", () => {
-    const s = activityState({ ...base, chapter: 2, verse: 1, titling: true, passage: null, segments: [{ from: 1, to: 25 }] });
-    expect(s.title).toBe("John 2");
-    expect(s.spoken).toBe("John, chapter 2");
-    expect(s.verse).toBe("");
-    expect(spokenName("PSA", 23)).toBe("Psalm 23");
-  });
-
-  it("never carries a licensed text (rule 9)", () => {
-    expect(activityState({ ...base, translation: "NKJV" }).verse).toBe("");
+describe("what may leave Yada for the system (rule 9)", () => {
+  it("never carries a licensed text", () => {
     expect(surfaceText("NIV", "words")).toBe("");
     expect(surfaceText("KJV", "words")).toBe("words");
-  });
-
-  it("ends at once when a stop fires, not when one is cleared by hand (decision 7)", () => {
-    const stop = { kind: "chapter" } as const;
-    // advance(): the stop goes to Off, then the reading pauses.
-    let w = watchStop({ stop, playing: true, armed: false }, { stop: null, playing: true });
-    expect(w.fired).toBe(false);
-    w = watchStop(w.watch, { stop: null, playing: false });
-    expect(w.fired).toBe(true);
-    // In one update too.
-    expect(watchStop({ stop, playing: true, armed: false }, { stop: null, playing: false }).fired).toBe(true);
-    // Cleared by hand, then the reading goes on; a later pause is only a pause.
-    w = watchStop({ stop, playing: true, armed: false }, { stop: null, playing: true });
-    w = watchStop(w.watch, { stop: null, playing: true });
-    expect(watchStop(w.watch, { stop: null, playing: false }).fired).toBe(false);
   });
 });
 
@@ -149,25 +96,6 @@ describe("the watch (AW-01, AW-03)", () => {
     expect(p.when).toBe("This evening");
     expect(p.psalms).toBeNull();
     expect(p.verse?.breathe).toBeNull();
-  });
-});
-
-describe("holdAfterStop (SX-23: paused on Stopped after 1:18)", () => {
-  const at = (v: number) => verseOrd("JHN", 1, v);
-  const fired = { ord: at(18), landed: null };
-
-  it("holds while the place moves on to 1:19 and waits there", () => {
-    const moved = holdAfterStop(fired, { playing: false, ord: at(19) });
-    expect(moved).toEqual({ ord: at(18), landed: at(19) });
-    expect(holdAfterStop(moved, { playing: false, ord: at(19) })).toEqual(moved);
-  });
-
-  it("lets go when the reading plays, ends, or the reader moves elsewhere", () => {
-    const moved = { ord: at(18), landed: at(19) };
-    expect(holdAfterStop(moved, { playing: true, ord: at(19) })).toBeNull();
-    expect(holdAfterStop(moved, { playing: false, ord: null })).toBeNull();
-    expect(holdAfterStop(moved, { playing: false, ord: at(20) })).toBeNull();
-    expect(holdAfterStop(null, { playing: false, ord: at(19) })).toBeNull();
   });
 });
 

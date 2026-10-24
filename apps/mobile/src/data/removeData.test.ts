@@ -1,6 +1,7 @@
 /**
  * Remove my data (ST-03) against an in-memory user.db: everything the alert names goes, the reader's settings stay.
- * Downloads, audio, the reminder and iCloud are stubbed; their own modules own those rules.
+ * Downloads, audio, the reminder and iCloud are stubbed; their own modules own those rules. Pray's CloudKit module is a
+ * fake that records what was asked of it, as on a phone signed in, signed out, or offline.
  */
 
 import { DatabaseSync } from "node:sqlite";
@@ -14,12 +15,27 @@ vi.mock("./cloud", () => ({ clearCloud: () => undefined, cloudIdle: async () => 
 vi.mock("./recordings", () => ({ removeAllReadings: () => undefined }));
 vi.mock("./reminder", () => ({ useReminder: { setState: () => undefined } }));
 vi.mock("./system", () => ({ updateWidgets: async () => undefined }));
+const pray = { status: "available", fail: false, calls: [] as string[] };
+vi.mock("../../modules/yada-pray", () => ({
+  prayCloud: {
+    accountStatus: async () => pray.status,
+    removeMine: async () => {
+      if (pray.fail) throw new Error("network unavailable");
+      pray.calls.push("removeMine");
+    },
+  },
+  circlesCloud: {
+    removeAll: async () => {
+      pray.calls.push("removeAll");
+    },
+  },
+}));
 const none = { getState: () => ({ downloading: {}, installed: {} }) };
 vi.mock("./study", () => ({ cancelStudyDownloads: () => undefined, removeStudy: async () => undefined, useStudy: none }));
 vi.mock("./translations", () => ({ cancelDownload: () => undefined, removeTranslation: async () => undefined, useTranslations: { getState: () => ({ downloading: {}, installed: [] }) } }));
 vi.mock("./understand", () => ({ cancelUnderstandDownloads: () => undefined, removeUnderstand: async () => undefined, useUnderstand: none }));
 
-const { removeMyData } = await import("./removeData");
+const { prayRemovalLine, removeMyData } = await import("./removeData");
 const user = await import("./user");
 
 type Params = Array<string | number | null>;
@@ -57,9 +73,30 @@ describe("Remove my data", () => {
     await user.saveSetting(db, "appearance", "dark");
     for (const table of ["highlights", "notes", "verse_images", "chapters_read", "bookmarks"]) expect(count(table)).toBe(1);
 
-    await removeMyData(db, {} as never);
+    pray.calls = [];
+    expect(await removeMyData(db, {} as never)).toBe("done");
+    expect(pray.calls).toEqual(["removeMine", "removeAll"]);
 
     for (const table of ["highlights", "notes", "verse_images", "chapters_read", "bookmarks"]) expect(count(table)).toBe(0);
     expect(await user.loadSettings(db)).toEqual({ appearance: "dark" });
+  });
+
+  it("deletes the reader's prayer requests and circles in iCloud, and says so when it cannot (guideline 5.1.1(v))", async () => {
+    const { db, count } = device();
+    await user.setHighlight(db, ["JHN.3.16"], "yellow");
+
+    Object.assign(pray, { status: "noAccount", fail: false, calls: [] });
+    const signedOut = await removeMyData(db, {} as never);
+    expect(signedOut).toBe("signedOut");
+    expect(pray.calls).toEqual([]);
+    expect(prayRemovalLine(signedOut)).toMatch(/Sign in to iCloud/);
+    // The rest still goes: a reader offline or signed out is not left with everything.
+    expect(count("highlights")).toBe(0);
+
+    Object.assign(pray, { status: "available", fail: true, calls: [] });
+    const offline = await removeMyData(db, {} as never);
+    expect(offline).toBe("failed");
+    expect(prayRemovalLine(offline)).toMatch(/connection/);
+    expect(prayRemovalLine("done")).toBeNull();
   });
 });

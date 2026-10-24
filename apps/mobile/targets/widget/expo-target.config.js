@@ -1,7 +1,6 @@
 /**
- * The widget extension (canvas SX-01–09, SX-17–23): Continue and A passage for today in three sizes, the Lock
- * Screen accessories, StandBy, the Control Center controls (iOS 18) and the listening Live Activity with its
- * Dynamic Island. Every word it shows is one of the four open texts (rule 9), handed over by the app through
+ * The widget extension (canvas SX-01–09): Continue and A passage for today in three sizes, the Lock Screen
+ * accessories, StandBy and the Control Center controls (iOS 18). Every word it shows is one of the four open texts (rule 9), handed over by the app through
  * the App Group (modules/yada-system).
  * Colours from src/design/palette.ts, the white palette of the 15 Oct polish (design QA X1: these were still the
  * chalk ones); src/lib/systemSurfaces.files.test.ts fails when the two drift.
@@ -12,7 +11,7 @@ module.exports = () => ({
   name: "YadaWidget",
   bundleIdentifier: ".widget",
   deploymentTarget: "16.4",
-  frameworks: ["SwiftUI", "WidgetKit", "ActivityKit", "AppIntents"],
+  frameworks: ["SwiftUI", "WidgetKit", "AppIntents"],
   entitlements: { "com.apple.security.application-groups": ["group.studio.yada.reader"] },
   colors: {
     paper: { light: "#FFFFFF", dark: "#0B0C0B" },
@@ -21,9 +20,5 @@ module.exports = () => ({
     accent: { light: "#183F35", dark: "#DBEC9A" },
     divider: { light: "#E9E9E7", dark: "#262826" },
     selection: { light: "#EEF3E4", dark: "#1C2418" },
-    // The Dynamic Island is black in either theme: its ring and figure take the dark accent.
-    chartreuse: { light: "#DBEC9A", dark: "#DBEC9A" },
-    // SX-17: the Live Activity's mark sits on the brand night tile in either theme, as the app icon does.
-    mark: { light: "#0E1814", dark: "#0E1814" },
   },
 });

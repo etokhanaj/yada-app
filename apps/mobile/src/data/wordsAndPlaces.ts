@@ -70,3 +70,14 @@ export function loadPlace(book: BookCode, id: string): Promise<PlaceInBook | nul
     return { place, ords };
   });
 }
+
+/** OR-02, OR-04: every place the book names, in the order they first appear, with that first verse. */
+export function loadBookPlaces(book: BookCode): Promise<Array<PlaceRow & { first: number }>> {
+  return withTable(book, "places", [], (db) =>
+    db.getAllAsync<PlaceRow & { first: number }>(
+      `SELECT p.id, p.name, p.kind, p.modern, p.lon, p.lat, p.score, min(v.ord) AS first FROM places p JOIN verse_places v ON v.place = p.id
+       GROUP BY p.id ORDER BY first`,
+      [],
+    ),
+  );
+}

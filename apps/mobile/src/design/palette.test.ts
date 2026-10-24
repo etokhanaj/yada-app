@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { contrast, over } from "./contrast";
-import { PALETTES, type Palette } from "./palette";
+import { AVATAR_HUES, AVATAR_INK, BRAND, CIRCLE_TONES, PALETTES, type Palette } from "./palette";
 
 /**
  * Brief §5: text ≥ 4.5:1 everywhere; state marks (selection bar, underline,
@@ -86,10 +86,30 @@ describe("highlights (PS-02)", () => {
       expect(contrast(p.mutedInk, wash)).toBeGreaterThanOrEqual(MARK);
     }
   });
+
+  it("dark: a verse still to come in read-along, in muted ink, reads as text on every wash", () => {
+    for (const wash of Object.values(PALETTES.dark.highlights)) expect(contrast(PALETTES.dark.mutedInk, wash)).toBeGreaterThanOrEqual(TEXT);
+  });
 });
 
 describe("selection is never carried by its wash alone", () => {
   it("the wash is too close to paper to read as a state (so the bar is required)", () => {
     for (const p of Object.values(PALETTES)) expect(contrast(p.selection, p.paper)).toBeLessThan(MARK);
+  });
+});
+
+describe("avatar hues and circle tones (docs/colour-rules.md)", () => {
+  it("deep hues take white initials and stand off white; pale hues take ink initials and stand off the forest", () => {
+    for (const [hue, { deep, pale }] of Object.entries(AVATAR_HUES)) {
+      expect(contrast(AVATAR_INK.onDeep, deep), `${hue} deep initials`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(PALETTES.light.paper, deep), `${hue} deep on white`).toBeGreaterThanOrEqual(3);
+      expect(contrast(AVATAR_INK.onPale, pale), `${hue} pale initials`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(BRAND.forest, pale), `${hue} pale on forest`).toBeGreaterThanOrEqual(3);
+      expect(contrast(PALETTES.dark.paper, pale), `${hue} pale on dark`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("a circle's tone takes white text", () => {
+    for (const tone of CIRCLE_TONES) expect(contrast("#FFFFFF", tone), tone).toBeGreaterThanOrEqual(4.5);
   });
 });

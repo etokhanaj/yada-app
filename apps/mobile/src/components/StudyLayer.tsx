@@ -33,6 +33,7 @@ import { type BookCode, formatDisplayRef, formatVerseId, ordToParts, parseVerseI
 import { router } from "expo-router";
 import { type ReactNode, useEffect, useState } from "react";
 import { AccessibilityInfo, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { SourceLine } from "./SourceLine";
 
 import { useAppData, useCore, useQuery } from "../data/AppData";
 import { getTexts, getTextsInRange, isDownloaded, isTranslation } from "../data/queries";
@@ -67,6 +68,7 @@ import {
   type StudyNoteRow,
   TYNDALE_LINE,
   TYNDALE_SHORT,
+  TYNDALE_SHORTENED,
   whoLine,
 } from "../lib/study";
 import { useSettings } from "../state/settings";
@@ -245,9 +247,7 @@ export function StudyNotesInline({ study, ord, from, first = false }: { study: V
         <NoteParagraphText paragraph={opening} lead lines={more ? 4 : undefined} />
         {more ? <TextLink label="Read the whole note" a11yLabel="Read the whole study note" onPress={() => openNotes(base, from)} testID="study-note-more" /> : null}
       </View>
-      <Chrome step="note" tone="muted" style={{ marginTop: more ? 0 : 8 }} testID="study-source">
-        {TYNDALE_SHORT}
-      </Chrome>
+      <SourceLine style={{ marginTop: more ? 0 : 8 }} testID="study-source">{TYNDALE_SHORT}</SourceLine>
     </Section>
   );
 }
@@ -299,9 +299,7 @@ export function StudyNotesScreen({ book, ord, end = ord, from }: { book: BookCod
         </View>
       ))}
       {notes.length > 0 ? (
-        <Chrome step="note" tone="muted" style={{ marginTop: 16 }} testID="study-source">
-          {TYNDALE_LINE}
-        </Chrome>
+        <SourceLine style={{ marginTop: 16 }} testID="study-source">{TYNDALE_LINE}</SourceLine>
       ) : null}
     </SheetScreen>
   );
@@ -406,9 +404,7 @@ export function ProfileScreen({ book, id, from, via }: { book: BookCode; id: num
         </Section>
       ) : null}
       {body !== null ? (
-        <Chrome step="note" tone="muted" style={{ marginTop: 16 }} testID="profile-source">
-          {TYNDALE_SHORT}.
-        </Chrome>
+        <SourceLine style={{ marginTop: 16 }} testID="profile-source">{body.shortened ? TYNDALE_SHORTENED : TYNDALE_SHORT}</SourceLine>
       ) : null}
     </SheetScreen>
   );
@@ -504,9 +500,7 @@ export function SeeAlsoSection({ items, from, ax, first = false }: { items: read
         />
       ) : null}
       {shown.some((item) => item.source === "openbible") ? (
-        <Chrome step="note" tone="muted" style={{ marginTop: more ? 0 : 8 }} testID="openbible-source">
-          {OPENBIBLE_LINE}
-        </Chrome>
+        <SourceLine style={{ marginTop: more ? 0 : 8 }} testID="openbible-source">{OPENBIBLE_LINE}</SourceLine>
       ) : null}
     </Section>
   );

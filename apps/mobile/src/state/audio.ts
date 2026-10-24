@@ -30,8 +30,11 @@ export interface AudioSession {
   readonly recorded?: boolean;
   /** The chapter's name is being said before its first verse (build 6, LB-08). */
   readonly titling?: boolean;
-  /** BA-02: the share of the chapter's recording fetched so far, while the first play gets it. */
-  readonly fetching?: number;
+  /**
+   * ST-01, ST-02: the chapter streams on its first play and is waiting for bytes; the play control shows a spinner.
+   * It replaced BA-02's wait behind a download ring (John, 23 Oct 2026).
+   */
+  readonly buffering?: boolean;
 }
 
 interface AudioState {

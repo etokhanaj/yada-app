@@ -49,6 +49,7 @@ import { LICENSED } from "../data/licensed";
 import { licensedCodes, licensedEnabled } from "../data/useLicensedChapter";
 import { coverTone, downloadedLine, downloadLine, onPhoneOrder, rowLabel, UPDATE_LINE } from "../lib/translations";
 import { useSettings } from "../state/settings";
+import { SYSTEM } from "../design/palette";
 
 export default function TranslationsScreen() {
   const { core, user } = useAppData();
@@ -409,8 +410,8 @@ function TranslationRow({
 
 /** `⋯` → Remove, a native menu (MT-04). VoiceOver reaches Remove as the row's custom action. */
 function RemoveMenu({ code, onRemove }: { code: string; onRemove: () => void }) {
-  // iOS systemRed, as a destructive item draws its title; without it the icon is transparent (index.tsx).
-  const red = useIsDark() ? "#FF453A" : "#FF3B30";
+  // iOS draws a destructive item's title red; the icon must match it, or it is transparent (index.tsx).
+  const red = useIsDark() ? SYSTEM.red.dark : SYSTEM.red.light;
   return (
     <MenuView
       shouldOpenOnLongPress={false}

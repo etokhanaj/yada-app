@@ -108,14 +108,18 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
         // Shared with the widgets (WL-01): the reading place and today's psalm, nothing else. The App ID
         // needs the App Groups capability with this group for a device build.
         "com.apple.security.application-groups": ["group.studio.yada.reader"],
+        // Pray together (11e): SharePlay over FaceTime carries where a circle is in its requests. The App ID needs the
+        // Group Activities capability before the archive, as it needed iCloud (16 Oct 2026).
+        "com.apple.developer.group-session": true,
       },
       // Audio read-along keeps reading with the screen locked (AU-02; modules/yada-speech).
       infoPlist: {
         // Circles (build 8): an invitation link opens Yada and hands it the share.
         CKSharingSupported: true,
+        // Pray together's Add to calendar (PC-18) opens iOS's event sheet, which on iOS 16 needs calendar access.
+        // iOS 17 and later never ask (YadaTogetherModule.swift).
+        NSCalendarsUsageDescription: "Yada adds the prayer time you planned to your calendar.",
         UIBackgroundModes: ["audio"],
-        // The listening Live Activity (WL-02, WL-03).
-        NSSupportsLiveActivities: true,
         // TB-01–03 draw the iPad in landscape and portrait; iPad multitasking needs all four. `orientation` above
         // keeps the iPhone in portrait.
         "UISupportedInterfaceOrientations~ipad": [
@@ -147,12 +151,14 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
       // The reminder (NT-01–10): local only, asked once after a passage is finished, never at launch.
       "expo-notifications",
       "@react-native-community/datetimepicker",
-      // Widgets and the listening Live Activity (WL-01–04): targets/widget.
+      // Widgets, Lock Screen accessories and controls (SX-01–09): targets/widget.
       "@bacons/apple-targets",
-      // Siri, App Shortcuts and the Live Activity's controls, in the app target (MS-02, MS-03).
+      // Siri, App Shortcuts and the widgets' buttons, in the app target (MS-02, MS-03).
       "./plugins/withAppIntents",
       // Share as an image › Save to Photos (PS-05): add-only, so Yada never asks to read the reader's photos.
       ["expo-media-library", { photosPermission: false, savePhotosPermission: "Yada saves the verse image you made to your photos.", granularPermissions: [] }],
+      // The BibleProject overview opens in a sheet inside Yada (OR-03), as BibleProject agreed on 19 Oct 2026.
+      "expo-web-browser",
     ],
     experiments: {
       typedRoutes: false,

@@ -30,6 +30,12 @@ interface YadaPrayModule {
   renew(id: string): Promise<void>;
   remove(id: string): Promise<void>;
   report(id: string, reason: string): Promise<void>;
+  fetch(ids: string[]): Promise<PrayerRequest[]>;
+  watchAnswered(id: string): Promise<void>;
+  /** `before` is in seconds since 1970. */
+  unwatchAnswered(before: number): Promise<void>;
+  /** Remove my data: the reader's own requests, prayed marks, reports and watches. */
+  removeMine(): Promise<void>;
 }
 
 export const prayCloud: YadaPrayModule | null = Platform.OS === "ios" ? requireOptionalNativeModule<YadaPrayModule>("YadaPray") : null;
@@ -54,9 +60,54 @@ export interface CircleRequest {
   readonly prayed: number;
 }
 
+/** Someone in a circle (PC-08): the first name iCloud shares with the circle, empty when it shares none. */
+export interface CircleMember {
+  readonly id: string;
+  readonly name: string;
+  readonly joined: boolean;
+  readonly creator: boolean;
+  readonly me: boolean;
+}
+
+/** A circle's one planned time to pray together (PC-17, PC-18). `once` is its first time, as one moment; `weekday`, `hour` and `minute` are the planner's own, for changing it. */
+export interface Gathering {
+  readonly weekday: number;
+  readonly hour: number;
+  readonly minute: number;
+  readonly weekly: boolean;
+  readonly minutes: number;
+  readonly once: number;
+  readonly by: string;
+  readonly mine: boolean;
+}
+
+export interface Coming {
+  readonly member: string;
+  readonly week: string;
+  readonly going: boolean;
+  readonly mine: boolean;
+}
+
+/** "on": praying together now; "ask": asked to join those who are (PC-14, PC-21). */
+export interface TogetherMark {
+  readonly member: string;
+  readonly kind: "on" | "ask";
+  readonly at: number;
+  readonly mine: boolean;
+}
+
+export interface CircleLive {
+  readonly plan?: Gathering;
+  readonly coming: Coming[];
+  readonly together: TogetherMark[];
+}
+
 interface YadaCirclesModule {
+  /** FL-06: CloudKit's own notice when a circle you're in has a new request, in fixed words; off removes it. */
+  watchCircles(on: boolean): Promise<void>;
   list(): Promise<Circle[]>;
   create(name: string): Promise<string>;
+  /** Resolves when the invite sheet closes: true only if someone was invited. */
   invite(id: string): Promise<boolean>;
   requests(id: string, owner: string): Promise<CircleRequest[]>;
   ask(id: string, owner: string, text: string, firstName: string): Promise<void>;
@@ -65,7 +116,40 @@ interface YadaCirclesModule {
   renew(id: string, owner: string, request: string): Promise<void>;
   remove(id: string, owner: string, request: string): Promise<void>;
   leave(id: string, owner: string): Promise<void>;
+  members(id: string, owner: string): Promise<CircleMember[]>;
+  removeMember(id: string, member: string): Promise<void>;
+  rename(id: string, name: string): Promise<void>;
   takeAccepted(): Promise<string[]>;
+  /** Remove my data: circles you made go for everyone; in ones you joined, what you wrote goes and you leave. */
+  removeAll(): Promise<void>;
+  live(id: string, owner: string): Promise<CircleLive>;
+  plan(id: string, owner: string, weekday: number, hour: number, minute: number, weekly: boolean, minutes: number, once: number): Promise<void>;
+  unplan(id: string, owner: string): Promise<void>;
+  coming(id: string, owner: string, week: string, going: boolean): Promise<void>;
+  together(id: string, owner: string, kind: "on" | "ask" | "off"): Promise<void>;
 }
 
 export const circlesCloud: YadaCirclesModule | null = Platform.OS === "ios" ? requireOptionalNativeModule<YadaCirclesModule>("YadaCircles") : null;
+
+/** Pray together over FaceTime (ios/YadaTogetherModule.swift): SharePlay carries where the circle is in its requests. */
+export type TogetherEvents = {
+  onSession(e: { circle: string; name: string }): void;
+  onStep(e: { index: number }): void;
+  onHere(e: { member: string }): void;
+  onPeople(e: { count: number }): void;
+  onEnded(): void;
+  onEligible(e: { eligible: boolean }): void;
+};
+
+interface YadaTogetherModule {
+  eligible(): Promise<boolean>;
+  /** "started" in a call, "sheet" when FaceTime's own sheet opened to ring people, else "cancelled" or "disabled". */
+  start(circle: string, name: string): Promise<"started" | "sheet" | "cancelled" | "disabled">;
+  step(index: number): Promise<void>;
+  here(member: string): Promise<void>;
+  leave(): Promise<void>;
+  addToCalendar(title: string, start: number, minutes: number, weekly: boolean): Promise<void>;
+  addListener<K extends keyof TogetherEvents>(name: K, listener: TogetherEvents[K]): { remove(): void };
+}
+
+export const together: YadaTogetherModule | null = Platform.OS === "ios" ? requireOptionalNativeModule<YadaTogetherModule>("YadaTogether") : null;

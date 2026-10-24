@@ -27,6 +27,10 @@ Mobbin screen in a comment (CLAUDE.md).
 - The forest card (#183F35, dark #1E4A3E) is for the one thing to tap next: Daily prayer, the calm close, the end of a
   book. Its kicker is chartreuse, its text white.
 - No state by colour alone: a wash always comes with a bar, an underline or a word.
+- White on pictures and on forest and night grounds: `ON_PICTURE` (text, strong, muted, glass, mark, track, disc);
+  people's avatars: `AVATAR_HUES` (deep on light, pale on dark and forest); a circle: `CIRCLE_TONES`; iOS's own menu
+  colours: `SYSTEM`; every switch is `components/Toggle.tsx`. No colour literal outside `design/` **(tested**,
+  `system.test.ts`). The full rule map, with contrast figures: `docs/colour-rules.md`.
 - System surfaces (widgets, Lock Screen, Live Activity, the reminder's long-press) use the same palette, copied into
   each target's `expo-target.config.js` and asset catalogue **(tested**, `src/lib/systemSurfaces.files.test.ts`).
 

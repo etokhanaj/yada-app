@@ -17,6 +17,17 @@ export type Step = "settle" | "breathe" | "sit" | "silence";
 
 export const STEP_TITLES: Record<Step, string> = { settle: "Settle", breathe: "Breathe the verse", sit: "Sit with it", silence: "Silence" };
 
+/**
+ * Settle and Breathe the verse's way on (BR-01 to BR-04): in a run, Next names the step it goes to; chosen alone, it
+ * reads Done and goes back to the list (null).
+ */
+export function moveOnFrom(steps: readonly Step[], step: Step, all: boolean): { next: Step | null; label: string; accessibilityLabel: string } {
+  const next = all ? (steps[steps.indexOf(step) + 1] ?? null) : null;
+  return next === null
+    ? { next, label: "Done", accessibilityLabel: "Done, back to Sit with this" }
+    : { next, label: STEP_TITLES[next], accessibilityLabel: `Next, ${STEP_TITLES[next]}` };
+}
+
 /** One line under each step on the first page (PR-02): what it is and how long, from the real timings. */
 export function stepLine(step: Step): string {
   if (step === "settle") return `Breathe, about ${Math.round(breathSeconds() / 60)} min`;

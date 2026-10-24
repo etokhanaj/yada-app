@@ -4,6 +4,10 @@
  * and opens Settings (XT-05). Opened from a circle (CI-02), it posts to that circle only: a request lives in one place
  * (build 8 plan §I.6).
  *
+ * App Store guideline 1.2: a request with words Pray does not allow, or a link, is refused with one line saying why
+ * (lib/moderation.ts), after the helpline, which always comes first. Before a reader's first request anywhere, Pray's
+ * rules show once and are agreed to.
+ *
  * Every state is drawn as a sheet. They were full pages inside the form sheet, whose scroll view collapsed to nothing:
  * TestFlight build 9 showed only a "‹ Pray" pill over the keyboard, and the request could not be typed (John, 18 Oct 2026).
  */
@@ -14,16 +18,22 @@ import { AccessibilityInfo, InputAccessoryView, Keyboard, Linking, Pressable, St
 
 import { type AccountStatus, circlesCloud, prayCloud } from "../../../modules/yada-pray";
 import { Pill } from "../../components/Pill";
-import { SheetScreen } from "../../components/Sheet";
+import { SheetScreen, TextLink } from "../../components/Sheet";
 import { Chrome, Prose } from "../../components/Type";
+import { useAppData } from "../../data/AppData";
+import { agreedToRules, agreeToRules } from "../../data/prayLocal";
 import { FONTS, useLayout, usePalette } from "../../design/tokens";
-import { ASK_MAX, helplineFor, mentionsSelfHarm, regionName } from "../../lib/pray";
+import { type Refusal, refusal, refusalLine } from "../../lib/moderation";
+import { ASK_MAX, helplineFor, mentionsSelfHarm, phoneRegion, regionName } from "../../lib/pray";
+
+const TERMS = "https://yadabible.com/terms";
 
 /** One bar for both fields, so Post rides on the keyboard whichever field is focused. */
 const BAR = "ask-bar";
 
 export default function Ask() {
   const { circle = "", owner = "", name: circleName = "" } = useLocalSearchParams<{ circle?: string; owner?: string; name?: string }>();
+  const { user } = useAppData();
   const palette = usePalette();
   const { gutter } = useLayout();
   const [status, setStatus] = useState<AccountStatus | null>(null);
@@ -32,6 +42,8 @@ export default function Ask() {
   const [help, setHelp] = useState(false);
   const [helpSeen, setHelpSeen] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [refused, setRefused] = useState<Refusal | null>(null);
+  const [rules, setRules] = useState(false);
   useEffect(() => void prayCloud?.accountStatus().then(setStatus).catch(() => setStatus("couldNotDetermine")), []);
   // The bar rides on the on-screen keyboard; with none (a hardware keyboard, or after dismissing it) it sits in the sheet.
   const [keyboardUp, setKeyboardUp] = useState(false);
@@ -62,9 +74,25 @@ export default function Ask() {
     }
     // The sheet closes onto Pray, and Your requests opens there with the new one in it.
     router.back();
-    router.push("/today/pray/mine");
+    router.push("/pray/mine");
   };
-  const tryPost = () => (mentionsSelfHarm(text) && !helpSeen ? setHelp(true) : void post());
+  // The helpline before anything else (PR-12): someone in crisis is never met first by a refusal.
+  const tryPost = async () => {
+    if (mentionsSelfHarm(text) && !helpSeen) return setHelp(true);
+    // The first name is posted too, so it passes the same filter.
+    const why = refusal(`${text}\n${name}`);
+    if (why !== null) {
+      setRefused(why);
+      return AccessibilityInfo.announceForAccessibility(refusalLine(why));
+    }
+    if (!(await agreedToRules(user))) return setRules(true);
+    await post();
+  };
+  const agree = async () => {
+    await agreeToRules(user);
+    setRules(false);
+    await post();
+  };
 
   if (status !== null && status !== "available")
     return (
@@ -78,8 +106,8 @@ export default function Ask() {
     );
 
   if (help) {
-    // PR-12: the phone's region from its locale ("en-GB" -> GB), no extra module.
-    const region = Intl.DateTimeFormat().resolvedOptions().locale.split("-")[1] ?? null;
+    // PR-12: the phone's region.
+    const region = phoneRegion();
     const line = helplineFor(region);
     const where = regionName(region);
     return (
@@ -110,13 +138,31 @@ export default function Ask() {
     );
   }
 
+  if (rules)
+    return (
+      <SheetScreen title="Pray’s rules" backLabel={null} noBack footer={false} testID="ask-rules">
+        <Prose step="claim">Ask only for prayer. No abuse, harassment, hate, sexual content or spam.</Prose>
+        <Prose step="claim" style={{ marginTop: 8 }}>
+          Requests that break these rules are removed.
+        </Prose>
+        <Prose step="claim" style={{ marginTop: 8 }}>
+          Anyone can report a request or block the person who asked.
+        </Prose>
+        <TextLink label="Terms of use" onPress={() => void Linking.openURL(TERMS)} testID="ask-terms" />
+        <View style={{ rowGap: 10, marginTop: 12 }}>
+          <Pill title="Agree" onPress={() => void agree()} primary testID="ask-agree" />
+          <Pill title="Cancel" onPress={() => setRules(false)} testID="ask-rules-cancel" />
+        </View>
+      </SheetScreen>
+    );
+
   const bar = (
     <View style={[styles.bar, { paddingHorizontal: gutter, borderTopColor: palette.divider }]}>
       <Chrome step="note" tone="muted" style={{ fontVariant: ["tabular-nums"] }} accessibilityLabel={`${text.length} of ${ASK_MAX} characters`}>
         {`${text.length} / ${ASK_MAX}`}
       </Chrome>
       <Pressable
-        onPress={tryPost}
+        onPress={() => void tryPost()}
         disabled={!ready}
         accessibilityRole="button"
         accessibilityState={{ disabled: !ready }}
@@ -133,7 +179,10 @@ export default function Ask() {
       <SheetScreen title={circle !== "" ? `Ask ${circleName}` : "Ask for prayer"} backLabel={null} noBack footer={false} keyboard testID="ask">
         <TextInput
           value={text}
-          onChangeText={setText}
+          onChangeText={(t) => {
+            setText(t);
+            setRefused(null);
+          }}
           maxLength={ASK_MAX}
           multiline
           autoFocus
@@ -147,7 +196,10 @@ export default function Ask() {
         <View style={styles.nameRow}>
           <TextInput
             value={name}
-            onChangeText={setName}
+            onChangeText={(n) => {
+              setName(n);
+              setRefused(null);
+            }}
             maxLength={30}
             placeholder="First name · optional"
             placeholderTextColor={palette.mutedInk}
@@ -161,8 +213,9 @@ export default function Ask() {
             Live for 7 days
           </Chrome>
         </View>
-        <Chrome step="note" tone="muted" style={{ marginTop: 10 }}>
-          Leave out other people’s names and details.
+        {/* A refusal takes the note's place, in ink, so the reason sits where the eye already is. */}
+        <Chrome step="note" tone={refused === null ? "muted" : "ink"} style={{ marginTop: 10 }} accessibilityLiveRegion="polite" testID={refused === null ? undefined : "ask-refused"}>
+          {refused === null ? "Leave out other people’s names and details." : refusalLine(refused)}
         </Chrome>
         {keyboardUp ? null : <View style={{ marginTop: 24, marginHorizontal: -gutter }}>{bar}</View>}
       </SheetScreen>

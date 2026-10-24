@@ -18,7 +18,7 @@ import { FONTS, useIsDark, usePalette } from "../design/tokens";
 import { type BookProgress, bookProgress, chapterCells, progressLabel, usesSegments } from "../lib/chaptersRead";
 import { chapterTitle, excerptOf } from "../lib/reader";
 import { Chrome } from "./Type";
-import { BRAND } from "../design/palette";
+import { BRAND, ON_PICTURE } from "../design/palette";
 
 const CHARTREUSE = BRAND.chartreuse;
 
@@ -148,6 +148,6 @@ export function ChapterClose({
 const styles = StyleSheet.create({
   wrap: { paddingTop: 26, paddingBottom: 16 },
   card: { borderRadius: 24, paddingTop: 20, paddingHorizontal: 20, paddingBottom: 18, minHeight: 44 },
-  title: { color: "#FFFFFF", fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 30, fontWeight: "600", letterSpacing: -0.4 },
-  verse: { color: "rgba(255,255,255,0.9)", fontFamily: FONTS.scripture, fontSize: 17, lineHeight: 24, marginTop: 8 },
+  title: { color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 30, fontWeight: "600", letterSpacing: -0.4 },
+  verse: { color: ON_PICTURE.strong, fontFamily: FONTS.scripture, fontSize: 17, lineHeight: 24, marginTop: 8 },
 });

@@ -8,9 +8,10 @@
  *   which grows the same sheet. A plain line past 30 words stands alone (VS-01).
  * - Disputed verses lead with Readers differ, then "One way to read it" at body size, then the
  *   manuscripts fact (VS-03–06).
- * - Full view (large detent): the verse again at reading size, the first view in full, People and places,
- *   Go deeper in a fixed order (Original · Compare · Study notes · Key words · Manuscripts · Sources), then
- *   every reading, every fact, Read it alongside (VS-02, VS-04, VS-06, VS-07, TD-01, PD-01).
+ * - Full view (large detent): the verse again at reading size, the first view in full, Original, People and
+ *   places, Explained, Go deeper (Key words · Study notes · Compare translations · Manuscripts), every reading, every fact,
+ *   Read it alongside, Check what you read, then Sources last (VS-02, VS-06, VS-07, TD-01, PD-01; RU-05, the
+ *   fresh-eyes review approved by John 23 Oct 2026: the verse page in reading order).
  * - At AX sizes the sheet opens large on the half view, the verse repeated at its top (VS-07).
  * - Header: the reference, with the passage under it (John, 12 Oct: plain names, codes only in Sources;
  *   NA-02's header). Source names appear in headings only where two sources share a slot.
@@ -23,8 +24,8 @@
 
 import { BOOK_CODES, type BookCode, formatDisplayRef, formatVerseId, type MissingVerse, ordToParts, type Passage, type VerseLayers, isMissingVerse, parseVerseId, verseOrd } from "@yada/schema";
 import { router, useNavigation } from "expo-router";
-import { useEffect, useState } from "react";
-import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { AccessibilityInfo, Pressable, type ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useAppData, useCore, useLog, useQuery } from "../data/AppData";
 import { loadVersePlaces } from "../data/wordsAndPlaces";
@@ -56,11 +57,12 @@ import { usePartner } from "../state/partner";
 import { AlongsideRows, PassageGuide } from "./PassageGuide";
 import { Row, RowNote, Section, SheetScreen, type SheetSizeValue, TextCapsule, TextLink, UNDERSTAND_EXIT } from "./Sheet";
 import { hasStatusLine, PeopleAndPlaces, SeeAlsoSection, StudyNotesInline, StudyStatus, useShownSeeAlso, useVerseStudy } from "./StudyLayer";
-import { CheckQuestion } from "./UnderstandPages";
+import { CheckQuestion, leadOf } from "./UnderstandPages";
 import { mergeSeeAlso, namedInVerse } from "../lib/study";
 import { Chrome, Label, Original, Prose, Scripture } from "./Type";
 
-export type UnderstandSection = "original" | "compare";
+/** Where Understand lands: Original opened, Compare, or the verse's Readers differ (RU-8: the reader's mark). */
+export type UnderstandSection = "original" | "compare" | "differ";
 
 const verseIdOf = (ord: number): string => formatVerseId(ordToParts(ord));
 
@@ -94,7 +96,7 @@ function VerseSheet({ book, ord, section }: { book: BookCode; ord: number; secti
   const { user } = useAppData();
   const log = useLog();
   const ax = useAXLevel() >= 1;
-  const [{ large, byReader }, setSize] = useState<SheetSizeValue>({ large: false, headerHeight: 0, byReader: false });
+  const [{ large, byReader, headerHeight }, setSize] = useState<SheetSizeValue>({ large: false, headerHeight: 0, byReader: false });
   const translation = useSettings((s) => s.translation);
   const setUnderstandFull = useSettings((s) => s.setUnderstandFull);
   const file = useUnderstandFile(book);
@@ -108,6 +110,9 @@ function VerseSheet({ book, ord, section }: { book: BookCode; ord: number; secti
     const [texts, tokens, verse, passage] = await Promise.all([getTexts(core, ord), getTokens(core, ord), loadVerse(book, ord), loadPassageFor(book, ord)]);
     return { texts, tokens, verse, passage };
   }, [book, ord, file, attempt]);
+  // RU-8: the reader's Readers differ mark lands here; a verse with no readings opens as any other verse would.
+  const loadedLayers = data?.verse !== undefined && data.verse !== null && !isMissingVerse(data.verse) ? data.verse : null;
+  const landing: UnderstandSection | undefined = section === "differ" ? (loadedLayers !== null && readerLines(loadedLayers).length > 0 ? "differ" : undefined) : section;
 
   useEffect(() => log("understand_open", verseId), [log, verseId]);
   // The last height the reader chose is remembered (Phase 1): only a drag of theirs counts, never an
@@ -121,12 +126,26 @@ function VerseSheet({ book, ord, section }: { book: BookCode; ord: number; secti
   const [more, setMore] = useState(false);
   // VS-07: at AX sizes the sheet opens large, but on the half view (the verse repeated, the plain line, More on
   // this verse): large there is the only size, not the reader asking for more.
-  const full = (large && !ax) || more || section !== undefined;
+  const full = (large && !ax) || more || landing !== undefined;
+  // Only on open (for Readers differ, once the verse has loaded and has readings): the reader may drag down afterwards.
+  const grown = useRef(false);
   useEffect(() => {
-    if (section !== undefined && !large && !ax && !useSettings.getState().understandFull && !useSettings.getState().understandOpenFull) grow();
-    // Only on open: the reader may drag down afterwards.
+    if (grown.current || landing === undefined) return;
+    grown.current = true;
+    if (!large && !ax && !useSettings.getState().understandFull && !useSettings.getState().understandOpenFull) grow();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [landing]);
+  // RU-8: Readers differ is scrolled up under the header once both offsets are measured: the full view's top in the
+  // sheet's content, and the section's top in the full view. Once only, so a later re-layout never pulls the reader back.
+  const scroll = useRef<ScrollView>(null);
+  const [fullY, setFullY] = useState<number | null>(null);
+  const [differY, setDifferY] = useState<number | null>(null);
+  const landed = useRef(false);
+  useEffect(() => {
+    if (landing !== "differ" || landed.current || fullY === null || differY === null || headerHeight === 0) return;
+    landed.current = true;
+    scroll.current?.scrollTo({ y: Math.max(0, fullY + differY - headerHeight - 6), animated: false });
+  }, [landing, fullY, differY, headerHeight]);
 
   // MM-06: a verse kept before says so under the title, with the day it was kept; never how long ago.
   const { data: kept } = useQuery(() => keptAt(user, verseId), [verseId]);
@@ -156,7 +175,7 @@ function VerseSheet({ book, ord, section }: { book: BookCode; ord: number; secti
   const layers = data.verse !== null && !isMissingVerse(data.verse) ? data.verse : null;
 
   return (
-    <SheetScreen title={display} subtitle={subtitle} backLabel={display} verseId={verseId} onSize={setSize} testID="understand" {...UNDERSTAND_EXIT}>
+    <SheetScreen title={display} subtitle={subtitle} backLabel={display} verseId={verseId} onSize={setSize} scrollRef={scroll} testID="understand" {...UNDERSTAND_EXIT}>
       {fromBsb ? (
         <Chrome step="note" tone="muted" style={{ marginBottom: 12 }} testID="bsb-basis">
           {BSB_BASIS}
@@ -165,17 +184,19 @@ function VerseSheet({ book, ord, section }: { book: BookCode; ord: number; secti
       {/* VS-07, WM-01: once the verse is no longer visible above the sheet, it is repeated here at reading size,
           without a verse number (the title says it). Not after More on this verse at half height: the verse is
           still in view above the sheet. */}
-      {large || ax || section !== undefined ? (
+      {large || ax || landing !== undefined ? (
         <Scripture style={{ marginBottom: 20 }} accessibilityLabel={`Verse ${parts.verse}, ${spokenText(verseText, translation)}${marks.label}`} testID="verse-repeat">
           {marks.text}
         </Scripture>
       ) : null}
-      {large || ax || section !== undefined ? marks.join : null}
+      {large || ax || landing !== undefined ? marks.join : null}
       {layers !== null && (data.texts["BSB"] ?? "").includes("LORD") ? <LordFirstTime verseId={verseId} verse={layers} /> : null}
       {data.verse !== null && isMissingVerse(data.verse) ? <MissingVerseBody verse={data.verse} ord={ord} /> : null}
       {layers !== null ? (
         full ? (
-          <FullView book={book} ord={ord} verse={layers} tokens={data.tokens.words.length} bsb={data.texts["BSB"]} section={section} />
+          <View onLayout={(e) => setFullY(e.nativeEvent.layout.y)}>
+            <FullView book={book} ord={ord} verse={layers} tokens={data.tokens.words.length} bsb={data.texts["BSB"]} section={landing} onReadersY={setDifferY} />
+          </View>
         ) : (
           <HalfViewBody
             book={book}
@@ -368,6 +389,7 @@ function FullView({
   tokens,
   bsb,
   section,
+  onReadersY,
 }: {
   book: BookCode;
   ord: number;
@@ -375,25 +397,33 @@ function FullView({
   tokens: number;
   bsb: string | undefined;
   section?: UnderstandSection;
+  /** Where Readers differ starts in this view, for the sheet to land on it (RU-8). */
+  onReadersY: (y: number) => void;
 }) {
   const verseId = verseIdOf(ord);
   const translation = useSettings((s) => s.translation);
   const lines = readerLines(verse);
   const readersFirst = verse.beginner.order[0] === "readers_differ" && lines.length > 0;
   const notes = factsFor(verse, translation);
+  const { sectionGap } = useLayout();
   const study = useVerseStudy(book, ord, bsb);
   const people = study.kind === "ready" ? study.study.people : [];
 
   const readers =
     lines.length > 0 ? (
-      <Section title={readersLead(verse, lines.length)} first={readersFirst}>
-        {lines.map((line) => (
-          <ReadingBlock key={line.text} text={line.text} options={line.reading?.full_note === true ? line.reading.options : []} />
-        ))}
-      </Section>
+      <View onLayout={(e) => onReadersY(e.nativeEvent.layout.y)} testID="readers-differ">
+        <Section title={readersLead(verse, lines.length)} first={readersFirst}>
+          {lines.map((line) => (
+            <ReadingBlock key={line.text} text={line.text} options={line.reading?.full_note === true ? line.reading.options : []} />
+          ))}
+        </Section>
+      </View>
     ) : null;
   const plain = <PlainLine book={book} verse={verse} large={!readersFirst} first={!readersFirst} />;
 
+  // RU-5 (fresh-eyes review approved by John 23 Oct 2026): what the verse says, then its words, then what they mean,
+  // then where to go further; Sources closes the page. Explained had sat at the foot under every list, and Sources
+  // mid-page inside Go deeper. VoiceOver reads in this same order: nothing here is laid out out of source order.
   return (
     <View testID="understand-full">
       {readersFirst ? readers : plain}
@@ -407,9 +437,22 @@ function FullView({
           ))}
         </Section>
       ) : null}
+      {/* RU-05: Original under the plain words, its own section, still the disclosure it was in Go deeper. */}
+      <View style={{ marginTop: sectionGap }}>
+        <OriginalRow book={book} ord={ord} tokens={tokens} open={section === "original"} />
+      </View>
       {/* TD-01, PD-01: who and where, before what a note says; after the first view, so VS-02's order holds. */}
       <PeopleAndPlaces people={people} book={book} ord={ord} bsb={bsb ?? ""} from={verseId} first={false} />
-      <GoDeeper book={book} ord={ord} verse={verse} tokens={tokens} section={section} />
+      {verse.deeper.explained.length > 0 ? (
+        <Section title="Explained">
+          {verse.deeper.explained.map((e) => (
+            <Prose key={e.id} step="claim" style={{ marginBottom: 10 }}>
+              {e.text}
+            </Prose>
+          ))}
+        </Section>
+      ) : null}
+      <GoDeeper ord={ord} verse={verse} />
       {readersFirst ? null : readers}
       {notes.length > 0 ? (
         <Section title="Notice">
@@ -421,16 +464,15 @@ function FullView({
         </Section>
       ) : null}
       <AlongsideRows refs={verse.alongside} from={verseId} />
-      {verse.deeper.explained.length > 0 ? (
-        <Section title="Explained">
-          {verse.deeper.explained.map((e) => (
-            <Prose key={e.id} step="claim" style={{ marginBottom: 10 }}>
-              {e.text}
-            </Prose>
-          ))}
-        </Section>
-      ) : null}
       {verse.deeper.check.length > 0 ? <CheckWhatYouRead items={verse.deeper.check} /> : null}
+      {/* RU-05: Sources last, its own section a section gap below the rest, the row's words alone as on the guide (UL-02). */}
+      <View style={{ marginTop: sectionGap }}>
+        <Row first onPress={() => router.push("/understand/sources")} label="Every source and licence" testID="open-sources">
+          <Chrome tone="ink" style={{ fontWeight: "500" }}>
+            Every source and licence
+          </Chrome>
+        </Row>
+      </View>
     </View>
   );
 }
@@ -472,11 +514,11 @@ function CheckWhatYouRead({ items }: { items: ReadonlyArray<{ q: string; a: stri
 }
 
 /**
- * Go deeper, in a fixed order (Phase 1, VS-04): Original · Compare · Study notes · Key words · Manuscripts ·
- * Sources, each but Sources only where there is something behind it. Original expands in place; the others push
- * inside this sheet.
+ * Go deeper, in a fixed order (RU-05, approved by John 23 Oct 2026): Key words · Study notes · Compare · Manuscripts,
+ * each but Compare only where there is something behind it; each pushes inside this sheet. Original moved above
+ * Explained and Sources to the foot of the page (FullView).
  */
-function GoDeeper({ book, ord, verse, tokens, section }: { book: BookCode; ord: number; verse: VerseLayers; tokens: number; section?: UnderstandSection }) {
+function GoDeeper({ ord, verse }: { ord: number; verse: VerseLayers }) {
   const base = useSheetBase();
   const translation = useSettings((s) => s.translation);
   const compareWith = useSettings((s) => s.compareWith);
@@ -485,35 +527,39 @@ function GoDeeper({ book, ord, verse, tokens, section }: { book: BookCode; ord: 
   const compareOrder = [translation, ...compareSelection(translation, onPhoneOrder(BUILT_IN, installedCodes), compareWith)];
   const study = verse.deeper.study_note;
   const terms = verse.deeper.key_words.map((k) => k.term);
+  const firstWord = verse.deeper.key_words[0];
   return (
     <Section title="Go deeper">
-      <OriginalRow book={book} ord={ord} tokens={tokens} open={section === "original"} />
-      <Row
-        onPress={() => router.push({ pathname: "/evidence/translations", params: { ref: verseId } })}
-        label={`Compare, ${compareLine(compareOrder)}`}
-        testID="open-compare"
-      >
-        <Chrome tone="ink" style={{ fontWeight: "500" }}>
-          Compare
-        </Chrome>
-        <RowNote>{compareOrder.join(" · ")}</RowNote>
-      </Row>
+      {firstWord !== undefined ? (
+        <Row first onPress={() => router.push({ pathname: "/understand/key-words", params: { ref: verseId } })} label={`Key words, ${terms.join(", ")}`} testID="open-key-words">
+          <Chrome tone="ink" style={{ fontWeight: "500" }}>
+            Key words
+          </Chrome>
+          {/* RU-05: the first key word's sentence for this verse, one line; VoiceOver still hears every term. */}
+          <Chrome step="note" tone="muted" maxFontSizeMultiplier={2} numberOfLines={1}>
+            {leadOf(firstWord)}
+          </Chrome>
+        </Row>
+      ) : null}
       {study !== null ? (
-        <Row onPress={() => router.push({ pathname: "/understand/notes", params: { ref: verseId } })} label="Study notes, Tyndale" testID="open-study-notes">
+        <Row first={terms.length === 0} onPress={() => router.push({ pathname: "/understand/notes", params: { ref: verseId } })} label="Study notes, Tyndale" testID="open-study-notes">
           <Chrome tone="ink" style={{ fontWeight: "500" }}>
             Study notes
           </Chrome>
           <RowNote>Adapted from Tyndale Open Study Notes</RowNote>
         </Row>
       ) : null}
-      {terms.length > 0 ? (
-        <Row onPress={() => router.push({ pathname: "/understand/key-words", params: { ref: verseId } })} label={`Key words, ${terms.join(", ")}`} testID="open-key-words">
-          <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            Key words
-          </Chrome>
-          <RowNote>{terms.join(" · ")}</RowNote>
-        </Row>
-      ) : null}
+      <Row
+        first={terms.length === 0 && study === null}
+        onPress={() => router.push({ pathname: "/evidence/translations", params: { ref: verseId } })}
+        label={`Compare translations, ${compareLine(compareOrder)}`}
+        testID="open-compare"
+      >
+        <Chrome tone="ink" style={{ fontWeight: "500" }}>
+          Compare translations
+        </Chrome>
+        <RowNote>{compareOrder.join(" · ")}</RowNote>
+      </Row>
       {verse.beginner.manuscripts.length > 0 ? (
         <Row onPress={() => router.push({ pathname: `${base}/manuscripts`, params: { ref: verseId } })} label="Manuscripts, what the manuscripts differ on" testID="open-manuscripts">
           <Chrome tone="ink" style={{ fontWeight: "500" }}>
@@ -522,12 +568,6 @@ function GoDeeper({ book, ord, verse, tokens, section }: { book: BookCode; ord: 
           <RowNote>What the manuscripts differ on</RowNote>
         </Row>
       ) : null}
-      <Row onPress={() => router.push("/understand/sources")} label="Sources, every source and licence" testID="open-sources">
-        <Chrome tone="ink" style={{ fontWeight: "500" }}>
-          Sources
-        </Chrome>
-        <RowNote>Every source and licence</RowNote>
-      </Row>
     </Section>
   );
 }
@@ -648,9 +688,9 @@ function NoUnderstand({
       <SeeAlsoSection items={seeAlso} from={verseId} ax={ax} first={!ledByNotes} />
       <Section title="Go deeper" first={!led}>
         <OriginalRow book={book} ord={ord} tokens={tokens} open={false} />
-        <Row onPress={() => router.push({ pathname: "/evidence/translations", params: { ref: verseId } })} label={`Compare, ${compareLine(compareOrder)}`} testID="open-compare">
+        <Row onPress={() => router.push({ pathname: "/evidence/translations", params: { ref: verseId } })} label={`Compare translations, ${compareLine(compareOrder)}`} testID="open-compare">
           <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            Compare
+            Compare translations
           </Chrome>
           <RowNote>{compareOrder.join(" · ")}</RowNote>
         </Row>

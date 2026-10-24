@@ -7,12 +7,18 @@
  *
  * Downloaded files are marked removed, as Remove does one at a time; the launch sweep deletes them, never
  * a file with a connection open (data/bundles.ts rule 3). Readings are plain files and go at once.
+ *
+ * Pray's iCloud records go too (App Store guideline 5.1.1(v)): requests, prayed marks and reports the reader made in
+ * the public database, circles they made, and what they wrote in circles they joined, which they then leave. That
+ * needs iCloud and a connection, so it goes first; when it cannot, the rest is still removed and the result says so,
+ * for Settings to tell the reader rather than claim everything went.
  */
 
 import { isBookCode } from "@yada/schema";
 import type { SQLiteDatabase } from "expo-sqlite";
 import * as Notifications from "expo-notifications";
 
+import { circlesCloud, prayCloud } from "../../modules/yada-pray";
 import { endSession } from "./audio";
 import { clearCloud, cloudIdle, setCloudPaused } from "./cloud";
 import type { Db } from "./queries";
@@ -47,7 +53,23 @@ export async function removeAllDownloads(user: SQLiteDatabase): Promise<void> {
   removeAllReadings();
 }
 
-export async function removeMyData(user: SQLiteDatabase, core: Db): Promise<void> {
+/** "done" also when there is no Pray on this phone (Android, an old binary): there is nothing of it to remove. */
+export type PrayRemoval = "done" | "signedOut" | "failed";
+
+export async function removePrayCloud(): Promise<PrayRemoval> {
+  if (prayCloud === null) return "done";
+  try {
+    if ((await prayCloud.accountStatus()) !== "available") return "signedOut";
+    await prayCloud.removeMine();
+    await circlesCloud?.removeAll();
+    return "done";
+  } catch {
+    return "failed";
+  }
+}
+
+export async function removeMyData(user: SQLiteDatabase, core: Db): Promise<PrayRemoval> {
+  const pray = await removePrayCloud();
   // No sync may read iCloud's copy while the rows go, or merge it back after (review, 13 Oct 2026).
   const icloudOff = (await loadSettings(user))["icloud"] === "off";
   setCloudPaused(true);
@@ -66,4 +88,12 @@ export async function removeMyData(user: SQLiteDatabase, core: Db): Promise<void
   useReminder.setState({ prefs: parseReminder(undefined), paused: false });
   // The widget's Continue was this place: it goes too.
   await updateWidgets(user, core).catch(() => undefined);
+  return pray;
+}
+
+/** What Settings says after Remove my data when Pray's iCloud records could not go; null when they did. */
+export function prayRemovalLine(r: PrayRemoval): string | null {
+  if (r === "signedOut") return "Your prayer requests and circles are still in iCloud. Sign in to iCloud, then remove your data again.";
+  if (r === "failed") return "Your prayer requests and circles couldn’t be removed from iCloud. Check your connection, then remove your data again.";
+  return null;
 }

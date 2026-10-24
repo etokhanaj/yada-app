@@ -1,5 +1,6 @@
 /**
- * IA v4 (canvas IA-15–17; John chose tabs, 15 Oct 2026): Today and Bible, with Search as the round button beside them
+ * IA v4 (canvas IA-15–17; John chose tabs, 15 Oct 2026): Today, Bible and Pray (PT-46, John 24 Oct 2026: "make pray its
+ * own tab"), with Search as the round button beside them
  * (IA-15) and, while listening, the mini player riding above (IA-17). A tab only for a daily job
  * (docs/build-7-ia-stress-test.md). The reader and every sheet stay in the root stack, so they open over the tabs and
  * cover them (IA-16). The bar is our own (components/TabBar.tsx): the native one took no taps (18 Oct 2026).
@@ -19,7 +20,7 @@ export const unstable_settings = { initialRouteName: "index" };
 export default function TabsLayout() {
   // Read before the tabs mounted (app/_layout.tsx start), so nothing routes after a link or Return already has.
   const { user, launchTab } = useAppData();
-  const remember = (tab: "today" | "index") => ({ focus: () => void saveSetting(user, "lastTab", tab).catch(() => undefined) });
+  const remember = (tab: "today" | "index" | "pray") => ({ focus: () => void saveSetting(user, "lastTab", tab).catch(() => undefined) });
   // TB-01, DU-01: in a regular-width window the tabs take their own room, a sidebar at the left or a capsule at the
   // top, and the page lays out beside or under them; on the iPhone the bar floats over the page's foot.
   const { tabs } = useLayout();
@@ -28,6 +29,7 @@ export default function TabsLayout() {
     <Tabs initialRouteName={launchTab} tabBar={(props) => <TabBar {...props} />} screenOptions={{ headerShown: false, tabBarPosition }}>
       <Tabs.Screen name="today" listeners={remember("today")} />
       <Tabs.Screen name="index" listeners={remember("index")} />
+      <Tabs.Screen name="pray" listeners={remember("pray")} />
       <Tabs.Screen name="search" />
     </Tabs>
   );

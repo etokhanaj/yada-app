@@ -79,7 +79,20 @@ final class WatchStore: NSObject, ObservableObject, WCSessionDelegate {
   }
 
   func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-    if activationState == .activated { take(session.receivedApplicationContext) }
+    guard activationState == .activated else { return }
+    take(session.receivedApplicationContext)
+    askIfEmpty(session)
+  }
+
+  /// With nothing from the iPhone yet, ask it once (it answers from its last copy, waking in the background), and again
+  /// only when it becomes reachable: John's watch sat on "Open Yada on your iPhone." (18 Oct 2026).
+  private func askIfEmpty(_ session: WCSession) {
+    guard session.activationState == .activated, session.isReachable, WatchData.decode(UserDefaults(suiteName: watchGroup)?.string(forKey: watchKey) ?? "") == nil else { return }
+    session.sendMessage(["need": "watch"], replyHandler: { [weak self] reply in self?.take(reply) }, errorHandler: nil)
+  }
+
+  func sessionReachabilityDidChange(_ session: WCSession) {
+    askIfEmpty(session)
   }
 
   func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {

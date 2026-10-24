@@ -6,7 +6,7 @@
 import { NativeModule, requireOptionalNativeModule } from "expo";
 import { Platform } from "react-native";
 
-declare class YadaSystemModule extends NativeModule<{ onOpen: () => void; onControl: (e: { command: string }) => void }> {
+declare class YadaSystemModule extends NativeModule<{ onOpen: () => void }> {
   takePendingOpen(): string | null;
   /** lib/systemSurfaces.ts ContinueData and TodayData, as JSON. */
   setWidgetData(json: string): void;
@@ -14,9 +14,6 @@ declare class YadaSystemModule extends NativeModule<{ onOpen: () => void; onCont
   setWatchData(json: string): void;
   /** lib/systemSurfaces.ts ListeningData as JSON, or "" when nothing plays. */
   setListening(json: string): void;
-  /** lib/systemSurfaces.ts ActivityState as JSON. */
-  startReading(json: string): Promise<void>;
-  endReading(): Promise<void>;
   indexVerses(items: Array<{ id: string; title: string; text: string; keywords: string }>): Promise<void>;
   /** SX-12: `name` is the first passage's, "The Lord is my shepherd", or "" where the book's passages are not here. */
   indexChapters(items: Array<{ id: string; title: string; name: string; text: string; keywords: string }>): Promise<void>;

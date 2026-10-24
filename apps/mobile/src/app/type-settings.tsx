@@ -12,13 +12,15 @@
  */
 
 import { router } from "expo-router";
-import { type AccessibilityActionEvent, Pressable, StyleSheet, Switch, View } from "react-native";
+import { type AccessibilityActionEvent, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "../components/Icon";
 import { SectionTitle, Chrome } from "../components/Type";
 import { useLayout, usePalette } from "../design/tokens";
 import { type Appearance, TEXT_SCALES, useSettings } from "../state/settings";
+import { Toggle } from "../components/Toggle";
+import { PALETTES } from "../design/palette";
 
 const APPEARANCES: ReadonlyArray<{ value: Appearance; label: string }> = [
   { value: "system", label: "System" },
@@ -27,10 +29,11 @@ const APPEARANCES: ReadonlyArray<{ value: Appearance; label: string }> = [
 ];
 
 /** A page in each appearance, fixed colours so the choice previews itself (style-v2.css .th-*). */
+// The real grounds since build 7's "we go white"; this preview had kept the old chalk and forest night.
 const THUMB: Readonly<Record<Appearance, { background?: string; image?: string; lines: string }>> = {
-  light: { background: "#F7F8F0", lines: "#16231E" },
-  dark: { background: "#0E1814", lines: "#ECF0E4" },
-  system: { image: "linear-gradient(135deg, #F7F8F0 50%, #0E1814 50%)", lines: "#526D63" },
+  light: { background: PALETTES.light.paper, lines: PALETTES.light.ink },
+  dark: { background: PALETTES.dark.paper, lines: PALETTES.dark.ink },
+  system: { image: `linear-gradient(135deg, ${PALETTES.light.paper} 50%, ${PALETTES.dark.paper} 50%)`, lines: PALETTES.light.mutedInk },
 };
 
 export default function TypeSettings() {
@@ -210,7 +213,7 @@ export default function TypeSettings() {
         <Chrome tone="ink" style={{ flex: 1 }}>
           Open Understand in full
         </Chrome>
-        <Switch value={openFull} onValueChange={setOpenFull} accessibilityLabel="Open Understand in full" testID="type-understand-full" />
+        <Toggle value={openFull} onValueChange={setOpenFull} accessibilityLabel="Open Understand in full" testID="type-understand-full" />
       </View>
     </View>
   );

@@ -4,20 +4,24 @@
  * Then "Prayed" and the next. One you prayed for never comes round again; with none left, it says so plainly and offers
  * Ask for prayer or Back to Pray (XT-03). × ends it;
  * ⋯ holds Report and Block (App Store guideline 1.2). It was a list page with a large title (design QA, 18 Oct 2026).
+ * After Prayed, one quiet link sets a reminder to pray for it again tomorrow (PA-01); a tapped reminder opens here with
+ * that request first, though you have prayed for it. Opened from a circle (PC-20), it holds that one request, says the
+ * circle's name under it, and ends with Back to the circle.
  */
 
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActionSheetIOS, Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { type PrayerRequest, prayCloud } from "../../../modules/yada-pray";
+import { circlesCloud, type PrayerRequest, prayCloud } from "../../../modules/yada-pray";
 import { Icon } from "../../components/Icon";
 import { Chrome } from "../../components/Type";
 import { useAppData } from "../../data/AppData";
 import { block, loadPrayLocal, markPrayed } from "../../data/prayLocal";
+import { loadPrayNotify, prayAgain, watchAnswer } from "../../data/prayNotify";
 import { FONTS, useLayout, usePalette } from "../../design/tokens";
-import { askedLine, HOLD_SECONDS, offerable } from "../../lib/pray";
+import { askedLine, HOLD_SECONDS, offerable, prayAgainLine } from "../../lib/pray";
 
 export default function PrayForSomeone() {
   const { user } = useAppData();
@@ -36,13 +40,27 @@ export default function PrayForSomeone() {
   }, [fill]);
   const [holding, setHolding] = useState<"hold" | "timer" | null>(null);
   const [prayed, setPrayed] = useState(false);
+  const { again, circle, owner = "", name = "", request: circleRequest } = useLocalSearchParams<{ again?: string; circle?: string; owner?: string; name?: string; request?: string }>();
+  const inCircle = circle !== undefined && circleRequest !== undefined;
+  const [againOn, setAgainOn] = useState(false);
+  const [againAt, setAgainAt] = useState<Date | null>(null);
+  useEffect(() => void loadPrayNotify(user).then((p) => setAgainOn(p.again)), [user]);
 
   const load = useCallback(async () => {
+    if (inCircle) {
+      const all = (await circlesCloud?.requests(circle, owner).catch(() => [])) ?? [];
+      return setQueue(all.filter((r) => r.id === circleRequest).map((r) => ({ id: r.id, text: r.text, firstName: r.firstName, creator: r.creator, expiresAt: r.expiresAt })));
+    }
     if (prayCloud === null) return setQueue([]);
     const local = await loadPrayLocal(user);
     const open = await prayCloud.open([...local.prayed, ...local.blocked], 10).catch(() => []);
-    setQueue(offerable(open, local.prayed, local.blocked));
-  }, [user]);
+    const first = again === undefined ? [] : await prayCloud.fetch([again]).catch(() => []);
+    const now = Date.now();
+    // An answered one (PC-23) is shown alone, to read; a live one (PA-01) comes first, then the rest.
+    const held = first[0];
+    if (held?.answeredAt !== undefined) return setQueue([held]);
+    setQueue([...first.filter((r) => r.expiresAt > now), ...offerable(open, local.prayed, local.blocked)]);
+  }, [user, again, inCircle, circle, owner, circleRequest]);
   useEffect(() => void load(), [load]);
 
   // An abandoned prayer must never be marked prayed: × mid-timer unmounts the screen, so the animation is stopped and
@@ -61,9 +79,16 @@ export default function PrayForSomeone() {
     if (request === undefined || !live.current) return;
     setHolding(null);
     setPrayed(true);
+    if (inCircle) {
+      await circlesCloud?.prayed(circle, owner, request.id).catch(() => AccessibilityInfo.announceForAccessibility("Couldn’t mark it prayed. Try again."));
+      // Kept here too, so the circle's cover on Pray stops counting it as new (PT-46).
+      await markPrayed(user, request.id).catch(() => undefined);
+      return;
+    }
     await prayCloud?.prayed(request.id).catch(() => undefined);
     await markPrayed(user, request.id);
-  }, [request, user]);
+    await watchAnswer(user, request.id).catch(() => undefined);
+  }, [request, user, inCircle, circle, owner]);
 
   const start = (how: "hold" | "timer") => {
     setHolding(how);
@@ -80,6 +105,7 @@ export default function PrayForSomeone() {
   const next = () => {
     fill.setValue(0);
     setPrayed(false);
+    setAgainAt(null);
     setQueue((q) => (q === null ? q : q.slice(1)));
   };
   const more = () => {
@@ -96,13 +122,14 @@ export default function PrayForSomeone() {
       <Icon name={icon} size={20} />
     </Pressable>
   );
-  const asked = request === undefined ? null : askedLine(request.firstName, request.createdAt, Date.now());
+  const asked = request === undefined ? null : inCircle ? [request.firstName, name].filter((x) => x !== "").join(" · ") : askedLine(request.firstName, request.createdAt, Date.now());
+  const back = inCircle ? `Back to ${name}` : "Back to Pray";
 
   return (
     <View style={[styles.root, { backgroundColor: palette.paper, paddingTop: insets.top + 4, paddingBottom: insets.bottom + 16, paddingHorizontal: gutter }]} testID="pray-someone">
       <View style={styles.top}>
-        {round("close", "Close, back to Pray", () => router.back(), "pray-close")}
-        {request !== undefined ? round("more", "More: Report or Block", more, "pray-more") : null}
+        {round("close", `Close, ${back.charAt(0).toLowerCase()}${back.slice(1)}`, () => router.back(), "pray-close")}
+        {request !== undefined && request.answeredAt === undefined && !inCircle ? round("more", "More: Report or Block", more, "pray-more") : null}
       </View>
       <View style={styles.middle}>
         {queue === null ? null : request === undefined ? (
@@ -145,14 +172,44 @@ export default function PrayForSomeone() {
             </Chrome>
           </Pressable>
         </View>
+      ) : request.answeredAt !== undefined ? (
+        <View style={{ rowGap: 12, alignItems: "stretch" }}>
+          <Chrome tone="accent" style={styles.prayedMark}>
+            ✓ Answered · you prayed for it
+          </Chrome>
+          <Pressable onPress={() => router.back()} accessibilityRole="button" style={[styles.hold, { minHeight: pill, backgroundColor: palette.ink }]} testID="pray-answered-back">
+            <Chrome style={{ color: palette.paper, fontWeight: "600" }}>Back to Pray</Chrome>
+          </Pressable>
+        </View>
       ) : prayed ? (
         <View style={{ rowGap: 12, alignItems: "stretch" }}>
           <Chrome tone="accent" style={styles.prayedMark} accessibilityLiveRegion="polite">
             ✓ Prayed
           </Chrome>
-          <Pressable onPress={next} accessibilityRole="button" accessibilityLabel="Next request" style={[styles.hold, { minHeight: pill, backgroundColor: palette.ink }]} testID="pray-next">
-            <Chrome style={{ color: palette.paper, fontWeight: "600" }}>Next request</Chrome>
+          <Pressable onPress={inCircle ? () => router.back() : next} accessibilityRole="button" style={[styles.hold, { minHeight: pill, backgroundColor: palette.ink }]} testID="pray-next">
+            <Chrome style={{ color: palette.paper, fontWeight: "600" }}>{inCircle ? back : "Next request"}</Chrome>
           </Pressable>
+          {inCircle ? null : againAt !== null ? (
+            <Chrome step="note" tone="muted" style={{ textAlign: "center" }} accessibilityLiveRegion="polite" testID="pray-again-set">
+              {prayAgainLine(againAt)}
+            </Chrome>
+          ) : againOn ? (
+            <Pressable
+              onPress={() =>
+                void prayAgain(user, request.id)
+                  .then((at) => (at === null ? AccessibilityInfo.announceForAccessibility("Notifications are off for Yada in iPhone Settings.") : setAgainAt(at)))
+                  .catch(() => AccessibilityInfo.announceForAccessibility("Couldn’t set the reminder. Try again."))
+              }
+              accessibilityRole="button"
+              hitSlop={8}
+              style={styles.again}
+              testID="pray-again"
+            >
+              <Chrome step="note" tone="accent" style={{ fontWeight: "600" }}>
+                Pray again tomorrow
+              </Chrome>
+            </Pressable>
+          ) : null}
         </View>
       ) : (
         <View style={{ rowGap: 12, alignItems: "center" }}>
@@ -192,5 +249,6 @@ const styles = StyleSheet.create({
   request: { fontFamily: FONTS.scripture, fontSize: 24, lineHeight: 33, textAlign: "center" },
   hold: { alignSelf: "stretch", borderRadius: 999, overflow: "hidden", alignItems: "center", justifyContent: "center" },
   timer: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, justifyContent: "center" },
+  again: { alignSelf: "center", minHeight: 44, justifyContent: "center" },
   prayedMark: { textAlign: "center", fontSize: 15, fontWeight: "600" },
 });

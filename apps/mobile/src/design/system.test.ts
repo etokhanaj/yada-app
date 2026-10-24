@@ -56,7 +56,6 @@ describe("the design system (docs/design-system.md)", () => {
   it("titles sections with SectionTitle; Label only where it captions inside a block", () => {
     const captions = new Set([
       "app/evidence/translations.tsx", // the verse reference over each version's line
-      "components/BookIntro.tsx", // replaced by the book introduction handle (SC-01, build 10d)
       "components/OriginalWords.tsx", // "Title" over a psalm's original superscription
       "components/UnderstandViews.tsx", // the language name over each half of a shared opening
     ]);
@@ -67,6 +66,31 @@ describe("the design system (docs/design-system.md)", () => {
   // The polish: page titles in SF bold, serif kept for Scripture; every page shipped Literata until 18 Oct.
   it("sets page titles in the sans pageTitle step, not the serif display step", () => {
     expect(read("components/Page.tsx")).toMatch(/function LargeTitle[\s\S]*?useType\("pageTitle"\)/u);
+  });
+
+  // Build 11 colour pass (docs/colour-rules.md): seven screens had drawn their own whites and alphas.
+  it("draws colours from design/, never a literal in a screen", () => {
+    const own = new Set([
+      "components/TranslationCover.tsx", // the covers' own shading, part of the cover art (MT-02)
+      "lib/translations.ts", // the covers' five tones (MT-02 to MT-06)
+    ]);
+    const source = (dir: string): string[] =>
+      readdirSync(join(SRC, dir)).flatMap((name) => {
+        const path = join(dir, name);
+        if (statSync(join(SRC, path)).isDirectory()) return source(path);
+        return /\.tsx?$/u.test(path) && !/\.(test|generated)\./u.test(path) ? [path] : [];
+      });
+    const stray = ["app", "components", "lib", "data"]
+      .flatMap(source)
+      .filter((f) => !own.has(f))
+      .flatMap((f) =>
+        read(f)
+          .split("\n")
+          // A picture's fade and a shadow are drawn, not chosen colours.
+          .filter((line) => /"#[0-9A-Fa-f]{3,8}"|rgba?\(/u.test(line) && !/gradient\(|[Ss]hadow/u.test(line))
+          .map((line) => `${f}: ${line.trim()}`),
+      );
+    expect(stray).toEqual([]);
   });
 
   it("keeps rows at 56 pt", () => {

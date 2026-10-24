@@ -7,20 +7,21 @@
 import { BOOK_CODES, type BookCode, type TranslationWord, formatDisplayRef, formatVerseId, isMissingVerse, ordToParts } from "@yada/schema";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SourceLine } from "./SourceLine";
 
 import { useCore, useQuery } from "../data/AppData";
 import { bookBounds, getTextsForOrds, readableTranslations } from "../data/queries";
 import { loadPassageFor, loadVersesInRange } from "../data/understand";
 import { usePalette } from "../design/tokens";
 import { FONTS } from "../design/type";
-import { resolveRef } from "../lib/chapters";
+import { formatRange, resolveRef } from "../lib/chapters";
 import { DICTIONARY_CREDIT } from "../lib/dictionary";
-import { passageSubtitle } from "../lib/passageGuide";
+import { inShort, passageSubtitle } from "../lib/passageGuide";
 import { mergeSeeAlso, OPENBIBLE_LINE } from "../lib/study";
 import { spokenText } from "../lib/supplied";
 import { notInLine } from "../lib/translations";
-import { behindLine } from "../lib/understand";
+import { behindLine, plainSegments } from "../lib/understand";
 import { useSettings } from "../state/settings";
 import { Icon } from "./Icon";
 import { useSheetBase } from "./navigation";
@@ -29,9 +30,10 @@ import { SeeAlsoRow, useShownSeeAlso, useVerseStudy } from "./StudyLayer";
 import { Chrome, Prose, Scripture } from "./Type";
 import { DivineText } from "./Verse";
 
-const TQ_CREDIT = "Translation Questions, adapted from unfoldingWord · CC BY‑SA 4.0";
-const TN_CREDIT = "Translation Notes, adapted from unfoldingWord · CC BY‑SA 4.0 · Berean Standard Bible, public domain";
-const BSB_FOOTNOTES_CREDIT = "The Berean Standard Bible’s own footnotes · public domain";
+// The source's name only, opening Sources (components/SourceLine.tsx); each full notice and change is there.
+const TQ_CREDIT = "unfoldingWord, adapted";
+const TN_CREDIT = "unfoldingWord, adapted";
+const BSB_FOOTNOTES_CREDIT = "BSB footnotes";
 
 const idOf = (ord: number): string => formatVerseId(ordToParts(ord));
 
@@ -43,6 +45,11 @@ function shortRef(ord: number): string {
 
 function firstSentence(text: string): string {
   return text.split(/(?<=[.!?])\s+/u)[0] ?? text;
+}
+
+/** The definition's sentence that fits the verse; bundles built before 23 Oct 2026 have none, so their first. */
+export function leadOf(k: TranslationWord): string {
+  return k.lead ?? firstSentence(k.definition);
 }
 
 /** The terms a verse or a passage names, each once, in order. */
@@ -60,22 +67,21 @@ export function KeyWordsPage({ refText }: { refText: string }) {
   const base = useSheetBase();
   const { data } = useQuery(async () => (span === null ? [] : termsIn(span.book, span.startOrd, span.endOrd)), [refText]);
   if (span === null) return null;
-  const title = span.startOrd === span.endOrd ? formatDisplayRef(ordToParts(span.startOrd)) : refText;
+  // The passage guide links here with its raw ref ("JHN.1.1-1.18"), which showed as the subtitle (fresh-eyes review, 23 Oct 2026).
+  const title = formatRange(refText);
   return (
     <SheetScreen title="Key words" subtitle={title} backLabel={title} testID="key-words" {...UNDERSTAND_EXIT}>
       {(data ?? []).map((k, i) => (
-        <Row key={k.term} first={i === 0} onPress={() => router.push({ pathname: `${base}/term`, params: { ref: refText, term: k.term } })} label={`${k.term}, ${firstSentence(k.definition)}`} testID={`term-${k.term}`}>
+        <Row key={k.term} first={i === 0} onPress={() => router.push({ pathname: `${base}/term`, params: { ref: refText, term: k.term } })} label={`${k.term}, ${leadOf(k)}`} testID={`term-${k.term}`}>
           <Chrome tone="ink" style={{ fontWeight: "500" }}>
             {k.term}
           </Chrome>
           <Prose step="claim" tone="muted">
-            {firstSentence(k.definition)}
+            {leadOf(k)}
           </Prose>
         </Row>
       ))}
-      <Chrome step="note" tone="muted" style={{ marginTop: 16 }}>
-        {DICTIONARY_CREDIT}
-      </Chrome>
+      <SourceLine style={{ marginTop: 16 }}>{DICTIONARY_CREDIT}</SourceLine>
     </SheetScreen>
   );
 }
@@ -121,9 +127,7 @@ export function TermPage({ refText, term }: { refText: string; term: string }) {
           ))}
         </Section>
       ) : null}
-      <Chrome step="note" tone="muted" style={{ marginTop: 16 }}>
-        {DICTIONARY_CREDIT}
-      </Chrome>
+      <SourceLine style={{ marginTop: 16 }}>{DICTIONARY_CREDIT}</SourceLine>
     </SheetScreen>
   );
 }
@@ -142,9 +146,7 @@ export function CheckPage({ refText }: { refText: string }) {
       {(data ?? []).map((c) => (
         <CheckQuestion key={`${c.ord}-${c.q}`} q={c.q} a={c.a} where={shortRef(c.ord)} />
       ))}
-      <Chrome step="note" tone="muted" style={{ marginTop: 16 }}>
-        {TQ_CREDIT}
-      </Chrome>
+      <SourceLine style={{ marginTop: 16 }}>{TQ_CREDIT}</SourceLine>
     </SheetScreen>
   );
 }
@@ -231,9 +233,43 @@ export function ManuscriptsPage({ refText }: { refText: string }) {
           ))}
         </Section>
       ) : null}
-      <Chrome step="note" tone="muted" style={{ marginTop: 16 }}>
-        {BSB_FOOTNOTES_CREDIT}
-      </Chrome>
+      <SourceLine style={{ marginTop: 16 }}>{BSB_FOOTNOTES_CREDIT}</SourceLine>
+    </SheetScreen>
+  );
+}
+
+/**
+ * In short, from the passage guide's Go deeper (RU-3/RU-4, fresh-eyes review approved by John 23 Oct 2026): the
+ * summary as the guide's top section showed it until then, the headline in bold over the summary's lines, then the
+ * data facts. The guide offers the row only where there are lines or facts (guideRows, UL-04).
+ */
+export function InShortPage({ refText }: { refText: string }) {
+  const span = resolveRef(refText);
+  const { data } = useQuery(async () => (span === null ? null : loadPassageFor(span.book, span.startOrd)), [refText]);
+  if (span === null) return null;
+  const short = data === undefined || data === null ? null : inShort(data);
+  return (
+    <SheetScreen title="In short" subtitle={data === undefined || data === null ? undefined : passageSubtitle(data)} backLabel={null} testID="in-short" {...UNDERSTAND_EXIT}>
+      {short !== null ? (
+        <>
+          {short.headline !== null ? (
+            // UL-02 `.claim b`: the headline in bold at claim size, above the Literata lines.
+            <Prose step="claim" style={{ fontWeight: "700", marginBottom: 4 }}>
+              {short.headline}
+            </Prose>
+          ) : null}
+          {short.lines.map((line) => (
+            <Prose key={line} step="explanation" style={{ marginBottom: 6 }}>
+              {plainSegments(line).map((seg, i) => (seg.added ? <Text key={i} style={styles.added}>{seg.text}</Text> : seg.text))}
+            </Prose>
+          ))}
+          {short.facts.map((f) => (
+            <Chrome key={f} step="note" tone="muted" style={{ marginTop: 8 }}>
+              {f}
+            </Chrome>
+          ))}
+        </>
+      ) : null}
     </SheetScreen>
   );
 }
@@ -257,9 +293,7 @@ export function AboutPsalmPage({ refText }: { refText: string }) {
           ))}
         </Section>
       ))}
-      <Chrome step="note" tone="muted" style={{ marginTop: 24 }}>
-        {TN_CREDIT}
-      </Chrome>
+      <SourceLine style={{ marginTop: 24 }}>{TN_CREDIT}</SourceLine>
     </SheetScreen>
   );
 }
@@ -325,10 +359,12 @@ export function SeeAlsoPage({ refText }: { refText: string }) {
         <SeeAlsoRow key={`${item.source}-${item.start}-${item.end}`} item={item} from={idOf(span.startOrd)} first={i === 0} ax={false} />
       ))}
       {items.length > 0 ? (
-        <Chrome step="note" tone="muted" style={{ marginTop: 8 }} testID="openbible-source">
-          {OPENBIBLE_LINE}
-        </Chrome>
+        <SourceLine style={{ marginTop: 8 }} testID="openbible-source">{OPENBIBLE_LINE}</SourceLine>
       ) : null}
     </SheetScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  added: { fontStyle: "italic", opacity: 0.6 },
+});

@@ -1,18 +1,16 @@
 /**
  * Which translations' words may leave Yada's own screens for the system (CLAUDE.md rule 9;
  * policy of 12 Oct 2026, docs/handoff-2026-10-12.md): Siri, Spotlight, App Intents and on-screen
- * entity data, Home Screen widgets and Live Activities carry only references and BSB, WEB, KJV or
+ * entity data, Home Screen widgets and Now Playing carry only references and BSB, WEB, KJV or
  * LSV text. NIV, NKJV, NLT and MSG never: API.Bible §9.2 forbids AI use, and these surfaces feed
  * Apple Intelligence. Downloads stay out until each licence file is read for it (rule 3).
  *
  * Every surface takes its text through this gate (data/system.ts, data/reminder.ts). The rest of this
- * file is what the surfaces show (SX-01–23), pure so it can be tested.
+ * file is what the surfaces show (SX-01–16), pure so it can be tested.
  */
 
-import { BOOK_CODES, type BookCode, ordToParts } from "@yada/schema";
+import { type BookCode, ordToParts } from "@yada/schema";
 
-import type { Repeat, Stop } from "./audio/stop";
-import { type Segment, segmentFill } from "./audio/session";
 import { verseFor } from "./dailyLight";
 import { label as psalmsLabel, type PsalmSet, type PsalterChoice, setForChoice } from "./dailyPsalms";
 import { chapterTitle } from "./reader";
@@ -193,111 +191,12 @@ export interface ListeningData {
 }
 
 // ---------------------------------------------------------------------------
-// The listening Live Activity (SX-17–23)
-// ---------------------------------------------------------------------------
-
-/** Mirrors ReadingAttributes.ContentState (modules/yada-system/ios/ReadingActivity.swift). */
-export interface ActivityState {
-  /** The passage's name, or the chapter's where the book has none. */
-  readonly title: string;
-  /** "1:5". */
-  readonly ref: string;
-  /** SX-22's overline in StandBy, where the book is not on screen: "John 1:5". */
-  readonly reference: string;
-  /** The verse being read, in the text being heard (one of the four open texts), or "" while the name is said. */
-  readonly verse: string;
-  /** SX-19: "John, chapter 2" while the chapter's name is said; else null. */
-  readonly spoken: string | null;
-  /** SX-17, SX-18: "Stops after 1:18", "Repeats 1:1–18", or null. */
-  readonly line: string | null;
-  readonly lineGlyph: "stop" | "repeat" | null;
-  /** Each passage's fill, 0 to 1, in order (AU-04's segments). */
-  readonly segments: readonly number[];
-  /** The playing passage's fill, the Island's ring. */
-  readonly ring: number;
-  readonly playing: boolean;
-}
-
-export interface ActivityInput {
-  readonly book: BookCode;
-  readonly chapter: number;
-  readonly verse: number;
-  readonly text: string;
-  readonly translation: string;
-  readonly titling: boolean;
-  readonly playing: boolean;
-  /** The chapter's passages as segments; one segment where the book has none. */
-  readonly segments: readonly Segment[];
-  /** The playing passage's name, or null. */
-  readonly passage: string | null;
-  readonly line: string | null;
-  readonly stop: Stop | null;
-  readonly repeat: Repeat | null;
-}
-
-export function activityState(a: ActivityInput): ActivityState {
-  const fills = a.segments.map((s) => (a.titling ? 0 : segmentFill(s, a.verse)));
-  const current = a.segments.findIndex((s) => a.verse >= s.from && a.verse <= s.to);
-  return {
-    title: a.passage ?? chapterTitle(a.book, a.chapter),
-    ref: `${a.chapter}:${a.verse}`,
-    reference: verseLabel({ book: a.book, chapter: a.chapter, verse: a.verse }),
-    verse: a.titling ? "" : surfaceText(a.translation, a.text),
-    spoken: a.titling ? spokenName(a.book, a.chapter) : null,
-    line: a.line,
-    lineGlyph: a.stop !== null ? "stop" : a.repeat !== null ? "repeat" : null,
-    segments: fills,
-    ring: current < 0 ? 0 : (fills[current] ?? 0),
-    playing: a.playing,
-  };
-}
-
-/** SX-19's line: the chapter's name as it is said, written with figures ("John, chapter 2", "Psalm 23"). */
-export function spokenName(book: BookCode, chapter: number): string {
-  return book === "PSA" ? `Psalm ${chapter}` : `${BOOK_CODES[book].name}, chapter ${chapter}`;
-}
-
-/**
- * SX-23: a stop that fires leaves the Live Activity paused on "Stopped after 1:18". data/audio.ts advance()
- * fires one as two updates: the stop goes back to Off while still playing, then the reading pauses. A stop
- * cleared by hand leaves it playing, and the next update disarms the watch.
- */
-export interface StopWatch {
-  readonly stop: Stop | null;
-  readonly playing: boolean;
-  readonly armed: boolean;
-}
-
-export function watchStop(prev: StopWatch, next: { readonly stop: Stop | null; readonly playing: boolean }): { fired: boolean; watch: StopWatch } {
-  const cleared = prev.stop !== null && next.stop === null;
-  const paused = prev.playing && !next.playing;
-  return { fired: paused && (cleared || prev.armed), watch: { ...next, armed: cleared && next.playing } };
-}
-
-/** SX-23: the verse a stop came after, and the verse the place then moved on to (null until it has). */
-export interface StopHold {
-  readonly ord: number;
-  readonly landed: number | null;
-}
-
-/**
- * Whether "Stopped after 1:18" still holds: until the reading plays or ends, or the reader moves the place anywhere
- * but where the stop moved it on to (1:19, or the next chapter's first verse).
- */
-export function holdAfterStop(hold: StopHold | null, now: { readonly playing: boolean; readonly ord: number | null }): StopHold | null {
-  if (hold === null || now.playing || now.ord === null) return null;
-  if (now.ord === hold.ord) return hold;
-  if (hold.landed === null) return { ...hold, landed: now.ord };
-  return now.ord === hold.landed ? hold : null;
-}
-
-// ---------------------------------------------------------------------------
 // The reminder's long-press (SX-14), read by targets/notification
 // ---------------------------------------------------------------------------
 
 /** What the notification content extension draws: overline, the name, the reference, two verses, BSB. */
 export interface RichReminder {
-  /** "Next in John", "A passage for today", "M’Cheyne · Reading 2". */
+  /** "Next in John", "A passage for today", "The whole Bible · Reading 2". */
   readonly overline: string;
   /** "The authority of the Son", "Psalm 138". */
   readonly title: string;

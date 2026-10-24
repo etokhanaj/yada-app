@@ -39,28 +39,28 @@ export default function McheyneScreen() {
   const { from } = useLocalSearchParams<{ from?: string }>();
   const back = from === "plans" ? "Plans" : from === "today" ? "Today" : "Bible";
 
-  if (state === null) return <PageScreen title="M’Cheyne" back={back} testID="mcheyne">{null}</PageScreen>;
+  if (state === null) return <PageScreen title="The whole Bible" back={back} testID="mcheyne">{null}</PageScreen>;
   const next = nextPortion(state);
   const open = (portion: Portion) => {
     // Reading from the plan makes it "Your plan" (IA-14), so the reader counts its chapters (RP-04).
     const first = portion[0];
     if (first !== undefined)
       void chooseYourPlan(user, "mcheyne").then(() =>
-        router.push(readerHref({ book: first.b, chapter: first.c, ...(first.vs === undefined ? {} : { verse: first.vs }), resume: true, back: "M’Cheyne" })),
+        router.push(readerHref({ book: first.b, chapter: first.c, ...(first.vs === undefined ? {} : { verse: first.vs }), resume: true, back: "The whole Bible" })),
       );
   };
 
   if (next === null) {
     // DN-03: one quiet line; a new round keeps the finished year in the record.
     return (
-      <PageScreen title="M’Cheyne" back={back} testID="mcheyne">
+      <PageScreen title="The whole Bible" back={back} testID="mcheyne">
         <Prose step="claim" tone="muted" testID="mcheyne-done">
           {`You’ve read all ${MCHEYNE_TOTAL} readings.`}
         </Prose>
         {/* MM-12: the plan's span, the day it was begun, and M'Cheyne's own words, quoted exactly from the
             pinned 1842 Calendar (content/raw/mcheyne/calendar.pdf); approved by John, 13 Oct 2026. */}
         <Chrome step="note" tone="muted" style={{ marginTop: 6 }}>
-          {`The whole Bible, four chapters at a sitting${state.begun === null ? "" : ` · Begun ${formatDay(new Date(state.begun))}`}`}
+          {`365 readings, four chapters each${state.begun === null ? "" : ` · Begun ${formatDay(new Date(state.begun))}`}`}
         </Chrome>
         <Scripture step="claim" style={{ marginTop: sectionGap, fontStyle: "italic" }} testID="mcheyne-preface">
           {MCHEYNE_PREFACE}
@@ -78,7 +78,7 @@ export default function McheyneScreen() {
   const reading = MCHEYNE_READINGS[next.reading] ?? [];
   const done = readingsDone(state);
   return (
-    <PageScreen title="M’Cheyne" back={back} subtitle={`Reading ${next.reading + 1} of ${MCHEYNE_TOTAL}`} testID="mcheyne">
+    <PageScreen title="The whole Bible" back={back} subtitle={`Reading ${next.reading + 1} of ${MCHEYNE_TOTAL}`} testID="mcheyne">
       {reading.map((portion, pi) => {
         const isRead = state.read.has(keyOf(next.reading, pi));
         const isNext = pi === next.portion;

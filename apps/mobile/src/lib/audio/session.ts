@@ -101,9 +101,13 @@ export function segmentFill(segment: Segment, verse: number): number {
   return Math.min(1, Math.max(0, (verse - segment.from + 1) / length));
 }
 
-/** Lock screen and Control Center: "John 1 · BSB" over "Verse 5". */
-export function nowPlayingFor(chapterTitle: string, translation: string, verse: number): { title: string; artist: string } {
-  return { title: `${chapterTitle} · ${translation}`, artist: `Verse ${verse}` };
+/**
+ * iOS's Now Playing on the lock screen, the Dynamic Island, Control Center and the watch: the passage's name over
+ * "Psalm 94:1 · BSB", as Apple Music sets a song over its artist (John, 19 Oct 2026). A book with no passages has the
+ * chapter's name. It is the only player there: Yada's Live Activity, which said the same, was removed.
+ */
+export function nowPlayingFor(passage: string | null, chapterTitle: string, verse: number, translation: string): { title: string; artist: string } {
+  return { title: passage ?? chapterTitle, artist: `${chapterTitle}:${verse} · ${translation}` };
 }
 
 /** The playing line's top, as a share of the lyrics' height (refs_au, AU-04/05, AX5 too). */

@@ -9,7 +9,8 @@ import { View } from "react-native";
 
 import { ListRow, PageScreen } from "../../components/Page";
 import { TextLink } from "../../components/Sheet";
-import { Chrome, SectionTitle } from "../../components/Type";
+import { SourceLine } from "../../components/SourceLine";
+import { SectionTitle } from "../../components/Type";
 import { useLayout } from "../../design/tokens";
 import { DICTIONARY_CREDIT, groupDictionary } from "../../lib/dictionary";
 
@@ -48,9 +49,7 @@ export default function DictionaryScreen() {
           </View>
         );
       })}
-      <Chrome step="note" tone="muted" style={{ marginTop: sectionGap }}>
-        {DICTIONARY_CREDIT}
-      </Chrome>
+      <SourceLine style={{ marginTop: sectionGap }}>{DICTIONARY_CREDIT}</SourceLine>
     </PageScreen>
   );
 }

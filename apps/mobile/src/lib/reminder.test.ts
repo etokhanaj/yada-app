@@ -41,7 +41,7 @@ describe("the reminder", () => {
   });
 
   it("names a plan's reading, never a day (NT-07)", () => {
-    expect(nextInMcheyne(2, ["Genesis 2", "Matthew 2", "Ezra 2", "Acts 2"])).toEqual({ title: "M’Cheyne · Reading 2", body: "Genesis 2 · Matthew 2 · Ezra 2 · Acts 2" });
+    expect(nextInMcheyne(2, ["Genesis 2", "Matthew 2", "Ezra 2", "Acts 2"])).toEqual({ title: "The whole Bible · Reading 2", body: "Genesis 2 · Matthew 2 · Ezra 2 · Acts 2" });
   });
 });
 

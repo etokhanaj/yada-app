@@ -1,11 +1,10 @@
-// Yada's widgets, Lock Screen accessories, controls and the listening Live Activity (canvas SX-01–09, SX-17–23).
+// Yada's widgets, Lock Screen accessories and controls (canvas SX-01–09).
 // The app writes what they show into the App Group (modules/yada-system setWidgetData, setListening), BSB text
 // only: a reader of the NKJV still sees the BSB here (rule 9). One idea across every surface: the passage has a
 // name, so the name leads; the reference is the second line; the verse the third. No cards, badges or counts.
 //
 // The serif is Literata, bundled in the extension (build 8).
 
-import ActivityKit
 import AppIntents
 import SwiftUI
 import WidgetKit
@@ -629,237 +628,6 @@ struct ContinueControl: ControlWidget {
   }
 }
 
-// MARK: - The listening Live Activity (SX-17–23)
-
-/// AU-04's segments: one per passage, filled to the verse.
-struct Segments: View {
-  let fills: [Double]
-  var track: Color = Color("divider")
-  var fill: Color = Color("ink")
-  var body: some View {
-    HStack(spacing: 3) {
-      ForEach(Array(fills.enumerated()), id: \.offset) { _, f in
-        GeometryReader { g in
-          ZStack(alignment: .leading) {
-            Capsule().fill(track)
-            Capsule().fill(fill).frame(width: g.size.width * f)
-          }
-        }
-      }
-    }
-    .frame(height: 3)
-    .accessibilityHidden(true)
-  }
-}
-
-/// The Island's ring: the playing passage, filled to the verse.
-struct PassageRing: View {
-  let value: Double
-  var body: some View {
-    ZStack {
-      Circle().stroke(Color.white.opacity(0.25), lineWidth: 2.5)
-      Circle().trim(from: 0, to: value).stroke(Color("chartreuse"), style: StrokeStyle(lineWidth: 2.5, lineCap: .round)).rotationEffect(.degrees(-90))
-    }
-    .frame(width: 18, height: 18)
-    .accessibilityHidden(true)
-  }
-}
-
-/// SX-17: Yada's mark leading the activity's title row, a 24 pt tile on the brand night with the mark in chartreuse,
-/// as the app's icon is in either theme (canvas `.sxlam`). Path from the canvas's mark, on a 256 grid.
-struct YadaMark: View {
-  struct Glyph: Shape {
-    func path(in rect: CGRect) -> Path {
-      let s = min(rect.width, rect.height) / 256
-      let p = { (x: CGFloat, y: CGFloat) in CGPoint(x: rect.minX + x * s, y: rect.minY + y * s) }
-      var path = Path()
-      path.move(to: p(34, 42))
-      path.addCurve(to: p(94, 64), control1: p(62, 40), control2: p(80, 44))
-      path.addCurve(to: p(131, 133), control1: p(104, 79), control2: p(115, 101))
-      path.addLine(to: p(144, 161))
-      path.addCurve(to: p(151, 101), control1: p(146, 139), control2: p(146, 119))
-      path.addCurve(to: p(221, 40), control1: p(158, 77), control2: p(181, 53))
-      path.addLine(to: p(221, 94))
-      path.addCurve(to: p(164, 119), control1: p(191, 94), control2: p(174, 103))
-      path.addCurve(to: p(150, 172), control1: p(157, 131), control2: p(154, 152))
-      path.addCurve(to: p(99, 227), control1: p(145, 198), control2: p(128, 221))
-      path.addCurve(to: p(42, 208), control1: p(75, 232), control2: p(49, 226))
-      path.addCurve(to: p(61, 169), control1: p(34, 190), control2: p(43, 171))
-      path.addCurve(to: p(91, 196), control1: p(80, 167), control2: p(94, 179))
-      path.addCurve(to: p(81, 214), control1: p(90, 204), control2: p(86, 210))
-      path.addCurve(to: p(112, 191), control1: p(97, 214), control2: p(108, 205))
-      path.addCurve(to: p(105, 155), control1: p(115, 180), control2: p(112, 169))
-      path.addLine(to: p(60, 76))
-      path.addCurve(to: p(34, 42), control1: p(50, 57), control2: p(43, 47))
-      path.closeSubpath()
-      return path
-    }
-  }
-
-  var body: some View {
-    Glyph().fill(Color("chartreuse"))
-      .frame(width: 16, height: 16)
-      .frame(width: 24, height: 24)
-      .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(Color("mark")))
-      .accessibilityHidden(true)
-  }
-}
-
-/// Previous, play or pause, next by verse; every target at least 44 pt.
-struct Controls: View {
-  let playing: Bool
-  var tint: Color = Color("ink")
-  var onTint: Color = Color("paper")
-  var body: some View {
-    if #available(iOS 17.0, *) {
-      HStack(spacing: 4) {
-        Button(intent: YadaControlIntent(command: "previous")) {
-          Image(systemName: "backward.end.fill").frame(width: 44, height: 44)
-        }
-        .accessibilityLabel("Previous verse")
-        Button(intent: YadaControlIntent(command: "toggle")) {
-          Image(systemName: playing ? "pause.fill" : "play.fill").foregroundStyle(onTint).frame(width: 44, height: 44).background(Circle().fill(tint))
-        }
-        .accessibilityLabel(playing ? "Pause" : "Play")
-        Button(intent: YadaControlIntent(command: "next")) {
-          Image(systemName: "forward.end.fill").frame(width: 44, height: 44)
-        }
-        .accessibilityLabel("Next verse")
-      }
-      .font(.body.weight(.semibold))
-      .foregroundStyle(tint)
-      .buttonStyle(.plain)
-    }
-  }
-}
-
-struct StatusLine: View {
-  let state: ReadingAttributes.ContentState
-  var color: Color = Color("mutedInk")
-  var body: some View {
-    if let line = state.line {
-      Label(line, systemImage: state.lineGlyph == "repeat" ? "repeat" : "moon")
-        .font(.caption)
-        .foregroundStyle(color)
-        .lineLimit(1)
-    }
-  }
-}
-
-/// SX-17–19, and SX-22 in StandBy (isActivityFullscreen): the verse fills the screen there.
-struct ActivityView: View {
-  let state: ReadingAttributes.ContentState
-  @Environment(\.dynamicTypeSize) private var size
-
-  var body: some View {
-    if #available(iOS 17.0, *) { Inner(state: state, size: size) } else { LockScreen(state: state, size: size) }
-  }
-
-  @available(iOS 17.0, *)
-  struct Inner: View {
-    let state: ReadingAttributes.ContentState
-    let size: DynamicTypeSize
-    @Environment(\.isActivityFullscreen) private var fullscreen
-    var body: some View {
-      if fullscreen { StandBy(state: state) } else { LockScreen(state: state, size: size) }
-    }
-  }
-
-  struct LockScreen: View {
-    let state: ReadingAttributes.ContentState
-    let size: DynamicTypeSize
-    var body: some View {
-      VStack(alignment: .leading, spacing: 8) {
-        HStack(alignment: .center, spacing: 10) {
-          YadaMark()
-          Text(state.title).font(Fonts.name(.headline)).foregroundStyle(Color("ink")).lineLimit(2)
-          Spacer(minLength: 8)
-          Text(state.ref).font(.subheadline.weight(.semibold)).monospacedDigit().foregroundStyle(Color("mutedInk"))
-        }
-        // SX-19: the chapter's name, in ink, while it is said. AX5 keeps name, line and controls (160 pt cap).
-        if let spoken = state.spoken {
-          Text(spoken).font(Fonts.name(.subheadline)).foregroundStyle(Color("ink"))
-        } else if !size.isAccessibilitySize, !state.verse.isEmpty {
-          Text(state.verse).font(Fonts.verse(.subheadline)).foregroundStyle(Color("ink")).lineLimit(2)
-        }
-        Segments(fills: state.segments)
-        HStack {
-          StatusLine(state: state)
-          Spacer(minLength: 4)
-          Controls(playing: state.playing)
-        }
-      }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 12)
-      .accessibilityElement(children: .contain)
-    }
-  }
-
-  struct StandBy: View {
-    let state: ReadingAttributes.ContentState
-    var body: some View {
-      HStack(alignment: .center, spacing: 24) {
-        VStack(alignment: .leading, spacing: 10) {
-          // SX-22: "The Word became flesh · John 1:5": in StandBy nothing else names the book.
-          Text("\(state.title) · \(state.reference ?? state.ref)").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
-          Text(state.spoken ?? state.verse).font(Fonts.verse(.largeTitle)).foregroundStyle(.primary).minimumScaleFactor(0.5)
-          Segments(fills: state.segments, track: .secondary.opacity(0.3), fill: .primary)
-          StatusLine(state: state, color: .secondary)
-        }
-        Controls(playing: state.playing, tint: .primary, onTint: .black)
-      }
-      .padding(24)
-    }
-  }
-}
-
-/// SX-20, SX-21: the Island. Compact, the passage ring and the verse; minimal, the ring; expanded, the
-/// Lock Screen activity around the camera.
-struct ReadingActivityWidget: Widget {
-  var body: some WidgetConfiguration {
-    ActivityConfiguration(for: ReadingAttributes.self) { context in
-      ActivityView(state: context.state)
-        .activityBackgroundTint(Color("paper"))
-        .activitySystemActionForegroundColor(Color("ink"))
-        .widgetURL(URL(string: "studio.yada.reader:///open?to=player"))
-    } dynamicIsland: { context in
-      DynamicIsland {
-        DynamicIslandExpandedRegion(.leading) {
-          PassageRing(value: context.state.ring).padding(.leading, 4)
-        }
-        DynamicIslandExpandedRegion(.center) {
-          Text(context.state.title).font(Fonts.name(.headline)).foregroundStyle(.white).lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
-        }
-        DynamicIslandExpandedRegion(.trailing) {
-          Text(context.state.ref).font(.subheadline.weight(.semibold)).monospacedDigit().foregroundStyle(.white.opacity(0.7))
-        }
-        DynamicIslandExpandedRegion(.bottom) {
-          VStack(alignment: .leading, spacing: 8) {
-            if let spoken = context.state.spoken {
-              Text(spoken).font(Fonts.name(.subheadline)).foregroundStyle(.white)
-            } else if !context.state.verse.isEmpty {
-              Text(context.state.verse).font(Fonts.verse(.subheadline)).foregroundStyle(.white).lineLimit(2)
-            }
-            Segments(fills: context.state.segments, track: .white.opacity(0.2), fill: .white)
-            HStack {
-              StatusLine(state: context.state, color: .white.opacity(0.7))
-              Spacer(minLength: 4)
-              Controls(playing: context.state.playing, tint: .white, onTint: .black)
-            }
-          }
-        }
-      } compactLeading: {
-        PassageRing(value: context.state.ring)
-      } compactTrailing: {
-        Text(context.state.ref).font(.caption.weight(.semibold)).monospacedDigit().foregroundStyle(Color("chartreuse"))
-      } minimal: {
-        PassageRing(value: context.state.ring)
-      }
-      .widgetURL(URL(string: "studio.yada.reader:///open?to=player"))
-    }
-  }
-}
-
 // MARK: - The bundle
 
 @main
@@ -868,7 +636,6 @@ struct YadaWidgets: WidgetBundle {
     ContinueWidget()
     TodayWidget()
     ListenWidget()
-    ReadingActivityWidget()
     controls
   }
 
@@ -901,11 +668,4 @@ struct YadaWidgets: WidgetBundle {
 #Preview("Lock Screen verse", as: .accessoryRectangular) { TodayWidget() } timeline: { Entry.preview }
 @available(iOS 17.0, *)
 #Preview("Lock Screen inline", as: .accessoryInline) { TodayWidget() } timeline: { Entry.preview }
-@available(iOS 17.0, *)
-#Preview("Live Activity", as: .content, using: ReadingAttributes()) { ReadingActivityWidget() } contentStates: {
-  ReadingAttributes.ContentState(
-    title: "The Word became flesh", ref: "1:5", reference: "John 1:5", verse: "The Light shines in the darkness, and the darkness has not overcome it.",
-    spoken: nil, line: "Stops after 1:18", lineGlyph: "stop", segments: [5.0 / 18, 0, 0], ring: 5.0 / 18, playing: true
-  )
-}
 #endif

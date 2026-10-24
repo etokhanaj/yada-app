@@ -89,7 +89,9 @@ const DARK: Palette = {
   edge: "rgba(255,255,255,0.1)",
   sheet: "#161716",
   card: "#171917",
-  highlights: { yellow: "#4B4420", green: "#21401F", blue: "#1D3448", pink: "#48283A" },
+  // Deeper and less green than build 10's (yellow was olive #4B4420): the verses still to come during read-along are
+  // muted ink, and on the old washes they fell to 3.6:1 (John, 19 Oct 2026). Each now keeps muted text at 4.5:1.
+  highlights: { yellow: "#3E3418", green: "#1F3B24", blue: "#1C3348", pink: "#45263A" },
   swatches: SWATCHES,
 };
 
@@ -121,6 +123,23 @@ export function paletteFor(dark: boolean, increaseContrast: boolean): Palette {
 }
 
 /**
+ * White on the day's picture and on the forest and night grounds (Build 11 colour pass, docs/colour-rules.md): seven
+ * screens had drawn their own alphas, 0.75 to 0.92. Text is `strong` or `muted`; glass circles, marks and tracks
+ * each have one value.
+ */
+export const ON_PICTURE = {
+  text: "#FFFFFF",
+  strong: "rgba(255,255,255,0.9)",
+  muted: "rgba(255,255,255,0.78)",
+  glass: "rgba(255,255,255,0.18)",
+  glassSolid: "rgba(255,255,255,0.28)",
+  mark: "rgba(255,255,255,0.35)",
+  track: "rgba(255,255,255,0.22)",
+  // The lamp's disc under Reduce Transparency, where the glass is drawn solid.
+  disc: "rgba(0,0,0,0.55)",
+} as const;
+
+/**
  * Yada's brand grounds, the same in both appearances: the forest card (DO-01, the calm close), its night (Return,
  * the launch, a full-screen verse with no picture, RT-08: "the deep forest, never blank") and the chartreuse kicker.
  */
@@ -131,4 +150,41 @@ export const BRAND = {
   forestCardDark: "#1E4A3E",
   night: "#0E1814",
   chartreuse: "#DBEC9A",
+  // Text on chartreuse (the lit lamp's count) and on the night ground (Sit with this).
+  ink: "#111311",
+  onNight: "#F2F4EF",
+} as const;
+
+/**
+ * The Settle orb's light (BR-05 A, John 23 Oct 2026): pale at the centre through chartreuse to a dimmer green at its
+ * edge, so it reads as lit rather than flat on the night ground. The one source of these colours; only the orb uses
+ * them.
+ */
+export const ORB_LIGHT = { centre: "#EEF5D2", edge: "#A3BC75", rim: "#7E9A5E" } as const;
+
+/**
+ * People's avatar hues (docs/colour-rules.md, John 18 Oct 2026): one hue per person, from their id, the same on every
+ * screen. Deep with white initials on light surfaces; pale with ink initials on dark and forest ones. Never green,
+ * which is the place (a circle's band and cover), never a person.
+ */
+export const AVATAR_HUES = {
+  lime: { deep: "#4F6B12", pale: "#DBEC9A" },
+  amber: { deep: "#7E5D1E", pale: "#EBD9AE" },
+  clay: { deep: "#9A4A30", pale: "#E8B49C" },
+  sky: { deep: "#2F6494", pale: "#B4CDE6" },
+  rose: { deep: "#954058", pale: "#EBBDC6" },
+  lilac: { deep: "#62509A", pale: "#D2C6EC" },
+} as const;
+export type AvatarHue = keyof typeof AVATAR_HUES;
+export const AVATAR_INK = { onDeep: "#FFFFFF", onPale: "#16231E" } as const;
+/** An open place in a circle (PC-05, PC-08): a ring with nothing in it. */
+export const AVATAR_SLOT = { onLight: "rgba(22,35,30,0.28)", onDark: "rgba(242,245,234,0.4)" } as const;
+
+/** A circle's tone for its cover and band, from the circle's id; it means nothing (not "new", not "yours"). */
+export const CIRCLE_TONES = ["#1F4A3D", "#22302A", "#4E6E60"] as const;
+
+/** Colours iOS draws itself in a native menu: a destructive item's red title, and a plain item's icon. */
+export const SYSTEM = {
+  red: { light: "#FF3B30", dark: "#FF453A" },
+  menuIcon: "#000000",
 } as const;

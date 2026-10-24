@@ -6,6 +6,8 @@
  * - EndOfBook: after a book's last chapter the swipe stops here, never running into the next book
  *   (SW-03). RT-04: the book's own last verse set as a quotation, the claim only when every chapter was read, and
  *   the next book as the one card (this is MM-08, merged).
+ * - BookWelcome: arriving at a book from the one before it, one pause with its approved introduction and Start (SC-06);
+ *   opening the book directly skips it.
  */
 
 import { BOOK_CODES, type BookCode, verseOrd } from "@yada/schema";
@@ -22,8 +24,12 @@ import { bookProgress, endTitle, nextBookAfter, progressLabel } from "../lib/cha
 import { chapterTitle } from "../lib/reader";
 import { ChapterBar, NextCard, useFirstVerse } from "./ChapterClose";
 import { Icon } from "./Icon";
-import { Chrome, Scripture } from "./Type";
-import { BRAND } from "../design/palette";
+import { Chrome, Prose, Scripture } from "./Type";
+import type { BookIntro } from "../lib/bookIntro";
+import { INTRO_CREDIT } from "../lib/orientation";
+import { Pill } from "./Pill";
+import { SourceLine } from "./SourceLine";
+import { BRAND, ON_PICTURE } from "../design/palette";
 
 const PEEK_VERSES = 8;
 
@@ -104,13 +110,13 @@ export function EndOfBook({ book, onNext, onClose }: { book: BookCode; onNext: (
       )}
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: gutter + 12, paddingTop: insets.top + control + 40, paddingBottom: 20 }} bounces={false}>
         <View accessible accessibilityRole="image" accessibilityLabel={label} style={{ marginBottom: 24 }} testID="end-bar">
-          <ChapterBar book={book} readKeys={data?.read ?? new Set()} lit={BRAND.chartreuse} unlit="rgba(255,255,255,0.22)" height={6} />
+          <ChapterBar book={book} readKeys={data?.read ?? new Set()} lit={BRAND.chartreuse} unlit={ON_PICTURE.track} height={6} />
         </View>
         <Chrome accessibilityRole="header" maxFontSizeMultiplier={1.6} style={styles.endTitle}>
           {endTitle(name, progress)}
         </Chrome>
         {progress.complete ? null : (
-          <Chrome step="note" style={{ color: "rgba(255,255,255,0.75)", marginTop: 6 }}>
+          <Chrome step="note" style={{ color: ON_PICTURE.muted, marginTop: 6 }}>
             {label}
           </Chrome>
         )}
@@ -135,11 +141,41 @@ export function EndOfBook({ book, onNext, onClose }: { book: BookCode; onNext: (
   );
 }
 
+export function BookWelcome({ book, from, intro, onStart, onBack }: { book: BookCode; from: BookCode; intro: BookIntro; onStart: () => void; onBack: () => void }) {
+  const palette = usePalette();
+  const { gutter } = useLayout();
+  const insets = useSafeAreaInsets();
+  const name = BOOK_CODES[book].name;
+  const back = chapterTitle(from, BOOK_CODES[from].chapters);
+  return (
+    <View style={{ flex: 1, backgroundColor: palette.paper, paddingTop: insets.top, paddingBottom: insets.bottom + 16 }} testID="book-welcome">
+      <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel={`Back to ${back}`} style={[styles.welcomeBack, { paddingHorizontal: gutter }]} testID="book-welcome-back">
+        <Icon name="back" size={22} tone="accent" />
+        <Chrome tone="accent">{back}</Chrome>
+      </Pressable>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: gutter, paddingTop: 40, paddingBottom: 20 }}>
+        <Chrome accessibilityRole="header" tone="ink" maxFontSizeMultiplier={1.8} style={styles.welcomeTitle}>
+          {name}
+        </Chrome>
+        <Prose step="claim" tone="muted">
+          {intro.text}
+        </Prose>
+        <SourceLine style={{ marginTop: 10 }}>{INTRO_CREDIT}</SourceLine>
+      </ScrollView>
+      <View style={{ paddingHorizontal: gutter, alignItems: "flex-start" }}>
+        <Pill accent title={`Start ${name} 1`} onPress={onStart} testID="book-welcome-start" />
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  welcomeBack: { flexDirection: "row", alignItems: "center", columnGap: 4, minHeight: 44 },
+  welcomeTitle: { fontFamily: "Literata", fontSize: 44, lineHeight: 48, fontWeight: "600", letterSpacing: -0.8, marginBottom: 16 },
   number: { fontFamily: "System", fontSize: 12, fontWeight: "600" },
   passage: { fontFamily: "Literata", fontSize: 19, lineHeight: 25, fontWeight: "600", marginBottom: 10 },
   endRoot: { flex: 1 },
-  endClose: { position: "absolute", left: 16, zIndex: 2, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.16)" },
-  endTitle: { color: "#FFFFFF", fontFamily: "Literata", fontSize: 42, lineHeight: 48, fontWeight: "600", letterSpacing: -0.6 },
-  endQuote: { color: "rgba(255,255,255,0.82)", fontFamily: "LiterataItalic", fontSize: 17, lineHeight: 25, marginTop: 18 },
+  endClose: { position: "absolute", left: 16, zIndex: 2, alignItems: "center", justifyContent: "center", backgroundColor: ON_PICTURE.glass },
+  endTitle: { color: ON_PICTURE.text, fontFamily: "Literata", fontSize: 42, lineHeight: 48, fontWeight: "600", letterSpacing: -0.6 },
+  endQuote: { color: ON_PICTURE.strong, fontFamily: "LiterataItalic", fontSize: 17, lineHeight: 25, marginTop: 18 },
 });

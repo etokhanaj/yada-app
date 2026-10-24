@@ -72,7 +72,9 @@ const BsbNoteSchema = z.object({
 });
 export type BsbNote = z.infer<typeof BsbNoteSchema>;
 
-const KeyWordSchema = z.object({ term: z.string(), definition: z.string(), kind: z.string() });
+// lead: the sentence of the definition that fits this verse (pipeline leadSentence, 23 Oct 2026). Optional because
+// Understand bundles built before it are still on phones; the app shows the first sentence for those.
+const KeyWordSchema = z.object({ term: z.string(), definition: z.string(), kind: z.string(), lead: z.string().optional() });
 export type TranslationWord = z.infer<typeof KeyWordSchema>;
 
 const VerseLayersSchema = z.object({

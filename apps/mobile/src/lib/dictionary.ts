@@ -9,7 +9,7 @@ import { type BookCode, ordToParts } from "@yada/schema";
 import { DICTIONARY, type DictionaryKind, type DictionaryRow, GUIDES } from "../data/dictionary.generated";
 
 /** The credit Key words already carries (components/UnderstandPages.tsx): the same source, said the same way. */
-export const DICTIONARY_CREDIT = "Translation Words, adapted from unfoldingWord (definition only) · CC BY‑SA 4.0";
+export const DICTIONARY_CREDIT = "unfoldingWord, adapted";
 
 /** DI-04's three groups, in its order: Translation Words' own folders (kt, names, other). */
 export const DICTIONARY_GROUPS: readonly { readonly kind: DictionaryKind; readonly title: string }[] = [

@@ -34,17 +34,19 @@ import { isLicensedCode } from "./licensed";
 import {
   clearRetiredReadings,
   DEFAULT_NARRATOR,
-  ensureChapter,
   isRecorded,
   readText,
   type Recording,
   recordingOnPhone,
   refreshRecordings,
+  saveStreamed,
   setNarrator,
+  streamChapter,
   titleOnPhone,
   useRecordings,
 } from "./recordings";
 import { loadPericopes } from "./understand";
+import { pericopeForVerse, type PericopeRow } from "../lib/pericopes";
 import { saveSetting } from "./user";
 
 let core: SQLiteDatabase | null = null;
@@ -58,11 +60,14 @@ let spoken: { text: SpokenText; words: WordRange[] } | null = null;
 /** Paused by a call or Siri rather than by the reader, so iOS may resume it. */
 let pausedByInterruption = false;
 /** The ords that open a passage in the session's book, for the longer rest before them. */
-let passageStarts: { book: BookCode; ords: ReadonlySet<number> } | null = null;
+/**
+ * Where in the recording the verse now playing began (seconds), or null while the iPhone voice reads: the lock
+ * screen's bar shows real time only for a recording, and from where it actually resumed (code review, 23 Oct 2026).
+ */
+let segmentStart: number | null = null;
+let passageStarts: { book: BookCode; ords: ReadonlySet<number>; rows: readonly PericopeRow[] } | null = null;
 /** The chapter recording the session is reading from, when it reads the recording (data/recordings.ts). */
 let recording: { book: BookCode; chapter: number; rec: Recording } | null = null;
-/** The first-play fetch under way (BA-02), so its stop can end it. */
-let fetchAbort: AbortController | null = null;
 /** Counts prepareRecording calls, so a call overtaken by a newer one writes nothing. */
 let prepares = 0;
 
@@ -113,6 +118,23 @@ export function initAudio(coreDb: SQLiteDatabase, userDb: SQLiteDatabase, stored
     Speech.addListener("onRouteLost", () => {
       if (useAudio.getState().session?.status === "playing") pause();
     }),
+    Speech.addListener("onBuffering", ({ waiting }) => {
+      if (useAudio.getState().session?.buffering !== waiting) set({ buffering: waiting });
+    }),
+    // A streamed chapter is all here: kept once it checks out, so the next play needs no connection.
+    Speech.addListener("onStreamSaved", ({ url }) => {
+      if (recording?.rec.path === url) void saveStreamed(recording.rec);
+    }),
+    // The connection went mid-chapter: the iPhone voice reads on from this word (BA-05's line says why).
+    Speech.addListener("onStreamFailed", ({ url }) => {
+      if (recording?.rec.path !== url) return;
+      recording = null;
+      segmentStart = null;
+      set({ recorded: false, buffering: false });
+      useAudio.setState({ voiceNote: "You’re offline." });
+      const s = useAudio.getState().session;
+      if (s?.status === "playing") speakCurrent(s.word);
+    }),
     Speech.addListener("onVoiceUnavailable", () => {
       // The voice went while backgrounded: carry on from this word in the system voice.
       const s = useAudio.getState().session;
@@ -150,12 +172,12 @@ export async function listen(book: BookCode, chapter: number, verse: number): Pr
   useAudio.setState({ session: { book, chapter, translation, verses, index, word: null, status: "playing" } });
   void loadPassageStarts(book);
   await prepareRecording(book, chapter);
-  // BA-02: a stop while the recording was fetched leaves the session paused; nothing starts by itself.
+  // A pause while the timings were fetched leaves the session paused; nothing starts by itself.
   const now = useAudio.getState().session;
   if (now?.status === "playing" && now.book === book && now.chapter === chapter) speakCurrent();
 }
 
-/** Headphones, the lock screen and the Live Activity's buttons (WL-02, WL-03) all come here. */
+/** Headphones, the lock screen's Now Playing and Control Center all come here. */
 export function remoteCommand(command: string): void {
   if (command === "play") resume();
   else if (command === "pause") pause();
@@ -166,8 +188,6 @@ export function remoteCommand(command: string): void {
 
 /** Remove my data (ST-03): the reading stops and the player goes; nothing is left to resume. */
 export function endSession(): void {
-  fetchAbort?.abort();
-  fetchAbort = null;
   recording = null;
   activeId = null;
   void Speech?.stop();
@@ -184,13 +204,6 @@ export function setRepeat(repeat: Repeat | null): void {
   useAudio.setState((a) => ({ repeat, stop: keepStop(a.stop, repeat) }));
 }
 
-/** BA-02's stop: the fetch ends and the reading waits, paused, for Play. */
-export function stopFetching(): void {
-  fetchAbort?.abort();
-  fetchAbort = null;
-  pause();
-}
-
 /** What the read-along reads for a page in `translation`: itself, the BSB under a licensed one, or nothing. */
 export function audioTranslation(translation: string): string | null {
   if (canSpeak(translation)) return translation;
@@ -198,7 +211,7 @@ export function audioTranslation(translation: string): string | null {
 }
 
 /**
- * The chapter's reading by Heart or George, when it can be had (BA-02: the first play fetches it).
+ * The chapter's reading by Heart or George, when it can be had: the first play streams it, saved as it plays (ST-01).
  * Offline with nothing saved, the iPhone voice reads and one line says why (BA-05).
  */
 async function prepareRecording(book: BookCode, chapter: number): Promise<void> {
@@ -206,11 +219,9 @@ async function prepareRecording(book: BookCode, chapter: number): Promise<void> 
   // older chapter's recording when that fetch lands (review, 12 Oct 2026).
   const token = ++prepares;
   const current = () => token === prepares;
-  fetchAbort?.abort();
-  fetchAbort = null;
   const s = useAudio.getState().session;
   recording = null;
-  if (s?.fetching !== undefined) set({ fetching: undefined });
+  if (s?.buffering === true) set({ buffering: false });
   // The session's own text, read by its own reading (LB-09): the BSB, WEB, KJV or LSV. A licensed text never
   // reaches a session (audioTranslation, EG-03), and readText would refuse it anyway (rule 9).
   const text = s === null ? null : readText(s.translation);
@@ -222,16 +233,9 @@ async function prepareRecording(book: BookCode, chapter: number): Promise<void> 
   if (rec === null) await refreshRecordings();
   if (!current()) return;
   if (rec === null && isRecorded(book, chapter, text) && useRecordings.getState().online === true) {
-    // BA-02: the first play of a chapter fetches it, with a ring that stops it.
-    const abort = new AbortController();
-    fetchAbort = abort;
-    set({ fetching: 0 });
-    rec = await ensureChapter(book, chapter, { onProgress: (share) => {
-        if (current()) set({ fetching: share });
-      }, signal: abort.signal }, text);
+    // ST-01: the first play streams; only its small timings file is waited for.
+    rec = await streamChapter(book, chapter, text);
     if (!current()) return;
-    fetchAbort = null;
-    set({ fetching: undefined });
   }
   recording = rec === null ? null : { book, chapter, rec };
   set({ recorded: rec !== null });
@@ -255,7 +259,8 @@ export async function chooseReading(narrator: string): Promise<void> {
 async function loadPassageStarts(book: BookCode): Promise<void> {
   if (passageStarts?.book === book) return;
   const pericopes = await loadPericopes(book);
-  passageStarts = { book, ords: new Set(pericopes.map((p) => p.start_ord)) };
+  passageStarts = { book, ords: new Set(pericopes.map((p) => p.start_ord)), rows: pericopes };
+  updateNowPlaying();
 }
 
 /** The full player's lines and Play from within the session's chapter. */
@@ -297,7 +302,7 @@ export function resume(): void {
   updateNowPlaying();
   const text = readText(s.translation);
   if (s.recorded !== true && text !== null && isRecorded(s.book, s.chapter, text)) {
-    // BA-02: Play after a stopped fetch tries the recording again (offline, the iPhone voice reads: BA-05).
+    // Play after a pause before the recording was ready tries it again (offline, the iPhone voice reads: BA-05).
     void prepareRecording(s.book, s.chapter).then(() => {
       if (useAudio.getState().session?.status === "playing") speakCurrent(useAudio.getState().session?.word ?? null);
     });
@@ -377,10 +382,12 @@ function speakCurrent(fromWord: WordRange | null = null, opening: VerseOpening =
       const k = fromWord === null ? 0 : Math.max(0, words.findIndex((w) => w.start === fromWord.start));
       const id = `${s.book}.${s.chapter}.${verse.verse}#${++counter}`;
       activeId = id;
+      segmentStart = timing.words[k] ?? timing.start;
       Speech.playSegment(
         id,
         {
           path: recording.rec.path,
+          ...(recording.rec.stream === undefined ? {} : { savePath: recording.rec.stream.savePath, bytes: recording.rec.stream.bytes }),
           start: timing.words[k] ?? timing.start,
           end: timing.end,
           times: timing.words.slice(k),
@@ -392,6 +399,7 @@ function speakCurrent(fromWord: WordRange | null = null, opening: VerseOpening =
         // rather than the session sitting silent at "playing" (review, 12 Oct 2026).
         if (activeId !== id) return;
         recording = null;
+        segmentStart = null;
         set({ recorded: false });
         if (useAudio.getState().session?.status === "playing") speakCurrent(fromWord);
       });
@@ -407,6 +415,7 @@ function speakCurrent(fromWord: WordRange | null = null, opening: VerseOpening =
     pause: pauseFor(p.pause, speed),
   }));
   activeId = `${s.book}.${s.chapter}.${verse.verse}#${++counter}`;
+  segmentStart = null;
   void Speech.speak(activeId, phrases, rateFor(speed), lead, null);
   updateNowPlaying();
 }
@@ -532,5 +541,14 @@ function updateNowPlaying(): void {
   const s = useAudio.getState().session;
   const verse = s === null ? undefined : currentVerse(s);
   if (s === null || verse === undefined) return;
-  void Speech?.setNowPlaying({ ...nowPlayingFor(chapterTitle(s.book, s.chapter), s.translation, verse.verse), playing: s.status === "playing" });
+  const passage = passageStarts?.book === s.book ? (pericopeForVerse(passageStarts.rows, verse.ord)?.label ?? null) : null;
+  // Real time only from a recording, whose timings say when each verse starts: the iPhone voice has no length to
+  // show, so its bar stays empty rather than counting invented seconds (rule 4's spirit).
+  // The native side reads the player's own position; `elapsed` is the fallback before it has one.
+  const rec = segmentStart !== null && recording !== null ? recording.rec.timings : null;
+  void Speech?.setNowPlaying({
+    ...nowPlayingFor(passage, chapterTitle(s.book, s.chapter), verse.verse, s.translation),
+    playing: s.status === "playing",
+    ...(rec !== null && segmentStart !== null ? { elapsed: segmentStart, duration: rec.duration, rate: useAudio.getState().speed } : {}),
+  });
 }

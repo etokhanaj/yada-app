@@ -22,6 +22,7 @@ import { Icon } from "../Icon";
 import { Chrome } from "../Type";
 import { type Segment, segmentFill } from "../../lib/audio/session";
 import { MediaIcon, type MediaIconName } from "./MediaIcon";
+import { Buffering, bufferingLabel } from "./Buffering";
 
 function Bar({ children, onHeight, testID }: { children: ReactNode; onHeight: (h: number) => void; testID: string }) {
   const palette = usePalette();
@@ -151,8 +152,7 @@ export function MiniPlayer({
   onHeight,
   nextDisabled,
   under,
-  fetching,
-  onStop,
+  buffering,
   onClose,
   progress,
 }: {
@@ -172,9 +172,8 @@ export function MiniPlayer({
   nextDisabled?: boolean;
   /** EG-03: the audio is the BSB under a licensed page, with one tap to read along in it. */
   under?: { line: string; action: string; onAction: () => void } | null;
-  /** BA-02: the first play is fetching the recording, this share of it; the one control is a stop. */
-  fetching?: number;
-  onStop?: () => void;
+  /** ST-01: a streaming chapter is waiting for bytes; the play control shows a spinner. */
+  buffering?: boolean;
   /**
    * The chapter's progress as a line along the bar's top, split at its passages as in the full player: the
    * familiar mark of a mini player that opens into a bigger one (John, 15 Oct 2026; Future Pro's compact player,
@@ -192,7 +191,7 @@ export function MiniPlayer({
       onPress={onPress}
       disabled={testID === "mini-next" && nextDisabled === true}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={primary && buffering === true ? bufferingLabel(label) : label}
       accessibilityState={testID === "mini-next" && nextDisabled === true ? { disabled: true } : undefined}
       testID={testID}
       style={({ pressed }) => [
@@ -202,7 +201,7 @@ export function MiniPlayer({
         pressed ? styles.pressed : null,
       ]}
     >
-      <MediaIcon name={name} size={ax ? 30 : primary ? 22 : 20} tone={primary ? "paper" : "ink"} maxScale={1} />
+      {primary && buffering === true ? <Buffering large={ax} /> : <MediaIcon name={name} size={ax ? 30 : primary ? 22 : 20} tone={primary ? "paper" : "ink"} maxScale={1} />}
     </Pressable>
   );
   return (
@@ -241,42 +240,28 @@ export function MiniPlayer({
             {detail}
           </Chrome>
         </Pressable>
-        {fetching !== undefined ? (
-          <View style={[styles.row, { alignItems: "center", justifyContent: ax ? "flex-end" : "flex-start" }]}>
+        <View style={[styles.row, { alignItems: "center", columnGap: 4, justifyContent: ax ? "space-between" : "flex-start" }]}>
+          {control("previous", "Previous verse", onPrevious, "mini-previous")}
+          {control(playing ? "pause" : "play", playing ? "Pause" : "Play", onToggle, "mini-toggle", true)}
+          {control("next", "Next verse", onNext, "mini-next")}
+          {!playing && onClose !== undefined ? (
             <Pressable
-              onPress={onStop}
+              onPress={onClose}
               accessibilityRole="button"
-              accessibilityLabel={`Stop, ${Math.round(fetching * 100)} percent`}
-              testID="mini-stop"
+              accessibilityLabel="Stop listening"
+              testID="mini-close"
               style={({ pressed }) => [styles.round, { width: round, height: round }, pressed ? styles.pressed : null]}
             >
-              <StopRing share={fetching} size={ax ? 44 : 30} />
+              <Icon name="close" size={ax ? 26 : 18} maxScale={1} />
             </Pressable>
-          </View>
-        ) : (
-          <View style={[styles.row, { alignItems: "center", columnGap: 4, justifyContent: ax ? "space-between" : "flex-start" }]}>
-            {control("previous", "Previous verse", onPrevious, "mini-previous")}
-            {control(playing ? "pause" : "play", playing ? "Pause" : "Play", onToggle, "mini-toggle", true)}
-            {control("next", "Next verse", onNext, "mini-next")}
-            {!playing && onClose !== undefined ? (
-              <Pressable
-                onPress={onClose}
-                accessibilityRole="button"
-                accessibilityLabel="Stop listening"
-                testID="mini-close"
-                style={({ pressed }) => [styles.round, { width: round, height: round }, pressed ? styles.pressed : null]}
-              >
-                <Icon name="close" size={ax ? 26 : 18} maxScale={1} />
-              </Pressable>
-            ) : null}
-          </View>
-        )}
+          ) : null}
+        </View>
       </View>
     </Bar>
   );
 }
 
-/** BA-02's ring: the share fetched, around a stop square (canvas `.pring`). */
+/** BA-04's ring: the share of a book downloaded, around a stop square (canvas `.pring`). */
 export function StopRing({ share, size }: { share: number; size: number }) {
   const palette = usePalette();
   const r = 15;

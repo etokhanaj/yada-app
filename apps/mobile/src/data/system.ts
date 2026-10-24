@@ -3,7 +3,6 @@
  * - the widgets and Lock Screen accessories: the reading place in its passage and two weeks of "A passage
  *   for today", BSB text only (SX-01–08);
  * - what is playing, for the Listen buttons and the Control Center toggle (SX-05, SX-09);
- * - the listening Live Activity, following the session (SX-17–23);
  * - Spotlight: every BSB verse and every chapter, once per core version (SX-12);
  * - the doors back in (Siri, App Shortcuts, Spotlight, widget buttons): each lands at depth 0 or 1, never a
  *   sheet on a sheet; the Listen and stop/repeat doors act without opening the app.
@@ -16,14 +15,12 @@ import type { SQLiteDatabase } from "expo-sqlite";
 
 import { system } from "../../modules/yada-system";
 import { openFromOutside, openHref } from "../components/navigation";
-import { listen, pause, remoteCommand, resume, setRepeat, setStop } from "./audio";
+import { listen, pause, resume, setRepeat, setStop } from "./audio";
 import { loadMcheyne, loadYourPlan } from "./plans";
 import { type Db, getChapter, type VerseText } from "./queries";
 import { loadProgress } from "./startHere";
 import { loadPassageFor, loadPericopes } from "./understand";
 import { loadPosition, loadSettings, saveSetting } from "./user";
-import { progressSegments } from "../lib/audio/session";
-import { statusLine } from "../lib/audio/stop";
 import { pericopeForVerse, type PericopeRow } from "../lib/pericopes";
 import { MCHEYNE_READINGS, nextPortion } from "../lib/plans";
 import { parsePsalter, type PsalterChoice, setForChoice } from "../lib/dailyPsalms";
@@ -31,23 +28,17 @@ import { chapterTitle } from "../lib/reader";
 import { verseLabel } from "../lib/saved";
 import { nextPassage } from "../lib/startHere";
 import {
-  type ActivityState,
-  activityState,
   type ContinueData,
-  holdAfterStop,
-  type StopHold,
   type ListeningData,
   placeInPassage,
   psalmTitleLine,
   rangeRef,
-  type StopWatch,
   surfaceText,
   type SurfaceVerse,
   type TodayData,
   todayReading,
   type WatchPart,
   watchPart,
-  watchStop,
 } from "../lib/systemSurfaces";
 import { dayOf, type Part, partOf } from "../lib/today";
 import { currentVerse, useAudio } from "../state/audio";
@@ -119,17 +110,25 @@ async function todayNow(user: SQLiteDatabase): Promise<{ book: BookCode; chapter
  */
 export async function updateWidgets(user: SQLiteDatabase, core: Db): Promise<void> {
   if (system === null) return;
-  const cont = await continueData(user, core);
-  const choice = parsePsalter((await loadSettings(user))["dailyPsalms"]);
-  const first = dayOf(new Date());
-  const today: TodayData[] = [];
-  for (let d = 0; d < 14; d++) {
-    const date = new Date(first);
-    date.setDate(first.getDate() + d);
-    for (const part of ["morning", "evening"] as const) today.push(await todayData(core, date, part, choice));
+  // The watch first and on its own: it was sent only after the widgets' data, so a failure there left the watch with
+  // nothing (John's watch, 18 Oct 2026).
+  const watch = watchParts(user, core).then((parts) => system?.setWatchData(JSON.stringify({ parts })));
+  // Handled now, so a failure while the widgets are still loading is not an unhandled rejection; `finally` rethrows it.
+  watch.catch(() => undefined);
+  try {
+    const cont = await continueData(user, core);
+    const choice = parsePsalter((await loadSettings(user))["dailyPsalms"]);
+    const first = dayOf(new Date());
+    const today: TodayData[] = [];
+    for (let d = 0; d < 14; d++) {
+      const date = new Date(first);
+      date.setDate(first.getDate() + d);
+      for (const part of ["morning", "evening"] as const) today.push(await todayData(core, date, part, choice));
+    }
+    system.setWidgetData(JSON.stringify({ continue: cont, today }));
+  } finally {
+    await watch;
   }
-  system.setWidgetData(JSON.stringify({ continue: cont, today }));
-  system.setWatchData(JSON.stringify({ parts: await watchParts(user, core) }));
 }
 
 /**
@@ -151,115 +150,32 @@ async function watchParts(user: SQLiteDatabase, core: Db): Promise<WatchPart[]> 
   return parts.filter((p) => p.until > now);
 }
 
-/** The chapter's passages, for the activity's segments; loaded once a book. */
-const passagesByBook = new Map<BookCode, readonly PericopeRow[]>();
-
 /**
- * SX-17–23: the Live Activity follows the session, and the Listen buttons and Control Center learn what
- * plays (SX-05, SX-09). A stop that fires pauses the activity on "Stopped after 1:18" (SX-23, build 10's design QA,
- * which replaces build-6 decision 7's "it ends at once"); Play goes on from 1:19.
- * Returns the unsubscribe.
+ * The Listen buttons and Control Center learn what plays (SX-05, SX-09); their commands and the headphones' reach the
+ * reading through Speech's onRemote (data/audio.ts). The lock screen, Dynamic Island and the watch show iOS's own Now Playing, which data/audio.ts
+ * fills: Yada's Live Activity duplicated it on the lock screen and was removed (John, 19 Oct 2026, after Apple Music
+ * and Spotify, which show only Now Playing). Returns the unsubscribe.
  */
 export function followListening(): () => void {
   if (system === null) return () => undefined;
-  const sub = system.addListener("onControl", ({ command }) => remoteCommand(command));
-  // A session lives in memory only, so one left by a killed app is gone: its Live Activity and the App Group's
-  // "playing" go with it, or widgets showed Pause and the Activity's buttons did nothing (review, 15 Oct 2026).
-  if (useAudio.getState().session === null) {
-    system.setListening("");
-    void system.endReading();
-  }
-  let shown = "";
+  // A session lives in memory only, so one left by a killed app is gone, and the App Group's "playing" with it,
+  // or widgets showed Pause (review, 15 Oct 2026).
+  if (useAudio.getState().session === null) system.setListening("");
   let listening = "";
-  /**
-   * SX-23: at a stop the activity stays, paused on the verse it stopped after ("Stopped after 1:18"), while the
-   * place moves on to 1:19 for Play; iOS ends a paused activity in its own time. It holds until the reading plays
-   * again or the reader moves away from where it stopped. `landed` is where the place moved on to.
-   */
-  let stopped: { state: ActivityState; hold: StopHold } | null = null;
-  let watch: StopWatch = { stop: useAudio.getState().stop, playing: useAudio.getState().session?.status === "playing", armed: false };
-
   const update = () => {
-    const now = useAudio.getState();
-    const s = now.session;
+    const s = useAudio.getState().session;
     const verse = s === null ? undefined : currentVerse(s);
-    const playing = s?.status === "playing";
-    const step = watchStop(watch, { stop: now.stop, playing });
-    watch = step.watch;
-    const hold = holdAfterStop(stopped?.hold ?? null, { playing, ord: s === null || s.status === "finished" ? null : (verse?.ord ?? null) });
-    stopped = stopped === null || hold === null ? null : { state: stopped.state, hold };
-
     const heard: ListeningData | null =
       s === null || verse === undefined || s.status === "finished"
         ? null
-        : { book: s.book, chapter: s.chapter, verse: verse.verse, ref: verseLabel({ book: s.book, chapter: s.chapter, verse: verse.verse }), playing };
-    const heardKey = JSON.stringify(heard);
-    if (heardKey !== listening) {
-      listening = heardKey;
-      system?.setListening(heard === null ? "" : heardKey);
-    }
-
-    if (stopped !== null) return show(stopped.state);
-    if (s === null || verse === undefined || s.status === "finished") {
-      if (shown !== "") void system?.endReading();
-      shown = "";
-      return;
-    }
-    const passages = passagesByBook.get(s.book);
-    if (passages === undefined) {
-      void loadPericopes(s.book)
-        .catch((): PericopeRow[] => [])
-        .then((rows) => {
-          passagesByBook.set(s.book, rows);
-          update();
-        });
-      return;
-    }
-    const lastVerse = s.verses[s.verses.length - 1]?.verse ?? verse.verse;
-    const segments = progressSegments(passages, verseOrd(s.book, s.chapter, 1), lastVerse);
-    const segment = segments.find((g) => verse.verse >= g.from && verse.verse <= g.to) ?? { from: 1, to: lastVerse };
-    const passage = pericopeForVerse(passages, verse.ord);
-    const line = statusLine(
-      now.stop,
-      now.repeat,
-      { chapter: s.chapter, verse: verse.verse, passageFirst: segment.from, passageLast: segment.to, chapterLast: lastVerse, chapterTitle: chapterTitle(s.book, s.chapter) },
-      Date.now(),
-    );
-    const state = activityState({
-      book: s.book,
-      chapter: s.chapter,
-      verse: verse.verse,
-      text: psalmTitleLine(s.book, verse.verse, verse.text).body,
-      translation: s.translation,
-      titling: s.titling === true,
-      playing,
-      segments,
-      passage: passage?.label ?? null,
-      line,
-      stop: now.stop,
-      repeat: now.repeat,
-    });
-    // The update in which the stop fires still holds the verse it stopped after (data/audio.ts advance() pauses
-    // before it moves the place on): that is the state SX-23 keeps.
-    if (step.fired) {
-      stopped = { state: { ...state, line: `Stopped after ${s.chapter}:${verse.verse}`, lineGlyph: null, playing: false }, hold: { ord: verse.ord, landed: null } };
-      return show(stopped.state);
-    }
-    show(state);
+        : { book: s.book, chapter: s.chapter, verse: verse.verse, ref: verseLabel({ book: s.book, chapter: s.chapter, verse: verse.verse }), playing: s.status === "playing" };
+    const key = JSON.stringify(heard);
+    if (key === listening) return;
+    listening = key;
+    system?.setListening(heard === null ? "" : key);
   };
-
-  const show = (state: ActivityState) => {
-    const key = JSON.stringify(state);
-    if (key === shown) return;
-    shown = key;
-    void system?.startReading(key);
-  };
-
   const unsubscribe = useAudio.subscribe(update);
-  return () => {
-    sub.remove();
-    unsubscribe();
-  };
+  return unsubscribe;
 }
 
 /** SX-12: the BSB in Spotlight, every verse and every chapter, once per core version, in batches. */

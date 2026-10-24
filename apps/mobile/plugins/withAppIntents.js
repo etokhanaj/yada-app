@@ -1,6 +1,6 @@
 /**
- * Adds modules/yada-system/app/*.swift to the app target at prebuild. App Intents (Siri, App Shortcuts,
- * the Live Activity's controls; MS-02, MS-03, WL-02) are found only in the app's own sources: compiled
+ * Adds modules/yada-system/app/*.swift to the app target at prebuild. App Intents (Siri, App Shortcuts and the
+ * widgets' buttons; MS-02, MS-03) are found only in the app's own sources: compiled
  * into the YadaSystem pod, a static library, Siri never sees them.
  */
 

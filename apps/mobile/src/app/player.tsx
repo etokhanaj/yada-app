@@ -27,6 +27,7 @@ import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Buffering, bufferingLabel } from "../components/audio/Buffering";
 import { MediaIcon, type MediaIconName } from "../components/audio/MediaIcon";
 import { SpokenSegments, useVerseMark } from "../components/audio/Spoken";
 import { usePericopes } from "../components/audio/usePassage";
@@ -121,6 +122,7 @@ export default function PlayerScreen() {
 
   const { book, chapter, translation, verses, status } = session;
   const playing = status === "playing";
+  const buffering = useAudio((a) => a.session?.buffering === true);
   const name = BOOK_CODES[book].name;
   const title = chapterTitle(book, chapter);
   const passage = pericopeForVerse(pericopes, verse.ord);
@@ -171,12 +173,13 @@ export default function PlayerScreen() {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={primary && buffering ? bufferingLabel(label) : label}
       testID={testID}
       style={({ pressed }) => [styles.round, { width: size }, slot ?? { height: size }, pressed ? styles.pressed : null]}
     >
       <View style={[styles.round, { width: size, height: size, backgroundColor: primary ? palette.ink : "transparent" }]}>
-        <MediaIcon name={iconName} size={ax ? 30 : primary ? 30 : 26} tone={primary ? "paper" : "ink"} maxScale={1} />
+        {/* ST-02: the same spinner as the mini bar while a streaming chapter waits for bytes. */}
+        {primary && buffering ? <Buffering large /> : <MediaIcon name={iconName} size={ax ? 30 : primary ? 30 : 26} tone={primary ? "paper" : "ink"} maxScale={1} />}
       </View>
     </Pressable>
   );

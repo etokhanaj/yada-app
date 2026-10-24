@@ -61,3 +61,26 @@ export async function hide(user: SQLiteDatabase, id: string): Promise<void> {
   const { hidden } = await loadPrayLocal(user);
   await saveSetting(user, HIDDEN, JSON.stringify([id, ...[...hidden].filter((h) => h !== id)].slice(0, 500)));
 }
+
+/** PC-11: Edit keeps the item's dates and changes its words. */
+export async function editListItem(user: SQLiteDatabase, index: number, text: string): Promise<void> {
+  const { list } = await loadPrayLocal(user);
+  await saveSetting(user, LIST, JSON.stringify(list.map((item, i) => (i === index ? { ...item, text } : item))));
+}
+
+/** PC-11: Undo puts a removed item back where it was. */
+export async function restoreListItem(user: SQLiteDatabase, index: number, item: ListItem): Promise<void> {
+  const { list } = await loadPrayLocal(user);
+  await saveSetting(user, LIST, JSON.stringify([...list.slice(0, index), item, ...list.slice(index)]));
+}
+
+const RULES = "prayRulesAgreed";
+
+/** Guideline 1.2: a reader agrees to Pray's rules once, before their first request in Pray or a circle. */
+export async function agreedToRules(user: SQLiteDatabase): Promise<boolean> {
+  return (await loadSettings(user))[RULES] !== undefined;
+}
+
+export async function agreeToRules(user: SQLiteDatabase, now = Date.now()): Promise<void> {
+  await saveSetting(user, RULES, String(now));
+}

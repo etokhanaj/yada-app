@@ -45,9 +45,9 @@ export default function PlansScreen() {
         testID="plans-john"
       />
       <ListRow
-        title={<Chrome tone="ink" style={{ fontWeight: "500" }}>M’Cheyne</Chrome>}
-        subtitle={`The whole Bible, four chapters at a sitting · 1842${lines?.mcheyne ?? ""}`}
-        label={`M’Cheyne. The whole Bible, four chapters at a sitting, 1842${lines?.mcheyne ?? ""}`}
+        title={<Chrome tone="ink" style={{ fontWeight: "500" }}>The whole Bible</Chrome>}
+        subtitle={`365 readings, four chapters each · Robert Murray M’Cheyne’s plan, 1842${lines?.mcheyne ?? ""}`}
+        label={`The whole Bible. 365 readings, four chapters each. Robert Murray M’Cheyne’s plan, 1842${lines?.mcheyne ?? ""}`}
         onPress={() => router.push({ pathname: "/mcheyne", params: { from: "plans" } })}
         testID="plans-mcheyne"
       />

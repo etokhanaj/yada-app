@@ -13,6 +13,8 @@ export function Pill({
   title,
   onPress,
   primary = false,
+  accent = false,
+  stretch = false,
   grow = false,
   disabled = false,
   label,
@@ -21,6 +23,10 @@ export function Pill({
   title: string;
   onPress: () => void;
   primary?: boolean;
+  /** The accent fill, for the one forward action on a page (SC-06's Start, VM-02's Open in Bible). */
+  accent?: boolean;
+  /** Full width (VM-02's Open in Bible). */
+  stretch?: boolean;
   grow?: boolean;
   disabled?: boolean;
   /** For VoiceOver, when the title alone does not say where it goes. */
@@ -38,13 +44,13 @@ export function Pill({
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.pill,
-        { minHeight: pill, backgroundColor: primary && !disabled ? palette.ink : palette.card, opacity: pressed ? 0.8 : 1 },
-        ax ? styles.wide : grow ? styles.grow : null,
+        { minHeight: pill, backgroundColor: disabled ? palette.card : accent ? palette.accent : primary ? palette.ink : palette.card, opacity: pressed ? 0.8 : 1 },
+        ax || stretch ? styles.wide : grow ? styles.grow : null,
       ]}
       testID={testID}
     >
       {/* Disabled: the same pill on card with muted text (design system), never grey with white. */}
-      <Chrome style={{ fontWeight: "600", color: disabled ? palette.mutedInk : primary ? palette.paper : palette.ink }}>{title}</Chrome>
+      <Chrome style={{ fontWeight: "600", color: disabled ? palette.mutedInk : primary || accent ? palette.paper : palette.ink }}>{title}</Chrome>
     </Pressable>
   );
 }

@@ -1,4 +1,4 @@
-// The intents a widget, a Live Activity or a control runs (SX-05, SX-07, SX-09, SX-17). Each must be compiled
+// The intents a widget or a control runs (SX-05, SX-07, SX-09). Each must be compiled
 // into both the widget extension, which draws the button, and the app, where iOS performs it: this file is
 // copied into the app target at prebuild (plugins/withAppIntents.js) and kept identical to
 // targets/widget/YadaSharedIntents.swift (systemSurfaces.files.test.ts).
@@ -46,24 +46,6 @@ struct Listening: Codable, Hashable, Sendable {
     while Date() < end, raw() == before {
       try? await Task.sleep(nanoseconds: 250_000_000)
     }
-  }
-}
-
-/// Previous, play or pause, next from the Lock Screen, the Dynamic Island and StandBy (SX-17–22): the app runs
-/// it, and the reading queue takes it as it takes the headphone controls (data/audio.ts remoteCommand).
-@available(iOS 17.0, *)
-struct YadaControlIntent: LiveActivityIntent {
-  static var title: LocalizedStringResource = "Control the reading"
-  static var isDiscoverable = false
-
-  @Parameter(title: "Command") var command: String
-
-  init() {}
-  init(command: String) { self.command = command }
-
-  func perform() async throws -> some IntentResult {
-    NotificationCenter.default.post(name: Notification.Name("YadaRemoteControl"), object: nil, userInfo: ["command": command])
-    return .result()
   }
 }
 

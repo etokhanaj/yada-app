@@ -18,7 +18,7 @@ import { loadOffice, type OfficeStep } from "../data/office";
 import { pictureFor } from "../data/pictures";
 import { FONTS, useLayout } from "../design/tokens";
 import { dayOf, type Part, partOf } from "../lib/today";
-import { BRAND } from "../design/palette";
+import { BRAND, ON_PICTURE } from "../design/palette";
 import { useAccessibility } from "../state/accessibility";
 import { FillPicture } from "../components/FillPicture";
 
@@ -121,17 +121,17 @@ export default function Office() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   top: { position: "absolute", flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 1 },
-  close: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" },
-  closeX: { color: "#fff", fontSize: 26, lineHeight: 28 },
+  close: { width: 44, height: 44, borderRadius: 22, backgroundColor: ON_PICTURE.glass, alignItems: "center", justifyContent: "center" },
+  closeX: { color: ON_PICTURE.text, fontSize: 26, lineHeight: 28 },
   marks: { flexDirection: "row", columnGap: 6 },
-  mark: { width: 18, height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.35)" },
-  markOn: { backgroundColor: "#fff" },
-  label: { color: "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: "600", marginBottom: 14 },
-  text: { color: "#fff", fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 36 },
-  ref: { color: "rgba(255,255,255,0.78)", fontSize: 13, marginTop: 14 },
+  mark: { width: 18, height: 3, borderRadius: 2, backgroundColor: ON_PICTURE.mark },
+  markOn: { backgroundColor: ON_PICTURE.text },
+  label: { color: ON_PICTURE.strong, fontSize: 13, fontWeight: "600", marginBottom: 14 },
+  text: { color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 36 },
+  ref: { color: ON_PICTURE.muted, fontSize: 13, marginTop: 14 },
   foot: { position: "absolute", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   sound: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 },
-  soundText: { color: "rgba(255,255,255,0.88)", fontSize: 15 },
-  next: { minHeight: 50, minWidth: 110, paddingHorizontal: 26, borderRadius: 25, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
+  soundText: { color: ON_PICTURE.strong, fontSize: 15 },
+  next: { minHeight: 50, minWidth: 110, paddingHorizontal: 26, borderRadius: 25, backgroundColor: ON_PICTURE.text, alignItems: "center", justifyContent: "center" },
   nextText: { color: FOREST, fontSize: 17, fontWeight: "600" },
 });

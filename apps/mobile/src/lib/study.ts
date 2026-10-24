@@ -28,10 +28,12 @@ import {
 import { resolveUrl } from "./translations";
 
 /** Inline, under the opening of a note. */
-export const TYNDALE_SHORT = "Tyndale Open Study Notes, CC BY-SA 4.0";
+export const TYNDALE_SHORT = "Tyndale";
+/** Under a profile shown only in part (PROFILE_EXCERPTS): CC BY-SA asks that a change be said. */
+export const TYNDALE_SHORTENED = "Tyndale, shortened";
 /** On the Study notes page, where the quoted words are read in full. */
-export const TYNDALE_LINE = "Tyndale Open Study Notes, CC BY-SA 4.0. Quoted words are the NLT’s.";
-export const OPENBIBLE_LINE = "Cross-references from OpenBible.info, CC BY 4.0.";
+export const TYNDALE_LINE = "Tyndale · NLT quotes";
+export const OPENBIBLE_LINE = "OpenBible.info";
 
 // ---------------------------------------------------------------------------
 // Note markup -> segments
@@ -273,7 +275,9 @@ export function matchNames(title: string): string[] {
 /** The verses a profile itself points to: where Tyndale anchors it, and its "Passages for Further Study". */
 export function profileCites(profile: Pick<StudyNoteRow, "ord_start" | "ord_end" | "text" | "title">, book: BookCode, ord: number): boolean {
   if (covers(profile, ord)) return true;
-  const further = profileBody(profile.text, profile.title ?? "").further;
+  // The whole profile's passages, even where the page shows only its opening (PROFILE_EXCERPTS): a shortened
+  // profile still belongs on the verses it cites (code review, 23 Oct 2026).
+  const further = profileBody(profile.text, "").further;
   return further !== null && parseFurtherStudy(further, book).some((s) => s.start <= ord && ord <= s.end);
 }
 
@@ -389,6 +393,38 @@ export interface ProfileBody {
   readonly paragraphs: NoteParagraph[];
   /** The "Passages for Further Study" line, as printed. */
   readonly further: string | null;
+  /** True when only the opening is shown (PROFILE_EXCERPTS); the credit then says it was shortened (CC BY-SA). */
+  readonly shortened: boolean;
+}
+
+/**
+ * Profiles shown only up to and including these words, verbatim, everything after left out (John, 22 Oct 2026, the
+ * orientation review): Tyndale's "When John wrote his Gospel, Christians were being persecuted…" states a debated
+ * reconstruction as settled, and "Pilate was in control of… the Temple and its funds" runs Roman oversight and priestly
+ * administration together. Yada never rewrites Tyndale's words; it only stops sooner.
+ */
+export const PROFILE_EXCERPTS: Readonly<Record<string, string>> = {
+  "Jewish Leaders": "contributed to the case against him.",
+  "Pontius Pilate": "Pilate gave the official order for Jesus to be crucified.",
+};
+
+/** The paragraphs up to and including `end`, cut inside the paragraph that holds it; null when `end` is not found. */
+function cutAfter(paragraphs: readonly NoteParagraph[], end: string): NoteParagraph[] | null {
+  for (let i = 0; i < paragraphs.length; i++) {
+    const p = paragraphs[i]!;
+    const whole = p.segments.map((s) => s.text).join("");
+    const at = whole.indexOf(end);
+    if (at === -1) continue;
+    let left = at + end.length;
+    const segments: NoteSegment[] = [];
+    for (const s of p.segments) {
+      if (left <= 0) break;
+      segments.push(s.text.length <= left ? s : { ...s, text: s.text.slice(0, left) });
+      left -= s.text.length;
+    }
+    return [...paragraphs.slice(0, i), { ...p, segments }];
+  }
+  return null;
 }
 
 /** A profile's text without its title heading (the sheet's header says it), and its study passages apart. */
@@ -398,7 +434,12 @@ export function profileBody(text: string, title: string): ProfileBody {
   const at = paragraphs.findIndex((p) => p.heading && /^Passages? for Further Study$/i.test(words(p)));
   const body = (at === -1 ? paragraphs : paragraphs.slice(0, at)).filter((p, i) => !(i === 0 && p.heading && words(p) === title.trim()));
   const furtherLine = at === -1 ? undefined : paragraphs[at + 1];
-  return { paragraphs: body, further: furtherLine === undefined ? null : words(furtherLine) };
+  const end = PROFILE_EXCERPTS[title.trim()];
+  const cut = end === undefined ? null : cutAfter(body, end);
+  // An excerpt drops everything after its last sentence, the study passages too. If the source's words ever change
+  // and the sentence is missing, nothing is shown rather than the claims John left out.
+  if (end !== undefined) return { paragraphs: cut ?? [], further: null, shortened: true };
+  return { paragraphs: body, further: furtherLine === undefined ? null : words(furtherLine), shortened: false };
 }
 
 export type Pronoun = "him" | "her" | "them";

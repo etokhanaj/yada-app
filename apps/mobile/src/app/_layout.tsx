@@ -7,7 +7,7 @@
  */
 
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -22,8 +22,10 @@ import { countListening } from "../data/rhythm";
 import { installBundles, openCore, openUser } from "../data/bundles";
 import { setCloudPaused, startCloudSync } from "../data/cloud";
 import { stampOpen } from "../data/lapse";
+import { prayAgainOf } from "../data/prayNotify";
 import { refreshReminder, targetOf } from "../data/reminder";
 import { followListening, indexSpotlight, updateWidgets, watchDoors } from "../data/system";
+import { followTogether } from "../data/together";
 import { listen } from "../data/audio";
 import { openFromOutside } from "../components/navigation";
 import * as Notifications from "expo-notifications";
@@ -76,7 +78,7 @@ async function start(): Promise<AppData> {
   // The reminder's two weeks are made again from today's progress (lib/reminder.ts); never fails the launch.
   void refreshReminder(user, asDb(core)).catch(() => undefined);
   // DR-01: the very first launch, with no tab remembered, opens Bible, where Start here is.
-  return { core, user, launchTab: stored["lastTab"] === "today" ? "today" : "index" };
+  return { core, user, launchTab: stored["lastTab"] === "today" || stored["lastTab"] === "pray" ? stored["lastTab"] : "index" };
 }
 
 /** A setting changed on another device: the store follows user.db, keeping a translation not installed here. */
@@ -139,16 +141,29 @@ export default function RootLayout() {
       if (handled.has(id)) return;
       handled.add(id);
       void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
-      const target = targetOf(response.notification.request.content.data);
+      const data = response.notification.request.content.data;
+      // PA-01 opens the request held yesterday; PA-02, CloudKit's notice of an answer, opens Pray (PC-23).
+      const again = prayAgainOf(data);
+      if (again !== null) {
+        router.push({ pathname: "/pray/someone", params: { again } });
+        return;
+      }
+      if (typeof data === "object" && data !== null && "ck" in data) {
+        router.push("/pray");
+        return;
+      }
+      const target = targetOf(data);
       if (target === null) return;
       if (response.actionIdentifier === "listen") void listen(target.book, target.chapter, target.verse);
       openFromOutside({ book: target.book, chapter: target.chapter, verse: target.verse, resume: true, ...(target.guide === undefined ? {} : { guide: target.guide }) });
     };
     void Notifications.getLastNotificationResponseAsync().then(open);
     const sub = Notifications.addNotificationResponseReceivedListener(open);
-    // Siri, App Shortcuts and Spotlight (MS-02, MS-03), and the Live Activity (WL-02, WL-03).
+    // Siri, App Shortcuts and Spotlight (MS-02, MS-03).
     const doors = watchDoors(data.user);
     const listening = followListening();
+    // Pray together (PC-16): FaceTime can start a session before any Pray screen is open.
+    const praying = followTogether();
     void updateWidgets(data.user, data.core).catch(() => undefined);
     // After the first screens have what they need: thirty thousand verses are no launch task.
     const indexing = setTimeout(() => void indexSpotlight(data.user, data.core).catch(() => undefined), 5000);
@@ -165,6 +180,7 @@ export default function RootLayout() {
       sub.remove();
       doors();
       listening();
+      praying();
       clearTimeout(indexing);
       appState.remove();
     };
@@ -286,6 +302,8 @@ export default function RootLayout() {
           {/* DI-04: the dictionary, a page pushed from Search. */}
           <Stack.Screen name="dictionary/index" />
           <Stack.Screen name="dictionary/term" />
+          {/* Verses for a moment (VM-02): a page pushed from Search, as the dictionary is. */}
+          <Stack.Screen name="moment" />
           <Stack.Screen name="sources" />
           <Stack.Screen name="thread" />
           <Stack.Screen name="plans" />
@@ -300,14 +318,34 @@ export default function RootLayout() {
           {/* Ask for prayer (PR-10): a sheet over Pray. */}
           {/* Large only: the keyboard takes the lower half, and the request needs the room above it (PR-10). */}
           <Stack.Screen name="pray/ask" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          {/* Add to your list and Edit (PC-09, PC-11): a sheet like Ask. */}
+          <Stack.Screen name="pray/add" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          {/* PT-40: the + on Pray, a sheet sized to its rows. */}
+          <Stack.Screen name="pray/add-or-ask" options={{ ...sheet, sheetAllowedDetents: [0.6, 1], sheetInitialDetentIndex: ax ? 1 : 0 }} />
+          {/* FL-03 and FL-04: Pray for others, one at a time, and Silence on its own, on the calm ground. FL-02's prayer
+              view prays a Bible prayer. */}
+          <Stack.Screen name="pray/through" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          <Stack.Screen name="silence" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          <Stack.Screen name="prayer" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          {/* New circle (PC-02 to PC-04): explained, named, invited, in one sheet. */}
+          <Stack.Screen name="pray/new-circle" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          {/* Joining (PC-07): after iCloud's own accept, full screen on the forest. */}
+          <Stack.Screen name="pray/joined" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          {/* Pray together (PC-15, PC-17): the first-time sheet and Plan a time; the call itself is full screen (PC-16). */}
+          <Stack.Screen name="pray/together-start" options={sheet} />
+          <Stack.Screen name="pray/plan" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          <Stack.Screen name="pray/together" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           {/* DR-16: the day's verse fills the screen, closed by its ×; DR-14: About this picture is a sheet over it. */}
           <Stack.Screen name="verse" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           <Stack.Screen name="picture" options={sheet} />
+          {/* About a book (SC-05): the introduction in a sheet over the reading. */}
+          <Stack.Screen name="about" options={sheet} />
           {/* Your space: a note opens large, the keyboard takes the lower half (PS-03); Share as an image shows its card whole (PS-05). */}
           <Stack.Screen name="note" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
           <Stack.Screen name="share-image" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
-          {/* A circle needs iCloud (CI-03): the same sheet as XT-05. */}
-          <Stack.Screen name="pray/icloud" options={sheet} />
+          {/* A circle needs iCloud (CI-03): the same sheet as XT-05. Its own short detent, as tall as its line and two
+              pills: the medium detent left half the sheet empty under them (John, 18 Oct 2026). Large at AX sizes. */}
+          <Stack.Screen name="pray/icloud" options={{ ...sheet, sheetAllowedDetents: [0.36, 1], sheetInitialDetentIndex: ax ? 1 : 0 }} />
           {/* PR-09: Pray for someone is a calm full screen, closed by its ×. */}
           <Stack.Screen name="pray/someone" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           {/* Daily prayer (DO-04–06): full screen over the day's picture; closed by its × or Amen. */}

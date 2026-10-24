@@ -26,7 +26,7 @@ import { BOOK_CODES, type BookCode, formatDisplayRef, formatVerseId, ordToParts,
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
-import { type ComponentProps, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   FlatList,
@@ -42,31 +42,33 @@ import {
 
 import { ActionBar, RestBar } from "../../../components/ActionBar";
 import { ChapterClose } from "../../../components/ChapterClose";
-import { ChapterPeek, EndOfBook } from "../../../components/ChapterPages";
-import { useFootprints } from "../../../state/footprints";
+import { BookWelcome, ChapterPeek, EndOfBook } from "../../../components/ChapterPages";
+import type { BookIntro } from "../../../lib/bookIntro";
 import { MissingVerseLines } from "../../../components/OmittedVerse";
 import { ListRow } from "../../../components/Page";
 import { loadMcheyne, loadYourPlan, markPortionRead, type McheyneState } from "../../../data/plans";
 import { keyOf, MCHEYNE_READINGS, nextPortion, portionLabel, portionsInChapter, portionSpoken } from "../../../lib/plans";
 import { ChapterSwipe } from "../../../components/ChapterSwipe";
 import { ListenButton, MiniPlayer, NowPlayingStrip } from "../../../components/audio/ReaderBars";
-import { useVerseMark } from "../../../components/audio/Spoken";
 import { useLaunch } from "../../../components/LaunchOverlay";
 import { Icon } from "../../../components/Icon";
-import { BookIntro } from "../../../components/BookIntro";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AboutHandle, useBookIntro } from "../../../components/AboutHandle";
 import { ReaderHeader } from "../../../components/ReaderHeader";
 import { ProphetLeadLines, PsalmLeadLines, PsalmTip } from "../../../components/ReaderLeads";
 import { Chrome, Prose } from "../../../components/Type";
-import { Verse, type SelectionPlace, type VerseAction } from "../../../components/Verse";
+import { Paragraph, type VerseAction } from "../../../components/Verse";
 import { useAppData, useCore, useQuery } from "../../../data/AppData";
 import { isLicensedCode, LICENSED } from "../../../data/licensed";
+import { isParagraphStart } from "../../../data/paragraphs";
 import { chapterBounds, getChapter, getLanguageLetters, scriptOf, type VerseText } from "../../../data/queries";
 import { originalLanguage } from "../../../lib/originalLanguage";
 import { licensedEnabled, useLicensedChapter } from "../../../data/useLicensedChapter";
 import { ensureStudy, loadStudyOrds, useStudy } from "../../../data/study";
-import { asPericope, ensureUnderstand, loadChapterUnderstand, loadPassages, useUnderstand } from "../../../data/understand";
+import { asPericope, ensureUnderstand, loadBookIntro, loadChapterUnderstand, loadPassages, useUnderstand } from "../../../data/understand";
 import { pericopeForVerse, type PericopeRow } from "../../../lib/pericopes";
 import { prophetLeads, readerLeadLines } from "../../../lib/passageGuide";
+import { groupParagraphs, type VerseRect } from "../../../lib/paragraphLayout";
 import { rangeInBook } from "../../../lib/saved";
 import { useGuide } from "../../../state/guide";
 import { useTranslationName } from "../../../data/translations";
@@ -88,7 +90,7 @@ import {
 import type { HighlightColor } from "../../../lib/highlights";
 import { shouldAsk } from "../../../data/reminder";
 import { bookThread, readThread, stepAfter } from "../../../lib/startHere";
-import { audioTranslation, endSession, listen, next as nextVerse, previous as previousVerse, stopFetching, toggle as togglePlay } from "../../../data/audio";
+import { audioTranslation, endSession, listen, next as nextVerse, previous as previousVerse, toggle as togglePlay } from "../../../data/audio";
 import { currentVerse, useAudio } from "../../../state/audio";
 import { progressSegments } from "../../../lib/audio/session";
 import { spokenText } from "../../../lib/supplied";
@@ -102,14 +104,6 @@ import { EMPTY_SELECTION, formatSpan, selectionSpan, spanRef, tapVerse } from ".
 import { dayOf, partOf } from "../../../lib/today";
 import { useAccessibility } from "../../../state/accessibility";
 import { useSettings } from "../../../state/settings";
-
-function placeIn(span: { start: number; end: number } | null, verse: number): SelectionPlace {
-  if (span === null || verse < span.start || verse > span.end) return "none";
-  if (span.start === span.end) return "only";
-  if (verse === span.start) return "first";
-  if (verse === span.end) return "last";
-  return "middle";
-}
 
 export default function ReaderScreen() {
   const params = useLocalSearchParams<{
@@ -192,6 +186,14 @@ export default function ReaderScreen() {
   const startsMap = new Map<number, PericopeRow>((pericopes ?? []).map((p) => [p.start_ord, p]));
   const starts = useRef(startsMap);
   starts.current = startsMap;
+  // RU-6 (fresh-eyes review, approved by John 23 Oct 2026): the chapter in the BSB's own paragraphs, one list row
+  // each. A passage title and a verse this version leaves out (PD-05) stand between verses, so they break one too.
+  const paragraphs =
+    verses === undefined
+      ? undefined
+      : groupParagraphs(verses, (v, before) => isParagraphStart(v.ord) || startsMap.has(v.ord) || (before !== undefined && (before.through ?? before.verse) + 1 < v.verse));
+  const paragraphsRef = useRef<VerseText[][]>([]);
+  paragraphsRef.current = paragraphs ?? [];
   // DP-04: a chapter that opens inside a passage (John 16 in 15:18–16:4) still names it, quietly,
   // in small capitals; a title button there would claim the passage starts here.
   const holding = pericopes === undefined ? null : pericopeForVerse(pericopes, chapterBounds(book, chapter)[0]);
@@ -217,7 +219,11 @@ export default function ReaderScreen() {
   }, [user, book]);
   // SW-03: past a book's last chapter the swipe stops on the End page.
   const [atEnd, setAtEnd] = useState(false);
-  useEffect(() => setAtEnd(false), [book, chapter]);
+  const [welcome, setWelcome] = useState<{ book: BookCode; intro: BookIntro } | null>(null);
+  useEffect(() => {
+    setAtEnd(false);
+    setWelcome(null);
+  }, [book, chapter]);
   // MM-01: a passage is finished when the reader reaches the boundary after its last verse, the next
   // passage's title. That one moment feeds Home, plans and progress (review §2.1). Refs, because
   // FlatList keeps the first onViewableItemsChanged it was given.
@@ -253,7 +259,7 @@ export default function ReaderScreen() {
   finishRef.current = finishBefore;
 
   // RP-04: on M'Cheyne, reaching the end of a chapter in the plan's reading finishes that portion, and
-  // the next portion leads above the chapter links ("Next in M’Cheyne · Matthew 2"). Only when the reader
+  // the next portion leads above the chapter links ("Next reading · Matthew 2"; TD-22). Only when the reader
   // scrolled to the end, as MM-01 counts a passage (review, 12 Oct 2026).
   const [plan, setPlan] = useState<{ state: McheyneState; justRead: boolean } | null>(null);
   const loadPlan = useCallback(
@@ -372,6 +378,10 @@ export default function ReaderScreen() {
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [headerHeight, setHeaderHeight] = useState(110);
   const [barHeight, setBarHeight] = useState(0);
+  // SC-01: the About handle waits at the bottom of chapter 1 until reading starts.
+  const [nearTop, setNearTop] = useState(true);
+  const intro = useBookIntro(book);
+  const insets = useSafeAreaInsets();
   const [header, setHeader] = useState(HEADER_START);
   // The ord of the first verse below the header, once the list has settled.
   const [topVerse, setTopVerse] = useState<number | null>(null);
@@ -388,8 +398,14 @@ export default function ReaderScreen() {
   const visibleVerses = useRef(new Set<number>());
   const [followingAgain, setFollowingAgain] = useState(false);
 
-  const listRef = useRef<FlatList<VerseText>>(null);
+  const listRef = useRef<FlatList<VerseText[]>>(null);
+  // Paragraph rows by their first verse, and each verse's place inside its paragraph (RU-6).
   const rows = useRef(new Map<number, View>());
+  const rects = useRef({ for: "", byVerse: new Map<number, VerseRect>() });
+  // Places are kept for the chapter and text on screen only: verse 5 of the last chapter is not verse 5 of this one.
+  const placesKey = useRef("");
+  placesKey.current = `${book}.${chapter}.${translation}`;
+  const rectOf = useCallback((verse: number) => (rects.current.for === placesKey.current ? rects.current.byVerse.get(verse) : undefined), []);
   const scrolledFor = useRef<string | null>(null);
   const offset = useRef(0);
   const dragging = useRef(false);
@@ -471,13 +487,30 @@ export default function ReaderScreen() {
   // At AX sizes the header is taller than a fifth of the screen, so a jump lands just below it
   // too, or the verse's opening lines sit under the header (canvas SN-07 AX5).
   const resume = params.resume === "1";
-  const placement = useRef({ resume, headerHeight, ax });
-  placement.current = { resume, headerHeight, ax };
-  const landOn = useCallback((index: number) => {
+  const placement = useRef({ resume, headerHeight, ax, height: window.height });
+  placement.current = { resume, headerHeight, ax, height: window.height };
+  // RU-6: a verse sits inside its paragraph, so a jump measures where the verse's lines are and scrolls by that. A
+  // paragraph not yet drawn has no lines to measure: the list is moved to it by index, then asked again once it has
+  // been laid out (a few tries, 120 ms apart, as rows render; never a timer that runs on).
+  const land = useCallback((verse: number, playing: boolean, animated: boolean, tries = 0) => {
     const p = placement.current;
-    listRef.current?.scrollToIndex(
-      p.resume || p.ax ? { index, viewPosition: 0, viewOffset: p.headerHeight + SPACE.sm, animated: false } : { index, viewPosition: 0.2, animated: false },
-    );
+    const list = paragraphsRef.current;
+    const index = list.findIndex((g) => verse >= (g[0]?.verse ?? 0) && verse <= lastVerseOf(g));
+    const paragraph = list[index]?.[0]?.verse;
+    if (paragraph === undefined) return;
+    // Resumed, the verse sits just below the header; any other jump a fifth of the way down; the playing verse 30% down.
+    const below = p.headerHeight + SPACE.sm;
+    const y = playing ? (p.ax ? below : 0.3 * p.height) : p.resume || p.ax ? below : 0.2 * p.height;
+    const node = rows.current.get(paragraph);
+    const rect = rectOf(verse);
+    if (node !== undefined && rect !== undefined) {
+      node.measureInWindow((_x, top) => {
+        listRef.current?.scrollToOffset({ offset: Math.max(0, offset.current + top + rect.top - y), animated });
+      });
+      return;
+    }
+    listRef.current?.scrollToIndex({ index, viewPosition: 0, viewOffset: y, animated: false });
+    if (tries < 4) setTimeout(() => land(verse, playing, animated, tries + 1), 120);
   }, []);
 
   // Land on the requested verse once its chapter is on screen; once per arrival.
@@ -486,13 +519,13 @@ export default function ReaderScreen() {
     const arrival = `${book}.${chapter}.${String(target)}`;
     if (scrolledFor.current === arrival) return;
     scrolledFor.current = arrival;
-    const index = target === null ? -1 : verses.findIndex((v) => v.verse === target);
+    const known = target !== null && verses.some((v) => v.verse === target);
     const timer = setTimeout(() => {
-      if (index < 0) listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      else landOn(index);
+      if (!known || target === null) listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      else land(target, false, false);
     }, 60);
     return () => clearTimeout(timer);
-  }, [verses, book, chapter, target, landOn]);
+  }, [verses, book, chapter, target, land]);
 
   useFocusEffect(
     useCallback(() => {
@@ -541,40 +574,78 @@ export default function ReaderScreen() {
   location.current = { book, chapter };
   const headerBottom = useRef(headerHeight);
   headerBottom.current = headerHeight;
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken<VerseText>[] }) => {
-    const visible = viewableItems.filter((v) => v.isViewable).map((v) => v.item);
-    visibleVerses.current = new Set(visible.map((v) => v.verse));
-    markPlan.current(visibleVerses.current);
-    markDay.current(visibleVerses.current);
-    if (visible.length === 0) return;
-    // MM-01: the boundary is drawn only mid-chapter (list index above 0), and only that one counts.
-    for (const token of viewableItems) {
-      if (token.isViewable && (token.index ?? 0) > 0 && starts.current.has(token.item.ord)) finishRef.current(token.item.ord);
+  const windowHeight = useRef(window.height);
+  windowHeight.current = window.height;
+  // RU-6: the list's rows are paragraphs, so which verses are on screen comes from each verse's lines, measured.
+  const visibleParagraphs = useRef<{ index: number; verses: readonly VerseText[] }[]>([]);
+  const measureVisible = useCallback(async () => {
+    const out: { item: VerseText; index: number; first: boolean; top: number; bottom: number }[] = [];
+    for (const { index, verses: group } of visibleParagraphs.current) {
+      const node = rows.current.get(group[0]?.verse ?? -1);
+      if (node === undefined) continue;
+      const box = await new Promise<{ y: number; h: number }>((resolve) => node.measureInWindow((_x, y, _w, h) => resolve({ y, h })));
+      group.forEach((item, i) => {
+        // A paragraph whose lines aren't laid out yet counts each of its verses as the whole paragraph.
+        const rect = rectOf(item.verse) ?? { top: 0, bottom: box.h };
+        out.push({ item, index, first: i === 0, top: box.y + rect.top, bottom: box.y + rect.bottom });
+      });
     }
-    if (saveTimer.current !== null) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      void (async () => {
-        let top = visible[0];
-        for (const item of visible) {
-          const node = rows.current.get(item.verse);
-          if (node === undefined) continue;
-          const mid = await new Promise<number>((resolve) => node.measureInWindow((_x, y, _w, h) => resolve(y + h / 2)));
-          if (mid > headerBottom.current) {
-            top = item;
-            break;
-          }
-        }
-        if (top === undefined) return;
-        const { book: b, chapter: c } = location.current;
-        // The chapter changed while the rows were measured: they are the old chapter's, and would
-        // save its verse number under the new one (gate review, 11 Oct 2026).
-        const at = ordToParts(top.ord);
-        if (at.book !== b || at.chapter !== c) return;
-        setTopVerse(top.ord);
-        void savePosition(user, `${b}.${c}.${top.verse}`);
-      })();
-    }, 400);
+    return out;
+  }, []);
+  // The chapter changed while the rows were measured: they are the old chapter's, and would save its verse number
+  // under the new one (gate review, 11 Oct 2026).
+  const stale = (items: readonly { item: VerseText }[]) =>
+    items.some(({ item }) => {
+      const at = ordToParts(item.ord);
+      return at.book !== location.current.book || at.chapter !== location.current.chapter;
+    });
+  const refreshVisible = useRef<() => void>(() => undefined);
+  refreshVisible.current = () => {
+    void measureVisible().then((seen) => {
+      const onScreen = seen.filter((s) => {
+        const mid = (s.top + s.bottom) / 2;
+        return mid >= 0 && mid <= windowHeight.current;
+      });
+      if (stale(onScreen)) return;
+      visibleVerses.current = new Set(onScreen.map((s) => s.item.verse));
+      markPlan.current(visibleVerses.current);
+      markDay.current(visibleVerses.current);
+      if (onScreen.length === 0) return;
+      // MM-01: the boundary is drawn only mid-chapter (list index above 0), and only that one counts. A passage title
+      // always opens a paragraph, so it is that paragraph's first verse.
+      for (const s of onScreen) {
+        if (s.first && s.index > 0 && starts.current.has(s.item.ord)) finishRef.current(s.item.ord);
+      }
+      if (saveTimer.current !== null) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => {
+        void measureVisible().then((settled) => {
+          const top = settled.find((s) => (s.top + s.bottom) / 2 > headerBottom.current) ?? settled[0];
+          if (top === undefined || stale([top])) return;
+          setTopVerse(top.item.ord);
+          void savePosition(user, `${location.current.book}.${location.current.chapter}.${top.item.verse}`);
+        });
+      }, 400);
+    });
+  };
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken<VerseText[]>[] }) => {
+    visibleParagraphs.current = viewableItems.filter((t) => t.isViewable).map((t) => ({ index: t.index ?? 0, verses: t.item }));
+    refreshVisible.current();
   }).current;
+
+  /** A verse's top and bottom in the window: its paragraph measured, plus the verse's place in it. */
+  const verseWindow = useCallback(
+    (verse: number) =>
+      new Promise<VerseRect | null>((resolve) => {
+        const group = paragraphsRef.current.find((g) => verse >= (g[0]?.verse ?? 0) && verse <= lastVerseOf(g));
+        const node = group?.[0] === undefined ? undefined : rows.current.get(group[0].verse);
+        if (node === undefined) return resolve(null);
+        node.measureInWindow((_x, y, _w, h) => {
+          const r = rectOf(verse) ?? { top: 0, bottom: h };
+          resolve({ top: y + r.top, bottom: y + r.bottom });
+        });
+      }),
+    [],
+  );
 
   const span = selectionSpan(selection);
   const ordOf = (verse: number) => chapterBounds(book, chapter)[0] - 1 + verse;
@@ -594,19 +665,15 @@ export default function ReaderScreen() {
   const scrollSelectionAbove = useCallback(
     (barTop: number) => {
       if (span === null) return;
-      const first = rows.current.get(span.start);
-      const last = rows.current.get(span.end);
-      if (first === undefined || last === undefined) return;
-      first.measureInWindow((_x, top) => {
-        last.measureInWindow((_x2, lastTop, _w, lastHeight) => {
-          const delta = scrollToClearBar({ top, bottom: lastTop + lastHeight }, { headerBottom: headerHeight, barTop });
-          if (Math.abs(delta) > 1) {
-            listRef.current?.scrollToOffset({ offset: Math.max(0, offset.current + delta), animated: !reduceMotion });
-          }
-        });
+      void Promise.all([verseWindow(span.start), verseWindow(span.end)]).then(([first, last]) => {
+        if (first === null || last === null) return;
+        const delta = scrollToClearBar({ top: first.top, bottom: last.bottom }, { headerBottom: headerHeight, barTop });
+        if (Math.abs(delta) > 1) {
+          listRef.current?.scrollToOffset({ offset: Math.max(0, offset.current + delta), animated: !reduceMotion });
+        }
       });
     },
-    [span?.start, span?.end, headerHeight, reduceMotion],
+    [span?.start, span?.end, headerHeight, reduceMotion, verseWindow],
   );
 
   /** Brief §4: the selected verse scrolls to stay above the bar. */
@@ -633,9 +700,8 @@ export default function ReaderScreen() {
       if (screenReader) AccessibilityInfo.announceForAccessibility("Following again");
       return;
     }
-    const index = verses.findIndex((v) => v.verse === playingVerse);
-    // At AX sizes a verse can outgrow the screen; its first line goes under the header instead.
-    if (index >= 0) listRef.current?.scrollToIndex(ax ? { index, viewPosition: 0, viewOffset: headerHeight + SPACE.sm, animated: !reduceMotion } : { index, viewPosition: 0.3, animated: !reduceMotion });
+    // At AX sizes a verse can outgrow the screen; its first line goes under the header instead (land()).
+    if (verses.some((v) => v.verse === playingVerse)) land(playingVerse, true, !reduceMotion);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playingHere, playingVerse]);
   useEffect(() => {
@@ -674,6 +740,9 @@ export default function ReaderScreen() {
   const imageable = !isLicensedCode(translation);
 
   const openNote = (verse: number) => router.push({ pathname: "/note", params: { book, chapter: String(chapter), verse: String(verse) } });
+  // RU-8: the Readers differ mark opens that verse's Understand, landed on its Readers differ.
+  const openDiffers = (verse: number) =>
+    router.push({ pathname: "/understand", params: { ref: spanRef(book, chapter, { start: verse, end: verse }), section: "differ", reader: readerId } });
 
   const highlightSelection = async (color: HighlightColor | null) => {
     try {
@@ -760,6 +829,7 @@ export default function ReaderScreen() {
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = e.nativeEvent.contentOffset.y;
     offset.current = y;
+    setNearTop(y < 160);
     // VoiceOver on: the header never steps back, so its title stays one swipe away.
     setHeader((h) => headerOnScroll(h, y, dragging.current && !screenReader));
   };
@@ -786,7 +856,7 @@ export default function ReaderScreen() {
   // The chapter's progress and the playing verse's words: the mini player's line and the strip that keeps a
   // playing reading in view above a selection's actions (John, 15 Oct 2026).
   const audioProgress =
-    session === null || session.fetching !== undefined || session.verses.length === 0
+    session === null || session.verses.length === 0
       ? null
       : {
           segments: progressSegments(
@@ -833,11 +903,11 @@ export default function ReaderScreen() {
         onPrevious={() => goTo({ book, chapter: chapter - 1 })}
         onNext={() => (chapter < BOOK_CODES[book].chapters ? goTo({ book, chapter: chapter + 1 }) : setAtEnd(true))}
       >
-      {verses === undefined ? null : (
+      {paragraphs === undefined ? null : (
         <FlatList
           ref={listRef}
-          data={verses}
-          keyExtractor={(v) => String(v.ord)}
+          data={paragraphs}
+          keyExtractor={(group) => String(group[0]?.ord)}
           contentContainerStyle={[
             {
               paddingTop: headerHeight + SPACE.sm,
@@ -852,7 +922,9 @@ export default function ReaderScreen() {
           initialNumToRender={40}
           windowSize={15}
           onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
+          // RU-6: a paragraph can be taller than the screen, so any part of one on screen counts; the verses in it are
+          // then measured (refreshVisible).
+          viewabilityConfig={{ itemVisiblePercentThreshold: 1 }}
           onScroll={onScroll}
           onScrollBeginDrag={() => {
             readerScrolled.current = true;
@@ -860,20 +932,22 @@ export default function ReaderScreen() {
             draggedAt.current = Date.now();
             if (playingHere) detached.current = true;
           }}
-          onMomentumScrollEnd={() => (dragging.current = false)}
+          onMomentumScrollEnd={() => {
+            dragging.current = false;
+            // Inside one long paragraph the visible rows never change, so the viewability callback never runs.
+            refreshVisible.current();
+          }}
           onScrollEndDrag={(e) => {
             if (e.nativeEvent.velocity === undefined || Math.abs(e.nativeEvent.velocity.y) < 0.01) dragging.current = false;
             // Landed on a chapter's last verse (a link, Continue) and nudged: the visible verses never changed, so the
             // viewability callback never ran and the chapter went uncounted (simulator, Jude 1, 18 Oct 2026).
-            markDay.current(visibleVerses.current);
+            refreshVisible.current();
           }}
           scrollEventThrottle={16}
           onScrollToIndexFailed={({ index, averageItemLength }) => {
-            // Rows are variable height, so a far-off verse is not yet measured.
-            // A pixel estimate lands on the wrong verse (0A: verse 7 instead of
-            // 34); get close, let rows render, then ask again by index.
+            // Rows are variable height, so a far-off paragraph is not yet measured. A pixel estimate lands on the
+            // wrong verse (0A: verse 7 instead of 34); get close and let rows render: land() asks again.
             listRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
-            setTimeout(() => landOn(index), 120);
           }}
           ListEmptyComponent={
             licensedCode === null && versesError !== undefined ? (
@@ -898,8 +972,6 @@ export default function ReaderScreen() {
           ListHeaderComponent={
             <>
               {psalmTip && !psalmTipSeen ? <PsalmTip /> : null}
-              {/* Build 6 item G (canvas IG-01): the book's introduction, chapter 1 only. */}
-              <BookIntro book={book} chapter={chapter} />
               {opener !== null ? (
                 // Literata small caps, tracked, above the numeral (DP-04, brief §8.14).
                 <Chrome
@@ -914,13 +986,17 @@ export default function ReaderScreen() {
               ) : null}
             </>
           }
-          renderItem={({ item, index }) => {
+          renderItem={({ item: group, index }) => {
+            const item = group[0];
+            if (item === undefined) return null;
             const start = startsMap.get(item.ord);
             const full = start === undefined ? undefined : fullPassages.get(start.start_ord);
             const lead = start === undefined ? undefined : prophet.get(start.pericope_id);
             // The psalm's lines skip what its title and superscription already say (verse 1 carries it).
             const psalmLines = full === undefined || full.mode !== "psalms" ? [] : readerLeadLines(full, [full.label, item.text]);
-            const before = index === 0 ? undefined : verses[index - 1];
+            const previous = index === 0 ? undefined : paragraphs[index - 1];
+            const before = previous?.[previous.length - 1];
+            const last = lastVerseOf(group);
             return (
             <>
             {/* PD-05: a verse this version leaves out (John 5:4) keeps its place as one line. */}
@@ -945,27 +1021,34 @@ export default function ReaderScreen() {
               }}
               collapsable={false}
             >
-              <PlayingVerse
+              <Paragraph
                 book={book}
-                verse={item.verse}
-                through={item.through}
                 chapter={chapter}
-                text={item.text}
                 translation={translation}
-                place={placeIn(span, item.verse)}
-                bookmarked={bookmarks.has(`${book}.${chapter}.${item.verse}`)}
-                hasEntry={entryOrds?.has(item.ord) ?? false}
-                differs={understood?.differs.has(item.ord) ?? false}
-                highlight={marks.highlights.get(item.verse) ?? null}
-                noted={marks.notes.has(item.verse)}
-                onNote={() => openNote(item.verse)}
-                onPress={() => tap(item.verse)}
-                onAction={(action: VerseAction) => {
-                  if (action === "note") return openNote(item.verse);
-                  setSelection({ anchor: item.verse, end: null });
+                verses={group.map((v) => ({
+                  verse: v.verse,
+                  through: v.through ?? v.verse,
+                  text: v.text,
+                  selected: span !== null && v.verse >= span.start && v.verse <= span.end,
+                  bookmarked: bookmarks.has(`${book}.${chapter}.${v.verse}`),
+                  hasEntry: entryOrds?.has(v.ord) ?? false,
+                  differs: understood?.differs.has(v.ord) ?? false,
+                  highlight: marks.highlights.get(v.verse) ?? null,
+                  noted: marks.notes.has(v.verse),
+                }))}
+                selectionContinues={span !== null && span.start <= last && span.end > last}
+                onPress={tap}
+                onNote={openNote}
+                onDiffers={openDiffers}
+                onAction={(verse, action) => {
+                  if (action === "note") return openNote(verse);
+                  setSelection({ anchor: verse, end: null });
                   void act(action);
                 }}
-                testID={`verse-${item.verse}`}
+                onRects={(laid) => {
+                  if (rects.current.for !== placesKey.current) rects.current = { for: placesKey.current, byVerse: new Map() };
+                  for (const [verse, rect] of laid) rects.current.byVerse.set(verse, rect);
+                }}
               />
             </View>
             </>
@@ -986,9 +1069,9 @@ export default function ReaderScreen() {
               {planNext !== null && planNext[0] !== undefined ? (
                 <ListRow
                   first={psalmsNext === null}
-                  overline="Next in M’Cheyne"
+                  overline="Next reading"
                   title={portionLabel(planNext)}
-                  label={`Next in M’Cheyne, ${portionSpoken(planNext)}`}
+                  label={`Next reading in The whole Bible, ${portionSpoken(planNext)}`}
                   onPress={() => {
                     const first = planNext[0];
                     if (first !== undefined) goTo({ book: first.b, chapter: first.c });
@@ -1036,7 +1119,16 @@ export default function ReaderScreen() {
         // SW-03: the End page stays until the reader swipes back or takes the way on.
         <View style={[StyleSheet.absoluteFill, { backgroundColor: palette.paper }]} accessibilityViewIsModal>
           <ChapterSwipe enabled={!screenReader} reduceMotion={reduceMotion} chapterKey="end" previous={<View />} next={null} onPrevious={() => setAtEnd(false)} onNext={() => undefined}>
-            <EndOfBook book={book} onNext={(to) => goTo({ book: to, chapter: 1 })} onClose={() => setAtEnd(false)} />
+            {welcome !== null ? (
+              <BookWelcome book={welcome.book} from={book} intro={welcome.intro} onStart={() => goTo({ book: welcome.book, chapter: 1 })} onBack={() => setWelcome(null)} />
+            ) : (
+              // SC-06: from the end of a book, the next one pauses once on its introduction, when it has an approved one.
+              <EndOfBook book={book} onNext={(to) =>
+                  void loadBookIntro(to)
+                    .then((i) => (i === null ? goTo({ book: to, chapter: 1 }) : setWelcome({ book: to, intro: i })))
+                    .catch(() => goTo({ book: to, chapter: 1 }))
+                } onClose={() => setAtEnd(false)} />
+            )}
           </ChapterSwipe>
         </View>
       ) : null}
@@ -1044,7 +1136,7 @@ export default function ReaderScreen() {
       {atEnd ? null : span !== null ? (
         <ActionBar
           nowPlaying={
-            session !== null && session.status !== "finished" && session.fetching === undefined ? (
+            session !== null && session.status !== "finished" ? (
               <NowPlayingStrip
                 progress={audioProgress}
                 line={session.book === book && session.chapter === chapter ? playingLine : `${chapterTitle(session.book, session.chapter)} · ${playingLine}`}
@@ -1088,9 +1180,7 @@ export default function ReaderScreen() {
         <MiniPlayer
           title={pericopeForVerse(pericopesOf(session.book), ordOfVerse(session))?.label ?? chapterTitle(session.book, session.chapter)}
           detail={
-            session.fetching !== undefined
-              ? "Getting the recording"
-              : session.status === "finished"
+            session.status === "finished"
               ? `End of ${BOOK_CODES[session.book].name}`
               : session.book === book && session.chapter === chapter
                 ? followingAgain
@@ -1102,15 +1192,14 @@ export default function ReaderScreen() {
           }
           progress={audioProgress}
           nextDisabled={session.status === "finished"}
-          fetching={session.fetching}
-          onStop={stopFetching}
+          buffering={session.buffering === true}
           under={
             // EG-03: the page is a licensed version and the voice reads the BSB.
             session.translation !== translation && isLicensedCode(translation)
               ? { line: "Audio is the BSB", action: "Read along in the BSB", onAction: () => setReadBsb(true) }
               : null
           }
-          accessibility={session.fetching !== undefined ? `Getting the recording of ${chapterTitle(session.book, session.chapter)}. Opens the player` : `${pericopeForVerse(pericopesOf(session.book), ordOfVerse(session))?.label ?? chapterTitle(session.book, session.chapter)}, ${formatDisplayRef({ book: session.book, chapter: session.chapter, verse: playingVerse ?? 1 })}, ${sessionName}. Opens the player`}
+          accessibility={`${pericopeForVerse(pericopesOf(session.book), ordOfVerse(session))?.label ?? chapterTitle(session.book, session.chapter)}, ${formatDisplayRef({ book: session.book, chapter: session.chapter, verse: playingVerse ?? 1 })}, ${sessionName}. Opens the player`}
           playing={session.status === "playing"}
           onOpen={() => router.push("/player")}
           onPrevious={previousVerse}
@@ -1148,16 +1237,17 @@ export default function ReaderScreen() {
           onHeight={setBarHeight}
         />
       ) : null}
-
+      {chapter === 1 && intro !== null && nearTop && !atEnd && span === null && session === null ? (
+        <AboutHandle key={book} book={book} bottom={(restPassage !== null || canListen) && !header.collapsed ? barHeight : insets.bottom} />
+      ) : null}
     </View>
   );
 }
 
-/** A verse row that follows the read-along: only the playing verse re-renders as words go by. */
-function PlayingVerse({ book, ...props }: Omit<ComponentProps<typeof Verse>, "mark"> & { book: BookCode }) {
-  const mark = useVerseMark(book, props.chapter, props.translation, props.verse);
-  const footprint = useFootprints((f) => f.book === book && f.chapter === props.chapter && f.verses.has(props.verse));
-  return <Verse {...props} mark={mark} footprint={footprint} />;
+/** A paragraph's last verse, counting a bridged row ("1–2") to its end. */
+function lastVerseOf(group: readonly VerseText[]): number {
+  const last = group[group.length - 1];
+  return last === undefined ? -1 : (last.through ?? last.verse);
 }
 
 /**

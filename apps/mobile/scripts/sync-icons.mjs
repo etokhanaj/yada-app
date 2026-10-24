@@ -43,6 +43,21 @@ const ICONS = {
   plus: "Plus",
   drag: "Equal",
   lock: "Lock01",
+  // Build 11 Pray and Circles (PC-02, PC-07, PC-15 to PC-18): who sees what, the call, a planned time.
+  people: "Users01",
+  eye: "Eye",
+  cloud: "Cloud01",
+  phone: "Phone",
+  "phone-end": "PhoneHangUp",
+  mic: "Microphone01",
+  "mic-off": "MicrophoneOff01",
+  calendar: "Calendar",
+  // The Pray tab (heart-hand) and its ways (PT-46, 24 Oct 2026): sit with a verse, Bible prayers, silence; everyone on Yada.
+  target: "Target04",
+  "book-open": "BookOpen01",
+  "heart-hand": "HeartHand",
+  hourglass: "Hourglass01",
+  globe: "Globe01",
 };
 
 function walk(node, shapes) {

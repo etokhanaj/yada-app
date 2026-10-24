@@ -165,12 +165,20 @@ interface StackLike {
  * Close Contents and read: in the reader it replaces the chapter, from Home it opens one. A verse (CT-03) opens the
  * reader at it, selected, as Search's Go to does.
  */
-export function usePickChapter(from: string | undefined) {
+/** Closes the Contents sheet itself, not just the page inside it. */
+export function useCloseContents() {
   const navigation = useNavigation() as unknown as StackLike;
-  return (book: BookCode, chapter: number, verse?: number) => {
+  return () => {
     const host = navigation.getParent();
     const key = host?.getState()?.key;
     if (host !== undefined && key !== undefined) host.dispatch({ type: "POP", payload: { count: 1 }, target: key });
+  };
+}
+
+export function usePickChapter(from: string | undefined) {
+  const close = useCloseContents();
+  return (book: BookCode, chapter: number, verse?: number) => {
+    close();
     const href = readerHref(verse === undefined ? { book, chapter } : { book, chapter, verse, select: true });
     if (from === "home") router.push(href);
     // Jumps land instantly (brief §5); the reader resets its scroll on a new chapter.

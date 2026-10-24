@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 import { ListRow, PageScreen } from "../components/Page";
+import { SourceLine } from "../components/SourceLine";
 import { Chrome, Prose } from "../components/Type";
 import { openDevotional } from "../data/bundles";
 import { FONTS } from "../design/tokens";
@@ -78,9 +79,7 @@ export default function Devotional() {
               testID="devotional-other"
             />
           ) : null}
-          <Chrome step="note" tone="muted">
-            C. H. Spurgeon, Morning and Evening. Public domain.
-          </Chrome>
+          <SourceLine>Spurgeon, Morning and Evening</SourceLine>
         </View>
       )}
     </PageScreen>

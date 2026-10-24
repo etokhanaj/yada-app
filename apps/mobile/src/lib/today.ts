@@ -104,15 +104,16 @@ export function earlierDays(now: Date): Array<{ day: Date; part: Part }> {
 }
 
 /**
- * The Later / Earlier row (DR-11, DR-12): "This evening · Psalms 6–8" over "and Spurgeon for the evening" in the
- * morning; "This morning" over "Psalms 1–5 · Spurgeon" in the evening. Spurgeon is named only when there is an entry.
+ * The Later / Earlier row (DR-11, DR-12): "This evening · Psalms 6–8" over "and the evening devotional" in the
+ * morning; "This morning" over "Psalms 1–5 and the devotional" in the evening, only when there is an entry. The
+ * devotional is not named for its author on Today (TD-21, John 24 Oct 2026).
  */
 export function laterRow(part: Part, psalms: string, spurgeon: boolean): { title: string; subtitle?: string; label: string } {
   if (part === "morning")
     return spurgeon
-      ? { title: `This evening · ${psalms}`, subtitle: "and Spurgeon for the evening", label: `This evening: ${psalms} and Spurgeon` }
+      ? { title: `This evening · ${psalms}`, subtitle: "and the evening devotional", label: `This evening: ${psalms} and the evening devotional` }
       : { title: `This evening · ${psalms}`, label: `This evening: ${psalms}` };
   return spurgeon
-    ? { title: "This morning", subtitle: `${psalms} · Spurgeon`, label: `This morning: ${psalms} and Spurgeon` }
+    ? { title: "This morning", subtitle: `${psalms} and the devotional`, label: `This morning: ${psalms} and the morning devotional` }
     : { title: "This morning", subtitle: psalms, label: `This morning: ${psalms}` };
 }

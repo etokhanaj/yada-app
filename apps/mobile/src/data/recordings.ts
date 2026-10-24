@@ -5,9 +5,9 @@
  * published book by book. Everything is keyed by text as well as voice and book; BSB is the default, so a
  * manifest with BSB entries only behaves as before.
  *
- * A chapter downloads the first time it is played and is kept for offline use; "Download John" fetches the
- * whole book (BA-03, BA-04). Each file is checked against the manifest's size and sha256 before it is moved
- * into place, so a file on disk is a checked file: that is the whole record of what is downloaded, per
+ * A chapter streams the first time it is played and is kept for offline use as it arrives (streamChapter; John,
+ * 23 Oct 2026); "Download John" fetches the whole book (BA-03, BA-04). Each file is checked against the manifest's
+ * size and sha256 before it is moved into place, so a file on disk is a checked file: that is the whole record of what is downloaded, per
  * device, never synced. Nothing about the listener is stored or sent: the app only asks for a chapter.
  */
 
@@ -167,8 +167,20 @@ export interface Recording {
   readonly narrator: string;
   /** The text it reads: its timings fit that text's words only. */
   readonly text: ReadText;
+  /** The saved file's path, or the chapter's URL while it streams the first time. */
   readonly path: string;
   readonly timings: ChapterTimings;
+  /** Present while the chapter streams: where it is saved as it arrives, and what it must match to be kept. */
+  readonly stream?: StreamTarget;
+}
+
+export interface StreamTarget {
+  readonly savePath: string;
+  readonly bytes: number;
+  readonly sha256: string;
+  readonly book: BookCode;
+  readonly chapter: number;
+  readonly timings: string;
 }
 
 /** The chapter's recording when it is on the phone; null otherwise. Never fetches. */
@@ -193,9 +205,7 @@ export function isRecorded(book: BookCode, chapter: number, text: ReadText = "BS
 }
 
 export interface FetchOptions {
-  /** The share fetched so far, 0 to 1 (BA-02's ring). */
-  readonly onProgress?: (share: number) => void;
-  /** BA-02's stop. */
+  /** BA-04's stop: Download a book can be stopped. */
   readonly signal?: AbortSignal;
 }
 
@@ -205,15 +215,11 @@ class Mismatch extends Error {}
 async function fetchChecked(url: string, target: File, expected: { bytes: number; sha256: string }, options: FetchOptions = {}): Promise<void> {
   const partial = new File(target.parentDirectory, `${target.name}.partial`);
   if (partial.exists) partial.delete();
-  const { onProgress, signal } = options;
+  const { signal } = options;
   try {
-    await File.createDownloadTask(url, partial, {
-      // The manifest's size, not the response's: a server that sends no length still moves the ring.
-      ...(onProgress === undefined ? {} : { onProgress: ({ bytesWritten }) => onProgress(Math.min(1, bytesWritten / expected.bytes)) }),
-      ...(signal === undefined ? {} : { signal }),
-    }).downloadAsync();
+    await File.createDownloadTask(url, partial, signal === undefined ? {} : { signal }).downloadAsync();
   } catch (error) {
-    // A stopped or failed download leaves nothing behind (BA-02's stop).
+    // A stopped or failed download leaves nothing behind (BA-04's stop).
     if (partial.exists) partial.delete();
     throw error;
   }
@@ -225,10 +231,10 @@ async function fetchChecked(url: string, target: File, expected: { bytes: number
   partial.move(target);
 }
 
-/** One fetch per chapter at a time: the first play and Download John share a `.partial` file. */
+/** One fetch per chapter at a time within Download John, which writes `.partial` (a first play streams to `.stream`). */
 const inFlight = new Map<string, Promise<Recording | null>>();
 
-/** BA-02: the first play of a chapter fetches it, then plays. Null when it can't be had (offline: BA-05). */
+/** A chapter fetched whole and checked, for Download a book (BA-04). Null when it can't be had (offline: BA-05). */
 export function ensureChapter(book: BookCode, chapter: number, options: FetchOptions = {}, text: ReadText = "BSB", narrator = narratorOf(book, text)): Promise<Recording | null> {
   // The voice is fixed once per fetch: a switch in the Voice sheet while it runs must not file one
   // voice's chapter under another's folder (review, 12 Oct 2026).
@@ -268,6 +274,63 @@ async function fetchChapter(book: BookCode, chapter: number, narrator: string, t
   // The book's chapter names come down with its first chapter, so the next chapter can be announced offline.
   void ensureTitles(book, narrator);
   return recordingOnPhone(book, chapter, text, narrator);
+}
+
+/**
+ * The first play of a chapter, as a stream: its timings (small, checked) come first so the words light from the
+ * start, then the recording plays from its URL while the native player saves it to `<name>.stream` beside where it
+ * belongs (saveStreamed). Null offline or when the manifest lacks it, as ensureChapter. Not Download's `.partial`,
+ * so a book download running at the same time never writes the same file.
+ */
+export async function streamChapter(book: BookCode, chapter: number, text: ReadText = "BSB", narrator = narratorOf(book, text)): Promise<Recording | null> {
+  const here = await recordingOnPhone(book, chapter, text, narrator);
+  if (here !== null) return here;
+  await refreshRecordings();
+  const info = useRecordings
+    .getState()
+    .all.find((a) => a.book === book && a.narrator === narrator && a.translation === text)
+    ?.chapters.find((c) => c.chapter === chapter);
+  if (info === undefined || useRecordings.getState().online !== true) return null;
+  let timingsText: string;
+  try {
+    folder(narrator, text).create({ intermediates: true, idempotent: true });
+    timingsText = await fetchTimings(info.timings, info.timings_sha256);
+  } catch {
+    return null;
+  }
+  const parsed = ChapterTimingsSchema.safeParse(JSON.parse(timingsText));
+  if (!parsed.success) return null;
+  const target = audioFile(book, chapter, narrator, text);
+  return {
+    narrator,
+    text,
+    path: resolveUrl(MANIFEST_URL, info.file),
+    timings: parsed.data,
+    stream: { savePath: pathOf(new File(target.parentDirectory, `${target.name}.stream`)), bytes: info.bytes, sha256: info.sha256, book, chapter, timings: timingsText },
+  };
+}
+
+/**
+ * A streamed chapter has every byte: checked against the manifest's size and sha256 here, as a downloaded one is,
+ * then moved into place with its timings. A mismatch keeps nothing; what played still played, and the next play
+ * fetches it again.
+ */
+export async function saveStreamed(rec: Recording): Promise<boolean> {
+  const s = rec.stream;
+  if (s === undefined) return false;
+  const target = audioFile(s.book, s.chapter, rec.narrator, rec.text);
+  const saved = new File(target.parentDirectory, `${target.name}.stream`);
+  if (!saved.exists) return false;
+  if (!(await verifyDownload(await saved.bytes(), { bytes: s.bytes, sha256: s.sha256 }))) {
+    saved.delete();
+    return false;
+  }
+  if (target.exists) target.delete();
+  saved.move(target);
+  timingsFile(s.book, s.chapter, rec.narrator, rec.text).write(s.timings);
+  useRecordings.setState((st) => ({ version: st.version + 1 }));
+  void ensureTitles(s.book, rec.narrator);
+  return true;
 }
 
 export interface ChapterTitle {

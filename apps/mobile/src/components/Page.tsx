@@ -277,8 +277,11 @@ export function ListRow({
           )
         ) : null}
         {children}
+        {/* At AX sizes a value beside the title broke words ("Daily psalm / s") and clipped itself ("1662 Prayer
+            Bo"): fresh-eyes review RU-11, 23 Oct 2026. It goes under the title, as iOS Settings does. */}
+        {ax && right !== undefined ? right : null}
       </View>
-      {right}
+      {ax ? null : right}
       {chevron && onPress !== undefined ? <Icon name="forward" size={18} tone="muted" /> : null}
     </Pressable>
   );

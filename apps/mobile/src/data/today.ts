@@ -48,7 +48,8 @@ export interface TodayData {
    *  no plan ever chosen, "Choose a plan", which then leads the page (EB-01). */
   readonly plan:
     | { readonly kind: "start" }
-    | { readonly kind: "choose" }
+    /** `finished`: every passage of John read; the card says so and offers the plans (decided 24 Oct 2026). */
+    | { readonly kind: "choose"; readonly finished?: boolean }
     | { readonly kind: "john"; readonly title: string; readonly sub: string; readonly count: string; readonly place: Place }
     | { readonly kind: "mcheyne"; readonly title: string; readonly sub: string; readonly place: Place };
   /** The lamp: none before a day has ever counted (XT-01). */
@@ -129,6 +130,9 @@ export async function loadToday(core: Db, user: SQLiteDatabase, translation: str
         place: { book: portion[0]?.b ?? "GEN", chapter: portion[0]?.c ?? 1, verse: portion[0]?.vs ?? 1 },
       };
     }
+  } else if (progress.passages.length > 0 && progress.read.size >= progress.passages.length) {
+    // John read to the end used to offer "A place to start: The Gospel of John" again.
+    plan = { kind: "choose", finished: true };
   } else {
     const pos = saved === null ? null : parseVerseId(saved.id);
     const posOrd = pos === null ? null : verseOrd(pos.book, pos.chapter, pos.verse);

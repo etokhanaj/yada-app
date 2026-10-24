@@ -20,6 +20,7 @@ import { appleMapsUrl, placeLine } from "../lib/wordsAndPlaces";
 import { useSheetBase } from "./navigation";
 import { PlaceMap } from "./PlaceMap";
 import { Row, RowNote, Section, SheetScreen, UNDERSTAND_EXIT } from "./Sheet";
+import { SourceLine } from "./SourceLine";
 import { Chrome, Prose } from "./Type";
 
 export function PlaceScreen({ book, id, from }: { book: BookCode; id: string; from: number }) {
@@ -70,10 +71,9 @@ export function PlaceScreen({ book, id, from }: { book: BookCode; id: string; fr
           <RowNote>Needs a connection</RowNote>
         </Row>
       </View>
-      {/* CC BY 4.0 asks for the credit where the data is shown (OpenBible's readme); Natural Earth asks for none. */}
-      <Chrome step="note" tone="muted" style={{ marginTop: 16 }} testID="place-credit">
-        Place: OpenBible.info, CC BY 4.0 · Map: Natural Earth
-      </Chrome>
+      {/* CC BY 4.0 asks for the credit where the data is shown (OpenBible's readme), here by name and a link to
+          Sources (§3(a)(2)); Natural Earth asks for none. */}
+      <SourceLine style={{ marginTop: 16 }} testID="place-credit">OpenBible.info · Natural Earth</SourceLine>
     </SheetScreen>
   );
 }

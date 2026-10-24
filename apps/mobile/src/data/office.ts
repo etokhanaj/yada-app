@@ -4,12 +4,14 @@
  * Evening: the same opening sentence (the lectionary carries no sentences of its own, so the morning's BSB verse is
  * reused), the evening psalms, the first lesson, Mary's song (Luke 1:46–55), any second lesson, Simeon's song (Luke
  * 2:29–32) and the Lord's Prayer. The lectionary gives only references (office.generated.ts); a lesson from a book the
- * BSB lacks, or one whose reference cannot be read, is skipped, never filled (rule 4). No collects: no source on disk
- * carries them under a licence that permits it (the 1662 book is Crown copyright in the UK).
+ * BSB lacks, or one whose reference cannot be read, is skipped, never filled (rule 4). Before the Lord's Prayer, the
+ * collect of the day from the 1979 Book of Common Prayer in its traditional wording (lib/collects.ts; John, 22 Oct
+ * 2026), as DO-02 places it; the 1662 book stays out (Crown copyright in the UK).
  */
 
 import { BOOK_CODES, type BookCode, isBookCode } from "@yada/schema";
 
+import { collectFor } from "../lib/collects";
 import { officeKey } from "../lib/office";
 import { psalmSpans, type Span, spans } from "../lib/officeRange";
 import type { Part } from "../lib/today";
@@ -87,6 +89,8 @@ export async function loadOffice(core: Db, day: Date, part: Part = "morning"): P
     for (const l of rest) await lesson(l, "Second reading");
     await add("Simeon’s song", "LUK", [{ chapter: 2, from: 29, to: 32 }], "Luke 2:29–32", songOnly);
   }
+  const collect = collectFor(day);
+  if (collect !== null) steps.push({ label: "The collect", text: collect.text, ref: `${collect.name} · 1979 Prayer Book` });
   await add("The Lord’s Prayer", "MAT", [{ chapter: 6, from: 9, to: 13 }], "Matthew 6:9b–13", prayerOnly);
   return steps;
 }

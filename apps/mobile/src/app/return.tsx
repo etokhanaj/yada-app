@@ -29,7 +29,7 @@ import { pictureFor } from "../data/pictures";
 import { FONTS, useIsDark, useLayout } from "../design/tokens";
 import { chapterTitle } from "../lib/reader";
 import { dayOf, partOf } from "../lib/today";
-import { BRAND } from "../design/palette";
+import { BRAND, ON_PICTURE } from "../design/palette";
 import { useAccessibility } from "../state/accessibility";
 import { FillPicture } from "../components/FillPicture";
 
@@ -136,10 +136,10 @@ function Leave() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: NIGHT },
   body: { flex: 1 },
-  close: { position: "absolute", zIndex: 2, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.16)" },
-  headline: { color: "#FFFFFF", fontFamily: FONTS.scripture, fontSize: 40, lineHeight: 46, fontWeight: "600", letterSpacing: -0.6, paddingBottom: 24 },
-  go: { borderRadius: 999, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", paddingHorizontal: 22 },
+  close: { position: "absolute", zIndex: 2, alignItems: "center", justifyContent: "center", backgroundColor: ON_PICTURE.glass },
+  headline: { color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontSize: 40, lineHeight: 46, fontWeight: "600", letterSpacing: -0.6, paddingBottom: 24 },
+  go: { borderRadius: 999, backgroundColor: ON_PICTURE.text, alignItems: "center", justifyContent: "center", paddingHorizontal: 22 },
   goText: { color: NIGHT, fontWeight: "600" },
   link: { minHeight: 48, alignItems: "center", justifyContent: "center" },
-  linkText: { color: "rgba(255,255,255,0.85)", fontWeight: "600" },
+  linkText: { color: ON_PICTURE.strong, fontWeight: "600" },
 });

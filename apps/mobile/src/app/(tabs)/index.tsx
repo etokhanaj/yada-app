@@ -26,6 +26,7 @@ import { router, useFocusEffect } from "expo-router";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 
+import { NumberGrid } from "../../components/Contents";
 import { GlassButton } from "../../components/Glass";
 import { useLaunch } from "../../components/LaunchOverlay";
 import { Icon } from "../../components/Icon";
@@ -74,6 +75,8 @@ export default function Home() {
   const paused = useReminder((s) => s.paused);
   // NP-03: after a Not now, asked once more on a return three or more days later, as one line; then never.
   const [askAgain, setAskAgain] = useState(false);
+  const [openBook, setOpenBook] = useState<BookCode | null>(null);
+  const chooseVerse = useSettings((st) => st.chooseVerse);
   useFocusEffect(
     useCallback(() => {
       let live = true;
@@ -195,16 +198,16 @@ export default function Home() {
         actions={[
           // An action without imageColor reaches native as colour 0, transparent: @react-native-menu
           // 2.0's Fabric view always sends the field, so the icons were drawn invisible (10 Oct 2026).
-          // IA-11: Recent · Reading plans · Settings; Sources and the reminder live in Settings now.
+          // IA-11: Recent · Settings; Sources and the reminder live in Settings now. Reading plans left the menu for a
+          // row under Continue (RU-14, approved by John 23 Oct 2026): in the menu a new reader never found them.
           { id: "recent", title: "Recent", image: "clock", imageColor: palette.ink },
-          { id: "plans", title: "Reading plans", image: "book", imageColor: palette.ink },
           { id: "settings", title: "Settings", image: "gearshape", imageColor: palette.ink },
         ]}
-        onPressAction={({ nativeEvent }) => router.push(nativeEvent.event === "recent" ? "/recent" : nativeEvent.event === "plans" ? "/plans" : "/settings")}
+        onPressAction={({ nativeEvent }) => router.push(nativeEvent.event === "recent" ? "/recent" : "/settings")}
         testID="home-more"
       >
         {/* The menu is a UIButton; a child that took the touch would keep it from opening. */}
-        <View pointerEvents="none" accessible accessibilityRole="button" accessibilityLabel="More: Recent, Reading plans, Settings">
+        <View pointerEvents="none" accessible accessibilityRole="button" accessibilityLabel="More: Recent, Settings">
           <GlassButton>
             <Icon name="more" size={20} />
           </GlassButton>
@@ -332,6 +335,8 @@ export default function Home() {
         </View>
       ) : null}
       <View>{lead()}</View>
+      {/* RU-14: plans one tap from the Bible tab, under Continue (canvas RU-14). */}
+      <ListRow first title="Reading plans" subtitle="John passage by passage · The whole Bible" onPress={() => router.push("/plans")} testID="home-plans" />
 
       {[
         { title: "Old Testament", books: ot },
@@ -339,22 +344,40 @@ export default function Home() {
       ].map((group) => (
         <View key={group.title} style={{ marginTop: 26 }}>
           <Heading style={{ marginBottom: 6 }}>{group.title}</Heading>
-          {group.books.map((book, i) => (
-            <ListRow
-              key={book}
-              first={i === 0}
-              book
-              chevron={false}
-              title={BOOK_CODES[book].name}
-              label={`${BOOK_CODES[book].name}, ${BOOK_CODES[book].chapters} ${BOOK_CODES[book].chapters === 1 ? "chapter" : "chapters"}`}
-              onPress={() =>
-                BOOK_CODES[book].chapters === 1
-                  ? router.push(readerHref({ book, chapter: 1 }))
-                  : router.push({ pathname: "/contents/[book]", params: { book, from: "home" } })
-              }
-              testID={`book-${book}`}
-            />
-          ))}
+          {group.books.map((book, i) => {
+            const meta = BOOK_CODES[book];
+            const open = openBook === book;
+            return (
+              <View key={book}>
+                <ListRow
+                  first={i === 0}
+                  book
+                  chevron={false}
+                  title={meta.name}
+                  label={`${meta.name}, ${meta.chapters} ${meta.chapters === 1 ? "chapter" : "chapters"}${open ? ", chapters shown" : ""}`}
+                  onPress={() => (meta.chapters === 1 ? router.push(readerHref({ book, chapter: 1 })) : setOpenBook(open ? null : book))}
+                  testID={`book-${book}`}
+                />
+                {/* RU-10 (approved by John, 23 Oct 2026): a book opens its chapters in place, so the Bible tab is one
+                    tap from any chapter; the contents sheet stays for the reader's title. */}
+                {open ? (
+                  <View style={{ paddingBottom: 14 }}>
+                    <NumberGrid
+                      numbers={Array.from({ length: meta.chapters }, (_, n) => n + 1)}
+                      current={state?.place?.book === book ? state.place.chapter : null}
+                      onPick={(chapter) =>
+                        chooseVerse
+                          ? router.push({ pathname: "/contents/verses", params: { book, chapter: String(chapter), from: "home" } })
+                          : router.push(readerHref({ book, chapter }))
+                      }
+                      label={(chapter) => `${meta.name} ${chapter}`}
+                      testID={(chapter) => `chapter-${book}-${chapter}`}
+                    />
+                  </View>
+                ) : null}
+              </View>
+            );
+          })}
         </View>
       ))}
     </PageScreen>

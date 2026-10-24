@@ -16,20 +16,68 @@ public class YadaCirclesModule: Module {
   public func definition() -> ModuleDefinition {
     Name("YadaCircles")
 
-    /// Your circles and the ones you joined: id (zone name), name, owned, people.
+    /// Your circles and the ones you joined: id (zone name), name, owned, people. The zones come from the database's
+    /// changes, not allRecordZones, which took 15 s on the QA simulator against 0.2 s for each share (24 Oct 2026). The
+    /// two databases are read at once, each with its shares in one request.
     AsyncFunction("list") { () async throws -> [[String: Any]] in
-      var out: [[String: Any]] = []
-      for (db, owned) in [(self.container.privateCloudDatabase, true), (self.container.sharedCloudDatabase, false)] {
-        for zone in try await db.allRecordZones() where zone.zoneID.zoneName.hasPrefix(Self.prefix) {
-          let share = try? await self.share(in: zone.zoneID, db: db)
-          out.append([
-            "id": zone.zoneID.zoneName, "owner": zone.zoneID.ownerName, "owned": owned,
-            "name": (share?[CKShare.SystemFieldKey.title] as? String) ?? "Circle",
-            "people": share?.participants.filter { $0.acceptanceStatus == .accepted }.count ?? 1,
-          ])
+      let found = try await withThrowingTaskGroup(of: [[String: Any]].self) { group in
+        for (db, owned) in [(self.container.privateCloudDatabase, true), (self.container.sharedCloudDatabase, false)] {
+          group.addTask {
+            let zones = try await self.zoneIDs(db).filter { $0.zoneName.hasPrefix(Self.prefix) }
+            if zones.isEmpty { return [] }
+            // One request for every share: several at once never returned on the QA simulator.
+            let ids = zones.map { CKRecord.ID(recordName: CKRecordNameZoneWideShare, zoneID: $0) }
+            let shares = try await db.records(for: ids)
+            return zones.map { zoneID -> [String: Any] in
+              let share = (try? shares[CKRecord.ID(recordName: CKRecordNameZoneWideShare, zoneID: zoneID)]?.get()) as? CKShare
+              return [
+                "id": zoneID.zoneName, "owner": zoneID.ownerName, "owned": owned,
+                "name": (share?[CKShare.SystemFieldKey.title] as? String) ?? "Circle",
+                "people": share?.participants.filter { $0.acceptanceStatus == .accepted }.count ?? 1,
+              ]
+            }
+          }
+        }
+        var all: [[String: Any]] = []
+        for try await part in group { all += part }
+        return all
+      }
+      // Mine first, then joined, each by name, so the covers keep their places between loads.
+      return found.sorted {
+        let (a, b) = ($0["owned"] as? Bool ?? false, $1["owned"] as? Bool ?? false)
+        return a != b ? a : ($0["name"] as? String ?? "") < ($1["name"] as? String ?? "")
+      }
+    }
+
+    /// FL-06 (John, 24 Oct 2026): CloudKit's own notice when a circle you're in has a new request, in fixed words with
+    /// no request text and no name (PA-02's rule), so Yada needs no background code. One database subscription in each
+    /// database, limited to requests: your own circles live in the private one, the ones you joined in the shared one.
+    /// CloudKit sends no notice to the device that saved the request. `on: false` removes both.
+    AsyncFunction("watchCircles") { (on: Bool) async throws in
+      // Each database on its own: a failure in one must not leave the other without its notice (code review, 24 Oct).
+      var failure: Error?
+      for db in [self.container.privateCloudDatabase, self.container.sharedCloudDatabase] {
+        let id = "circle-requests"
+        if !on {
+          _ = try? await db.deleteSubscription(withID: id)
+          continue
+        }
+        let s = CKDatabaseSubscription(subscriptionID: id)
+        s.recordType = "CircleRequest"
+        let info = CKSubscription.NotificationInfo()
+        info.title = "A circle has a new request"
+        info.alertBody = "Open Pray to pray for it."
+        info.soundName = "default"
+        s.notificationInfo = info
+        do {
+          let (saved, _) = try await db.modifySubscriptions(saving: [s], deleting: [])
+          for (_, result) in saved { _ = try result.get() }
+        } catch {
+          failure = error
         }
       }
-      return out
+      if on { await MainActor.run { UIApplication.shared.registerForRemoteNotifications() } }
+      if let failure { throw failure }
     }
 
     AsyncFunction("create") { (name: String) async throws -> String in
@@ -42,17 +90,32 @@ public class YadaCirclesModule: Module {
       return zone.zoneID.zoneName
     }
 
-    /// The system's invite sheet, for the creator only; refused at 12 people.
+    /// The system share sheet with the circle's share, for the creator only; refused at 12 people (PC-04: Messages
+    /// first, as iOS offers it). The share stays private to the people invited, and from iOS 26 they cannot add
+    /// others: only the creator invites (PC-07, PC-08). UICloudSharingController, used before, offered "Anyone can add
+    /// people" and chose it by default (QA, 24 Oct 2026). Resolves when the sheet closes: true only if it was sent.
     AsyncFunction("invite") { (id: String) async throws -> Bool in
       let zoneID = CKRecordZone.ID(zoneName: id, ownerName: CKCurrentUserDefaultName)
       guard let share = try await self.share(in: zoneID, db: self.container.privateCloudDatabase) else { return false }
       if share.participants.count >= Self.maxPeople { return false }
-      await MainActor.run {
-        let sheet = UICloudSharingController(share: share, container: self.container)
-        sheet.availablePermissions = [.allowPrivate, .allowReadWrite]
-        self.appContext?.utilities?.currentViewController()?.present(sheet, animated: true)
+      let options = CKAllowedSharingOptions(allowedParticipantPermissionOptions: .readWrite, allowedParticipantAccessOptions: .specifiedRecipientsOnly)
+      if #available(iOS 26.0, *) { options.allowsParticipantsToInviteOthers = false }
+      let item = NSItemProvider()
+      item.registerCKShare(share, container: self.container, allowedSharingOptions: options)
+      return await withCheckedContinuation { (done: CheckedContinuation<Bool, Never>) in
+        DispatchQueue.main.async {
+          guard let from = self.appContext?.utilities?.currentViewController() else { return done.resume(returning: false) }
+          let sheet = UIActivityViewController(activityItems: [item], applicationActivities: nil)
+          // Called again if a chosen app hands back to the sheet; a continuation resumes once.
+          var answered = false
+          sheet.completionWithItemsHandler = { _, completed, _, _ in
+            guard !answered else { return }
+            answered = true
+            done.resume(returning: completed)
+          }
+          from.present(sheet, animated: true)
+        }
       }
-      return true
     }
 
     /// Requests in a circle, newest first, each with how many prayed: members see the count, never who (plan §I.3).
@@ -80,7 +143,7 @@ public class YadaCirclesModule: Module {
           let creator = r.creatorUserRecordID
           return [
             "id": r.recordID.recordName, "text": r.encryptedValues["text"] as? String ?? "", "firstName": r.encryptedValues["firstName"] as? String ?? "",
-            "creator": creator?.recordName ?? "", "mine": creator == me || creator?.recordName == CKCurrentUserDefaultName,
+            "creator": creator?.recordName == CKCurrentUserDefaultName ? me.recordName : creator?.recordName ?? "", "mine": creator == me || creator?.recordName == CKCurrentUserDefaultName,
             "expiresAt": ((r["expiresAt"] as? Date) ?? Date()).timeIntervalSince1970 * 1000,
             "prayed": prayed[r.recordID.recordName] ?? 0,
           ]
@@ -131,15 +194,199 @@ public class YadaCirclesModule: Module {
       _ = try await db.deleteRecordZone(withID: zoneID)
     }
 
+    /// The people in a circle (PC-05, PC-08): each one's first name as iCloud shares it with the circle, whether they have
+    /// joined or are still invited, and which is you. No email or phone number leaves the share.
+    AsyncFunction("members") { (id: String, owner: String) async throws -> [[String: Any]] in
+      let (db, zoneID) = self.place(id, owner)
+      guard let share = try await self.share(in: zoneID, db: db) else { return [] }
+      let me = share.currentUserParticipant
+      let myName = try await self.container.userRecordID().recordName
+      return share.participants.filter { $0.acceptanceStatus != .removed }.map { p in
+        // The same id as Self.member gives a record's maker, so a person keeps one colour (PC-05).
+        let raw = p.userIdentity.userRecordID?.recordName ?? p.participantID
+        let key = raw == CKCurrentUserDefaultName ? myName : raw
+        return [
+          "id": key,
+          "name": p.userIdentity.nameComponents?.givenName ?? "",
+          "joined": p.acceptanceStatus == .accepted,
+          "creator": p.role == .owner,
+          "me": p == me,
+        ]
+      }
+    }
+
+    /// The creator removes someone (PC-08); CloudKit refuses this for anyone else.
+    AsyncFunction("removeMember") { (id: String, member: String) async throws in
+      let zoneID = CKRecordZone.ID(zoneName: id, ownerName: CKCurrentUserDefaultName)
+      guard let share = try await self.share(in: zoneID, db: self.container.privateCloudDatabase),
+            let p = share.participants.first(where: { ($0.userIdentity.userRecordID?.recordName ?? $0.participantID) == member }) else { return }
+      share.removeParticipant(p)
+      _ = try await self.container.privateCloudDatabase.save(share)
+    }
+
+    /// The creator renames the circle (PC-06): the share's title is the name everyone sees.
+    AsyncFunction("rename") { (id: String, name: String) async throws in
+      let zoneID = CKRecordZone.ID(zoneName: id, ownerName: CKCurrentUserDefaultName)
+      guard let share = try await self.share(in: zoneID, db: self.container.privateCloudDatabase) else { return }
+      share[CKShare.SystemFieldKey.title] = name as CKRecordValue
+      _ = try await self.container.privateCloudDatabase.save(share)
+    }
+
+    /// What is live in a circle besides its requests (11e): its planned time (PC-17, PC-18), who is coming this week, who
+    /// is praying together now and who asked to join them (PC-14, PC-21). One read of the zone's changes.
+    AsyncFunction("live") { (id: String, owner: String) async throws -> [String: Any] in
+      let (db, zoneID) = self.place(id, owner)
+      let me = try await self.container.userRecordID().recordName
+      var out: [String: Any] = [:]
+      var coming: [[String: Any]] = []
+      var together: [[String: Any]] = []
+      var cursor: CKServerChangeToken?
+      repeat {
+        let changes = try await db.recordZoneChanges(inZoneWith: zoneID, since: cursor)
+        for (_, result) in changes.modificationResultsByID {
+          guard let r = try? result.get().record else { continue }
+          let who = Self.member(r, me: me)
+          switch r.recordType {
+          case "Gathering":
+            out["plan"] = [
+              "weekday": r["weekday"] as? Int ?? 1, "hour": r["hour"] as? Int ?? 20, "minute": r["minute"] as? Int ?? 0,
+              "weekly": (r["weekly"] as? Int ?? 1) == 1, "minutes": r["minutes"] as? Int ?? 20, "once": ((r["once"] as? Date) ?? .distantPast).timeIntervalSince1970 * 1000,
+              "by": who, "mine": who == me,
+            ] as [String: Any]
+          case "Coming":
+            coming.append(["member": who, "week": r["week"] as? String ?? "", "going": (r["going"] as? Int ?? 0) == 1, "mine": who == me])
+          case "Together":
+            together.append(["member": who, "kind": r["kind"] as? String ?? "on", "at": (r.modificationDate ?? .distantPast).timeIntervalSince1970 * 1000, "mine": who == me])
+          default: break
+          }
+        }
+        cursor = changes.moreComing ? changes.changeToken : nil
+      } while cursor != nil
+      out["coming"] = coming
+      out["together"] = together
+      return out
+    }
+
+    /// Plans the circle's one time, or changes it: anyone may plan; only the one who planned it changes it (PC-22), which
+    /// the app keeps to. `once` is the first time as one moment, so each phone shows it in its own clock.
+    AsyncFunction("plan") { (id: String, owner: String, weekday: Int, hour: Int, minute: Int, weekly: Bool, minutes: Int, once: Double) async throws in
+      let (db, zoneID) = self.place(id, owner)
+      let rid = CKRecord.ID(recordName: "gathering", zoneID: zoneID)
+      let r = (try? await db.record(for: rid)) ?? CKRecord(recordType: "Gathering", recordID: rid)
+      r["weekday"] = weekday as CKRecordValue
+      r["hour"] = hour as CKRecordValue
+      r["minute"] = minute as CKRecordValue
+      r["weekly"] = (weekly ? 1 : 0) as CKRecordValue
+      r["minutes"] = minutes as CKRecordValue
+      r["once"] = Date(timeIntervalSince1970: once / 1000) as CKRecordValue
+      _ = try await db.save(r)
+    }
+
+    /// Stop planning (PC-22): the time goes for everyone, with who said they'd come.
+    AsyncFunction("unplan") { (id: String, owner: String) async throws in
+      let (db, zoneID) = self.place(id, owner)
+      var ids = [CKRecord.ID(recordName: "gathering", zoneID: zoneID)]
+      var cursor: CKServerChangeToken?
+      repeat {
+        let changes = try await db.recordZoneChanges(inZoneWith: zoneID, since: cursor)
+        for (rid, result) in changes.modificationResultsByID where (try? result.get().record.recordType) == "Coming" { ids.append(rid) }
+        cursor = changes.moreComing ? changes.changeToken : nil
+      } while cursor != nil
+      try await self.modify(db, saving: [], deleting: ids)
+    }
+
+    /// I'll be there, or can't make it, for one week (PC-18, PC-22). One record per person per week.
+    AsyncFunction("coming") { (id: String, owner: String, week: String, going: Bool) async throws in
+      let (db, zoneID) = self.place(id, owner)
+      let me = try await self.container.userRecordID().recordName
+      let rid = CKRecord.ID(recordName: "coming-\(me)-\(week)", zoneID: zoneID)
+      let r = (try? await db.record(for: rid)) ?? CKRecord(recordType: "Coming", recordID: rid)
+      r["week"] = week as CKRecordValue
+      r["going"] = (going ? 1 : 0) as CKRecordValue
+      _ = try await db.save(r)
+    }
+
+    /// "on" while you pray together, "ask" to join those who are, "off" when you leave: it deletes both of yours.
+    AsyncFunction("together") { (id: String, owner: String, kind: String) async throws in
+      let (db, zoneID) = self.place(id, owner)
+      let me = try await self.container.userRecordID().recordName
+      let mine = ["on", "ask"].map { CKRecord.ID(recordName: "together-\($0)-\(me)", zoneID: zoneID) }
+      if kind == "off" {
+        try await self.modify(db, saving: [], deleting: mine)
+        return
+      }
+      let r = CKRecord(recordType: "Together", recordID: CKRecord.ID(recordName: "together-\(kind)-\(me)", zoneID: zoneID))
+      r["kind"] = kind as CKRecordValue
+      try await self.modify(db, saving: [r], deleting: [], policy: .allKeys)
+    }
+
+    /// Remove my data (App Store guideline 5.1.1(v)): circles the reader made are deleted, for everyone, as `leave`
+    /// deletes them; in circles they joined, everything they wrote (requests, prayed marks, reports, plans) is deleted
+    /// first, then they leave. Throws on the first failure, so Settings says so rather than claim it went.
+    AsyncFunction("removeAll") { () async throws in
+      let me = try await self.container.userRecordID()
+      let privateDB = self.container.privateCloudDatabase
+      for zone in try await privateDB.allRecordZones() where zone.zoneID.zoneName.hasPrefix(Self.prefix) {
+        _ = try await privateDB.deleteRecordZone(withID: zone.zoneID)
+      }
+      let shared = self.container.sharedCloudDatabase
+      for zone in try await shared.allRecordZones() where zone.zoneID.zoneName.hasPrefix(Self.prefix) {
+        var mine: [CKRecord.ID] = []
+        var cursor: CKServerChangeToken?
+        repeat {
+          let changes = try await shared.recordZoneChanges(inZoneWith: zone.zoneID, since: cursor)
+          for (rid, result) in changes.modificationResultsByID {
+            guard let r = try? result.get().record, r.recordType != "cloudkit.share" else { continue }
+            if r.creatorUserRecordID == me || r.creatorUserRecordID?.recordName == CKCurrentUserDefaultName { mine.append(rid) }
+          }
+          cursor = changes.moreComing ? changes.changeToken : nil
+        } while cursor != nil
+        for chunk in stride(from: 0, to: mine.count, by: 400).map({ Array(mine[$0..<min($0 + 400, mine.count)]) }) {
+          try await self.modify(shared, saving: [], deleting: chunk)
+        }
+        _ = try await shared.deleteRecordZone(withID: zone.zoneID)
+      }
+    }
+
     AsyncFunction("takeAccepted") { () -> [String] in
       defer { Self.accepted.removeAll() }
       return Self.accepted
     }
   }
 
+  /// modifyRecords reports each record's failure in its results, not by throwing, so "Stop planning" failed silently
+  /// (code review, 18 Oct 2026). Not atomic, and a record already gone counts as deleted.
+  private func modify(_ db: CKDatabase, saving: [CKRecord], deleting: [CKRecord.ID], policy: CKModifyRecordsOperation.RecordSavePolicy = .ifServerRecordUnchanged) async throws {
+    let (saved, deleted) = try await db.modifyRecords(saving: saving, deleting: deleting, savePolicy: policy, atomically: false)
+    for (_, result) in saved { _ = try result.get() }
+    for (_, result) in deleted {
+      if case .failure(let error) = result, (error as? CKError)?.code != .unknownItem { throw error }
+    }
+  }
+
+  /// Who made a record, as `members` names people: in your own zone CloudKit writes you as the default owner.
+  private static func member(_ r: CKRecord, me: String) -> String {
+    let name = r.creatorUserRecordID?.recordName ?? ""
+    return name == CKCurrentUserDefaultName ? me : name
+  }
+
   private func place(_ id: String, _ owner: String) -> (CKDatabase, CKRecordZone.ID) {
     let mine = owner == CKCurrentUserDefaultName || owner.isEmpty
     return (mine ? container.privateCloudDatabase : container.sharedCloudDatabase, CKRecordZone.ID(zoneName: id, ownerName: mine ? CKCurrentUserDefaultName : owner))
+  }
+
+  /// Every zone in `db`, from its change feed read from the start.
+  private func zoneIDs(_ db: CKDatabase) async throws -> [CKRecordZone.ID] {
+    var zones: [CKRecordZone.ID: Bool] = [:]
+    var token: CKServerChangeToken?
+    while true {
+      let changes = try await db.databaseChanges(since: token)
+      for m in changes.modifications { zones[m.zoneID] = true }
+      for d in changes.deletions { zones[d.zoneID] = nil }
+      token = changes.changeToken
+      if !changes.moreComing { break }
+    }
+    return Array(zones.keys)
   }
 
   private func share(in zoneID: CKRecordZone.ID, db: CKDatabase) async throws -> CKShare? {

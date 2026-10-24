@@ -6,8 +6,6 @@
 
 export interface BookIntro {
   readonly text: string;
-  /** Says it was shortened and names the licence, as CC BY-SA asks. */
-  readonly credit: string;
 }
 
 export function parseBookIntro(raw: string | null | undefined): BookIntro | null {
@@ -19,7 +17,7 @@ export function parseBookIntro(raw: string | null | undefined): BookIntro | null
     return null;
   }
   if (typeof value !== "object" || value === null) return null;
-  const { text, credit, status } = value as Record<string, unknown>;
-  if (status !== "approved" || typeof text !== "string" || text.trim() === "" || typeof credit !== "string" || credit.trim() === "") return null;
-  return { text, credit };
+  const { text, status } = value as Record<string, unknown>;
+  if (status !== "approved" || typeof text !== "string" || text.trim() === "") return null;
+  return { text };
 }

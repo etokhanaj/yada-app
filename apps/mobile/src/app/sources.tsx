@@ -20,7 +20,7 @@ import { licensedCodes, licensedEnabled } from "../data/useLicensedChapter";
 import { Linking, View } from "react-native";
 
 import { ListRow, PageScreen } from "../components/Page";
-import { SectionTitle, Chrome } from "../components/Type";
+import { Chrome, Prose, SectionTitle } from "../components/Type";
 import { useCore, useQuery } from "../data/AppData";
 import { getSources, getTranslationSources } from "../data/queries";
 import { refreshRecordings, useRecordings } from "../data/recordings";
@@ -30,6 +30,7 @@ import { loadAnyUnderstandSources, useUnderstand } from "../data/understand";
 import { useLayout } from "../design/tokens";
 import { todaySources } from "../data/today";
 import { type SourceGroup, sourceItems, studySourceItem } from "../lib/sources";
+import { BIBLEPROJECT_CREDIT } from "../lib/overviews";
 
 const GROUPS: readonly SourceGroup[] = ["Bible text", "Words and people", "Understand", "Today"];
 
@@ -139,6 +140,42 @@ export function SourcesList() {
           </Chrome>
         </View>
       ) : null}
+
+      {/* SC-08 (rule 3): the full credit for the book introductions, before the short line under each paragraph ships.
+          tN's licence is read from the book's own file and listed under Explanations; this says what was adapted. */}
+      {explanations !== undefined && explanations.some((source) => source.key === "tn") ? (
+        <View style={{ marginTop: sectionGap }}>
+          <SectionTitle style={{ marginBottom: 6 }}>Book introductions</SectionTitle>
+          <Prose step="claim" testID="source-book-intros">
+            The opening paragraph of each book’s introduction is from unfoldingWord® Translation Notes, front introductions. Adapted: the first paragraph only, sometimes shortened. Licensed CC BY-SA 4.0; this adaptation is shared under the same licence.
+          </Prose>
+          <View style={{ marginTop: 8 }}>
+            <ListRow first title="unfoldingWord Translation Notes" subtitle="unfoldingword.org · CC BY-SA 4.0" {...opens("https://www.unfoldingword.org")} testID="source-intros-tn" />
+            <ListRow title="The licence" subtitle="creativecommons.org/licenses/by-sa/4.0" {...opens("https://creativecommons.org/licenses/by-sa/4.0/")} testID="source-intros-licence" />
+          </View>
+        </View>
+      ) : null}
+
+      {/* Daily prayer's collects (lib/collects.ts): the book names no copyright, and the Episcopal Church's canons hold its
+          authorized Prayer Book in the public domain (resolution 2024-D038, explanation). */}
+      <View style={{ marginTop: sectionGap }}>
+        <SectionTitle style={{ marginBottom: 6 }}>The collects</SectionTitle>
+        <Prose step="claim" testID="source-collects">
+          Daily prayer’s collects are from The Book of Common Prayer (1979) of the Episcopal Church, in their traditional wording, word for word. The authorized Prayer Book is in the public domain.
+        </Prose>
+        <View style={{ marginTop: 8 }}>
+          <ListRow first title="The Book of Common Prayer" subtitle="episcopalchurch.org · public domain" {...opens("https://www.episcopalchurch.org/who-we-are/how-we-worship/book-of-common-prayer/")} testID="source-bcp" />
+        </View>
+      </View>
+
+      {/* OR-03: the overview videos link to BibleProject, who asked for this credit (19 Oct 2026). */}
+      <View style={{ marginTop: sectionGap }}>
+        <SectionTitle style={{ marginBottom: 6 }}>Book overview videos</SectionTitle>
+        <Prose step="claim">{BIBLEPROJECT_CREDIT}</Prose>
+        <View style={{ marginTop: 8 }}>
+          <ListRow first title="BibleProject" subtitle="bibleproject.com" {...opens("https://bibleproject.com")} testID="source-bibleproject" />
+        </View>
+      </View>
 
       {GROUPS.filter((g) => g !== "Bible text").map(groupView)}
 

@@ -1,14 +1,17 @@
 /**
  * The passage guide, no AI (build plan Phase 2; canvas NA-04, JR-05, UL-02, UL-04, ON-04, UX-06, UX-07).
- * The same slots for every kind of writing: In short → Hear this passage → Readers differ → Read it alongside →
- * Go deeper → Sources → Next.
+ * The same slots for every kind of writing: the headline → From the study notes → Hear this passage → Readers
+ * differ → Read it alongside → Go deeper → Sources → Next (RU-03, fresh-eyes review approved by John 23 Oct 2026).
  *
- * - In short: the headline (What happens / Part of …) and the gated summary, built extractively from
- *   credited sources (docs/no-ai-understand.md). A flagged summary is held back; its facts stay (EG-01).
- *   A psalm's two lines, a prophet's setting line and a letter's "Before this · After this" are its In short.
+ * - The headline, under its kind as the section title (What happens / Part of …): one line on what the passage is.
+ * - From the study notes: the last sentence of Tyndale's note on the passage's first verse, word for word, with
+ *   where the note starts (RU-3: John 1 answered in the note's own words). No note, no section (rules 2 and 4).
  * - Readers differ: a passage's approved debate lines, each a source's own sentence.
- * - Go deeper: Verse by verse, Study notes, Key words, Check what you read, About this psalm, each only where
- *   its page has something (UL-04: nothing empty, nothing promised).
+ * - Go deeper: About this psalm, Verse by verse, Study notes, Key words, In short, Check what you read, each only
+ *   where its page has something (UL-04: nothing empty, nothing promised). In short is the gated summary, built
+ *   extractively from credited sources (docs/no-ai-understand.md); a flagged summary is held back and its facts
+ *   stay (EG-01). A psalm's two lines, a prophet's setting line and a letter's "Before this · After this" are its
+ *   In short. RU-4: its stitched sentences read badly at the top of John 1, so it is a page now, not the lead.
  * - Sources: one row; credits are never repeated under each line (JR-03).
  * - Next: the passage after this one, one tap; the guide turns to it and the reader under the sheet follows,
  *   so × lands on the passage just guided through (ON-04, state/guide.ts).
@@ -20,6 +23,7 @@ import { BOOK_CODES, type BookCode, type Passage, formatVerseId, isMissingVerse,
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { SourceLine } from "./SourceLine";
 
 import { useAppData, useLog, useQuery } from "../data/AppData";
 import { loadPassageNote } from "../data/passageNote";
@@ -28,7 +32,7 @@ import { ensureUnderstand, loadPassages, loadVersesInRange, useUnderstandFile } 
 import { useLayout, usePalette } from "../design/tokens";
 import { FONTS } from "../design/type";
 import { formatRange, formatRangeInBook, printedRef } from "../lib/chapters";
-import { guideRows, guideSources, inShort, passageAfter, passageRef, passagesTouched, versesLabel } from "../lib/passageGuide";
+import { type GuideContent, guideRows, lastSentence, passageAfter, passageRef, passagesTouched, studyNoteCaption, versesLabel } from "../lib/passageGuide";
 import { alongsideLabel, offlineLine, plainSegments } from "../lib/understand";
 import { useGuide } from "../state/guide";
 import { HearPassage } from "./HearPassage";
@@ -59,10 +63,15 @@ export function PassageGuide({ book, startOrd, endOrd }: { book: BookCode; start
     const layers = verses.flatMap(({ verse }) => (isMissingVerse(verse) ? [] : [verse]));
     const content = {
       studyNotes: (notes?.length ?? 0) > 0,
-      keyWords: layers.some((v) => v.deeper.key_words.length > 0),
+      keyWords: [...new Set(layers.flatMap((v) => v.deeper.key_words.map((k) => k.term)))],
       check: layers.some((v) => v.deeper.check.length > 0),
     };
-    return { touched, first, verses, note, content, after: first === null ? null : passageAfter(passages, first) };
+    // RU-3: the note on the passage's first verse, its last whole sentence; a passage without one shows no section.
+    const opening = verses.find((v) => first !== null && v.ord === first.startOrd)?.verse;
+    const openingNote = opening === undefined || isMissingVerse(opening) ? null : opening.deeper.study_note;
+    const sentence = openingNote === null ? null : lastSentence(openingNote.text);
+    const studyLine = openingNote === null || sentence === null ? null : { sentence, caption: studyNoteCaption(openingNote.range[0]) };
+    return { touched, first, verses, note, content, studyLine, after: first === null ? null : passageAfter(passages, first) };
   }, [book, startOrd, endOrd, file, study]);
   const whole = data?.first != null && data.first.startOrd === startOrd && data.first.endOrd === endOrd;
   useEffect(() => log("passage_open", idOf(startOrd), `${startOrd}-${endOrd}`), [log, startOrd, endOrd]);
@@ -101,9 +110,7 @@ export function PassageGuide({ book, startOrd, endOrd }: { book: BookCode; start
         {data.note !== null ? (
           <Section title="Study notes" first={file !== "fetching" && file !== "offline"}>
             <Prose step="explanation">{data.note.text}</Prose>
-            <Chrome step="note" tone="muted" style={{ marginTop: 8 }}>
-              {data.note.credit}
-            </Chrome>
+            <SourceLine style={{ marginTop: 8 }}>{data.note.credit}</SourceLine>
           </Section>
         ) : null}
       </SheetScreen>
@@ -130,7 +137,7 @@ export function PassageGuide({ book, startOrd, endOrd }: { book: BookCode; start
           ))}
         </Section>
       ) : null}
-      <GuideBody passage={passage} first={yours.length === 0} base={base} verseCount={data.verses.length} content={data.content} />
+      <GuideBody passage={passage} first={yours.length === 0} base={base} verseCount={data.verses.length} content={data.content} studyLine={data.studyLine} />
       {next !== null ? (
         <Section title="Your selection continues">
           <Row first onPress={() => router.push({ pathname: `${base}/passage`, params: { ref: passageRef(next) } })} testID="guide-continues">
@@ -201,41 +208,40 @@ function GuideBody({
   base,
   verseCount,
   content,
+  studyLine,
 }: {
   passage: Passage;
   first: boolean;
   base: string;
   verseCount: number;
-  content: { studyNotes: boolean; keyWords: boolean; check: boolean };
+  content: GuideContent;
+  studyLine: { sentence: string; caption: string } | null;
 }) {
   const { sectionGap } = useLayout();
-  const short = inShort(passage);
+  const headline = passage.headline.trim() === "" ? null : passage.headline;
   const ref = passageRef(passage);
   const rows = guideRows(passage, verseCount, content);
   const from = idOf(passage.startOrd);
   return (
     <>
-      {short.headline !== null || short.lines.length > 0 || short.facts.length > 0 ? (
-        <Section title="In short" first={first}>
-          {short.headline !== null ? (
-            // UL-02 `.claim b`: the headline in bold at claim size, above the Literata lines.
-            <Prose step="claim" style={{ fontWeight: "700", marginBottom: 4 }} testID="guide-headline">
-              {short.headline}
-            </Prose>
-          ) : null}
-          {short.lines.map((line) => (
-            <Prose key={line} step="explanation" style={{ marginBottom: 6 }}>
-              {plainSegments(line).map((s, i) => (s.added ? <Text key={i} style={styles.added}>{s.text}</Text> : s.text))}
-            </Prose>
-          ))}
-          {short.facts.map((f) => (
-            <Chrome key={f} step="note" tone="muted" style={{ marginTop: 8 }}>
-              {f}
-            </Chrome>
-          ))}
+      {/* RU-03: the headline alone leads, under its kind ("What happens", "Part of"), at explanation size. */}
+      {headline !== null ? (
+        <Section title={passage.headlineKind} first={first}>
+          <Prose step="explanation" testID="guide-headline">
+            {headline}
+          </Prose>
         </Section>
       ) : null}
-      {/* UL-02: under In short, the passage read aloud from its first verse; the sheet closes so the words are in view. */}
+      {studyLine !== null ? (
+        <Section title="From the study notes" first={first && headline === null}>
+          <Prose step="explanation" testID="guide-study-line">
+            {studyLine.sentence}
+          </Prose>
+          {/* Credited where it is quoted, and a link to the note's licence on Sources (CC BY-SA). */}
+          <SourceLine style={{ marginTop: 4 }}>{studyLine.caption}</SourceLine>
+        </Section>
+      ) : null}
+      {/* UL-02: under the headline and the note, the passage read aloud from its first verse; the sheet closes so the words are in view. */}
       <HearPassage book={passage.id.split(".")[0] as BookCode} startOrd={passage.startOrd} range={formatRange(passage.id)} />
       {passage.debates.length > 0 ? (
         <Section title="Readers differ">
@@ -262,13 +268,12 @@ function GuideBody({
           ))}
         </Section>
       ) : null}
-      {/* Its own section, one section gap below Go deeper (UL-02, UL-04). */}
+      {/* Its own section, one section gap below Go deeper (UL-02, UL-04); the row's words alone, as RU-03 draws it. */}
       <View style={{ marginTop: sectionGap }}>
-        <Row first onPress={() => router.push(`${base}/sources`)} label="Sources, every source and licence" testID="guide-sources">
+        <Row first onPress={() => router.push(`${base}/sources`)} label="Every source and licence" testID="guide-sources">
           <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            Sources
+            Every source and licence
           </Chrome>
-          <RowNote>{guideSources()}</RowNote>
         </Row>
       </View>
     </>
@@ -295,6 +300,5 @@ export function AlongsideRows({ refs, from }: { refs: readonly string[]; from: s
 }
 
 const styles = StyleSheet.create({
-  added: { fontStyle: "italic", opacity: 0.6 },
   nextTitle: { fontFamily: FONTS.scripture, fontSize: 20, lineHeight: 26, letterSpacing: -0.2, fontWeight: "600" },
 });

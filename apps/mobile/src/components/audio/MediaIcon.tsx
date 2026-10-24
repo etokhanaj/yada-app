@@ -8,6 +8,7 @@ import { useWindowDimensions } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { usePalette } from "../../design/tokens";
+import { ON_PICTURE } from "../../design/palette";
 
 export type MediaIconName = "play" | "pause" | "previous" | "next";
 
@@ -16,7 +17,7 @@ export function MediaIcon({ name, size = 20, tone = "ink", maxScale = 2 }: { nam
   const { fontScale } = useWindowDimensions();
   const px = Math.round(size * Math.min(Math.max(fontScale, 1), maxScale));
   // "white" stays white in both appearances: a glyph over a picture or the forest (the day's verse, DR-16).
-  const color = tone === "white" ? "#FFFFFF" : tone === "paper" ? palette.paper : palette.ink;
+  const color = tone === "white" ? ON_PICTURE.text : tone === "paper" ? palette.paper : palette.ink;
   const stroke = { stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
     <Svg width={px} height={px} viewBox="0 0 24 24" fill="none" accessible={false} importantForAccessibility="no-hide-descendants">

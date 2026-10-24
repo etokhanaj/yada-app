@@ -110,9 +110,9 @@ export function nextInJohn(label: string, firstWords: string): ReminderText {
   return { title: `Next in John: ${label}`, body: firstWords };
 }
 
-/** NT-07: "M’Cheyne · Reading 2" over the reading's portions; never a day number. */
+/** NT-07: "The whole Bible · Reading 2" over the reading's portions (TD-22: the plan named for what it is); never a day number. */
 export function nextInMcheyne(reading: number, portions: readonly string[]): ReminderText {
-  return { title: `M’Cheyne · Reading ${reading}`, body: portions.join(" · ") };
+  return { title: `The whole Bible · Reading ${reading}`, body: portions.join(" · ") };
 }
 
 /** NT-06: the verse itself, then where it is. */

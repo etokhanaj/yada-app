@@ -66,9 +66,9 @@ export const GRAMMARS: Readonly<Record<GrammarLanguage, Grammar>> = {
 
 /** CC BY-SA 4.0: the unfoldingWord® mark dropped, and what changed said. */
 export const GRAMMAR_CREDIT: Readonly<Record<GrammarLanguage, string>> = {
-  greek: "Greek Grammar, adapted from unfoldingWord (shortened to its first sentence) · CC BY-SA 4.0",
-  hebrew: "Hebrew Grammar, adapted from unfoldingWord (shortened to its first sentence) · CC BY-SA 4.0",
-  aramaic: "Aramaic Grammar, adapted from unfoldingWord (shortened to its first sentence) · CC BY-SA 4.0",
+  greek: "unfoldingWord, shortened",
+  hebrew: "unfoldingWord, shortened",
+  aramaic: "unfoldingWord, shortened",
 };
 
 /**
@@ -80,7 +80,7 @@ export const GRAMMAR_CREDIT: Readonly<Record<GrammarLanguage, string>> = {
 export const MACHEN = {
   file: "machen/newtestamentgree00mach_djvu.txt",
   sha256: "624879603ae83b3b0aca5b126c719255b71fa0aeb6402b77e8eb01ba951ff9cb",
-  credit: "Greek grammar from J. Gresham Machen, New Testament Greek for Beginners (1923) · Public domain",
+  credit: "Machen, 1923",
 } as const;
 
 export const MACHEN_SENTENCES: Readonly<Record<string, { text: string; ref: string }>> = {
@@ -142,7 +142,7 @@ export const CHOSEN: Readonly<Record<ChosenSource, ChosenGrammar>> = {
   // died in 1925. Machen's "simple past tense" left out the whole-event view John asked for.
   burton: {
     files: { "burton/cu31924021607449_djvu.txt": "12d1e3c10606cc5212e8378b29c035c2b769e2b5c9283f55d50779b7b72965f8" },
-    credit: "Greek grammar from Ernest De Witt Burton, Syntax of the Moods and Tenses in New Testament Greek (1903) · Public domain",
+    credit: "Burton, 1903",
     text: machenText,
     sentences: {
       "greek:aorist": {
@@ -163,7 +163,7 @@ export const CHOSEN: Readonly<Record<ChosenSource, ChosenGrammar>> = {
       "gesenius/page271-rev8193852.wiki": "f580e24e789fca84cef1ae6044c7ade64829ae635d15bafb9d642a6e264633cf",
       "gesenius/page154-rev8193761.wiki": "f43d193e432775d909c575e4177eb034c9a06c36f37e6da10f589b4e3e504709",
     },
-    credit: "Hebrew grammar from Gesenius' Hebrew Grammar, ed. E. Kautzsch, tr. A. E. Cowley (1910), Wikisource transcription · CC BY-SA 4.0",
+    credit: "Gesenius, 1910, Wikisource",
     text: wikisourceText,
     sentences: {
       // One sentence defines both states, so it serves both terms.
@@ -185,7 +185,7 @@ export const CHOSEN: Readonly<Record<ChosenSource, ChosenGrammar>> = {
   // state_determined.rst is a copy of its absolute-state article.
   winer: {
     files: { "winer/grammarofchaldee00wine_djvu.txt": "ec1125843677853dd170fb22e79d68f48c3a267b9d7bb4402e8c6cc2278c1111" },
-    credit: "Aramaic grammar from G. B. Winer, A Grammar of the Chaldee Language, tr. H. B. Hackett (1845) · Public domain",
+    credit: "Winer, 1845",
     // This scan breaks words at a line end with "¬".
     text: (raw) => raw.replace(/[-¬]\s*\n\s*/g, "").replace(/\s+/g, " "),
     sentences: {

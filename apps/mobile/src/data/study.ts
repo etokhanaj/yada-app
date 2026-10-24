@@ -112,6 +112,12 @@ export async function loadProfile(book: BookCode, id: number): Promise<StudyNote
   return db === null ? null : getProfile(asDb(db), id);
 }
 
+/** OR-03: the book's Tyndale profiles, in the order they appear; none while its study file is not on the phone. */
+export async function loadBookProfiles(book: BookCode): Promise<StudyNoteRow[]> {
+  const db = await openStudy(book);
+  return db === null ? [] : getProfiles(asDb(db));
+}
+
 /** Profiles in every downloaded book whose name matches a search (canvas TD-03). */
 export async function searchProfiles(query: string): Promise<Array<StudyNoteRow & { book: BookCode }>> {
   const out: Array<StudyNoteRow & { book: BookCode }> = [];

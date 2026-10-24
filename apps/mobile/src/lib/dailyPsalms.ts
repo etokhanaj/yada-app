@@ -162,16 +162,17 @@ export function label(set: PsalmSet): string {
 export type PsalterChoice = "1662" | "one" | "office" | "off";
 
 /**
- * DR-04: each choice says what it is. The lines are DR-04's, with two changes: Off says only Today, since the widget
- * keeps its own psalm a day whatever this is set to (targets/widget, design QA DR-07); and Daily prayer, which DO-03
- * added after DR-04 was drawn, says what data/office.ts builds.
+ * DR-04: each choice says what it is, in DR-04's lines. Off is true to it: the widget follows this setting and shows
+ * the day's verse instead (lib/systemSurfaces.ts todayReading; decisions 2 and 3, 22 Oct 2026). The 1662 table keeps
+ * the name John gave it in DO-03, and Daily prayer, which DO-03 added after DR-04 was drawn, says what data/office.ts
+ * builds.
  */
 export const PSALTER_CHOICES: readonly { readonly id: PsalterChoice; readonly title: string; readonly line: string }[] = [
   // DO-03 (build 8, John 17 Oct 2026): Daily prayer as a fourth choice, the 1662 table by its own name.
   { id: "1662", title: "1662 Prayer Book", line: "All 150 in a month, as the 1662 Prayer Book divides them" },
   { id: "one", title: "One a day", line: "Psalm 1 to 150, then again" },
   { id: "office", title: "Daily prayer", line: "Morning and Evening Prayer step by step: the day’s psalms and lessons" },
-  { id: "off", title: "Off", line: "No psalms on Today" },
+  { id: "off", title: "Off", line: "No psalms on Today or in the widget" },
 ];
 
 export function parsePsalter(stored: string | undefined): PsalterChoice {

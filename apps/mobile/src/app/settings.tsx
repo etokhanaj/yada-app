@@ -12,7 +12,7 @@ import { MenuView } from "@react-native-menu/menu";
 import Constants from "expo-constants";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Linking, Switch, View } from "react-native";
+import { Alert, Linking, View } from "react-native";
 
 import { ListRow, PageScreen } from "../components/Page";
 import { SectionTitle, Chrome } from "../components/Type";
@@ -21,7 +21,7 @@ import { setSpeed, chooseReading } from "../data/audio";
 import { cloudAvailable, setCloudPaused } from "../data/cloud";
 import { readingsOnPhone, useRecordings } from "../data/recordings";
 import { useReminder } from "../data/reminder";
-import { downloadUnderWay, removeMyData } from "../data/removeData";
+import { downloadUnderWay, prayRemovalLine, removeMyData } from "../data/removeData";
 import { useStudy } from "../data/study";
 import { useTranslations } from "../data/translations";
 import { useUnderstand } from "../data/understand";
@@ -36,6 +36,7 @@ import { PSALTER_CHOICES, type PsalterChoice, parsePsalter } from "../lib/dailyP
 import { reminderSummary } from "../lib/reminder";
 import { useAudio } from "../state/audio";
 import { TEXT_SCALES, useSettings } from "../state/settings";
+import { Toggle } from "../components/Toggle";
 
 const VOICES = [
   { id: "heart", name: "Heart" },
@@ -90,14 +91,25 @@ export default function SettingsScreen() {
 
   const confirmRemove = () => {
     const what = "bookmarks, highlights, notes, saved images, your reading place, plan progress, your rhythm, the reminder and downloads";
+    // Guideline 5.1.1(v): what happens to Pray in iCloud, said plainly, since circles you made go for everyone in them.
+    const pray = "Your prayer requests and the circles you made are deleted, and you leave circles you joined.";
     Alert.alert(
       "Remove your data?",
       downloadUnderWay()
-        ? `The download stops, then ${what} are removed from this iPhone and iCloud. This can’t be undone.`
-        : `${what[0]?.toUpperCase()}${what.slice(1)} will be removed from this iPhone and from your iCloud. This can’t be undone.`,
+        ? `The download stops, then ${what} are removed from this iPhone and iCloud. ${pray} This can’t be undone.`
+        : `${what[0]?.toUpperCase()}${what.slice(1)} will be removed from this iPhone and from your iCloud. ${pray} This can’t be undone.`,
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Remove", style: "destructive", onPress: () => void removeMyData(user, core).then(() => router.dismissTo("/")) },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () =>
+            void removeMyData(user, core).then((r) => {
+              const line = prayRemovalLine(r);
+              if (line !== null) Alert.alert("Not everything was removed", line);
+              router.dismissTo("/");
+            }),
+        },
       ],
     );
   };
@@ -173,7 +185,7 @@ export default function SettingsScreen() {
           title="iCloud"
           chevron={false}
           right={
-            <Switch
+            <Toggle
               value={icloud}
               onValueChange={(on) => {
                 setIcloud(on);

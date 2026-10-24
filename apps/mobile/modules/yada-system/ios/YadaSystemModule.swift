@@ -1,9 +1,8 @@
-// The system surfaces (canvas SX-01–23): what the widgets, accessories and controls show, the listening Live
-// Activity, the reminder with its long-press, BSB verses and chapters in Spotlight, and the doors Siri, App
+// The system surfaces (canvas SX-01–16): what the widgets, accessories and controls show, the reminder with its
+// long-press, BSB verses and chapters in Spotlight, and the doors Siri, App
 // Shortcuts, widget buttons and Spotlight open into the app (IA-13). Every word that leaves the app here is one
 // of the four open texts, gated in JS by lib/systemSurfaces.ts maySurfaceText (rule 9).
 
-import ActivityKit
 import CoreSpotlight
 import ExpoModulesCore
 import UserNotifications
@@ -23,23 +22,7 @@ let chapterNamesKey = "yada.chapterNames"
 let listeningKinds = ["continue", "today", "listen"]
 
 public class YadaSystemModule: Module {
-  private var observer: NSObjectProtocol?
-  private var turn: Task<Void, Never>?
-  private let turnLock = NSLock()
   private var watchingDoors = false
-
-  /// Runs `work` after every call queued before it.
-  private func inTurn(_ work: @escaping () async -> Void) async {
-    turnLock.lock()
-    let previous = turn
-    let task = Task {
-      await previous?.value
-      await work()
-    }
-    turn = task
-    turnLock.unlock()
-    await task.value
-  }
 
   fileprivate func doorArrived() {
     // The key stays until JS takes it (takePendingOpen): on a cold launch JS is not listening yet, and an
@@ -50,13 +33,11 @@ public class YadaSystemModule: Module {
 
   public func definition() -> ModuleDefinition {
     Name("YadaSystem")
-    Events("onOpen", "onControl")
+    Events("onOpen")
 
     OnCreate {
-      self.observer = NotificationCenter.default.addObserver(forName: Notification.Name("YadaRemoteControl"), object: nil, queue: .main) { [weak self] note in
-        guard let command = note.userInfo?["command"] as? String else { return }
-        self?.sendEvent("onControl", ["command": command])
-      }
+      // The watch link starts with the app, so a watch asking for its data is answered (WatchLink.swift).
+      WatchLink.shared.start()
       // A door an intent opened, in this process or the widget extension's.
       CFNotificationCenterAddObserver(
         CFNotificationCenterGetDarwinNotifyCenter(),
@@ -74,7 +55,6 @@ public class YadaSystemModule: Module {
     }
 
     OnDestroy {
-      if let o = self.observer { NotificationCenter.default.removeObserver(o) }
       if self.watchingDoors {
         CFNotificationCenterRemoveEveryObserver(CFNotificationCenterGetDarwinNotifyCenter(), Unmanaged.passUnretained(self).toOpaque())
       }
@@ -106,30 +86,6 @@ public class YadaSystemModule: Module {
       if json.isEmpty { shared?.removeObject(forKey: "listening") } else { shared?.set(json, forKey: "listening") }
       for kind in listeningKinds { WidgetCenter.shared.reloadTimelines(ofKind: kind) }
       if #available(iOS 18.0, *) { ControlCenter.shared.reloadControls(ofKind: "studio.yada.reader.listen") }
-    }
-
-    // One at a time: two quick calls (loading, then playing) must not both request an activity, nor an
-    // end overtake a start (review, 13 Oct 2026). Each waits for the one before it.
-    AsyncFunction("startReading") { (json: String) in
-      guard let data = json.data(using: .utf8), let state = try? JSONDecoder().decode(ReadingAttributes.ContentState.self, from: data) else { return }
-      await self.inTurn {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
-        if let current = Activity<ReadingAttributes>.activities.first {
-          await current.update(ActivityContent(state: state, staleDate: nil))
-          return
-        }
-        _ = try? Activity.request(attributes: ReadingAttributes(), content: ActivityContent(state: state, staleDate: nil))
-      }
-    }
-
-    /// The reading ended (Stop listening, the end of the book, an app killed mid-session): its activity goes at once.
-    /// A stop that fires does not come here: the activity stays paused on "Stopped after 1:18" (SX-23).
-    AsyncFunction("endReading") {
-      await self.inTurn {
-        for activity in Activity<ReadingAttributes>.activities {
-          await activity.end(nil, dismissalPolicy: .immediate)
-        }
-      }
     }
 
     /// MS-02: BSB verses, so "john 3 16" in Spotlight finds the verse. Called in batches; ids are verse ids.
@@ -235,6 +191,13 @@ public class YadaSystemModule: Module {
 
 /// A Spotlight result tapped (MS-02, SX-12): the verse or chapter it names, in the reader.
 public class YadaSystemAppDelegate: ExpoAppDelegateSubscriber {
+  /// The watch link starts at launch, before React: a watch asking for its data can wake the app in the background, and
+  /// the module's OnCreate came too late to answer it (code review, 23 Oct 2026).
+  public func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+    WatchLink.shared.start()
+    return true
+  }
+
   public func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
     guard userActivity.activityType == CSSearchableItemActionType,
           let id = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String,

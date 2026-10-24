@@ -489,14 +489,74 @@ export interface TwArticle {
   kind: string;
 }
 
-/** The Definition (or Facts) section's first paragraph; translation suggestions are never read. */
+/**
+ * The whole Definition (or Facts) section, its bullets kept as lines; translation suggestions are never read.
+ * Only the first paragraph was kept until 23 Oct 2026, which left out the line John 1:1 needs ("In the New
+ * Testament, Jesus is called “the Word”…" is a bullet of "word of God").
+ */
 export function twArticle(text: string, kind: string): TwArticle | null {
   const t = md(text);
   const title = /^#\s*(.+)/.exec(t);
   if (title === null) return null;
-  const section = /##\s*(?:Definition|Facts):?\s*\n([\s\S]*?)(?=\n##|$)/.exec(t);
-  const body = (section?.[1] ?? "").trim();
-  return { term: (title[1] ?? "").split(",")[0]?.trim() ?? "", definition: (body.split("\n\n")[0] ?? "").trim(), kind };
+  const section = /##\s*(?:Definition|Facts):?\s*\n([\s\S]*?)(?=\n##(?!#)|$)/.exec(t);
+  const body = (section?.[1] ?? "")
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/^#+\s*/, "")
+        .replace(/^\s{2,}[*-]\s+/, "    ◦ ")
+        .replace(/^[*-]\s+/, "• ")
+        .trimEnd(),
+    )
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return { term: (title[1] ?? "").split(",")[0]?.trim() ?? "", definition: body, kind };
+}
+
+function escapeQuote(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** The definition's sentences in order, without list markers. */
+export function definitionSentences(definition: string): string[] {
+  return definition
+    .split("\n")
+    .map((line) => line.replace(/^\s*(?:[•◦]|\d+\.)\s+/, "").trim())
+    .filter((line) => line !== "")
+    .flatMap((line) => line.split(/(?<=[.!?][”"’]?)\s+(?=[“"A-Z])/u))
+    .map((s) => s.trim())
+    .filter((s) => s !== "");
+}
+
+/**
+ * A sentence that reads alone: not one that leans on the one before ("Another term with the same meaning is
+ * “Father”"), not a lead-in to a list ("…slightly different meanings:"), and long enough to say something
+ * ('To “testify” is to give “testimony.”'). All three were picked on John 1 before this check (23 Oct 2026).
+ */
+function standsAlone(s: string): boolean {
+  return !/:$/u.test(s) && !/^(?:Another|This|These|That|Those|It|Its|They|He|She|Also|Such)\b/u.test(s) && s.split(/\s+/u).length >= 8;
+}
+
+/**
+ * The definition's sentence to show beside a verse: the first that stands alone and quotes words the verse
+ * itself says, as written (case matters past the first letter: John 1:1's "the Word" is the title, "the word"
+ * is any message, and 1:14 opens "The Word"); else the first that stands alone; else the first.
+ * Every sentence is the article's own, so nothing is written for the verse (rule 4).
+ */
+export function leadSentence(definition: string, verseText: string): string {
+  const sentences = definitionSentences(definition);
+  for (const s of sentences) {
+    if (!standsAlone(s)) continue;
+    for (const m of s.matchAll(/“([^”]+)”/gu)) {
+      const quote = (m[1] ?? "").replace(/[.,;:!?]+$/u, "").trim();
+      if (quote === "" || quote.includes("[")) continue;
+      const first = quote[0] ?? "";
+      const head = first.toLowerCase() === first.toUpperCase() ? escapeQuote(first) : `[${first.toLowerCase()}${first.toUpperCase()}]`;
+      if (new RegExp(`(?:^|[^\\p{L}])${head}${escapeQuote(quote.slice(1))}(?:$|[^\\p{L}])`, "u").test(verseText)) return s;
+    }
+  }
+  return sentences.find(standsAlone) ?? sentences[0] ?? "";
 }
 
 // ---------------------------------------------------------------------------

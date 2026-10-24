@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { dayOf, dayParam, earlierDays, greeting, laterRow, mmdd, opening, parseDayParam, partOf, partSpan, pictureDay, whenLabel } from "./today";
 
 describe("Later and Earlier (DR-11, DR-12)", () => {
-  it("names the other part's psalms and, when there is an entry, Spurgeon", () => {
-    expect(laterRow("morning", "Psalms 6–8", true)).toEqual({ title: "This evening · Psalms 6–8", subtitle: "and Spurgeon for the evening", label: "This evening: Psalms 6–8 and Spurgeon" });
-    expect(laterRow("evening", "Psalms 1–5", true)).toEqual({ title: "This morning", subtitle: "Psalms 1–5 · Spurgeon", label: "This morning: Psalms 1–5 and Spurgeon" });
+  it("names the other part's psalms and, when there is an entry, the devotional", () => {
+    expect(laterRow("morning", "Psalms 6–8", true)).toEqual({ title: "This evening · Psalms 6–8", subtitle: "and the evening devotional", label: "This evening: Psalms 6–8 and the evening devotional" });
+    expect(laterRow("evening", "Psalms 1–5", true)).toEqual({ title: "This morning", subtitle: "Psalms 1–5 and the devotional", label: "This morning: Psalms 1–5 and the morning devotional" });
   });
 
   it("never names Spurgeon without an entry", () => {

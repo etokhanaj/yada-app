@@ -21,7 +21,7 @@ function files(dir: string): string[] {
   });
 }
 
-describe("system surfaces (Siri, Spotlight, App Intents, widgets, Live Activities)", () => {
+describe("system surfaces (Siri, Spotlight, App Intents, widgets, Now Playing)", () => {
   it("carry only the four open texts, never a licensed one", () => {
     for (const t of ["BSB", "WEB", "KJV", "LSV"]) expect(maySurfaceText(t)).toBe(true);
     for (const t of ["NIV", "NKJV", "NLT", "MSG", "YLT"]) expect(maySurfaceText(t)).toBe(false);
@@ -40,6 +40,8 @@ describe("system surfaces (Siri, Spotlight, App Intents, widgets, Live Activitie
       "app/_layout.tsx",
       "app/evidence/choose.tsx",
       "app/evidence/translations.tsx",
+      // Verses for a moment (VM-10): asks only whether the reader's version is licensed, to say the words are the BSB.
+      "app/moment.tsx",
       // Your space (PS-03, PS-04): the note's quoted verse and Saved's excerpts ask only whether a code is licensed,
       // and draw the BSB if it is (US-11, rule 9). The share image uses the system surfaces' allow-list instead.
       "app/note.tsx",

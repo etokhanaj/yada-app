@@ -8,6 +8,7 @@
  */
 
 import type { SourceRow } from "../data/queries";
+import { PROFILE_EXCERPTS } from "./study";
 
 export type SourceGroup = "Bible text" | "Words and people" | "Understand" | "Today";
 
@@ -206,6 +207,9 @@ function rank(item: SourceItem): number {
   return item.group === "Bible text" ? ORDER.indexOf("morphgnt/sblgnt (morphological annotations)") - 0.5 : -1;
 }
 
+/** Yada's own change to Tyndale's profiles (lib/study.ts PROFILE_EXCERPTS), said here as CC BY-SA asks. */
+export const SHOWN_IN_PART = `Yada shows only the opening sentences of ${Object.keys(PROFILE_EXCERPTS).join(" and ")}, word for word.`;
+
 /**
  * Share-alike (edge case 8): Yada's adapted copy of the notes goes out under the same licence,
  * and says so with the licence's own address, which CC BY-SA 4.0 §3(a)(1) accepts in place of
@@ -236,7 +240,7 @@ export function studySourceItem(row: StudySourceInput): { title: string; subtitl
   const lines = [
     row.attribution,
     row.license_notice,
-    ...(tyndale ? [`Changes: ${row.modifications}`, ADAPTED_COPY] : []),
+    ...(tyndale ? [`Changes: ${row.modifications}`, SHOWN_IN_PART, ADAPTED_COPY] : []),
   ].filter((l) => l.trim() !== "");
   return { title, subtitle, lines, label: `${title}, ${row.name}, ${licenceLabel(row.license)}. ${lines.join(" ")}, opens the source` };
 }

@@ -77,18 +77,22 @@ appId: studio.yada.reader
     element:
       text: "Some manuscripts place verses 34–35 after verse 40."
     centerElement: true
+# RU-05: Original under the first view, then Go deeper, then Sources last.
+- scrollUntilVisible:
+    element:
+      id: toggle-original
+    centerElement: true
 - scrollUntilVisible:
     element:
       text: "Go deeper"
     centerElement: true
 - assertVisible:
-    id: toggle-original
-- assertVisible:
-    id: open-compare
-- assertVisible:
     id: open-key-words
 - assertVisible:
-    id: open-sources
+    id: open-compare
+- scrollUntilVisible:
+    element:
+      id: open-sources
 - tapOn:
     id: sheet-close
 - waitForAnimationToEnd

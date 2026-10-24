@@ -4,7 +4,7 @@
  * template sentence (TEMPLATES). Nothing is generated (rules 2 and 4).
  */
 
-import { CREDITS, md, plain, vk, type BookTables, type TnRow, type TqRow, type TwArticle, type TwlRow, type VerseKey } from "./sources.js";
+import { CREDITS, leadSentence, md, plain, vk, type BookTables, type TnRow, type TqRow, type TwArticle, type TwlRow, type VerseKey } from "./sources.js";
 import type { Debate } from "./passage.js";
 import { escapeRegExp, fill, opcodes, pySplit, rstripChars, stripChars, unique } from "./text.js";
 
@@ -487,15 +487,21 @@ export function bsbNotes(data: BookData, c: number, v: number): BsbNote[] {
     }));
 }
 
-export function keyWords(data: BookData, c: number, v: number): TwArticle[] {
-  const out: TwArticle[] = [];
+/** A verse's key word: the article, and the one sentence of it that fits this verse (leadSentence). */
+export interface KeyWord extends TwArticle {
+  lead: string;
+}
+
+export function keyWords(data: BookData, c: number, v: number): KeyWord[] {
+  const out: KeyWord[] = [];
   const seen = new Set<string>();
+  const verseText = data.text(data.ord(c, v) ?? 0);
   for (const r of data.twl) {
     if (r.ref !== `${c}:${v}`) continue;
     const a = data.tw(r.link);
     if (a !== null && !seen.has(a.term) && a.definition !== "") {
       seen.add(a.term);
-      out.push(a);
+      out.push({ ...a, lead: leadSentence(a.definition, verseText) });
     }
   }
   return out;
@@ -852,7 +858,7 @@ export interface VerseLayers {
   };
   facts: string[];
   alongside: string[];
-  deeper: { explained: Explained[]; key_words: TwArticle[]; study_note: StudyNoteLayer | null; check: CheckQuestion[] };
+  deeper: { explained: Explained[]; key_words: KeyWord[]; study_note: StudyNoteLayer | null; check: CheckQuestion[] };
 }
 
 export type Assembled = VerseLayers | MissingVerse;

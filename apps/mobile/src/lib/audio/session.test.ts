@@ -81,8 +81,12 @@ describe("progressSegments", () => {
 });
 
 describe("nowPlayingFor", () => {
-  it("names the chapter and version over the verse", () => {
-    expect(nowPlayingFor("John 1", "BSB", 5)).toEqual({ title: "John 1 · BSB", artist: "Verse 5" });
+  it("names the passage over the verse and version, as a song over its artist", () => {
+    expect(nowPlayingFor("The Word became flesh", "John 1", 5, "BSB")).toEqual({ title: "The Word became flesh", artist: "John 1:5 · BSB" });
+  });
+
+  it("names the chapter where the book has no passages", () => {
+    expect(nowPlayingFor(null, "Psalm 94", 1, "KJV")).toEqual({ title: "Psalm 94", artist: "Psalm 94:1 · KJV" });
   });
 });
 

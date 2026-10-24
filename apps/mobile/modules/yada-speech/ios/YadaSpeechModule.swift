@@ -30,11 +30,19 @@ struct NowPlaying: Record {
   @Field var title: String = ""
   @Field var artist: String = ""
   @Field var playing: Bool = false
+  /// From a recording's timings; absent for the iPhone voice, which has no length to show.
+  @Field var elapsed: Double? = nil
+  @Field var duration: Double? = nil
+  @Field var rate: Double = 1
 }
 
 struct Segment: Record {
-  /// A local file path to the chapter's recording (data/recordings.ts keeps it in Documents).
+  /// The chapter's recording: a local file path (data/recordings.ts keeps it in Documents), or its https URL while it
+  /// streams the first time (StreamLoader.swift), saved to `savePath` as it arrives.
   @Field var path: String = ""
+  @Field var savePath: String? = nil
+  /// The file's size from the manifest, which the stream reports to the player before the bytes arrive.
+  @Field var bytes: Int = 0
   /// Seconds into the file where this verse starts and ends.
   @Field var start: Double = 0
   @Field var end: Double = 0
@@ -45,10 +53,16 @@ struct Segment: Record {
 
 public class YadaSpeechModule: Module {
   private let synth = AVSpeechSynthesizer()
+  private let breath = BreathHaptics()
   /// The human-read recording (BA-01): one chapter file, played a verse at a time so JS keeps one queue for
   /// both voices. A verse that follows on in the same file carries on without a seek, so there is no gap.
-  private var player: AVAudioPlayer?
+  private var player: AVPlayer?
   private var playerPath: String?
+  /// The chapter now streaming, kept alive here: an asset's resource loader holds its delegate weakly.
+  private var stream: StreamLoader?
+  private var bufferingObservation: NSKeyValueObservation?
+  /// The speed the recording plays at, kept for resume: AVPlayer's rate is 0 while paused.
+  private var playRate: Float = 1
   private var segment: Segment?
   private var segmentId: String?
   private var nextWord = 0
@@ -64,7 +78,7 @@ public class YadaSpeechModule: Module {
   public func definition() -> ModuleDefinition {
     Name("YadaSpeech")
 
-    Events("onStart", "onRange", "onFinish", "onCancel", "onRemote", "onInterruption", "onRouteLost", "onVoiceUnavailable")
+    Events("onStart", "onRange", "onFinish", "onCancel", "onRemote", "onInterruption", "onRouteLost", "onVoiceUnavailable", "onBuffering", "onStreamSaved", "onStreamFailed")
 
     OnCreate {
       let delegate = Delegate(module: self)
@@ -142,23 +156,20 @@ public class YadaSpeechModule: Module {
       self.setUpRemoteCommands()
       if self.synth.isSpeaking || self.synth.isPaused { self.synth.stopSpeaking(at: .immediate) }
       if self.playerPath != segment.path || self.player == nil {
-        self.player?.stop()
-        let player = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: segment.path))
-        player.enableRate = true
-        player.prepareToPlay()
-        self.player = player
+        self.stopRecording()
+        self.player = try self.makePlayer(segment)
         self.playerPath = segment.path
       }
       guard let player = self.player else { return }
-      player.rate = Float(min(max(rate, 0.5), 2.0))
+      self.playRate = Float(min(max(rate, 0.5), 2.0))
       // Carry on without a seek when this verse starts where the last one stopped (within a quarter second).
-      if !(player.isPlaying && abs(player.currentTime - segment.start) < 0.25) {
-        player.currentTime = segment.start
+      if !(self.isPlaying && abs(self.position - segment.start) < 0.25) {
+        player.seek(to: CMTime(seconds: segment.start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
       }
       self.segment = segment
       self.segmentId = id
       self.nextWord = 0
-      if !player.isPlaying { player.play() }
+      player.rate = self.playRate
       self.sendEvent("onStart", ["id": id])
       self.startTicker()
     }.runOnQueue(.main)
@@ -176,7 +187,7 @@ public class YadaSpeechModule: Module {
       // False makes JS restart at the word, and that speak call gets the system voice.
       if self.speakingPersonal && UIApplication.shared.applicationState != .active { return false }
       if let player = self.player, self.segment != nil {
-        player.play()
+        player.rate = self.playRate
         self.startTicker()
         return true
       }
@@ -204,6 +215,18 @@ public class YadaSpeechModule: Module {
       DispatchQueue.main.asyncAfter(deadline: .now() + 1) { p.stop() }
     }.runOnQueue(.main)
 
+    // BR-01 to BR-03: "in" plays the rising taps over `seconds`, "out" the one firm tap at the turn. False where the
+    // phone can't play the pattern, so JS taps once instead.
+    AsyncFunction("breathe") { (phase: String, seconds: Double) -> Bool in
+      guard BreathHaptics.available else { return false }
+      if phase == "in" { try self.breath.breatheIn(seconds: seconds) } else { try self.breath.turn() }
+      return true
+    }.runOnQueue(.main)
+
+    AsyncFunction("stopBreathing") {
+      self.breath.stop()
+    }.runOnQueue(.main)
+
     AsyncFunction("stop") {
       self.stopRecording()
       self.synth.stopSpeaking(at: .immediate)
@@ -216,9 +239,15 @@ public class YadaSpeechModule: Module {
       var nowPlaying: [String: Any] = [
         MPMediaItemPropertyTitle: info.title,
         MPMediaItemPropertyArtist: info.artist,
-        MPNowPlayingInfoPropertyPlaybackRate: info.playing ? 1.0 : 0.0,
+        MPNowPlayingInfoPropertyPlaybackRate: info.playing ? info.rate : 0.0,
         MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.audio.rawValue,
       ]
+      // The bar runs from the verse's start at the reading's speed until the next verse sets it again.
+      if let elapsed = info.elapsed, let duration = info.duration {
+        // The player's own position, so a pause or a resume mid-verse shows where it is, not where the verse began.
+        nowPlaying[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.player == nil ? elapsed : self.position
+        nowPlaying[MPMediaItemPropertyPlaybackDuration] = duration
+      }
       // Without artwork the lock screen and Dynamic Island show a blank tile, not Yada.
       if let artwork = YadaSpeechModule.artwork {
         nowPlaying[MPMediaItemPropertyArtwork] = artwork
@@ -252,16 +281,16 @@ public class YadaSpeechModule: Module {
   }
 
   private func tick() {
-    guard let player, let segment, let id = segmentId else { return }
-    let now = player.currentTime
+    guard player != nil, let segment, let id = segmentId else { return }
+    let now = position
     while nextWord < segment.times.count, nextWord < segment.locations.count, segment.times[nextWord] <= now {
       sendEvent("onRange", ["id": id, "location": segment.locations[nextWord], "length": 1])
       nextWord += 1
     }
-    // Every pause stops the ticker, so a stopped player here reached the end of the file, where it puts
-    // currentTime back to 0 (review, 12 Oct 2026: the last verse never finished). Mid-verse, a stop the
-    // system made (an interruption arriving after this tick) is left to its notification.
-    let ended = !player.isPlaying && (now < 0.05 || now >= segment.end - 0.3)
+    // Every pause stops the ticker, so a stopped player here reached the end of the file (review, 12 Oct 2026: the
+    // last verse never finished). Mid-verse, a stop the system made (an interruption arriving after this tick) is
+    // left to its notification. A stream waiting for bytes keeps its rate, so it is not taken for an end.
+    let ended = !isPlaying && (now < 0.05 || now >= segment.end - 0.3)
     if now >= segment.end - 0.02 || ended {
       // The verse is done; the player runs on into the next verse, which JS asks for at once.
       self.segment = nil
@@ -281,11 +310,50 @@ public class YadaSpeechModule: Module {
   private func stopRecording() {
     ticker?.invalidate()
     ticker = nil
-    player?.stop()
+    player?.pause()
     player = nil
     playerPath = nil
+    bufferingObservation = nil
+    // A stream that has not finished is let go: the next play of that chapter fetches it again.
+    stream?.cancel()
+    stream = nil
     segment = nil
     segmentId = nil
+  }
+
+  private var isPlaying: Bool { (player?.rate ?? 0) != 0 }
+
+  private var position: Double {
+    let t = player?.currentTime().seconds ?? 0
+    return t.isFinite ? t : 0
+  }
+
+  /// One AVPlayer for both a saved chapter and a streaming one; it tells JS when it waits for bytes (onBuffering).
+  private func makePlayer(_ segment: Segment) throws -> AVPlayer {
+    let asset: AVURLAsset
+    if let remote = URL(string: segment.path), remote.scheme == "https", let savePath = segment.savePath {
+      let path = segment.path
+      // The loader stays with the player until the chapter changes: it still answers a seek back once complete.
+      let loader = StreamLoader(remote: remote, savePath: savePath, expected: Int64(segment.bytes)) { [weak self] whole in
+        guard let self else { return }
+        self.sendEvent(whole ? "onStreamSaved" : "onStreamFailed", ["url": path, "savePath": savePath])
+      }
+      asset = AVURLAsset(url: loader.playerURL)
+      asset.resourceLoader.setDelegate(loader, queue: loader.delegateQueue)
+      self.stream = loader
+      loader.start()
+    } else {
+      asset = AVURLAsset(url: URL(fileURLWithPath: segment.path))
+    }
+    let item = AVPlayerItem(asset: asset)
+    // Speech at 0.75x to 1.5x keeps its pitch, as AVAudioPlayer's enableRate did.
+    item.audioTimePitchAlgorithm = .timeDomain
+    let player = AVPlayer(playerItem: item)
+    bufferingObservation = player.observe(\.timeControlStatus, options: [.new]) { [weak self] p, _ in
+      let waiting = p.timeControlStatus == .waitingToPlayAtSpecifiedRate
+      DispatchQueue.main.async { self?.sendEvent("onBuffering", ["waiting": waiting]) }
+    }
+    return player
   }
 
   // MARK: - Voice
