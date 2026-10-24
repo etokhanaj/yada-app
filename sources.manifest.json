@@ -209,6 +209,17 @@
     "modifications": "References mapped to Yada verse ords; rows with negative votes left out."
   },
   {
+    "source": "OpenBible.info",
+    "dataset": "OpenBible.info topic scores",
+    "version": "9bf6a3c14184",
+    "commit_hash": "sha256:9bf6a3c1418414b29776eb8db29eb36954130986854ce2ef2aa45449e2c4353b",
+    "license": "CC-BY-4.0",
+    "attribution_text": "Topics for verses for a moment from OpenBible.info (www.openbible.info/topics), licensed CC BY 4.0.",
+    "url": "https://www.openbible.info/topics/",
+    "retrieved_at": "2026-10-18T03:44:00Z",
+    "modifications": "Licence read from the file's own header (rule 3). Six topics chosen by John; up to eight best-scored references each offered for his approval; references only, the words shown are the BSB's."
+  },
+  {
     "source": "Google Fonts",
     "dataset": "Literata",
     "version": "main",

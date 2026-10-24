@@ -9,6 +9,7 @@
  * `batch recover` is offline.
  */
 
+import { momentsCommand } from "./moments.js";
 import { officeCommand } from "./office.js";
 import { copyFileSync, existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
@@ -1125,6 +1126,10 @@ async function main(): Promise<number> {
     // Build 8: the Daily Office lectionary, morning only, for Daily prayer.
     case "office":
       return officeCommand(rest, { raw: understandPaths().raw, appFile: path.join(REPO_ROOT, "apps/mobile/src/data/office.generated.ts") });
+
+    // Build 11h: verses for a moment, drafts for John's review (OpenBible topic scores, CC BY 4.0).
+    case "moments":
+      return momentsCommand(rest, { raw: understandPaths().raw, reviewFile: path.join(UNDERSTAND_DATA, "moments.json") });
 
     case "grammar": {
       const { raw, bundles } = understandPaths();

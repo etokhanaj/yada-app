@@ -522,6 +522,30 @@ export const SOURCES: SourceDef[] = [
     ],
     modifications: "References mapped to Yada verse ords; rows with negative votes left out.",
   },
+  {
+    key: "openbible-topics",
+    source: "OpenBible.info",
+    dataset: "OpenBible.info topic scores",
+    // The data file's own header: "# Generated 2026-10-12. CC-BY License: www.openbible.info/topics"; the topic pages link
+    // creativecommons.org/licenses/by/4.0/. References and scores only: no verse text is in the file.
+    license: "CC-BY-4.0",
+    attribution_text: "Topics for verses for a moment from OpenBible.info (www.openbible.info/topics), licensed CC BY 4.0.",
+    homepage: "https://www.openbible.info/topics/",
+    commit: "unversioned",
+    pinnedByDigest: true,
+    downloadable: true,
+    files: [
+      {
+        file: "openbible-topics/topic-scores.txt",
+        url: "https://a.openbible.info/data/topic-scores.zip",
+        zipMember: "topic-scores.txt",
+        // Rebuilt as votes change; a later download will not match the pin, which is a migration accepted by changing it.
+        sha256: "9bf6a3c1418414b29776eb8db29eb36954130986854ce2ef2aa45449e2c4353b",
+        licenseIn: { zipMember: "topic-scores.txt", mustContain: "CC-BY License: www.openbible.info/topics" },
+      },
+    ],
+    modifications: "Six topics chosen by John (worry, fear, grief, loneliness, tired, thankful); up to eight best-scored references each offered for his approval; the words shown are the BSB's.",
+  },
   // ---------------------------------------------------------------------------
   // Syntax layer (`package syntax`): MACULA's clause and phrase trees, read from the lowfat XML
   // straight into syntax.vN.db. Evidence only — no explanation is written from it, and nothing

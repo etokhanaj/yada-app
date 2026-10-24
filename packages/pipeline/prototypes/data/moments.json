@@ -1,0 +1,348 @@
+{
+  "source": "OpenBible.info topic scores, CC BY 4.0",
+  "generated": "2026-10-12",
+  "moments": [
+    {
+      "moment": "Anxious",
+      "topic": "worry",
+      "status": "approved",
+      "candidates": [
+        {
+          "osis": "Phil.4.6-Phil.4.7",
+          "ord_start": 50004006,
+          "ord_end": 50004007,
+          "decision": "keep"
+        },
+        {
+          "osis": "1Pet.5.7",
+          "ord_start": 60005007,
+          "ord_end": 60005007,
+          "decision": "keep"
+        },
+        {
+          "osis": "Prov.12.25",
+          "ord_start": 20012025,
+          "ord_end": 20012025,
+          "decision": "keep"
+        },
+        {
+          "osis": "Matt.6.25-Matt.6.34",
+          "ord_start": 40006025,
+          "ord_end": 40006034,
+          "decision": "keep"
+        },
+        {
+          "osis": "John.14.27",
+          "ord_start": 43014027,
+          "ord_end": 43014027,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.55.22",
+          "ord_start": 19055022,
+          "ord_end": 19055022,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.94.19",
+          "ord_start": 19094019,
+          "ord_end": 19094019,
+          "decision": "keep"
+        },
+        {
+          "osis": "Isa.41.10",
+          "ord_start": 23041010,
+          "ord_end": 23041010,
+          "decision": "keep"
+        }
+      ],
+      "approved_by": "John",
+      "approved": "2026-10-22"
+    },
+    {
+      "moment": "Afraid",
+      "topic": "fear",
+      "status": "approved",
+      "candidates": [
+        {
+          "osis": "Isa.41.10",
+          "ord_start": 23041010,
+          "ord_end": 23041010,
+          "decision": "keep"
+        },
+        {
+          "osis": "2Tim.1.7",
+          "ord_start": 55001007,
+          "ord_end": 55001007,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.34.4",
+          "ord_start": 19034004,
+          "ord_end": 19034004,
+          "decision": "keep"
+        },
+        {
+          "osis": "1John.4.18",
+          "ord_start": 62004018,
+          "ord_end": 62004018,
+          "decision": "drop"
+        },
+        {
+          "osis": "Josh.1.9",
+          "ord_start": 6001009,
+          "ord_end": 6001009,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.23.1-Ps.23.6",
+          "ord_start": 19023001,
+          "ord_end": 19023006,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.56.3-Ps.56.4",
+          "ord_start": 19056003,
+          "ord_end": 19056004,
+          "decision": "keep"
+        },
+        {
+          "osis": "Prov.29.25",
+          "ord_start": 20029025,
+          "ord_end": 20029025,
+          "decision": "keep"
+        }
+      ],
+      "approved_by": "John",
+      "approved": "2026-10-22"
+    },
+    {
+      "moment": "Grieving",
+      "topic": "grief",
+      "status": "approved",
+      "candidates": [
+        {
+          "osis": "Matt.5.4",
+          "ord_start": 40005004,
+          "ord_end": 40005004,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.147.3",
+          "ord_start": 19147003,
+          "ord_end": 19147003,
+          "decision": "keep"
+        },
+        {
+          "osis": "Rev.21.4",
+          "ord_start": 66021004,
+          "ord_end": 66021004,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.34.18",
+          "ord_start": 19034018,
+          "ord_end": 19034018,
+          "decision": "keep"
+        },
+        {
+          "osis": "1Pet.5.7",
+          "ord_start": 60005007,
+          "ord_end": 60005007,
+          "decision": "keep"
+        },
+        {
+          "osis": "Matt.11.28-Matt.11.30",
+          "ord_start": 40011028,
+          "ord_end": 40011030,
+          "decision": "keep"
+        },
+        {
+          "osis": "John.16.22",
+          "ord_start": 43016022,
+          "ord_end": 43016022,
+          "decision": "drop"
+        },
+        {
+          "osis": "Josh.1.9",
+          "ord_start": 6001009,
+          "ord_end": 6001009,
+          "decision": "drop"
+        }
+      ],
+      "approved_by": "John",
+      "approved": "2026-10-22"
+    },
+    {
+      "moment": "Lonely",
+      "topic": "loneliness",
+      "status": "approved",
+      "candidates": [
+        {
+          "osis": "Ps.27.10",
+          "ord_start": 19027010,
+          "ord_end": 19027010,
+          "decision": "keep"
+        },
+        {
+          "osis": "Isa.41.10",
+          "ord_start": 23041010,
+          "ord_end": 23041010,
+          "decision": "keep"
+        },
+        {
+          "osis": "Deut.31.6",
+          "ord_start": 5031006,
+          "ord_end": 5031006,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.23.4",
+          "ord_start": 19023004,
+          "ord_end": 19023004,
+          "decision": "keep"
+        },
+        {
+          "osis": "Matt.28.20",
+          "ord_start": 40028020,
+          "ord_end": 40028020,
+          "decision": "keep"
+        },
+        {
+          "osis": "1Pet.5.7",
+          "ord_start": 60005007,
+          "ord_end": 60005007,
+          "decision": "keep"
+        },
+        {
+          "osis": "Gen.2.18",
+          "ord_start": 1002018,
+          "ord_end": 1002018,
+          "decision": "drop"
+        },
+        {
+          "osis": "Josh.1.5",
+          "ord_start": 6001005,
+          "ord_end": 6001005,
+          "decision": "drop"
+        }
+      ],
+      "approved_by": "John",
+      "approved": "2026-10-22"
+    },
+    {
+      "moment": "Tired",
+      "topic": "tired",
+      "status": "approved",
+      "candidates": [
+        {
+          "osis": "Matt.11.28-Matt.11.30",
+          "ord_start": 40011028,
+          "ord_end": 40011030,
+          "decision": "keep"
+        },
+        {
+          "osis": "Isa.40.31",
+          "ord_start": 23040031,
+          "ord_end": 23040031,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.37.7",
+          "ord_start": 19037007,
+          "ord_end": 19037007,
+          "decision": "drop"
+        },
+        {
+          "osis": "Gal.6.9-Gal.6.10",
+          "ord_start": 48006009,
+          "ord_end": 48006010,
+          "decision": "keep"
+        },
+        {
+          "osis": "Jer.31.25",
+          "ord_start": 24031025,
+          "ord_end": 24031025,
+          "decision": "keep"
+        },
+        {
+          "osis": "Jer.29.11",
+          "ord_start": 24029011,
+          "ord_end": 24029011,
+          "decision": "drop"
+        },
+        {
+          "osis": "Ps.34.18",
+          "ord_start": 19034018,
+          "ord_end": 19034018,
+          "decision": "drop"
+        },
+        {
+          "osis": "Phil.4.13",
+          "ord_start": 50004013,
+          "ord_end": 50004013,
+          "decision": "drop"
+        }
+      ],
+      "approved_by": "John",
+      "approved": "2026-10-22"
+    },
+    {
+      "moment": "Thankful",
+      "topic": "thankful",
+      "status": "approved",
+      "candidates": [
+        {
+          "osis": "Eph.5.20",
+          "ord_start": 49005020,
+          "ord_end": 49005020,
+          "decision": "keep"
+        },
+        {
+          "osis": "1Thess.5.18",
+          "ord_start": 52005018,
+          "ord_end": 52005018,
+          "decision": "keep"
+        },
+        {
+          "osis": "Col.3.17",
+          "ord_start": 51003017,
+          "ord_end": 51003017,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.103.2",
+          "ord_start": 19103002,
+          "ord_end": 19103002,
+          "decision": "keep"
+        },
+        {
+          "osis": "Ps.106.1",
+          "ord_start": 19106001,
+          "ord_end": 19106001,
+          "decision": "keep"
+        },
+        {
+          "osis": "Phil.4.6",
+          "ord_start": 50004006,
+          "ord_end": 50004006,
+          "decision": "keep"
+        },
+        {
+          "osis": "1Chr.16.34",
+          "ord_start": 13016034,
+          "ord_end": 13016034,
+          "decision": "drop"
+        },
+        {
+          "osis": "Ps.100.4",
+          "ord_start": 19100004,
+          "ord_end": 19100004,
+          "decision": "keep"
+        }
+      ],
+      "approved_by": "John",
+      "approved": "2026-10-22"
+    }
+  ]
+}
