@@ -6,7 +6,9 @@
 
 import { Pressable, StyleSheet } from "react-native";
 
+import { BRAND, ON_PICTURE } from "../design/palette";
 import { useLayout, usePalette } from "../design/tokens";
+import { Icon, type IconName } from "./Icon";
 import { Chrome } from "./Type";
 
 export function Pill({
@@ -17,6 +19,9 @@ export function Pill({
   stretch = false,
   grow = false,
   disabled = false,
+  small = false,
+  onPicture = false,
+  icon,
   label,
   testID,
 }: {
@@ -29,6 +34,12 @@ export function Pill({
   stretch?: boolean;
   grow?: boolean;
   disabled?: boolean;
+  /** A row's one action (Build 12: "Pray", "Sit"): 36 pt tall inside a 44 pt target, at its own width even at AX. */
+  small?: boolean;
+  /** The one action over a picture (SW-01's Begin, SW-06 on the session's ground): white with ink words. */
+  onPicture?: boolean;
+  /** A glyph before the title (EM-01's "+ Add someone"). */
+  icon?: IconName;
   /** For VoiceOver, when the title alone does not say where it goes. */
   label?: string;
   testID?: string;
@@ -42,21 +53,25 @@ export function Pill({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
+      hitSlop={small ? 4 : undefined}
       style={({ pressed }) => [
         styles.pill,
-        { minHeight: pill, backgroundColor: disabled ? palette.card : accent ? palette.accent : primary ? palette.ink : palette.card, opacity: pressed ? 0.8 : 1 },
-        ax || stretch ? styles.wide : grow ? styles.grow : null,
+        small ? styles.small : null,
+        { minHeight: small ? 36 : pill, backgroundColor: disabled ? palette.card : onPicture ? ON_PICTURE.text : accent ? palette.accent : primary ? palette.ink : palette.card, opacity: pressed ? 0.8 : 1 },
+        small ? null : ax || stretch ? styles.wide : grow ? styles.grow : null,
       ]}
       testID={testID}
     >
       {/* Disabled: the same pill on card with muted text (design system), never grey with white. */}
-      <Chrome style={{ fontWeight: "600", color: disabled ? palette.mutedInk : primary || accent ? palette.paper : palette.ink }}>{title}</Chrome>
+      {icon !== undefined ? <Icon name={icon} size={18} color={onPicture ? BRAND.ink : primary || accent ? palette.paper : palette.ink} /> : null}
+      <Chrome style={{ fontWeight: "600", color: disabled ? palette.mutedInk : onPicture ? BRAND.ink : primary || accent ? palette.paper : palette.ink }}>{title}</Chrome>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  pill: { borderRadius: 999, paddingHorizontal: 20, alignItems: "center", justifyContent: "center" },
+  pill: { flexDirection: "row", columnGap: 6, borderRadius: 999, paddingHorizontal: 20, alignItems: "center", justifyContent: "center" },
+  small: { paddingHorizontal: 16, marginVertical: 4 },
   grow: { flex: 1 },
   wide: { alignSelf: "stretch" },
 });

@@ -8,7 +8,7 @@
  */
 
 import { router } from "expo-router";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, type RefObject, useRef, useState } from "react";
 import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
@@ -23,14 +23,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { transparent } from "../design/contrast";
 import { useLayout, usePalette, useType, WIDE } from "../design/tokens";
+import { BarFrame } from "./ActionBar";
 import { useTabBarClearance } from "./TabBar";
 import { GlassButton } from "./Glass";
 import { Icon, type IconName } from "./Icon";
+import { Pill } from "./Pill";
 import { Chrome, useFontScaleKey } from "./Type";
 
 
-/** Page titles in SF bold with tight tracking; serif stays for Scripture, passage titles and book names (polish-2026-10-15.md). */
-function LargeTitle({ children }: { children: ReactNode }) {
+/**
+ * Page titles in SF bold with tight tracking; serif stays for Scripture, passage titles and book names (polish-2026-10-15.md).
+ * Exported for the Search tab (SE-30), whose field stays above its results rather than scrolling with a PageScreen.
+ */
+export function LargeTitle({ children }: { children: ReactNode }) {
   const palette = usePalette();
   const t = useType("pageTitle");
   const key = useFontScaleKey();
@@ -70,7 +75,16 @@ export function PageScreen({
   testID,
   titleNode,
   clearTabBar = false,
+  footer,
+  onReachEnd,
+  scrollRef,
 }: {
+  /** For a page that scrolls itself to a place: the Dictionary's A to Z rail (DI-30). */
+  scrollRef?: RefObject<ScrollView | null>;
+  /** Once, when the end of the page comes on screen: the devotional read to its end ticks it on Today (TD-30). */
+  onReachEnd?: () => void;
+  /** The page's one primary action, docked at the foot where the thumb is (Sit's Begin; design-system.md "one primary pill at the foot"). */
+  footer?: ReactNode;
   title: string;
   /** BH-01: the last row scrolls clear of the native tab bar (Today sat over Deuteronomy in the TestFlight build). */
   clearTabBar?: boolean;
@@ -96,6 +110,8 @@ export function PageScreen({
   const [barHeight, setBarHeight] = useState(top + 60);
   const [titleBottom, setTitleBottom] = useState(120);
   const [scrolled, setScrolled] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const reachedEnd = useRef(false);
   // The bar's title sits centred clear of the wider side. Fixed 100 pt insets let it run under
   // `‹ Home` and the glass buttons once they grew at AX5 (Bookmarks and Home, 11 Oct 2026).
   // Widths are read before setSides: the layout event is gone by the time an updater runs
@@ -110,7 +126,12 @@ export function PageScreen({
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     // The title moves into the bar once the large one has scrolled under it (SO-02).
-    setScrolled(e.nativeEvent.contentOffset.y + barHeight > titleBottom);
+    const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+    setScrolled(contentOffset.y + barHeight > titleBottom);
+    if (onReachEnd !== undefined && !reachedEnd.current && contentOffset.y + layoutMeasurement.height >= contentSize.height - 24) {
+      reachedEnd.current = true;
+      onReachEnd();
+    }
   };
 
   return (
@@ -149,11 +170,12 @@ export function PageScreen({
       </View>
 
       <ScrollView
+        ref={scrollRef}
         onScroll={onScroll}
         scrollEventThrottle={32}
         // The tab bar's clearance already reaches past the home indicator (TabBar pads its own foot by insets.bottom),
         // so a tab page pads by it alone, as Today does; adding insets.bottom left a tab page 34 pt taller at the foot.
-        contentContainerStyle={[{ paddingTop: barHeight + 14, paddingHorizontal: gutter, paddingBottom: clearTabBar ? tabClearance : insets.bottom + 48 }, column]}
+        contentContainerStyle={[{ paddingTop: barHeight + 14, paddingHorizontal: gutter, paddingBottom: footer !== undefined ? footerHeight + 24 : clearTabBar ? tabClearance : insets.bottom + 48 }, column]}
         keyboardDismissMode="on-drag"
       >
         <View onLayout={(e) => setTitleBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}>
@@ -168,6 +190,11 @@ export function PageScreen({
         </View>
         <View style={{ marginTop: 18 }}>{children}</View>
       </ScrollView>
+      {footer === undefined ? null : (
+        <BarFrame onHeight={setFooterHeight} testID="page-footer">
+          {footer}
+        </BarFrame>
+      )}
     </View>
   );
 }
@@ -193,6 +220,8 @@ export function ListRow({
   children,
   actions,
   onAction,
+  leading,
+  action,
 }: {
   title?: ReactNode;
   subtitle?: ReactNode;
@@ -220,6 +249,10 @@ export function ListRow({
   /** VoiceOver's way to do what a drag does: Compare's Choose moves a version up or down (CP-06). */
   actions?: ReadonlyArray<{ name: string; label: string }>;
   onAction?: (name: string) => void;
+  /** Build 12: a picture, swatch or avatars before the words (PR-51's People, SW-02's Saved), YouVersion's rich rows. */
+  leading?: ReactNode;
+  /** Build 12: the row's one action as a small card-filled pill ("Pray", "Sit"), in place of the chevron. */
+  action?: { title: string; label?: string; onPress: () => void; testID?: string };
 }) {
   const palette = usePalette();
   const { ax } = useLayout();
@@ -240,6 +273,7 @@ export function ListRow({
         pressed ? { backgroundColor: palette.fill } : null,
       ]}
     >
+      {leading}
       <View style={{ flex: 1, minWidth: 0, rowGap: 3 }}>
         {overline !== undefined ? (
           <Chrome step="note" tone="muted" style={{ fontWeight: "500" }}>
@@ -280,9 +314,16 @@ export function ListRow({
         {/* At AX sizes a value beside the title broke words ("Daily psalm / s") and clipped itself ("1662 Prayer
             Bo"): fresh-eyes review RU-11, 23 Oct 2026. It goes under the title, as iOS Settings does. */}
         {ax && right !== undefined ? right : null}
+        {/* The action goes under the words at AX sizes too: beside them it squeezed "Your list" to a word a line (12c QA). */}
+        {ax && action !== undefined ? (
+          <View style={{ alignSelf: "flex-start" }}>
+            <Pill small title={action.title} label={action.label} onPress={action.onPress} testID={action.testID} />
+          </View>
+        ) : null}
       </View>
       {ax ? null : right}
-      {chevron && onPress !== undefined ? <Icon name="forward" size={18} tone="muted" /> : null}
+      {!ax && action !== undefined ? <Pill small title={action.title} label={action.label} onPress={action.onPress} testID={action.testID} /> : null}
+      {chevron && action === undefined && onPress !== undefined ? <Icon name="forward" size={18} tone="muted" /> : null}
     </Pressable>
   );
 }

@@ -1,4 +1,4 @@
-# Phase 5 (IA-11, IA-14, RP-01–04, ST-01, ST-02, NT-02): Home's ⋯ → Reading plans and Settings, M'Cheyne
+# Phase 5 (IA-11, IA-14, RP-01–04, ST-01, ST-02, NT-02): the Bible tab's Reading plans row (RU-14) and Settings, M'Cheyne
 # with no dates, the plan's next portion at a chapter's end, the Reminder page before iOS asks, Downloads.
 # A fresh launch first: a sheet left open by the flow before covered Home (15 Oct 2026).
 appId: studio.yada.reader
@@ -6,8 +6,7 @@ appId: studio.yada.reader
 - launchApp
 - openLink: studio.yada.reader:///
 - tapOn:
-    id: home-more
-- tapOn: "Reading plans"
+    id: home-plans
 - extendedWaitUntil:
     visible:
       id: plans

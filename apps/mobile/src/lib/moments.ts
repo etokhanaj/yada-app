@@ -18,17 +18,19 @@ export interface Moment {
   readonly passages: readonly MomentPassage[];
   /** The helpline line beneath (docs/research/moments-topics.md): Anxious, Afraid, Grieving and Lonely only. */
   readonly support: boolean;
+  /** The day picture the mood keeps on its tile (Build 12 decision 3, John 24 Oct 2026). */
+  readonly picture: number;
 }
 
 const p = (start: number, end = start): MomentPassage => ({ start, end });
 
 export const MOMENTS: readonly Moment[] = [
-  { name: "Anxious", support: true, passages: [p(50004006, 50004007), p(60005007), p(20012025), p(40006025, 40006034), p(43014027), p(19055022), p(19094019), p(23041010)] },
-  { name: "Afraid", support: true, passages: [p(23041010), p(55001007), p(19034004), p(6001009), p(19023001, 19023006), p(19056003, 19056004), p(20029025)] },
-  { name: "Grieving", support: true, passages: [p(40005004), p(19147003), p(66021004), p(19034018), p(60005007), p(40011028, 40011030)] },
-  { name: "Lonely", support: true, passages: [p(19027010), p(23041010), p(5031006), p(19023004), p(40028020), p(60005007)] },
-  { name: "Tired", support: false, passages: [p(40011028, 40011030), p(23040031), p(48006009, 48006010), p(24031025)] },
-  { name: "Thankful", support: false, passages: [p(49005020), p(52005018), p(51003017), p(19103002), p(19106001), p(50004006), p(19100004)] },
+  { name: "Anxious", support: true, picture: 14, passages: [p(50004006, 50004007), p(60005007), p(20012025), p(40006025, 40006034), p(43014027), p(19055022), p(19094019), p(23041010)] },
+  { name: "Afraid", support: true, picture: 7, passages: [p(23041010), p(55001007), p(19034004), p(6001009), p(19023001, 19023006), p(19056003, 19056004), p(20029025)] },
+  { name: "Grieving", support: true, picture: 13, passages: [p(40005004), p(19147003), p(66021004), p(19034018), p(60005007), p(40011028, 40011030)] },
+  { name: "Lonely", support: true, picture: 24, passages: [p(19027010), p(23041010), p(5031006), p(19023004), p(40028020), p(60005007)] },
+  { name: "Tired", support: false, picture: 10, passages: [p(40011028, 40011030), p(23040031), p(48006009, 48006010), p(24031025)] },
+  { name: "Thankful", support: false, picture: 16, passages: [p(49005020), p(52005018), p(51003017), p(19103002), p(19106001), p(50004006), p(19100004)] },
 ];
 
 export function momentNamed(name: string): Moment | undefined {
@@ -48,19 +50,6 @@ export function passageLabel({ start, end }: MomentPassage): string {
 export function opening(text: string, words: number): string {
   const all = text.trim().split(/\s+/);
   return all.length <= words ? text.trim() : `${all.slice(0, words).join(" ").replace(/[,;:.—–-]+$/, "")}…`;
-}
-
-/** VM-01: each tile shows its moment's first passage, and no two tiles open on the same one. */
-export function tilePassages(moments: readonly Moment[] = MOMENTS): Map<string, MomentPassage> {
-  const used = new Set<string>();
-  const out = new Map<string, MomentPassage>();
-  for (const m of moments) {
-    const first = m.passages.find((q) => !used.has(`${q.start}-${q.end}`));
-    if (first === undefined) continue;
-    used.add(`${first.start}-${first.end}`);
-    out.set(m.name, first);
-  }
-  return out;
 }
 
 const COUNT = ["none", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];

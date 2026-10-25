@@ -1,41 +1,119 @@
 /**
- * Today (build 7a; canvas DR-11, DR-12, DR-15, XT-01, XT-02, EB-01, EB-03, EB-04): the day as one page.
+ * Today (Build 12 TD-30, TD-31; John, 24 Oct 2026: "why a timeline of verses as opposed to make it experiences for
+ * humans on Today"). The date over the greeting, the lamp on the right. The day's verse on its picture, with Sit,
+ * Listen, Share and More under it, as under YouVersion's Verse of the Day. Then For you today: each thing to do named
+ * for what you do, with a picture and how long it takes (YouVersion's Guided Scripture). Sit with a verse; today's
+ * psalms (1662, when Daily psalms is on); Spurgeon's devotional; the office ("Afternoon prayer" from noon to five);
+ * your plan; Pray for someone. A finished one fades with a tick, and "1 of 6 done" shows once one is; the day counts
+ * at the first, as before. Scrolled, a paper bar names the page and keeps the lamp (TD-21).
  *
- * - The day's picture runs edge to edge with the greeting and the day's verse set on it, and the day rises over it
- *   on a sheet (John: "knock yourself out", 15 Oct 2026; the App Store's Today and Fitness+). The evening has its own
- *   picture from 17:00 (DR-12). At AX sizes the picture is a figure after the lead card.
- * - Cards only as CLAUDE.md allows: one per thing you tap, a soft fill, no shadow, no buttons inside a card that is
- *   itself the tap, except the reading card's Read.
+ * It replaces the hero picture with the day rising over it on a sheet, the reading card's Read and Listen, the forest
+ * office card, the Pray card's list and Later or Earlier (the other part's psalms stay in Earlier days).
  */
 
+import * as Clipboard from "expo-clipboard";
 import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { type ReactNode, useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useState } from "react";
+import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { readerHref } from "../../../components/navigation";
-import { ListRow } from "../../../components/Page";
-import { Chrome, SectionTitle } from "../../../components/Type";
-import { useAppData, useCore } from "../../../data/AppData";
+import { ExperienceCard } from "../../../components/ExperienceCard";
+import { FillPicture } from "../../../components/FillPicture";
 import { Lamp } from "../../../components/Lamp";
+import { readerHref } from "../../../components/navigation";
+import { GlassIcon } from "../../../components/Page";
+import { useTabBarClearance } from "../../../components/TabBar";
+import { Chrome, SectionTitle } from "../../../components/Type";
+import { VerseActions } from "../../../components/VerseActions";
+import { useAppData, useCore } from "../../../data/AppData";
+import { listen } from "../../../data/audio";
 import { pictureFor } from "../../../data/pictures";
 import { loadToday, type Place, type TodayData } from "../../../data/today";
-import { listen } from "../../../data/audio";
-import { MediaIcon } from "../../../components/audio/MediaIcon";
-import { FONTS, useLayout, usePalette, useType, WIDE } from "../../../design/tokens";
-import { dayLabel, greeting, laterRow } from "../../../lib/today";
-import { useTabBarClearance } from "../../../components/TabBar";
+import { BRAND, ON_PICTURE } from "../../../design/palette";
+import { useLayout, usePalette, useType, WIDE } from "../../../design/tokens";
+import { cardPictureDays, dayLabel, doneLine, greeting, officeName, pictureDay } from "../../../lib/today";
 import { useAccessibility } from "../../../state/accessibility";
 import { useSettings } from "../../../state/settings";
-import { BRAND, ON_PICTURE } from "../../../design/palette";
-import { FillPicture } from "../../../components/FillPicture";
 
 const open = (place: Place) => router.push(readerHref({ ...place, resume: true, back: "Today" }));
 
-/** The lamp pill on the picture (XT-02, `.thero .stk`): lit is a near-white pill with ink words and a forest lamp. */
-const LIT_ON_PICTURE = ON_PICTURE.strong;
-const UNLIT_ON_PICTURE = ON_PICTURE.track;
+interface Thing {
+  readonly key: string;
+  readonly kicker: string;
+  readonly title: string;
+  readonly meta: string;
+  readonly done: boolean;
+  readonly onPress: () => void;
+}
+
+/** For you today, in order (TD-30), from what the day has. */
+function thingsFor(data: TodayData, now: Date): Thing[] {
+  const verse = data.verse;
+  const out: Thing[] = [];
+  if (verse !== null)
+    out.push({
+      key: "sit",
+      kicker: "Sit with a verse",
+      title: "Today’s verse, slowly",
+      meta: "5 min",
+      done: data.done.has("sit"),
+      onPress: () => router.push({ pathname: "/sit", params: { text: verse.text, ref: verse.ref, bsb: verse.bsb ? "1" : "", place: `${verse.place.book}.${verse.place.chapter}.${verse.place.verse}`, why: "Today" } }),
+    });
+  const psalms = data.psalms;
+  if (psalms !== null)
+    out.push({
+      key: "psalms",
+      kicker: `Today’s psalms · ${psalms.label.replace(/^Psalms? /u, "")}`,
+      title: psalms.opening === "" ? psalms.label : `“${psalms.opening}”`,
+      meta: `${psalms.minutes} min`,
+      done: psalms.chapters.some((c) => data.done.has(c)),
+      onPress: () => open(psalms.place),
+    });
+  const devotional = data.devotional;
+  if (devotional !== null)
+    out.push({
+      key: "devotional",
+      kicker: `Devotional · ${devotional.ref}`,
+      title: devotional.heading,
+      meta: `${devotional.minutes} min`,
+      done: data.done.has("devotional"),
+      onPress: () => router.push({ pathname: "/devotional", params: { key: devotional.key, part: devotional.part } }),
+    });
+  if (data.office !== null)
+    out.push({
+      key: "office",
+      kicker: data.part === "evening" ? "Evening prayer" : officeName(now),
+      title: data.office.opening,
+      meta: "15 min",
+      done: data.done.has("office"),
+      onPress: () => router.push({ pathname: "/office", params: { part: data.part } }),
+    });
+  const plan = data.plan;
+  if (plan.kind === "choose")
+    out.push({ key: "plan", kicker: "Your plan", title: plan.finished === true ? "You’ve read John. Choose what’s next" : "Choose a plan", meta: "Reading plans", done: false, onPress: () => router.push("/plans") });
+  else if (plan.kind === "start")
+    out.push({ key: "plan", kicker: "A place to start", title: "The Gospel of John, passage by passage", meta: "Begin", done: false, onPress: () => router.push({ pathname: "/thread", params: { from: "today" } }) });
+  else
+    out.push({
+      key: "plan",
+      kicker: plan.kind === "john" ? "Your plan · John" : "Your plan · The whole Bible",
+      title: plan.title,
+      meta: `${plan.minutes} min`,
+      done: data.done.has(`read:${plan.place.book}.${plan.place.chapter}`),
+      onPress: () => open(plan.place),
+    });
+  if (data.pray !== null)
+    out.push({
+      key: "pray",
+      kicker: "Pray for someone",
+      title: data.pray.first[0] ?? "Your list, and someone on Yada",
+      meta: "One by one",
+      done: data.done.has("pray"),
+      onPress: () => router.push("/pray/through"),
+    });
+  return out;
+}
 
 export default function Today() {
   const core = useCore();
@@ -44,695 +122,216 @@ export default function Today() {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
   const tabClearance = useTabBarClearance();
-  const { ax, gutter: phoneGutter, regular, tabs, sectionGap } = useLayout();
+  const { ax, gutter: phoneGutter, regular, tabs } = useLayout();
   const gutter = regular ? WIDE.gutter : phoneGutter;
   const solid = useAccessibility((st) => st.reduceTransparency);
   const titleType = useType("pageTitle");
   const [data, setData] = useState<TodayData | null>(null);
   const [now, setNow] = useState(() => new Date());
-  const [focused, setFocused] = useState(false);
   const [compact, setCompact] = useState(false);
+  const [headerBottom, setHeaderBottom] = useState(120);
 
-  // Read on every focus, so the 17:00 switch, the 03:00 turn and a passage just read all show (stress test #11).
+  // Read on every focus, so the 17:00 switch, the 03:00 turn and something just finished all show (stress test #11).
   useFocusEffect(
     useCallback(() => {
       let live = true;
       const at = new Date();
       setNow(at);
-      setFocused(true);
       void loadToday(core, user, translation, at).then((d) => live && setData(d));
       return () => {
         live = false;
-        setFocused(false);
       };
     }, [core, user, translation]),
   );
 
   const picture = data === null ? undefined : pictureFor(data.day, data.part);
-  const hero = picture !== undefined && !ax && !regular;
-  const hello = greeting(now);
-  const date = data === null ? "" : dayLabel(data.day);
-
   const verse = data?.verse ?? null;
-  // DR-16: the picture opens the day's verse full screen; a long press, About this picture (DR-14). The verse's own
-  // words open Sit with this (TD-20).
-  const openVerse = () =>
-    router.push({
-      pathname: "/verse",
-      params: { part: data?.part ?? "morning" },
-    });
-  const aboutPicture = () =>
-    router.push({
-      pathname: "/picture",
-      params: { part: data?.part ?? "morning" },
-    });
-  const verseBlock = (onPicture: boolean) => {
-    if (verse === null) return null;
-    const sit = () =>
-      router.push({
-        pathname: "/sit",
-        params: {
-          text: verse.text,
-          ref: verse.ref,
-          bsb: verse.bsb ? "1" : "",
-          place: `${verse.place.book}.${verse.place.chapter}.${verse.place.verse}`,
-        },
-      });
-    // TD-20 (John, 24 Oct 2026): the whole verse is the way into Sit with this, and Done is gone. The day counts when
-    // you sit, read, listen or pray, not for a tap that says you did (RT-07 kept: opening the app never counts).
-    const actions = onPicture ? [{ name: "longpress", label: "About this picture" }] : [];
-    return (
-      <Pressable
-        onPress={sit}
-        onLongPress={onPicture ? aboutPicture : undefined}
-        accessibilityRole="button"
-        accessibilityLabel={`${verse.text}. ${verse.ref}. Sit with this verse`}
-        accessibilityActions={actions}
-        onAccessibilityAction={({ nativeEvent }) => {
-          if (nativeEvent.actionName === "longpress" && onPicture) aboutPicture();
-        }}
-        // DR-15 (build 7 plan §6): with no picture the verse is text on the page, never a box around text (CLAUDE.md).
-        style={onPicture ? styles.verseOnPicture : styles.versePlain}
-        testID="today-verse"
-      >
-        {/* EB-03: four lines at most (three at AX sizes); the whole verse is one tap away, full screen. */}
-        <Chrome tone={onPicture ? "paper" : "ink"} numberOfLines={ax ? 3 : 4} style={[styles.verseText, onPicture ? { color: ON_PICTURE.text } : null]}>
-          {verse.text}
-        </Chrome>
-        {/* DR-11, PR-01: "Psalm 1:3 · Sit with this" on one line, the underline the visible cue. */}
-        <View style={styles.verseActions}>
-          <Chrome step="note" tone={onPicture ? "paper" : "muted"} style={onPicture ? { color: ON_PICTURE.strong, fontWeight: "600" } : { fontWeight: "600" }}>
-            {verse.ref}
-            {verse.bsb ? " · BSB" : ""}
-            {" ·"}
-          </Chrome>
-          <View style={styles.verseAction} testID="today-sit">
-            <Chrome step="note" tone={onPicture ? "paper" : "ink"} style={[{ fontWeight: "600", textDecorationLine: "underline" }, onPicture ? { color: ON_PICTURE.text } : null]}>
-              Sit with this
-            </Chrome>
-          </View>
-        </View>
-      </Pressable>
-    );
-  };
+  const things = data === null ? [] : thingsFor(data, now);
+  const days = data === null ? [] : cardPictureDays(pictureDay(data.day), things.length);
+  const done = things.filter((t) => t.done).length;
 
-  // `figure` goes after the lead card: at AX sizes the picture, carrying the verse, sits there (DR-11 AX5).
-  const cardsWith = (figure: ReactNode): ReactNode =>
-    data === null ? null : (
-      <View style={{ rowGap: 10 }}>
-        {data.plan.kind === "choose" ? (
-          // EB-01: Daily psalms Off and no plan; the lead asks for one, as the reading card would lead.
-          <Card label={data.plan.finished === true ? "You’ve read John. Choose what’s next" : "Your plan: choose a plan"} testID="today-choose-plan">
-            <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
-              {data.plan.finished === true ? "You’ve read John" : "Your plan"}
-            </Chrome>
-            <Chrome tone="ink" style={[styles.readingTitle, { marginBottom: 14 }]} maxFontSizeMultiplier={2}>
-              {data.plan.finished === true ? "Choose what’s next" : "Choose a plan"}
-            </Chrome>
-            <Pressable
-              onPress={() => router.push("/plans")}
-              accessibilityRole="button"
-              accessibilityLabel="Reading plans"
-              style={({ pressed }) => [styles.primary, ax ? styles.wide : null, { backgroundColor: palette.ink, opacity: pressed ? 0.8 : 1 }]}
-              testID="today-plans"
-            >
-              <Chrome tone="paper" style={{ fontWeight: "600", color: palette.paper }}>
-                Reading plans
-              </Chrome>
-            </Pressable>
-          </Card>
-        ) : null}
-        {data.psalms === null ? null : (
-          <Card label={`${data.psalms.label}. ${data.psalms.opening}`} testID="today-reading">
-            <Chrome tone="ink" style={styles.readingTitle} maxFontSizeMultiplier={2}>
-              {data.psalms.label}
-            </Chrome>
-            {data.psalms.opening !== "" ? (
-              <Chrome
-                tone="muted"
-                style={{
-                  fontFamily: FONTS.scripture,
-                  fontSize: 16,
-                  lineHeight: 23,
-                  fontWeight: "400",
-                  marginBottom: 14,
-                }}
-                numberOfLines={ax ? 4 : 2}
-              >
-                {data.psalms.opening}
-              </Chrome>
-            ) : null}
-            {/* DR-11: Read or Listen, the reading's two ways in (build 7 plan §2 row 2). */}
-            <View style={[styles.readRow, ax ? { flexDirection: "column", alignItems: "stretch" } : null]}>
-              <Pressable
-                onPress={() => data.psalms !== null && open(data.psalms.place)}
-                accessibilityRole="button"
-                accessibilityLabel={`Read ${data.psalms.label}`}
-                style={({ pressed }) => [styles.primary, ax ? styles.wide : null, { backgroundColor: palette.ink, opacity: pressed ? 0.8 : 1 }]}
-                testID="today-read"
-              >
-                <Chrome tone="paper" style={{ fontWeight: "600", color: palette.paper }}>
-                  Read
-                </Chrome>
-              </Pressable>
-              <Pressable
-                onPress={() => data.psalms !== null && void listen(data.psalms.place.book, data.psalms.place.chapter, data.psalms.place.verse)}
-                accessibilityRole="button"
-                accessibilityLabel={`Listen to ${data.psalms.label}`}
-                style={({ pressed }) => [
-                  styles.primary,
-                  styles.listen,
-                  ax ? styles.wide : null,
-                  {
-                    backgroundColor: palette.paper,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-                testID="today-listen"
-              >
-                <MediaIcon name="play" size={12} maxScale={1.6} />
-                <Chrome tone="ink" style={{ fontWeight: "600" }}>
-                  Listen
-                </Chrome>
-              </Pressable>
-            </View>
-          </Card>
-        )}
+  const openVerse = () => router.push({ pathname: "/verse", params: { part: data?.part ?? "morning" } });
+  const aboutPicture = () => router.push({ pathname: "/picture", params: { part: data?.part ?? "morning" } });
 
-        {data.office !== null ? (
-          // DO-01 (build 8, John 17 Oct 2026): Daily prayer's own card previews the guided steps it opens, the
-          // forest and chartreuse of Yada's brand against the light sheet; one card, no shadow.
-          // Evening prayer (Build 10) is the same card titled for the part; the screen reads the part it was opened for,
-          // so a card tapped just before the evening turns still opens the office it showed.
-          <Pressable
-            onPress={() => router.push({ pathname: "/office", params: { part: data.part } })}
-            accessibilityRole="button"
-            accessibilityLabel={`${data.part === "evening" ? "Evening prayer" : "Daily prayer"}, about 15 minutes. ${data.office.opening}`}
-            style={({ pressed }) => [styles.office, { opacity: pressed ? 0.9 : 1 }]}
-            testID="today-office"
-          >
-            <Chrome style={styles.officeKicker} maxFontSizeMultiplier={2}>
-              {data.part === "evening" ? "Evening prayer" : "Daily prayer"}
-            </Chrome>
-            <Chrome style={styles.officeText} numberOfLines={ax ? 4 : 2}>
-              {data.office.opening}
-            </Chrome>
-            <Chrome style={styles.officeRef} maxFontSizeMultiplier={2}>
-              {data.office.ref}
-            </Chrome>
-            <View style={[styles.officeFoot, ax ? { flexWrap: "wrap", rowGap: 10 } : null]}>
-              <View style={styles.officeMarks} accessible={false}>
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <View key={i} style={styles.officeMark} />
-                ))}
-              </View>
-              <Chrome style={styles.officeLen} maxFontSizeMultiplier={2}>
-                About 15 min
-              </Chrome>
-              <View style={styles.officeBegin}>
-                <Chrome style={styles.officeBeginText}>Begin</Chrome>
-              </View>
-            </View>
-          </Pressable>
-        ) : null}
-
-        {figure}
-
-        {data.devotional !== null ? (
-          <Card
-            onPress={() =>
-              router.push({
-                pathname: "/devotional",
-                params: {
-                  key: data.devotional?.key ?? "",
-                  part: data.devotional?.part ?? "morning",
-                },
-              })
-            }
-            label={`${data.devotional.part === "evening" ? "Evening" : "Morning"} devotional: ${data.devotional.heading} ${data.devotional.ref}`}
-            testID="today-devotional"
-          >
-            <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
-              {data.devotional.part === "evening" ? "Evening devotional" : "Morning devotional"}
-            </Chrome>
-            <Chrome tone="ink" style={styles.cardTitle}>
-              {data.devotional.heading}
-            </Chrome>
-            <Chrome step="note" tone="muted">
-              {data.devotional.ref}
-            </Chrome>
-          </Card>
-        ) : null}
-
-        {data.plan.kind === "choose" ? null : data.plan.kind === "start" ? (
-          <Card onPress={() => router.push({ pathname: "/thread", params: { from: "today" } })} label="A place to start: The Gospel of John, passage by passage, explained" testID="today-start">
-            <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
-              A place to start
-            </Chrome>
-            <Chrome tone="ink" style={styles.cardTitle}>
-              The Gospel of John
-            </Chrome>
-            <Chrome step="note" tone="muted">
-              Passage by passage, explained
-            </Chrome>
-          </Card>
-        ) : (
-          <Card
-            onPress={() => (data.plan.kind === "john" || data.plan.kind === "mcheyne") && open(data.plan.place)}
-            label={`Your plan: ${data.plan.title}, ${data.plan.sub}${data.plan.kind === "john" ? `, ${data.plan.count}` : ""}`}
-            testID="today-plan"
-          >
-            <View style={styles.cardHead}>
-              <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
-                {data.plan.kind === "john" ? "The Gospel of John" : "The whole Bible"}
-              </Chrome>
-              {data.plan.kind === "john" ? (
-                <Chrome step="note" tone="muted">
-                  {data.plan.count}
-                </Chrome>
-              ) : null}
-            </View>
-            <Chrome tone="ink" style={styles.cardTitle}>
-              {data.plan.title}
-            </Chrome>
-            <Chrome step="note" tone="muted">
-              {data.plan.sub}
-            </Chrome>
-          </Card>
-        )}
-
-        {/* PR-01 (build 7 plan row 18, built in build 8): Pray is one card after the reading. DR-11's `.prc`: "Pray"
-            and the list's size, then its first two lines in Literata, each after an accent dot. */}
-        {data.pray === null ? null : (
-          <Card
-            onPress={() => router.push("/pray")}
-            label={data.pray.count === 0 ? "Pray: your list, and someone to pray for" : `Pray: ${data.pray.count} on your list. ${data.pray.first.join(". ")}`}
-            testID="today-pray"
-          >
-            <View style={styles.cardHead}>
-              <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
-                Pray
-              </Chrome>
-              {data.pray.count > 0 ? (
-                <Chrome step="note" tone="muted">
-                  {data.pray.count}
-                </Chrome>
-              ) : null}
-            </View>
-            {data.pray.count === 0 ? (
-              <Chrome tone="ink" style={styles.cardTitle}>
-                Your list, and someone to pray for
-              </Chrome>
-            ) : (
-              data.pray.first.map((line, i) => (
-                <View key={i} style={styles.prayLine}>
-                  <View style={[styles.prayDot, { backgroundColor: palette.accent }]} />
-                  <Chrome
-                    tone="ink"
-                    numberOfLines={1}
-                    style={{
-                      fontFamily: FONTS.scripture,
-                      fontSize: 16,
-                      lineHeight: 23,
-                      flex: 1,
-                    }}
-                  >
-                    {line}
-                  </Chrome>
-                </View>
-              ))
-            )}
-          </Card>
-        )}
-
-        {data.other === null ? null : (
-          // DR-11, DR-12: a section of its own, the set on the first line and Spurgeon's part under it when there is one.
-          // The column's 10 pt row gap plus this makes the page's section gap (`--secgap`; it was a fixed 30).
-          <View style={{ marginTop: sectionGap - 10 }}>
-            <SectionTitle style={{ marginBottom: 4 }}>{data.part === "morning" ? "Later" : "Earlier"}</SectionTitle>
-            <ListRow first onPress={() => data.other !== null && open(data.other.place)} {...laterRow(data.part, data.other.label, data.other.spurgeon)} testID="today-other" />
-          </View>
-        )}
-      </View>
-    );
-
-  // The lamp and the number (plan §2 row 8, XT-01, XT-02): none before a day has counted; it opens Your rhythm.
-  const lamp = (onPicture: boolean) =>
+  // The lamp and the number (plan §2 row 8, XT-01, XT-02): none before a day has counted; it opens You (YO-30), which
+  // holds the days now Your rhythm is gone.
+  const lamp =
     data === null || !data.rhythm.begun ? null : (
       <Pressable
-        onPress={() => router.push("/rhythm")}
+        onPress={() => router.push("/you")}
         accessibilityRole="button"
-        accessibilityLabel={data.rhythm.streak === 0 ? "Your rhythm" : `Your rhythm: ${data.rhythm.streak} ${data.rhythm.streak === 1 ? "day" : "days"}${data.rhythm.lit ? ", today counts" : ""}`}
+        accessibilityLabel={data.rhythm.streak === 0 ? "Your days" : `Your days: ${data.rhythm.streak} ${data.rhythm.streak === 1 ? "day" : "days"} in a row${data.rhythm.lit ? ", today counts" : ""}`}
         hitSlop={8}
-        // XT-02: lit and unlit differ in the pill as well as the lamp's fill. On the picture, lit is near-white with ink
-        // words and a forest lamp, unlit a faint glass with white words; on paper, lit is the selection wash, unlit the
-        // glass with a hairline ring and muted words (canvas `.stk`, `.stk.lit`).
+        // XT-02: lit is the selection wash, unlit the glass with a hairline ring and muted words.
         style={[
           styles.lamp,
-          onPicture
-            ? {
-                backgroundColor: data.rhythm.lit ? LIT_ON_PICTURE : solid ? ON_PICTURE.disc : UNLIT_ON_PICTURE,
-              }
-            : data.rhythm.lit
-              ? { backgroundColor: palette.selection }
-              : {
-                  backgroundColor: palette.glass,
-                  borderWidth: StyleSheet.hairlineWidth,
-                  borderColor: palette.divider,
-                },
+          data.rhythm.lit ? { backgroundColor: palette.selection } : { backgroundColor: palette.glass, borderWidth: StyleSheet.hairlineWidth, borderColor: palette.divider },
         ]}
         testID="today-lamp"
       >
-        <Lamp lit={data.rhythm.lit} color={onPicture ? (data.rhythm.lit ? BRAND.forest : ON_PICTURE.text) : palette.accent} />
-        {/* A lone "0" said nothing to a new reader (fresh-eyes review RU-17, 23 Oct 2026): the unlit lamp alone. */}
+        <Lamp lit={data.rhythm.lit} color={palette.accent} />
         {data.rhythm.streak === 0 ? null : (
-          <Chrome tone={onPicture ? "paper" : data.rhythm.lit ? "ink" : "muted"} style={[styles.lampCount, onPicture ? { color: data.rhythm.lit ? BRAND.ink : ON_PICTURE.text } : null]}>
-            {data.rhythm.streak}
+          <Chrome tone={data.rhythm.lit ? "ink" : "muted"} style={styles.lampCount}>
+            {`${data.rhythm.streak} ${data.rhythm.streak === 1 ? "day" : "days"}`}
           </Chrome>
         )}
       </Pressable>
     );
 
-  if (hero && picture !== undefined) {
-    return (
-      <View style={{ flex: 1, backgroundColor: palette.paper }}>
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: tabClearance }}
-          // TD-21: once the picture has scrolled under the status bar, a compact Today bar holds the lamp.
-          onScroll={(e) => setCompact(e.nativeEvent.contentOffset.y > HERO_HEIGHT - insets.top - 60)}
-          scrollEventThrottle={32}
-          testID="today"
-        >
-          {/* Light over the picture while Today shows, dark once the bar is up; the root's dark returns when it unmounts
-            (simulator, 16 Oct 2026: the clock was black on day 16's aspens). */}
-          {focused ? <StatusBar style={compact ? "auto" : "light"} /> : null}
-          {/* A dark ground while the picture decodes, so the white greeting never sits on white (images audit). */}
-          <View style={[styles.hero, { backgroundColor: BRAND.night }]}>
-            <Pressable onPress={openVerse} onLongPress={aboutPicture} style={StyleSheet.absoluteFill} accessible={false} testID="today-picture">
-              <FillPicture source={picture.image} alt={picture.alt} />
-            </Pressable>
-            {/* EB-04: under Reduce Transparency the fade runs darker and nearly opaque behind the text, edge to edge,
-              instead of boxed bands, which read as stray cards on the picture (John, 18 Oct 2026). The shadow on the
-              greeting keeps it legible on a bright picture either way (day 16's aspens, simulator, 16 Oct 2026). */}
-            <View pointerEvents="none" style={[StyleSheet.absoluteFill, { experimental_backgroundImage: solid ? SOLID_FADE : FADE }]} />
-            <View style={[styles.heroTop, styles.titleRow, { top: insets.top + 12, left: gutter, right: gutter }]}>
-              <View style={styles.titleText}>
-                <Chrome tone="paper" accessibilityRole="header" style={[titleStyle(titleType), styles.onPicture]}>
-                  {hello}
-                </Chrome>
-                <Chrome tone="paper" step="note" style={[styles.onPicture, { color: ON_PICTURE.strong, fontSize: 15 }]}>
-                  {date}
-                </Chrome>
-              </View>
-              {lamp(true)}
-            </View>
-            <View style={[styles.heroBottom, { left: gutter, right: gutter }]}>{verseBlock(true)}</View>
-          </View>
-          <View style={[styles.sheet, { backgroundColor: palette.paper, paddingHorizontal: gutter }]}>{cardsWith(null)}</View>
-        </ScrollView>
-        {compact ? (
-          // TD-21 (John, 24 Oct 2026: "where the white starts from can be an anchor"): the sheet settles under a paper bar
-          // naming the page, as Nike Training Club's home does (mobbin.com/screens/2ffe666f-2fb8-49dc-b7b4-78cf46b1e10d).
-          <View
-            style={[
-              styles.compact,
+  const verseCard =
+    verse === null ? null : (
+      <View style={[styles.verseCard, { backgroundColor: BRAND.night }]}>
+        {picture === undefined ? null : (
+          <Pressable onPress={openVerse} onLongPress={aboutPicture} style={StyleSheet.absoluteFill} accessible={false} testID="today-picture">
+            <FillPicture source={picture.image} alt={picture.alt} />
+          </Pressable>
+        )}
+        {/* Dark under the words, at least 86% under Reduce Transparency (EB-04). */}
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { experimental_backgroundImage: solid ? SOLID_FADE : FADE }]} />
+        <View style={styles.verseInner}>
+          <Chrome step="note" style={{ color: ON_PICTURE.strong, fontWeight: "600" }}>
+            {`Today’s verse · ${verse.ref}${verse.bsb ? " · BSB" : ""}`}
+          </Chrome>
+          <Pressable
+            onPress={openVerse}
+            onLongPress={aboutPicture}
+            accessibilityRole="button"
+            accessibilityLabel={`${verse.text}. ${verse.ref}. Opens it full screen`}
+            accessibilityActions={[{ name: "longpress", label: "About this picture" }]}
+            onAccessibilityAction={({ nativeEvent }) => nativeEvent.actionName === "longpress" && aboutPicture()}
+            testID="today-verse"
+          >
+            {/* EB-03: four lines at most (three at AX sizes); the whole verse is one tap away, full screen. */}
+            <Chrome numberOfLines={ax ? 3 : 4} style={styles.verseText} maxFontSizeMultiplier={1.6}>
+              {verse.text}
+            </Chrome>
+          </Pressable>
+          <VerseActions
+            onPicture
+            actions={[
               {
-                paddingTop: insets.top + 6,
-                backgroundColor: palette.paper,
-                borderBottomColor: palette.divider,
+                icon: "sit",
+                title: "Sit",
+                label: `Sit with ${verse.ref}`,
+                onPress: () => things.find((t) => t.key === "sit")?.onPress(),
+                testID: "today-sit",
+              },
+              { icon: "play", title: "Listen", label: `Listen from ${verse.ref}`, onPress: () => void listen(verse.place.book, verse.place.chapter, verse.place.verse), testID: "today-listen" },
+              {
+                icon: "share",
+                title: "Share",
+                label: `Share ${verse.ref} as an image`,
+                onPress: () => router.push({ pathname: "/share-image", params: { verse: `${verse.place.book}.${verse.place.chapter}.${verse.place.verse}` } }),
+                testID: "today-share",
               },
             ]}
-            pointerEvents="box-none"
-            testID="today-bar"
-          >
+            more={{
+              actions: [
+                { id: "copy", title: "Copy" },
+                { id: "open", title: "Open in Bible" },
+                { id: "picture", title: "About this picture" },
+              ],
+              onChoose: (id) => {
+                if (id === "copy") void Clipboard.setStringAsync(`“${verse.text}” ${verse.ref}${verse.bsb ? " BSB" : ""}`).then(() => AccessibilityInfo.announceForAccessibility("Copied"));
+                if (id === "open") open(verse.place);
+                if (id === "picture") aboutPicture();
+              },
+            }}
+          />
+        </View>
+      </View>
+    );
+
+  const header = (
+    <View style={[styles.header, ax ? { flexDirection: "column", alignItems: "flex-start", rowGap: 8 } : null]} onLayout={(e) => setHeaderBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}>
+      <View style={{ flexShrink: 1 }}>
+        <Chrome step="note" tone="muted" style={{ fontSize: ax ? undefined : 15 }}>
+          {data === null ? "" : dayLabel(data.day)}
+        </Chrome>
+        <Chrome tone="ink" accessibilityRole="header" style={{ fontSize: titleType.size, lineHeight: titleType.lineHeight, fontWeight: "700", letterSpacing: -0.8 }}>
+          {greeting(now)}
+        </Chrome>
+      </View>
+      {/* YO-30: the person beside the lamp opens You, there before any day has counted. */}
+      <View style={styles.headerEnd}>
+        {lamp}
+        <GlassIcon icon="person" label="You" onPress={() => router.push("/you")} testID="today-you" />
+      </View>
+    </View>
+  );
+
+  const line = doneLine(done, things.length);
+  return (
+    <View style={{ flex: 1, backgroundColor: palette.paper }}>
+      <StatusBar style="auto" />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          { paddingTop: (tabs === "top" ? 0 : insets.top) + 16, paddingHorizontal: gutter, paddingBottom: tabClearance, rowGap: 14 },
+          regular ? { width: "100%", maxWidth: WIDE.page + 2 * gutter, alignSelf: "center" } : null,
+        ]}
+        // TD-21, TD-31: once the greeting has scrolled away, a paper bar names the page and keeps the lamp.
+        onScroll={(e) => setCompact(e.nativeEvent.contentOffset.y > headerBottom - insets.top)}
+        scrollEventThrottle={32}
+        testID="today"
+      >
+        {header}
+        {verseCard}
+        {things.length === 0 ? null : (
+          <View style={{ rowGap: 10, marginTop: 8 }}>
+            <View style={styles.sectionHead}>
+              <SectionTitle>For you today</SectionTitle>
+              {line === null ? null : (
+                <Chrome step="note" tone="muted" testID="today-done">
+                  {line}
+                </Chrome>
+              )}
+            </View>
+            {things.map((t, i) => (
+              <ExperienceCard
+                key={t.key}
+                kicker={t.kicker}
+                title={t.title}
+                meta={t.meta}
+                done={t.done}
+                image={pictureFor(days[i] ?? 1, data?.part ?? "morning")?.image}
+                onPress={t.onPress}
+                testID={`today-${t.key}`}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
+      {compact ? (
+        <View style={[styles.compact, { paddingTop: insets.top + 4, backgroundColor: palette.paper, borderBottomColor: palette.divider }]} pointerEvents="box-none" testID="today-bar">
+          {/* At AX sizes the title sits left, clear of the lamp: centred, the two ran together (12d QA). */}
+          <View style={[styles.compactRow, ax ? { alignItems: "flex-start", paddingLeft: gutter } : null]}>
             <Chrome step="sheetTitle" tone="ink" accessibilityRole="header">
               Today
             </Chrome>
-            <View style={[styles.compactLamp, { right: gutter, top: insets.top + 2 }]}>{lamp(false)}</View>
+            <View style={[styles.compactLamp, { right: gutter }]}>{lamp}</View>
           </View>
-        ) : null}
-      </View>
-    );
-  }
-
-  // DR-11 AX5: the picture as a figure, carrying the verse and Sit with this. It was a bare picture at the foot of the
-  // page, under Later (images audit, 18 Oct 2026). TB-01 draws the same figure, 440 pt tall, as the iPad's left column.
-  const figure = (height?: number): ReactNode =>
-    picture === undefined ? (
-      verseBlock(false)
-    ) : (
-      <View style={[styles.figure, { backgroundColor: BRAND.night }, height === undefined ? null : { height }]}>
-        <Pressable onPress={openVerse} onLongPress={aboutPicture} style={StyleSheet.absoluteFill} accessible={false} testID="today-picture">
-          <FillPicture source={picture.image} alt={picture.alt} />
-        </Pressable>
-        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { experimental_backgroundImage: FIGURE_FADE }]} />
-        {verseBlock(true)}
-      </View>
-    );
-
-  // TB-01, DU-01 open: on an iPad or an open Duo the greeting sits on paper, and the picture and the day's cards stand
-  // side by side beside the sidebar; under the top tabs (portrait) the picture leads and the cards follow. At AX sizes
-  // the iPhone's single column, the picture after the lead card, reads better than two narrow ones.
-  const columns = regular && !ax && picture !== undefined;
-
-  return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: palette.paper }}
-      contentContainerStyle={[
-        // Under the top tabs the capsule has already taken the status bar's room.
-        {
-          paddingTop: (tabs === "top" ? 0 : insets.top) + 24,
-          paddingHorizontal: gutter,
-          paddingBottom: tabClearance,
-          rowGap: columns ? 18 : 14,
-        },
-        regular
-          ? {
-              width: "100%",
-              maxWidth: WIDE.page + 2 * gutter,
-              alignSelf: "center",
-            }
-          : null,
-      ]}
-      testID="today"
-    >
-      <View style={[styles.titleRow, ax ? { flexDirection: "column", alignItems: "flex-start", rowGap: 8 } : null]}>
-        <View style={styles.titleText}>
-          <Chrome tone="ink" accessibilityRole="header" style={titleStyle(titleType)}>
-            {hello}
-          </Chrome>
-          <Chrome step="note" tone="muted" style={{ fontSize: ax ? undefined : 15 }}>
-            {date}
-          </Chrome>
         </View>
-        {lamp(false)}
-      </View>
-      {columns ? (
-        <View style={tabs === "side" ? styles.columns : styles.stacked}>
-          <View style={tabs === "side" ? styles.column : null}>{figure(440)}</View>
-          <View style={tabs === "side" ? styles.column : null}>{cardsWith(null)}</View>
-        </View>
-      ) : (
-        cardsWith(figure())
-      )}
-    </ScrollView>
+      ) : null}
+    </View>
   );
 }
 
-// The top holds longer and darker: at 42% fading out by 26%, the greeting and date fell under 3:1 on 12 of the 30
-// pictures (images audit, 18 Oct 2026).
-const FADE = "linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.48) 20%, rgba(0,0,0,0) 36%, rgba(0,0,0,0) 42%, rgba(0,0,0,0.5) 64%, rgba(0,0,0,0.84))";
-// At 86% black even a white sky leaves white text at about 5.5:1 (WCAG AA 4.5:1). The greeting and date sit in the top
-// 30% and the verse below 48% of the picture, so both stay at or above it; only the band between them shows the picture.
-const SOLID_FADE = "linear-gradient(rgba(14,14,12,0.9), rgba(14,14,12,0.86) 30%, rgba(14,14,12,0.3) 39%, rgba(14,14,12,0.86) 48%, rgba(14,14,12,0.94))";
-
-// The AX figure's words fill its lower part, so it is dark under them throughout: at least 86% (design system).
-const FIGURE_FADE = "linear-gradient(rgba(14,14,12,0.2), rgba(14,14,12,0.86) 35%, rgba(14,14,12,0.94))";
-
-const titleStyle = (t: ReturnType<typeof useType>) => ({
-  fontSize: t.size,
-  lineHeight: t.lineHeight,
-  fontWeight: "700" as const,
-  letterSpacing: -0.8,
-  fontFamily: undefined,
-});
-
-function Card({ children, onPress, label, testID }: { children: ReactNode; onPress?: () => void; label: string; testID: string }) {
-  const palette = usePalette();
-  const inner = <View style={styles.cardInner}>{children}</View>;
-  if (onPress === undefined)
-    return (
-      <View style={[styles.card, { backgroundColor: palette.card }]} accessibilityLabel={label} testID={testID}>
-        {inner}
-      </View>
-    );
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={({ pressed }) => [styles.card, { backgroundColor: palette.card, opacity: pressed ? 0.85 : 1 }]}
-      testID={testID}
-    >
-      {inner}
-    </Pressable>
-  );
-}
-
-const HERO_HEIGHT = 520;
+/** Clear at the top for the picture, dark under the verse and its actions. */
+const FADE = "linear-gradient(rgba(8,12,10,0.2), rgba(8,12,10,0.72))";
+// At 86% black even a white sky leaves white text at about 5.5:1 (WCAG AA 4.5:1), as the hero's was (EB-04).
+const SOLID_FADE = "linear-gradient(rgba(14,14,12,0.86), rgba(14,14,12,0.94))";
 
 const styles = StyleSheet.create({
-  office: {
-    borderRadius: 24,
-    padding: 20,
-    paddingBottom: 16,
-    backgroundColor: BRAND.forest,
-  },
-  officeKicker: {
-    color: BRAND.chartreuse,
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 10,
-  },
-  officeText: {
-    color: ON_PICTURE.text,
-    fontFamily: FONTS.scripture,
-    fontSize: 22,
-    lineHeight: 30,
-  },
-  officeRef: { color: ON_PICTURE.muted, fontSize: 13, marginTop: 8 },
-  officeFoot: {
-    flexDirection: "row",
-    alignItems: "center",
-    columnGap: 12,
-    marginTop: 18,
-  },
-  officeMarks: { flexDirection: "row", columnGap: 5 },
-  officeMark: {
-    width: 14,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: ON_PICTURE.mark,
-  },
-  officeLen: { flex: 1, color: ON_PICTURE.muted, fontSize: 13 },
-  officeBegin: {
-    minHeight: 44,
-    paddingHorizontal: 22,
-    borderRadius: 22,
-    backgroundColor: ON_PICTURE.text,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  officeBeginText: { color: BRAND.forest, fontSize: 16, fontWeight: "600" },
-  // Clipped: unclipped, the picture drew on past the hero and showed again at the foot of the page, under the last row
-  // (John, 18 Oct 2026: "a photo after Later this evening").
-  hero: { height: HERO_HEIGHT, justifyContent: "flex-end", overflow: "hidden" },
-  compact: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    alignItems: "center",
-    paddingBottom: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  compactLamp: { position: "absolute" },
-  heroTop: { position: "absolute" },
-  onPicture: {
-    color: ON_PICTURE.text,
-    textShadowColor: "rgba(0,0,0,0.55)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 10,
-  },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    columnGap: 12,
-  },
-  titleText: { flexShrink: 1 },
-  lamp: {
-    flexDirection: "row",
-    alignItems: "center",
-    columnGap: 6,
-    minHeight: 44,
-    paddingHorizontal: 14,
-    borderRadius: 22,
-  },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", columnGap: 12 },
+  headerEnd: { flexDirection: "row", alignItems: "center", columnGap: 8 },
+  lamp: { flexDirection: "row", alignItems: "center", columnGap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: 22 },
   lampCount: { fontSize: 17, fontWeight: "600", fontVariant: ["tabular-nums"] },
-  heroBottom: { position: "absolute", bottom: 52 },
-  sheet: {
-    marginTop: -30,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingTop: 20,
-  },
-  verseOnPicture: { rowGap: 8, minHeight: 44 },
-  verseActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    columnGap: 12,
-  },
-  verseAction: { minHeight: 44, minWidth: 44, justifyContent: "center" },
-  versePlain: { rowGap: 8, marginTop: 10 },
-  verseText: {
-    fontFamily: FONTS.scripture,
-    fontSize: 25,
-    lineHeight: 33,
-    fontWeight: "400",
-  },
-  card: { borderRadius: 24 },
-  cardInner: { paddingVertical: 18, paddingHorizontal: 20, rowGap: 4 },
-  cardHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    columnGap: 8,
-    flexWrap: "wrap",
-  },
-  cardTitle: {
-    fontFamily: FONTS.scripture,
-    fontSize: 20,
-    lineHeight: 26,
-    fontWeight: "600",
-  },
-  readingTitle: {
-    fontFamily: FONTS.scripture,
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: "600",
-    letterSpacing: -0.4,
-    marginBottom: 6,
-  },
-  primary: {
-    alignSelf: "flex-start",
-    minHeight: 44,
-    paddingHorizontal: 22,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  readRow: { flexDirection: "row", columnGap: 8, rowGap: 8 },
-  prayLine: {
-    flexDirection: "row",
-    alignItems: "center",
-    columnGap: 10,
-    marginTop: 4,
-  },
-  prayDot: { width: 6, height: 6, borderRadius: 3 },
-  listen: { flexDirection: "row", columnGap: 6 },
-  wide: { alignSelf: "stretch" },
-  figure: {
-    minHeight: 300,
-    borderRadius: 24,
-    overflow: "hidden",
-    justifyContent: "flex-end",
-    padding: 20,
-  },
-  // TB-01 `.w2`: two equal columns 28 pt apart, each starting at the top; `.wpg.port .w2`: one column.
-  columns: { flexDirection: "row", columnGap: 28, alignItems: "flex-start" },
-  column: { flex: 1, minWidth: 0 },
-  stacked: { rowGap: 10 },
+  verseCard: { borderRadius: 24, overflow: "hidden" },
+  verseInner: { paddingTop: 18, paddingHorizontal: 18, paddingBottom: 8, rowGap: 28 },
+  verseText: { color: ON_PICTURE.text, fontFamily: "Literata", fontSize: 30, lineHeight: 39, letterSpacing: -0.4 },
+  sectionHead: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", columnGap: 12 },
+  compact: { position: "absolute", top: 0, left: 0, right: 0, borderBottomWidth: StyleSheet.hairlineWidth, paddingBottom: 6 },
+  compactRow: { alignSelf: "stretch", minHeight: 44, alignItems: "center", justifyContent: "center" },
+  compactLamp: { position: "absolute", top: 0, bottom: 0, justifyContent: "center" },
 });

@@ -9,12 +9,32 @@ import UIKit
 public class YadaCirclesModule: Module {
   private let container = CKContainer(identifier: "iCloud.studio.yada.reader")
   private static let prefix = "circle-"
+  /// Ask someone (Build 12 AO-01 to AO-04): one request shared with one person, a zone of its own that never shows
+  /// among circles. Its share opens by its link (publicPermission .readWrite) because the person is reached by a
+  /// text, not by their Apple ID; only the link's holder has it, and it ends after 7 days or when answered.
+  private static let askPrefix = "ask-"
   static let maxPeople = 12
-  /// A share accepted while Yada was opening: JS reads it once it is ready.
+  /// A share accepted while Yada was opening: JS reads it once it is ready. An ask's entry is "ask-…|owner".
   static var accepted: [String] = []
+  static let acceptedNote = Notification.Name("YadaCirclesAccepted")
+  private var acceptedObserver: NSObjectProtocol?
 
   public func definition() -> ModuleDefinition {
     Name("YadaCircles")
+
+    /// A share was accepted (a circle's invitation, or an ask's link): JS takes it at once, wherever Yada is.
+    Events("onAccepted")
+
+    OnStartObserving {
+      self.acceptedObserver = NotificationCenter.default.addObserver(forName: Self.acceptedNote, object: nil, queue: .main) { [weak self] _ in
+        self?.sendEvent("onAccepted", [:])
+      }
+    }
+
+    OnStopObserving {
+      if let o = self.acceptedObserver { NotificationCenter.default.removeObserver(o) }
+      self.acceptedObserver = nil
+    }
 
     /// Your circles and the ones you joined: id (zone name), name, owned, people. The zones come from the database's
     /// changes, not allRecordZones, which took 15 s on the QA simulator against 0.2 s for each share (24 Oct 2026). The
@@ -34,6 +54,7 @@ public class YadaCirclesModule: Module {
                 "id": zoneID.zoneName, "owner": zoneID.ownerName, "owned": owned,
                 "name": (share?[CKShare.SystemFieldKey.title] as? String) ?? "Circle",
                 "people": share?.participants.filter { $0.acceptanceStatus == .accepted }.count ?? 1,
+                "picture": (share?["picture"] as? Int) ?? 0,
               ]
             }
           }
@@ -80,11 +101,13 @@ public class YadaCirclesModule: Module {
       if let failure { throw failure }
     }
 
-    AsyncFunction("create") { (name: String) async throws -> String in
+    /// `picture`: the day picture (1 to 30) the circle keeps as its cover (PC-30, PC-33), stored on its share.
+    AsyncFunction("create") { (name: String, picture: Int) async throws -> String in
       let zone = CKRecordZone(zoneName: Self.prefix + UUID().uuidString)
       _ = try await self.container.privateCloudDatabase.save(zone)
       let share = CKShare(recordZoneID: zone.zoneID)
       share[CKShare.SystemFieldKey.title] = name as CKRecordValue
+      share["picture"] = picture as CKRecordValue
       share.publicPermission = .none
       _ = try await self.container.privateCloudDatabase.save(share)
       return zone.zoneID.zoneName
@@ -146,6 +169,7 @@ public class YadaCirclesModule: Module {
             "creator": creator?.recordName == CKCurrentUserDefaultName ? me.recordName : creator?.recordName ?? "", "mine": creator == me || creator?.recordName == CKCurrentUserDefaultName,
             "expiresAt": ((r["expiresAt"] as? Date) ?? Date()).timeIntervalSince1970 * 1000,
             "prayed": prayed[r.recordID.recordName] ?? 0,
+            "createdAt": (r.creationDate ?? Date()).timeIntervalSince1970 * 1000,
           ]
         }
     }
@@ -326,11 +350,11 @@ public class YadaCirclesModule: Module {
     AsyncFunction("removeAll") { () async throws in
       let me = try await self.container.userRecordID()
       let privateDB = self.container.privateCloudDatabase
-      for zone in try await privateDB.allRecordZones() where zone.zoneID.zoneName.hasPrefix(Self.prefix) {
+      for zone in try await privateDB.allRecordZones() where zone.zoneID.zoneName.hasPrefix(Self.prefix) || zone.zoneID.zoneName.hasPrefix(Self.askPrefix) {
         _ = try await privateDB.deleteRecordZone(withID: zone.zoneID)
       }
       let shared = self.container.sharedCloudDatabase
-      for zone in try await shared.allRecordZones() where zone.zoneID.zoneName.hasPrefix(Self.prefix) {
+      for zone in try await shared.allRecordZones() where zone.zoneID.zoneName.hasPrefix(Self.prefix) || zone.zoneID.zoneName.hasPrefix(Self.askPrefix) {
         var mine: [CKRecord.ID] = []
         var cursor: CKServerChangeToken?
         repeat {
@@ -346,6 +370,80 @@ public class YadaCirclesModule: Module {
         }
         _ = try await shared.deleteRecordZone(withID: zone.zoneID)
       }
+    }
+
+    /// Ask someone: makes the request's zone and its share, and returns the link that goes in the message.
+    /// `to`: the person's name as the asker's contacts have it, kept with the request for the asker's own list.
+    AsyncFunction("askOne") { (text: String, to: String) async throws -> [String: Any] in
+      let db = self.container.privateCloudDatabase
+      let zone = CKRecordZone(zoneName: Self.askPrefix + UUID().uuidString)
+      _ = try await db.save(zone)
+      let r = CKRecord(recordType: "CircleRequest", recordID: CKRecord.ID(zoneID: zone.zoneID))
+      r.encryptedValues["text"] = text
+      r.encryptedValues["firstName"] = ""
+      r.encryptedValues["to"] = to
+      r["expiresAt"] = Date().addingTimeInterval(7 * 24 * 3600) as CKRecordValue
+      let share = CKShare(recordZoneID: zone.zoneID)
+      share[CKShare.SystemFieldKey.title] = "A prayer request" as CKRecordValue
+      share.publicPermission = .readWrite
+      // A half-made ask has no id for JS to delete, so it goes here rather than staying in iCloud (review).
+      do {
+        try await self.modify(db, saving: [r, share], deleting: [])
+        let saved = try await self.share(in: zone.zoneID, db: db)
+        guard let url = saved?.url else { throw NSError(domain: "YadaCircles", code: 1, userInfo: [NSLocalizedDescriptionKey: "No link for the request"]) }
+        return ["id": zone.zoneID.zoneName, "url": url.absoluteString]
+      } catch {
+        _ = try? await db.deleteRecordZone(withID: zone.zoneID)
+        throw error
+      }
+    }
+
+    /// Your asks of one person, newest first, each with how many times it was prayed for (Your requests, PR-51).
+    AsyncFunction("asks") { () async throws -> [[String: Any]] in
+      let db = self.container.privateCloudDatabase
+      var out: [[String: Any]] = []
+      for zoneID in try await self.zoneIDs(db) where zoneID.zoneName.hasPrefix(Self.askPrefix) {
+        var request: CKRecord?
+        var prayed = 0
+        var cursor: CKServerChangeToken?
+        repeat {
+          let changes = try await db.recordZoneChanges(inZoneWith: zoneID, since: cursor)
+          for (_, result) in changes.modificationResultsByID {
+            guard let r = try? result.get().record else { continue }
+            if r.recordType == "CircleRequest" { request = r }
+            if r.recordType == "Prayed" { prayed += 1 }
+          }
+          cursor = changes.moreComing ? changes.changeToken : nil
+        } while cursor != nil
+        guard let r = request else { continue }
+        out.append([
+          "id": zoneID.zoneName, "text": r.encryptedValues["text"] as? String ?? "", "to": r.encryptedValues["to"] as? String ?? "",
+          "createdAt": (r.creationDate ?? Date()).timeIntervalSince1970 * 1000,
+          "expiresAt": ((r["expiresAt"] as? Date) ?? Date()).timeIntervalSince1970 * 1000,
+          "answeredAt": ((r["answeredAt"] as? Date)?.timeIntervalSince1970 ?? 0) * 1000,
+          "prayed": prayed,
+        ])
+      }
+      return out.sorted { ($0["createdAt"] as? Double ?? 0) > ($1["createdAt"] as? Double ?? 0) }
+    }
+
+    /// Mark your ask answered: it ends for the person asked too.
+    AsyncFunction("answerAsk") { (id: String) async throws in
+      let (db, zoneID) = self.place(id, "")
+      var request: CKRecord?
+      // Every page, as asks() reads them: the request may come after many Prayed records (review).
+      var cursor: CKServerChangeToken?
+      repeat {
+        let changes = try await db.recordZoneChanges(inZoneWith: zoneID, since: cursor)
+        for (_, result) in changes.modificationResultsByID {
+          if let r = try? result.get().record, r.recordType == "CircleRequest" { request = r }
+        }
+        cursor = changes.moreComing ? changes.changeToken : nil
+      } while cursor != nil
+      guard let r = request else { throw NSError(domain: "YadaCircles", code: 2, userInfo: [NSLocalizedDescriptionKey: "No request in this ask"]) }
+      r["answeredAt"] = Date() as CKRecordValue
+      r["expiresAt"] = Date() as CKRecordValue
+      try await self.modify(db, saving: [r], deleting: [], policy: .allKeys)
     }
 
     AsyncFunction("takeAccepted") { () -> [String] in
@@ -402,8 +500,18 @@ public class YadaCirclesAppDelegate: ExpoAppDelegateSubscriber {
     guard let delegate = application.delegate else { return true }
     let selector = #selector(UIApplicationDelegate.application(_:userDidAcceptCloudKitShareWith:))
     let block: @convention(block) (AnyObject, UIApplication, CKShare.Metadata) -> Void = { _, _, metadata in
-      CKContainer(identifier: metadata.containerIdentifier).add(CKAcceptSharesOperation(shareMetadatas: [metadata]))
-      YadaCirclesModule.accepted.append(metadata.share.recordID.zoneID.zoneName)
+      let zone = metadata.share.recordID.zoneID
+      let op = CKAcceptSharesOperation(shareMetadatas: [metadata])
+      // Told to JS once accepted, so the screen it opens can already read the zone (an ask opens straight onto it).
+      // Only an acceptance that worked opens a screen: a failed one opened "This request has ended" (review).
+      op.acceptSharesResultBlock = { result in
+        guard case .success = result else { return }
+        DispatchQueue.main.async {
+          YadaCirclesModule.accepted.append(zone.zoneName.hasPrefix("ask-") ? "\(zone.zoneName)|\(zone.ownerName)" : zone.zoneName)
+          NotificationCenter.default.post(name: YadaCirclesModule.acceptedNote, object: nil)
+        }
+      }
+      CKContainer(identifier: metadata.containerIdentifier).add(op)
     }
     class_addMethod(type(of: delegate), selector, imp_implementationWithBlock(block), "v@:@@")
     return true

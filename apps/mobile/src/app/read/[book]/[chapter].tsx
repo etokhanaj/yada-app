@@ -1,10 +1,11 @@
 /**
  * The reading surface. One chapter, one column, chrome that steps back.
  *
- * Header: `‹ Home` (or the return chip) · the chapter title, opening Contents ·
- * `Aa`, floating glass over the text (ReaderHeader). Tapping verses selects
- * them; the action bar docks to the bottom and the selection scrolls to stay
- * above it. Chapter links are capsules at the foot.
+ * Header: `‹ Bible` (or the return chip) · `John 2 | WEB`, the chapters and the
+ * translations · `Aa`, floating over the text, with a hairline of progress
+ * (ReaderHeader, RD-30). Tapping verses selects them; the verse sheet docks to
+ * the bottom (RD-31) and the selection scrolls to stay above it. Chapter links
+ * are capsules at the foot.
  *
  * A passage's title stands above its first verse and opens its guide (PG-01);
  * with nothing selected the bar offers the passage on screen (IA-04).
@@ -29,6 +30,7 @@ import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "exp
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
+  Animated,
   FlatList,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -40,7 +42,7 @@ import {
   type ViewToken,
 } from "react-native";
 
-import { ActionBar, RestBar } from "../../../components/ActionBar";
+import { RestBar, VerseSheet } from "../../../components/ActionBar";
 import { ChapterClose } from "../../../components/ChapterClose";
 import { BookWelcome, ChapterPeek, EndOfBook } from "../../../components/ChapterPages";
 import type { BookIntro } from "../../../lib/bookIntro";
@@ -81,6 +83,7 @@ import {
   loadSettings,
   markBookBegun,
   markChapterRead,
+  markDone,
   markPassageRead,
   savePosition,
   setHighlight,
@@ -90,7 +93,7 @@ import {
 import type { HighlightColor } from "../../../lib/highlights";
 import { shouldAsk } from "../../../data/reminder";
 import { bookThread, readThread, stepAfter } from "../../../lib/startHere";
-import { audioTranslation, endSession, listen, next as nextVerse, previous as previousVerse, toggle as togglePlay } from "../../../data/audio";
+import { audioTranslation, canListen as listenable, endSession, listen, next as nextVerse, previous as previousVerse, toggle as togglePlay } from "../../../data/audio";
 import { currentVerse, useAudio } from "../../../state/audio";
 import { progressSegments } from "../../../lib/audio/session";
 import { spokenText } from "../../../lib/supplied";
@@ -99,6 +102,7 @@ import { chapterKey } from "../../../lib/chaptersRead";
 import { chapterFromParams, nextChapter, prevChapter, type ChapterRef } from "../../../lib/chapters";
 import { label as psalmsLabel, nextInSet, parsePsalter, setForChoice } from "../../../lib/dailyPsalms";
 import { useReduceMotion } from "../../../lib/motion";
+import { sittable } from "../../../lib/sit";
 import { barTopIn, chapterTitle, HEADER_START, headerOnScroll, scrollToClearBar, sheetTopIn, shortRef } from "../../../lib/reader";
 import { EMPTY_SELECTION, formatSpan, selectionSpan, spanRef, tapVerse } from "../../../lib/selection";
 import { dayOf, partOf } from "../../../lib/today";
@@ -247,6 +251,9 @@ export default function ReaderScreen() {
       const thread = bookThread(book);
       // NP-01: the first passage read is when a daily reminder means something; Yada asks then, once.
       void countDay(user).catch(() => undefined);
+      // TD-30: a plan's passage read to its end ticks Your plan on Today, by the chapter it starts in.
+      const at = ordToParts(done.start_ord);
+      void markDone(user, `read:${chapterKey(at.book, at.chapter)}`).catch(() => undefined);
       void markPassageRead(user, thread, readThread(done.pericope_id, thread), stepAfter(index - 1))
         .then(() => shouldAsk(user, "passage-end"))
         .then((ask) => {
@@ -307,6 +314,8 @@ export default function ReaderScreen() {
       if (dayCounted.current === key) return;
       dayCounted.current = key;
       void countDay(user).catch(() => undefined);
+      // TD-30: today's psalm or plan chapter, read to its end, ticks its card on Today.
+      void markDone(user, `read:${key}`).catch(() => undefined);
       // RT-03, RT-04: the same moment counts the chapter, once, in any translation (build 10a).
       if (readKeys.has(key)) return;
       // Read back rather than added locally: the first load of the set can land after this write and undo a local add.
@@ -383,9 +392,11 @@ export default function ReaderScreen() {
   const intro = useBookIntro(book);
   const insets = useSafeAreaInsets();
   const [header, setHeader] = useState(HEADER_START);
+  // RD-30: how far through the chapter, set as the list scrolls and drawn by the header without a re-render.
+  const chapterProgress = useRef(new Animated.Value(0)).current;
+  useEffect(() => chapterProgress.setValue(0), [book, chapter, chapterProgress]);
   // The ord of the first verse below the header, once the list has settled.
   const [topVerse, setTopVerse] = useState<number | null>(null);
-  const voice = useAudio((s) => s.voice);
   const session = useAudio((s) => s.session);
   const playingHere =
     session !== null && session.book === book && session.chapter === chapter && session.translation === translation && session.status !== "finished";
@@ -393,10 +404,9 @@ export default function ReaderScreen() {
   const focused = useRef(true);
   const draggedAt = useRef(0);
   // MM-09: a drag while the voice reads lets go of the text; following resumes only when the narration
-  // reaches what is on screen, with one light tick and "Following again" in the mini player.
+  // reaches what is on screen, with one light tick (and "Following again" to VoiceOver).
   const detached = useRef(false);
   const visibleVerses = useRef(new Set<number>());
-  const [followingAgain, setFollowingAgain] = useState(false);
 
   const listRef = useRef<FlatList<VerseText[]>>(null);
   // Paragraph rows by their first verse, and each verse's place inside its paragraph (RU-6).
@@ -696,7 +706,6 @@ export default function ReaderScreen() {
       if (!visibleVerses.current.has(playingVerse)) return;
       detached.current = false;
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setFollowingAgain(true);
       if (screenReader) AccessibilityInfo.announceForAccessibility("Following again");
       return;
     }
@@ -704,11 +713,6 @@ export default function ReaderScreen() {
     if (verses.some((v) => v.verse === playingVerse)) land(playingVerse, true, !reduceMotion);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playingHere, playingVerse]);
-  useEffect(() => {
-    if (!followingAgain) return;
-    const timer = setTimeout(() => setFollowingAgain(false), 2000);
-    return () => clearTimeout(timer);
-  }, [followingAgain]);
 
   // The voice went on into the next chapter: the reader that was showing the last one follows it.
   const lastSessionChapter = useRef<{ book: BookCode; chapter: number } | null>(null);
@@ -728,7 +732,8 @@ export default function ReaderScreen() {
     router.setParams({ book: next.book, chapter: String(next.chapter), verse: undefined, select: undefined, resume: undefined });
   }, []);
 
-  const label = span === null ? "" : formatSpan(BOOK_CODES[book].name, chapter, span);
+  // A single psalm is a Psalm (SO-01): RD-31 read "Psalms 119:103" (12g QA).
+  const label = span === null ? "" : formatSpan(book === "PSA" ? "Psalm" : BOOK_CODES[book].name, chapter, span);
   const sheetRef = span === null ? "" : spanRef(book, chapter, span);
   const verseLabel = span === null ? "" : span.start === span.end ? `${chapter}:${span.start}` : `${chapter}:${span.start}–${span.end}`;
   const ids = span === null ? [] : Array.from({ length: span.end - span.start + 1 }, (_, i) => formatVerseId(book, chapter, span.start + i));
@@ -739,7 +744,11 @@ export default function ReaderScreen() {
     span !== null && firstColor !== undefined && ids.every((_, i) => marks.highlights.get(span.start + i) === firstColor) ? firstColor : null;
   const imageable = !isLicensedCode(translation);
 
-  const openNote = (verse: number) => router.push({ pathname: "/note", params: { book, chapter: String(chapter), verse: String(verse) } });
+  // NT-30: the note sheet opens at medium, so the verse is scrolled into the space above it first.
+  const openNote = (verse: number) => {
+    clearForSheet();
+    router.push({ pathname: "/note", params: { book, chapter: String(chapter), verse: String(verse) } });
+  };
   // RU-8: the Readers differ mark opens that verse's Understand, landed on its Readers differ.
   const openDiffers = (verse: number) =>
     router.push({ pathname: "/understand", params: { ref: spanRef(book, chapter, { start: verse, end: verse }), section: "differ", reader: readerId } });
@@ -765,6 +774,15 @@ export default function ReaderScreen() {
       .join(" ");
   };
 
+  /** Sit reads the words, so no verse numbers among them. */
+  const sitText = (): string =>
+    span === null || verses === undefined
+      ? ""
+      : verses
+          .filter((v) => v.verse >= span.start && v.verse <= span.end)
+          .map((v) => v.text)
+          .join(" ");
+
   /**
    * Amendment 1: at the medium detent the verse stays visible above Understand.
    * Before the sheet rises, scroll the selection into the space it leaves (the
@@ -782,7 +800,7 @@ export default function ReaderScreen() {
   };
 
   async function act(action: string): Promise<void> {
-    // Menu items and VoiceOver actions both arrive by lowercase id.
+    // The verse sheet's tiles, Share's menu and VoiceOver actions all arrive by lowercase id.
     // LT-04, LT-05: a licensed version's words travel with the rights holder's notice, verbatim (§7).
     const notice = licensed?.status === "ok" ? `\n${licensed.copyright}` : "";
     // "John 1:1, NKJV" (LT-04); The Message by its name, which its notice uses (LT-05).
@@ -797,6 +815,13 @@ export default function ReaderScreen() {
     } else if (action === "share as an image") {
       if (span === null) return;
       router.push({ pathname: "/share-image", params: { verse: formatVerseId(book, chapter, span.start), through: String(span.end), translation } });
+    } else if (action === "sit with this") {
+      // Never a licensed version's words: Sit reads them aloud (rule 9). The menu already hides it; this holds anyway.
+      if (span === null || !imageable) return;
+      router.push({
+        pathname: "/sit",
+        params: { text: sitText(), ref: `${label} · ${translation}`, bsb: "", place: `${book}.${chapter}.${span.start}` },
+      });
     } else if (action === "note") {
       if (span !== null) openNote(span.start);
     } else if (action === "original") {
@@ -826,9 +851,19 @@ export default function ReaderScreen() {
     setHintFollowed(true);
   };
 
+  // RD-30's hairline: a chapter that fits on one screen is all in view, so it reads as through. Recomputed when the
+  // content's size settles too: restoring the place scrolled before the chapter was laid out and read as all read (12g QA).
+  const sizes = useRef({ content: 0, view: 0 });
+  const showProgress = () => {
+    const room = sizes.current.content - sizes.current.view;
+    chapterProgress.setValue(room > 0 ? Math.min(1, Math.max(0, offset.current / room)) : 1);
+  };
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y = e.nativeEvent.contentOffset.y;
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    const y = contentOffset.y;
     offset.current = y;
+    sizes.current = { content: contentSize.height, view: layoutMeasurement.height };
+    showProgress();
     setNearTop(y < 160);
     // VoiceOver on: the header never steps back, so its title stays one swipe away.
     setHeader((h) => headerOnScroll(h, y, dragging.current && !screenReader));
@@ -868,7 +903,7 @@ export default function ReaderScreen() {
         };
   const playingLine = session === null ? "" : `${playingVerse ?? 1}  ${spokenText(currentVerse(session)?.text ?? "", session.translation)}`;
   // EG-03: on a licensed page Listen reads the BSB (John, 12 Oct 2026); the licensed text is never spoken.
-  const canListen = voice !== null && audioTranslation(translation) !== null && verses !== undefined && verses.length > 0;
+  const canListen = listenable(translation) && verses !== undefined && verses.length > 0;
 
   const readerHeader = (
       <ReaderHeader
@@ -876,8 +911,11 @@ export default function ReaderScreen() {
         translation={translation}
         back={fromRef !== null ? { label: shortRef(fromRef), accessibility: formatDisplayRef(fromRef) } : params.back !== undefined ? { label: params.back, accessibility: params.back } : null}
         collapsed={header.collapsed}
+        progress={chapterProgress}
         onBack={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-        onContents={() => router.push({ pathname: "/contents", params: { book, chapter: String(chapter) } })}
+        // CH-30: the chapter half opens the book's chapters; "John ›" there goes on to every book.
+        onChapters={() => router.push({ pathname: "/contents/[book]", params: { book, chapter: String(chapter) } })}
+        onTranslations={() => router.push("/translations")}
         onType={() => router.push("/type-settings")}
         onExpand={() => setHeader((h) => ({ ...h, collapsed: false }))}
         onHeight={setHeaderHeight}
@@ -926,6 +964,10 @@ export default function ReaderScreen() {
           // then measured (refreshVisible).
           viewabilityConfig={{ itemVisiblePercentThreshold: 1 }}
           onScroll={onScroll}
+          onContentSizeChange={(_, height) => {
+            sizes.current.content = height;
+            if (sizes.current.view > 0) showProgress();
+          }}
           onScrollBeginDrag={() => {
             readerScrolled.current = true;
             dragging.current = true;
@@ -1084,6 +1126,7 @@ export default function ReaderScreen() {
                   book={book}
                   chapter={chapter}
                   readKeys={readKeys}
+                  onUnderstand={openGuide}
                   onNext={(to) => goTo(to)}
                   onEnd={() => setAtEnd(true)}
                 />
@@ -1134,7 +1177,7 @@ export default function ReaderScreen() {
       ) : null}
 
       {atEnd ? null : span !== null ? (
-        <ActionBar
+        <VerseSheet
           nowPlaying={
             session !== null && session.status !== "finished" ? (
               <NowPlayingStrip
@@ -1147,6 +1190,7 @@ export default function ReaderScreen() {
               />
             ) : null
           }
+          reference={label}
           verseLabel={verseLabel}
           hasEntry={hasEntry}
           bookmarked={allMarked}
@@ -1154,13 +1198,12 @@ export default function ReaderScreen() {
           language={originalLanguage(scriptOf(book), selectionLetters ?? [])}
           onUnderstand={() => open()}
           onOriginal={() => open("original")}
-          onCompare={() => void act("compare")}
-          onMenu={(action) => void act(action)}
+          onAction={(action) => void act(action)}
+          onClose={() => setSelection(EMPTY_SELECTION)}
           highlight={selectionColor}
           imageable={imageable}
+          sittable={imageable && sittable(sitText())}
           onHighlight={(color) => void highlightSelection(color)}
-          onNote={() => void act("note")}
-          onCopy={() => void act("copy")}
           onHeight={setBarHeight}
           playFrom={
             // IA-05 draws `▶ 1:1` on a selected verse before anything plays, not only while a
@@ -1183,14 +1226,10 @@ export default function ReaderScreen() {
             session.status === "finished"
               ? `End of ${BOOK_CODES[session.book].name}`
               : session.book === book && session.chapter === chapter
-                ? followingAgain
-                  ? "Following again"
-                  : // The playing verse's own words after its number, as a mini player shows what is playing
-                    // (John, 15 Oct 2026); one line, cut at its end.
-                    playingLine
+                ? // RD-32: the mini player names the verse; its words are on the page above it.
+                  `Verse ${playingVerse ?? 1}`
                 : `${chapterTitle(session.book, session.chapter)} · Verse ${playingVerse ?? 1}`
           }
-          progress={audioProgress}
           nextDisabled={session.status === "finished"}
           buffering={session.buffering === true}
           under={

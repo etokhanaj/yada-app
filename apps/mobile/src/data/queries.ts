@@ -9,6 +9,7 @@
 
 import {
   BOOK_CODES,
+  BOOK_ORDER,
   type BookCode,
   decodeMorphemes,
   type BundleMorpheme,
@@ -17,6 +18,7 @@ import {
 } from "@yada/schema";
 
 import { originalLanguage, type OriginalLanguage } from "../lib/originalLanguage";
+import { allowedEdits, nearestWord } from "../lib/search";
 import { excerptAroundHit, glossMatches, glossStem, escapeLike, SNIPPET_CLOSE, SNIPPET_OPEN } from "../lib/searchQuery";
 
 type Bind = string | number | null;
@@ -411,8 +413,16 @@ export interface PassageHit {
  * bm25 rank: a reader scanning results expects Genesis before Revelation, the
  * way a concordance lists them.
  */
-export async function searchPassages(db: Db, match: string, translation: TranslationCode, limit = 100): Promise<PassageHit[]> {
+export async function searchPassages(
+  db: Db,
+  match: string,
+  translation: TranslationCode,
+  limit = 100,
+  within: readonly [number, number] | null = null,
+): Promise<PassageHit[]> {
   const t = textsOf(translation, "t");
+  // SE-31: a book's chip lists that book's verses alone, so a book past the first hundred is still reached.
+  const range = within === null ? "" : " AND t.ord BETWEEN ? AND ?";
   // An FTS5 table is matched through its hidden column, named after the table:
   // `f.texts_fts` works for core and an attached schema alike. A downloaded
   // file's index keys on `ord` (its rowid), so `t.rowid = f.rowid` holds there too.
@@ -425,10 +435,10 @@ export async function searchPassages(db: Db, match: string, translation: Transla
             highlight(f.texts_fts, 0, '${SNIPPET_OPEN}', '${SNIPPET_CLOSE}') AS marked
        FROM ${t.schema}texts_fts f
        JOIN ${t.schema}texts t ON t.rowid = f.rowid
-      WHERE f.texts_fts MATCH ? AND ${t.filter}
+      WHERE f.texts_fts MATCH ? AND ${t.filter}${range}
       ORDER BY t.ord
       LIMIT ?`,
-    [match, ...t.params, limit],
+    [match, ...t.params, ...(within ?? []), limit],
   );
   return rows.map((r) => ({ ord: r.ord, snippet: excerptAroundHit(r.marked) }));
 }
@@ -441,6 +451,41 @@ export async function countPassages(db: Db, match: string, translation: Translat
     [match, ...t.params],
   );
   return row?.n ?? 0;
+}
+
+/**
+ * SE-31: the books the matching verses fall in, in Bible order, each with its true count, from the same match as
+ * searchPassages and countPassages, so the chips add up to the total above them.
+ */
+export async function countPassagesByBook(db: Db, match: string, translation: TranslationCode): Promise<Array<{ book: BookCode; count: number }>> {
+  const t = textsOf(translation, "t");
+  const rows = await db.getAllAsync<{ b: number; n: number }>(
+    `SELECT t.ord / 1000000 AS b, count(*) AS n FROM ${t.schema}texts_fts f JOIN ${t.schema}texts t ON t.rowid = f.rowid
+      WHERE f.texts_fts MATCH ? AND ${t.filter}
+      GROUP BY b ORDER BY b`,
+    [match, ...t.params],
+  );
+  return rows.flatMap((r) => {
+    const book = BOOK_ORDER[r.b - 1];
+    return book === undefined ? [] : [{ book, count: r.n }];
+  });
+}
+
+/**
+ * SE-32: the word in core's full-text index nearest `word` (lib/search.ts nearestWord), so "Did you mean" only ever
+ * offers a word the Bible's text holds. fts5vocab reads the index's own terms; the table lives in `temp`, so a
+ * read-only core is never written. Only words of a near length are read: an edit changes the length by one at most.
+ */
+export async function nearestTerm(db: Db, word: string): Promise<string | null> {
+  const typed = word.trim().toLowerCase();
+  if (typed.length < 3) return null;
+  await db.getAllAsync("CREATE VIRTUAL TABLE IF NOT EXISTS temp.texts_vocab USING fts5vocab(main, texts_fts, row)", []);
+  const spread = allowedEdits(typed);
+  const rows = await db.getAllAsync<{ term: string; cnt: number }>(
+    "SELECT term, cnt FROM temp.texts_vocab WHERE length(term) BETWEEN ? AND ?",
+    [typed.length - spread, typed.length + spread],
+  );
+  return nearestWord(word, rows.map((r) => ({ term: r.term, count: r.cnt })));
 }
 
 /**

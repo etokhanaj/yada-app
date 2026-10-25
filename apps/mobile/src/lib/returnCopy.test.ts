@@ -9,7 +9,7 @@ const SCREENS = [
   "app/return.tsx",
   "app/start-small.tsx",
   "app/remind-ask.tsx",
-  "app/rhythm.tsx",
+  "app/you.tsx",
   "components/ChapterClose.tsx",
   "components/ChapterPages.tsx",
   "lib/lapse.ts",

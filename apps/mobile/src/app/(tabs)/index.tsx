@@ -16,22 +16,28 @@
  * John. Then `N of 46 passages read`, no streak, no dates, and `All passages
  * in John`. Books carry no chapter counts (audit); Contents shows them.
  *
- * VoiceOver order follows the eye (ON-06): Search, Bookmarks, More, the
- * wordmark, the lead, the books.
+ * Build 12 BI-30: the lead is one card, its kind ("Continue") over the
+ * chapter in Literata, the passage, Read, and how far through the book
+ * ("Chapter 2 of 21"); the testament switch; the books two to a row with
+ * their chapter counts, the one you're reading marked. Saved's bookmark and
+ * the ⋯ menu (Recent, Settings) moved to You (YO-30). RU-10's chapter grid
+ * still opens in place, under the row holding the book.
+ *
+ * VoiceOver order follows the eye (ON-06): Search, the title, the lead, the
+ * books.
  */
 
 import { BOOK_CODES, BOOK_ORDER, type BookCode, ordToParts, parseVerseId, verseOrd } from "@yada/schema";
-import { MenuView } from "@react-native-menu/menu";
 import { router, useFocusEffect } from "expo-router";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import { Image, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { NumberGrid } from "../../components/Contents";
-import { GlassButton } from "../../components/Glass";
 import { useLaunch } from "../../components/LaunchOverlay";
-import { Icon } from "../../components/Icon";
 import { readerHref } from "../../components/navigation";
 import { GlassIcon, ListRow, PageScreen } from "../../components/Page";
+import { Pill } from "../../components/Pill";
+import { Segmented } from "../../components/Segmented";
 import { Chrome } from "../../components/Type";
 import { useAppData, useCore } from "../../data/AppData";
 import { getTexts } from "../../data/queries";
@@ -40,7 +46,7 @@ import { loadProgress } from "../../data/startHere";
 import { loadPericopes } from "../../data/understand";
 import { decideReturn, stampOpen } from "../../data/lapse";
 import { loadPositionAt } from "../../data/user";
-import { FONTS, useIsDark, useLayout, usePalette } from "../../design/tokens";
+import { FONTS, useLayout, usePalette } from "../../design/tokens";
 import { pericopeForVerse, type PericopeRow } from "../../lib/pericopes";
 import { chapterTitle, excerptOf } from "../../lib/reader";
 import { rangeInBook, verseLabel } from "../../lib/saved";
@@ -65,7 +71,7 @@ const spokenRange = (range: string) => range.replace("–", " to ");
 
 export default function Home() {
   const core = useCore();
-  const palette = usePalette();
+  const { ax } = useLayout();
   const { user } = useAppData();
   const translation = useSettings((s) => s.translation);
   const launched = useSettings((s) => s.launched);
@@ -76,6 +82,7 @@ export default function Home() {
   // NP-03: after a Not now, asked once more on a return three or more days later, as one line; then never.
   const [askAgain, setAskAgain] = useState(false);
   const [openBook, setOpenBook] = useState<BookCode | null>(null);
+  const [chosenTestament, setTestament] = useState<"ot" | "nt" | null>(null);
   const chooseVerse = useSettings((st) => st.chooseVerse);
   useFocusEffect(
     useCallback(() => {
@@ -180,6 +187,8 @@ export default function Home() {
 
   const ot = BOOK_ORDER.filter((b) => BOOK_CODES[b].testament === "OT");
   const nt = BOOK_ORDER.filter((b) => BOOK_CODES[b].testament === "NT");
+  const testament = chosenTestament ?? (state?.place != null && BOOK_CODES[state.place.book].testament === "NT" ? "nt" : "ot");
+  const shown = testament === "ot" ? { title: "Old Testament", books: ot } : { title: "New Testament", books: nt };
 
   /**
    * Opens a passage's text with its guide over it (ON-02). Landed as a resumed place, so its
@@ -190,31 +199,8 @@ export default function Home() {
     router.push(readerHref({ book: start.book, chapter: start.chapter, verse: start.verse, resume: true, guide: p.pericope_id }));
   };
 
-  const right = (
-    <>
-      <GlassIcon icon="bookmark" label="Saved" onPress={() => router.push("/saved")} testID="home-saved" />
-      <MenuView
-        shouldOpenOnLongPress={false}
-        actions={[
-          // An action without imageColor reaches native as colour 0, transparent: @react-native-menu
-          // 2.0's Fabric view always sends the field, so the icons were drawn invisible (10 Oct 2026).
-          // IA-11: Recent · Settings; Sources and the reminder live in Settings now. Reading plans left the menu for a
-          // row under Continue (RU-14, approved by John 23 Oct 2026): in the menu a new reader never found them.
-          { id: "recent", title: "Recent", image: "clock", imageColor: palette.ink },
-          { id: "settings", title: "Settings", image: "gearshape", imageColor: palette.ink },
-        ]}
-        onPressAction={({ nativeEvent }) => router.push(nativeEvent.event === "recent" ? "/recent" : "/settings")}
-        testID="home-more"
-      >
-        {/* The menu is a UIButton; a child that took the touch would keep it from opening. */}
-        <View pointerEvents="none" accessible accessibilityRole="button" accessibilityLabel="More: Recent, Settings">
-          <GlassButton>
-            <Icon name="more" size={20} />
-          </GlassButton>
-        </View>
-      </MenuView>
-    </>
-  );
+  // BI-30 keeps one control in the bar: Search, as the frame draws it.
+  const right = <GlassIcon icon="search" label="Search" onPress={() => router.push("/search")} testID="home-search" />;
 
   /**
    * BH-01: one way to start. A serif heading over one card (the next passage where you are); the plan lives on Today
@@ -232,6 +218,8 @@ export default function Home() {
           heading="Start here"
           title="The Gospel of John"
           subtitle="One passage at a time, explained."
+          action="Start"
+          at={ordToParts(first.start_ord)}
           label="Start here. The Gospel of John, one passage at a time, explained. Opens the first passage"
           onPress={() => openGuided(first)}
           testID="home-start-here"
@@ -247,6 +235,7 @@ export default function Home() {
           heading="Continue"
           title={`John ${range}`}
           subtitle={p.label}
+          at={ordToParts(p.start_ord)}
           label={`Continue, next, ${p.label}, John ${spokenRange(range)}. Opens its guide`}
           onPress={() => openGuided(p)}
           testID="home-next"
@@ -264,6 +253,7 @@ export default function Home() {
           // BH-01 names the chapter ("Psalm 79"); the reader lands on the verse and holds it after a gap (MM-05).
           title={`${chapterTitle(place.book, place.chapter)}${state.placePassage === null && state.excerptBsb ? " · BSB" : ""}`}
           subtitle={state.placePassage ?? state.excerpt}
+          at={place}
           // One element to VoiceOver: "Continue reading, The first disciples, John 1:39. “Come and see,”…" (brief §5).
           label={`${state.away ? "Where you stopped" : "Continue reading"}, ${state.placePassage === null ? "" : `${state.placePassage}, `}${place.label}. ${state.excerpt}`}
           onPress={() =>
@@ -284,7 +274,9 @@ export default function Home() {
   };
 
   return (
-    <PageScreen title="Yada" titleNode={<Wordmark />} back={null} right={right} clearTabBar testID="home">
+    // Titled Bible, as Today and Pray name their own tabs: the wordmark here was the one tab that didn't say where you
+    // were (Sit audit, 24 Oct 2026).
+    <PageScreen title="Bible" back={null} right={right} clearTabBar testID="home">
       {/* No padding under the lead: the books' label sits 28 pt below its hairline, as ON-01/05/07
           space it (canvas `.lbl` margin-top); 12 more opened a gap the frames don't have (QA). */}
       {paused ? (
@@ -338,70 +330,108 @@ export default function Home() {
       {/* RU-14: plans one tap from the Bible tab, under Continue (canvas RU-14). */}
       <ListRow first title="Reading plans" subtitle="John passage by passage · The whole Bible" onPress={() => router.push("/plans")} testID="home-plans" />
 
-      {[
-        { title: "Old Testament", books: ot },
-        { title: "New Testament", books: nt },
-      ].map((group) => (
-        <View key={group.title} style={{ marginTop: 26 }}>
-          <Heading style={{ marginBottom: 6 }}>{group.title}</Heading>
-          {group.books.map((book, i) => {
-            const meta = BOOK_CODES[book];
-            const open = openBook === book;
-            return (
-              <View key={book}>
-                <ListRow
-                  first={i === 0}
-                  book
-                  chevron={false}
-                  title={meta.name}
-                  label={`${meta.name}, ${meta.chapters} ${meta.chapters === 1 ? "chapter" : "chapters"}${open ? ", chapters shown" : ""}`}
-                  onPress={() => (meta.chapters === 1 ? router.push(readerHref({ book, chapter: 1 })) : setOpenBook(open ? null : book))}
-                  testID={`book-${book}`}
-                />
-                {/* RU-10 (approved by John, 23 Oct 2026): a book opens its chapters in place, so the Bible tab is one
-                    tap from any chapter; the contents sheet stays for the reader's title. */}
-                {open ? (
-                  <View style={{ paddingBottom: 14 }}>
-                    <NumberGrid
-                      numbers={Array.from({ length: meta.chapters }, (_, n) => n + 1)}
-                      current={state?.place?.book === book ? state.place.chapter : null}
-                      onPick={(chapter) =>
-                        chooseVerse
-                          ? router.push({ pathname: "/contents/verses", params: { book, chapter: String(chapter), from: "home" } })
-                          : router.push(readerHref({ book, chapter }))
-                      }
-                      label={(chapter) => `${meta.name} ${chapter}`}
-                      testID={(chapter) => `chapter-${book}-${chapter}`}
-                    />
-                  </View>
-                ) : null}
+      {/* One testament at a time behind a switch, opening on the one you're reading: Matthew was 39 rows down (Sit audit,
+          24 Oct 2026). YouVersion's Plans switches its lists the same way. */}
+      <View style={{ marginTop: 26 }}>
+        <Segmented
+          options={[
+            { value: "ot", label: "Old Testament" },
+            { value: "nt", label: "New Testament" },
+          ]}
+          value={testament}
+          onChange={setTestament}
+          label="Testament"
+          testID="home-testament"
+        />
+      </View>
+      {/* BI-30: two to a row (one at AX sizes); a book's chapters open under the row that holds it. */}
+      <View style={styles.books} accessibilityLabel={shown.title}>
+        {chunk(shown.books, ax ? 1 : 2).map((pair) => {
+          const opened = pair.find((b) => b === openBook);
+          const meta = opened === undefined ? null : BOOK_CODES[opened];
+          return (
+            <View key={pair.join()} style={styles.bookRows}>
+              <View style={styles.bookRow}>
+                {pair.map((book) => (
+                  <BookTile
+                    key={book}
+                    book={book}
+                    reading={state?.place?.book === book}
+                    open={openBook === book}
+                    onPress={() => (BOOK_CODES[book].chapters === 1 ? router.push(readerHref({ book, chapter: 1 })) : setOpenBook(openBook === book ? null : book))}
+                  />
+                ))}
+                {pair.length === 1 && !ax ? <View style={{ flex: 1 }} /> : null}
               </View>
-            );
-          })}
-        </View>
-      ))}
+              {/* RU-10 (approved by John, 23 Oct 2026): a book opens its chapters in place, so the Bible tab is one
+                  tap from any chapter; the contents sheet stays for the reader's title. */}
+              {opened === undefined || meta === null ? null : (
+                <View style={{ paddingVertical: 6 }}>
+                  <NumberGrid
+                    numbers={Array.from({ length: meta.chapters }, (_, n) => n + 1)}
+                    current={state?.place?.book === opened ? state.place.chapter : null}
+                    onPick={(chapter) =>
+                      chooseVerse
+                        ? router.push({ pathname: "/contents/verses", params: { book: opened, chapter: String(chapter), from: "home" } })
+                        : router.push(readerHref({ book: opened, chapter }))
+                    }
+                    label={(chapter) => `${meta.name} ${chapter}`}
+                    testID={(chapter) => `chapter-${opened}-${chapter}`}
+                  />
+                </View>
+              )}
+            </View>
+          );
+        })}
+      </View>
     </PageScreen>
   );
 }
 
-/** A serif section heading (BH-01): "Continue", "Old Testament". */
-function Heading({ children, style }: { children: string; style?: object }) {
+function chunk<T>(items: readonly T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+const chaptersLine = (n: number) => `${n} ${n === 1 ? "chapter" : "chapters"}`;
+
+/** BI-30's book: the name in Literata, its chapter count from the canon (BOOK_CODES), "Reading ·" on yours. */
+function BookTile({ book, reading, open, onPress }: { book: BookCode; reading: boolean; open: boolean; onPress: () => void }) {
+  const palette = usePalette();
+  const { ax } = useLayout();
+  const meta = BOOK_CODES[book];
   return (
-    <Chrome tone="ink" accessibilityRole="header" maxFontSizeMultiplier={2} style={[styles.heading, style]}>
-      {children}
-    </Chrome>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${meta.name}, ${chaptersLine(meta.chapters)}${reading ? ", reading" : ""}`}
+      accessibilityState={meta.chapters === 1 ? undefined : { expanded: open }}
+      style={({ pressed }) => [styles.book, ax ? styles.bookAx : null, { backgroundColor: open ? palette.fill : palette.card, opacity: pressed ? 0.85 : 1 }]}
+      testID={`book-${book}`}
+    >
+      <Chrome tone="ink" style={styles.bookName} maxFontSizeMultiplier={2} numberOfLines={2}>
+        {meta.name}
+      </Chrome>
+      <Chrome step="note" tone="muted">
+        {`${reading ? "Reading · " : ""}${chaptersLine(meta.chapters)}`}
+      </Chrome>
+    </Pressable>
   );
 }
 
 /**
- * The one card (BH-01): what to read next, a tappable thing, so a card: 24 pt radius, a soft fill, no shadow
- * (CLAUDE.md, John 15 Oct 2026). One element to VoiceOver whose label names where it goes (WCAG 2.4.4).
+ * BI-30's one card: what to read next, a tappable thing, so a card: 24 pt radius, a soft fill, no shadow (CLAUDE.md,
+ * John 15 Oct 2026). Its kind over the chapter, the passage, Read, and the place in its book from the canon's chapter
+ * count. One element to VoiceOver whose label names where it goes (WCAG 2.4.4); Read inside it is the same tap.
  */
 function StartCard({
   heading,
   title,
   subtitle,
   label,
+  at,
+  action = "Read",
   onPress,
   testID,
 }: {
@@ -409,22 +439,27 @@ function StartCard({
   title: string;
   subtitle: string;
   label: string;
+  at: { readonly book: BookCode; readonly chapter: number };
+  action?: string;
   onPress: () => void;
   testID: string;
 }) {
   const palette = usePalette();
   const { ax } = useLayout();
+  const chapters = BOOK_CODES[at.book].chapters;
   return (
-    <View>
-      <Heading>{heading}</Heading>
-      <Pressable
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        testID={testID}
-        style={({ pressed }) => [styles.card, { backgroundColor: palette.card, opacity: pressed ? 0.85 : 1 }]}
-      >
-        <View style={{ flex: 1, minWidth: 0, rowGap: 4 }}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}. Chapter ${at.chapter} of ${chapters}`}
+      testID={testID}
+      style={({ pressed }) => [styles.card, { backgroundColor: palette.card, opacity: pressed ? 0.85 : 1 }]}
+    >
+      <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
+        {heading}
+      </Chrome>
+      <View style={[styles.cardTop, ax ? { flexDirection: "column", alignItems: "flex-start" } : null]}>
+        <View style={{ flex: ax ? undefined : 1, minWidth: 0, rowGap: 2 }}>
           <Chrome tone="ink" style={styles.cardTitle} maxFontSizeMultiplier={2}>
             {title}
           </Chrome>
@@ -434,41 +469,31 @@ function StartCard({
             </Chrome>
           ) : null}
         </View>
-        <Icon name="forward" size={18} tone="muted" />
-      </Pressable>
-    </View>
-  );
-}
-
-/**
- * The outlined wordmark as Home's title (brief §8.15): forest on chalk, chalk
- * in dark. 44 pt tall, growing with Dynamic Type to 72 at AX5 (canvas
- * .wordmark). Rasters from the high-resolution export, sized for 72 pt at 3x.
- */
-function Wordmark() {
-  const isDark = useIsDark();
-  const { fontScale } = useWindowDimensions();
-  const height = 44 * Math.min(Math.max(fontScale, 1), 72 / 44);
-  return (
-    <Image
-      source={isDark ? require("../../../assets/brand/wordmark-chalk.png") : require("../../../assets/brand/wordmark-forest.png")}
-      accessible
-      accessibilityRole="header"
-      accessibilityLabel="Yada"
-      style={{ width: (height * 320) / 130, height, marginLeft: -4, marginBottom: 4 }}
-      testID="home-wordmark"
-    />
+        <Pill primary small title={action} onPress={onPress} testID={`${testID}-read`} />
+      </View>
+      <View style={[styles.track, { backgroundColor: palette.fill }]}>
+        <View style={[styles.trackFill, { width: `${(100 * at.chapter) / chapters}%`, backgroundColor: palette.accent }]} />
+      </View>
+      <Chrome step="note" tone="muted" style={{ marginTop: 6 }}>
+        {`Chapter ${at.chapter} of ${chapters}`}
+      </Chrome>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   paused: { rowGap: 4, marginBottom: 20 },
   pausedAction: { minHeight: 44, justifyContent: "center" },
-  heading: { fontFamily: FONTS.scripture, fontSize: 24, lineHeight: 30, fontWeight: "600", letterSpacing: -0.4, marginBottom: 10 },
-  card: { flexDirection: "row", alignItems: "center", columnGap: 12, borderRadius: 24, paddingVertical: 18, paddingHorizontal: 20, minHeight: 44 },
-  cardTitle: { fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 29, fontWeight: "600", letterSpacing: -0.4 },
-  progress: {
-    marginTop: 4,
-    marginBottom: 2,
-  },
+  card: { borderRadius: 24, padding: 18, minHeight: 44 },
+  cardTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginTop: 4 },
+  cardTitle: { fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 32, fontWeight: "400", letterSpacing: -0.4 },
+  track: { height: 4, borderRadius: 2, marginTop: 14, overflow: "hidden" },
+  trackFill: { height: 4 },
+  books: { marginTop: 12, rowGap: 8 },
+  bookRows: { rowGap: 8 },
+  bookRow: { flexDirection: "row", columnGap: 8 },
+  // BI-30's tile: 64 pt (76 at AX sizes), 16 pt corners, the card fill.
+  book: { flex: 1, minHeight: 64, justifyContent: "center", paddingVertical: 10, paddingHorizontal: 14, borderRadius: 16 },
+  bookAx: { minHeight: 76 },
+  bookName: { fontFamily: FONTS.scripture, fontSize: 19, lineHeight: 25 },
 });

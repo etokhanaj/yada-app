@@ -167,8 +167,9 @@ auth=(
 # With the API key, export asks Apple to sign in the cloud, and a key without the Admin role is
 # refused ("Cloud signing permission error", 10 Oct 2026). When this Mac holds an Apple Distribution
 # certificate for the team, Xcode's signed-in account signs instead; the key is still what uploads.
-# The archive does the same since build 10: the key could not create provisioning profiles for the new
-# watch targets ("Authentication failed", 18 Oct 2026), and the account can.
+# The archive signs with the key: build 11's SharePlay entitlement needed a new profile, and xcodebuild
+# reported "No Accounts" though John was signed in to Xcode (24 Oct 2026), while the key made it. (On
+# 18 Oct the key could not create the then-new watch targets' profiles; those exist now.)
 # Captured first, not piped into grep -q: under pipefail an early grep exit can fail the pipe on
 # a match (rule 7).
 sign_auth=("${auth[@]}")
@@ -188,7 +189,7 @@ step "archive" "$out/archive.log" env -u YADA_DEV_LICENSED -u API_BIBLE_KEY -u A
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   CODE_SIGN_STYLE=Automatic \
   CURRENT_PROJECT_VERSION="$build" \
-  "${sign_auth[@]}"
+  "${auth[@]}"
 
 # Every bundle inside must carry the app's build number: build 5 shipped a widget still at 4 (ITMS-90473,
 # 13 Oct 2026), because its Info.plist reads CURRENT_PROJECT_VERSION, fixed when ios/ was generated.

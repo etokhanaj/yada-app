@@ -11,11 +11,14 @@ import { DICTIONARY, type DictionaryKind, type DictionaryRow, GUIDES } from "../
 /** The credit Key words already carries (components/UnderstandPages.tsx): the same source, said the same way. */
 export const DICTIONARY_CREDIT = "unfoldingWord, adapted";
 
-/** DI-04's three groups, in its order: Translation Words' own folders (kt, names, other). */
-export const DICTIONARY_GROUPS: readonly { readonly kind: DictionaryKind; readonly title: string }[] = [
-  { kind: "kt", title: "Key words" },
-  { kind: "names", title: "People and places" },
-  { kind: "other", title: "Other words" },
+/**
+ * DI-30's three pills, in its order: Translation Words' own folders (kt, names, other). `one` is a word's kind as
+ * DI-31 says it over the word.
+ */
+export const DICTIONARY_GROUPS: readonly { readonly kind: DictionaryKind; readonly title: string; readonly one: string }[] = [
+  { kind: "kt", title: "Key words", one: "Key word" },
+  { kind: "names", title: "People and places", one: "Person or place" },
+  { kind: "other", title: "More words", one: "Word" },
 ];
 
 export interface DictionaryUse {
@@ -48,14 +51,39 @@ export function dictionaryEntry(term: string, rows: readonly DictionaryRow[] = D
   return row === undefined ? null : entryOf(row);
 }
 
-/** DI-04: each group's terms, A to Z as the rows already are. */
-export function groupDictionary(rows: readonly DictionaryRow[] = DICTIONARY): Array<{ kind: DictionaryKind; title: string; terms: string[] }> {
-  return DICTIONARY_GROUPS.map((g) => ({ ...g, terms: rows.filter((r) => r[1] === g.kind).map((r) => r[0]) }));
-}
-
 /** The first sentence, as Key words shows a term's (DI-01). */
 export function firstSentence(text: string): string {
   return text.split(/(?<=[.!?])\s+/u)[0] ?? text;
+}
+
+export interface DictionaryWord {
+  readonly term: string;
+  readonly kind: DictionaryKind;
+  /** The definition's own first sentence (DI-30), never a summary of it (rule 4). */
+  readonly first: string;
+  /** Its A to Z rail letter, accents set aside ("Ēl" files under E). */
+  readonly letter: string;
+}
+
+const letterOf = (term: string) => (term.normalize("NFD").replace(/[^\p{L}]/gu, "")[0] ?? "#").toUpperCase();
+
+/** DI-30's rows: every word with its first sentence and rail letter, A to Z as the generated rows are. */
+export function dictionaryWords(rows: readonly DictionaryRow[] = DICTIONARY): DictionaryWord[] {
+  return rows.map(([term, kind, definition]) => ({ term, kind, first: firstSentence(definition), letter: letterOf(term) }));
+}
+
+/** DI-30's field, as you type: words that begin with it first, then words that hold it, each list A to Z. */
+export function filterWords(query: string, words: readonly DictionaryWord[]): DictionaryWord[] {
+  const q = fold(query);
+  if (q.length === 0) return [...words];
+  const starts: DictionaryWord[] = [];
+  const holds: DictionaryWord[] = [];
+  for (const w of words) {
+    const t = fold(w.term);
+    if (t.startsWith(q)) starts.push(w);
+    else if (t.includes(q)) holds.push(w);
+  }
+  return [...starts, ...holds];
 }
 
 const fold = (text: string) => text.toLowerCase().replace(/[’‘]/gu, "'").replace(/\s+/gu, " ").trim();

@@ -10,12 +10,14 @@
 
 import { Image, type ImageSourcePropType, StyleSheet } from "react-native";
 
-export function FillPicture({ source, alt }: { source: ImageSourcePropType; alt?: string }) {
+/** `blur` softens the picture to colour behind words (SW-03 to SW-05: the day's picture blurred, as the canvas draws it). */
+export function FillPicture({ source, alt, blur }: { source: ImageSourcePropType; alt?: string; blur?: number }) {
   return (
     <Image
       source={source}
       style={styles.fill}
       resizeMode="cover"
+      blurRadius={blur}
       accessible={alt !== undefined}
       accessibilityLabel={alt}
       accessibilityIgnoresInvertColors

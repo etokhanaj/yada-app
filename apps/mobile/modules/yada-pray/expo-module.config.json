@@ -6,7 +6,8 @@
     "modules": [
       "YadaPrayModule",
       "YadaCirclesModule",
-      "YadaTogetherModule"
+      "YadaTogetherModule",
+      "YadaAskModule"
     ],
     "appDelegateSubscribers": [
       "YadaCirclesAppDelegate"

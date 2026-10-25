@@ -47,12 +47,12 @@ const ALL = [...TABS, { name: "search", label: "Search" }] as const;
 
 /**
  * Saved's lists under the sidebar's tabs (TB-01 `.sbh`, `.sbi.sm`): each opens Saved on that list, its back capsule
- * naming the tab it came from, or Your rhythm.
+ * naming the tab it came from, or You (YO-30), which took Your rhythm's place.
  */
 const SAVED = [
   { label: "Highlights", testID: "sidebar-highlights", open: (back: string) => router.push({ pathname: "/saved", params: { tab: "highlights", back } }) },
   { label: "Notes", testID: "sidebar-notes", open: (back: string) => router.push({ pathname: "/saved", params: { tab: "notes", back } }) },
-  { label: "Your reading", testID: "sidebar-reading", open: () => router.push("/rhythm") },
+  { label: "You", testID: "sidebar-you", open: () => router.push("/you") },
 ] as const;
 
 /**
@@ -255,8 +255,9 @@ function BottomBar(props: BottomTabBarProps) {
                     testID={testIDFor(tab.name)}
                   >
                     <TabGlyph name={tab.name} color={tone} />
-                    {/* `.tbi`: 11 pt semibold under the glyph, 15 beside it at AX sizes. */}
-                    <Chrome step="note" style={{ color: tone, fontSize: ax ? 15 : 11, lineHeight: ax ? 20 : 13, fontWeight: "600" }} maxFontSizeMultiplier={1.4}>
+                    {/* `.tbi`: 11 pt semibold under the glyph, 15 at AX sizes, still under it: beside the glyph at AX5
+                        "Today" broke as "Toda / y" (12a QA, 24 Oct 2026). One line, as iOS keeps its own tab labels. */}
+                    <Chrome step="note" numberOfLines={1} style={{ color: tone, fontSize: ax ? 15 : 11, lineHeight: ax ? 20 : 13, fontWeight: "600" }} maxFontSizeMultiplier={1.4}>
                       {tab.label}
                     </Chrome>
                   </Pressable>
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
   bar: { flexDirection: "row", padding: 4 },
   tab: { flex: 1, minHeight: 54, borderRadius: 999, alignItems: "center", justifyContent: "center", rowGap: 2 },
-  tabAx: { flexDirection: "row", minHeight: 72, columnGap: 6, paddingHorizontal: 16 },
+  tabAx: { minHeight: 72, paddingHorizontal: 8 },
   search: { width: 62, height: 62, alignItems: "center", justifyContent: "center" },
   searchAx: { width: 80, height: 80 },
   // TB-01 `.sbar2`, `.sbi`, `.sbsep`, `.sbh`.

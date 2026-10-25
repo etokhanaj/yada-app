@@ -58,6 +58,11 @@ const ICONS = {
   "heart-hand": "HeartHand",
   hourglass: "Hourglass01",
   globe: "Globe01",
+  // Build 12 (canvas K7W4ov2ti3cY2csqgXCb1h): Sit with a verse's breath, Listen, a place on the map, You.
+  sit: "Wind01",
+  play: "Play",
+  pin: "MarkerPin01",
+  person: "User01",
 };
 
 function walk(node, shapes) {

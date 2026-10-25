@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { answeredLines, deleteCircleLine, askedLine, parsePrayNotify, prayAgainAt, prayAgainLine, recentlyAnswered, daysLeft, hashIndex, helplineFor, initialOf, inviteLine, listItemLine, mentionsSelfHarm, mineLine, offerable, parseList, peopleLine, prayedLine, regionName, requestLine, waitingLine, withinTime, yoursLine, regionOf } from "./pray";
+import { answeredLines, deleteCircleLine, askedLine, parsePrayNotify, prayAgainAt, prayAgainLine, recentlyAnswered, daysLeft, hashIndex, helplineFor, initialOf, inviteLine, listItemLine, mentionsSelfHarm, mineLine, newestFirst, offerable, parseList, peopleLine, prayedLine, regionName, requestLine, waitingLine, withinTime, yoursLine, regionOf } from "./pray";
 
 const day = 86_400_000;
 
@@ -160,5 +160,12 @@ describe("deleteCircleLine (PC-06)", () => {
 
   it("says no count when only you are in it", () => {
     expect(deleteCircleLine(1)).toBe("It ends with every request in it. This can’t be undone.");
+  });
+});
+
+describe("Your requests on Pray (PR-51)", () => {
+  it("puts the newest first and an undated one last", () => {
+    const list = [{ id: "a", createdAt: 1 }, { id: "b" }, { id: "c", createdAt: 3 }];
+    expect(newestFirst(list).map((r) => r.id)).toEqual(["c", "a", "b"]);
   });
 });

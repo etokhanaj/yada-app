@@ -1,6 +1,7 @@
 /**
- * Pray for someone (PR-09, XT-03): a calm full screen, the request alone in Literata with who asked and when, and at the
- * foot a pill that fills while you hold, about 20 s ("Keep holding" while it does), or a timer that fills it for you.
+ * Pray for someone (PR-09, XT-03; Build 12 PR-60, approved by John 25 Oct 2026): the day's picture, blurred, as Sit and
+ * Asked are; who asked and when, the request large in Literata, what they will see, and at the foot a white pill that
+ * fills while you hold, about 20 s ("Keep holding" while it does), or a timer that fills it for you.
  * Then "Prayed" and the next. One you prayed for never comes round again; with none left, it says so plainly and offers
  * Ask for prayer or Back to Pray (XT-03). × ends it;
  * ⋯ holds Report and Block (App Store guideline 1.2). It was a list page with a large title (design QA, 18 Oct 2026).
@@ -11,21 +12,24 @@
 
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, ActionSheetIOS, Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, ActionSheetIOS, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { circlesCloud, type PrayerRequest, prayCloud } from "../../../modules/yada-pray";
+import { GlassButton } from "../../components/Glass";
 import { Icon } from "../../components/Icon";
+import { PictureGround } from "../../components/PictureGround";
+import { Pill } from "../../components/Pill";
 import { Chrome } from "../../components/Type";
 import { useAppData } from "../../data/AppData";
 import { block, loadPrayLocal, markPrayed } from "../../data/prayLocal";
 import { loadPrayNotify, prayAgain, watchAnswer } from "../../data/prayNotify";
-import { FONTS, useLayout, usePalette } from "../../design/tokens";
+import { BRAND, ON_PICTURE } from "../../design/palette";
+import { FONTS, useLayout } from "../../design/tokens";
 import { askedLine, HOLD_SECONDS, offerable, prayAgainLine } from "../../lib/pray";
 
 export default function PrayForSomeone() {
   const { user } = useAppData();
-  const palette = usePalette();
   const insets = useSafeAreaInsets();
   const { gutter, pill } = useLayout();
   const [queue, setQueue] = useState<PrayerRequest[] | null>(null);
@@ -117,126 +121,134 @@ export default function PrayForSomeone() {
     });
   };
 
-  const round = (icon: "close" | "more", label: string, onPress: () => void, testID: string) => (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={[styles.round, { backgroundColor: palette.fill }]} testID={testID}>
-      <Icon name={icon} size={20} />
-    </Pressable>
-  );
-  const asked = request === undefined ? null : inCircle ? [request.firstName, name].filter((x) => x !== "").join(" · ") : askedLine(request.firstName, request.createdAt, Date.now());
+  const asked = request === undefined ? null : askedLine("", request.createdAt, Date.now());
+  const who = request === undefined ? "" : inCircle ? [request.firstName, name].filter((x) => x !== "").join(" · ") : ["Someone on Yada", request.firstName].filter((x) => x !== "").join(" · ");
   const back = inCircle ? `Back to ${name}` : "Back to Pray";
+  const seen = request === undefined || inCircle ? null : `${request.firstName === "" ? "They see" : `${request.firstName} sees`} that one more person prayed. Never who.`;
 
   return (
-    <View style={[styles.root, { backgroundColor: palette.paper, paddingTop: insets.top + 4, paddingBottom: insets.bottom + 16, paddingHorizontal: gutter }]} testID="pray-someone">
-      <View style={styles.top}>
-        {round("close", `Close, ${back.charAt(0).toLowerCase()}${back.slice(1)}`, () => router.back(), "pray-close")}
-        {request !== undefined && request.answeredAt === undefined && !inCircle ? round("more", "More: Report or Block", more, "pray-more") : null}
+    <View style={[styles.root, { paddingTop: insets.top + 4, paddingBottom: insets.bottom + 16 }]} testID="pray-someone">
+      <PictureGround blurred />
+      <View style={[styles.top, { paddingHorizontal: gutter - 8 }]}>
+        <GlassButton onPicture onPress={() => router.back()} accessibilityLabel={`Close, ${back.charAt(0).toLowerCase()}${back.slice(1)}`} testID="pray-close">
+          <Icon name="close" size={20} tone="white" />
+        </GlassButton>
+        {request !== undefined && request.answeredAt === undefined && !inCircle ? (
+          <GlassButton onPicture onPress={more} accessibilityLabel="More: Report or Block" testID="pray-more">
+            <Icon name="more" size={20} tone="white" />
+          </GlassButton>
+        ) : null}
       </View>
-      <View style={styles.middle}>
+      {/* Scrolls at AX sizes, so a long request never runs under the controls (12h QA, AX5). */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.middle, { paddingHorizontal: gutter }]} showsVerticalScrollIndicator={false}>
         {queue === null ? null : request === undefined ? (
           <View style={{ rowGap: 8 }} testID="pray-none">
-            <Text style={[styles.request, { color: palette.ink }]}>That’s everyone for now.</Text>
-            <Chrome step="note" tone="muted" style={{ textAlign: "center" }}>
+            <Text style={styles.request} maxFontSizeMultiplier={1.4}>That’s everyone for now.</Text>
+            <Chrome step="note" style={{ color: ON_PICTURE.muted }}>
               New requests come in through the day.
             </Chrome>
           </View>
         ) : (
-          <View style={{ rowGap: 10 }}>
-            <Text style={[styles.request, { color: palette.ink }]} maxFontSizeMultiplier={1.8}>
+          <>
+            <View style={styles.who}>
+              <View style={styles.where}>
+                <Icon name={inCircle ? "people" : "globe"} size={18} tone="white" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Chrome style={{ color: ON_PICTURE.text, fontWeight: "600" }}>{who}</Chrome>
+                {asked === null ? null : (
+                  <Chrome step="note" style={{ color: ON_PICTURE.muted }}>
+                    {`Asked ${asked.toLowerCase()}`}
+                  </Chrome>
+                )}
+              </View>
+            </View>
+            <Text style={styles.request} maxFontSizeMultiplier={1.4} accessibilityRole="header">
               {request.text}
             </Text>
-            {asked === null ? null : (
-              <Chrome step="note" tone="muted" style={{ textAlign: "center" }}>
-                {asked}
+            {seen === null || request.answeredAt !== undefined ? null : (
+              <Chrome step="note" style={{ color: ON_PICTURE.muted }}>
+                {seen}
               </Chrome>
             )}
+          </>
+        )}
+      </ScrollView>
+      <View style={{ paddingHorizontal: gutter }}>
+        {queue === null ? null : request === undefined ? (
+          // XT-03: with no one left, the way on is to ask, or back to Pray.
+          <View style={{ rowGap: 8 }}>
+            <Pill
+              title="Ask for prayer"
+              onPicture
+              stretch
+              onPress={() => {
+                router.back();
+                router.push("/pray/ask");
+              }}
+              testID="pray-none-ask"
+            />
+            <GlassButton shape="capsule" onPicture onPress={() => router.back()} style={styles.second} testID="pray-none-back">
+              <Chrome style={{ color: ON_PICTURE.text, fontWeight: "600" }}>Back to Pray</Chrome>
+            </GlassButton>
+          </View>
+        ) : request.answeredAt !== undefined ? (
+          <View style={{ rowGap: 12 }}>
+            <Chrome style={styles.mark}>Answered · you prayed for it</Chrome>
+            <Pill title="Back to Pray" onPicture stretch onPress={() => router.back()} testID="pray-answered-back" />
+          </View>
+        ) : prayed ? (
+          <View style={{ rowGap: 8 }}>
+            <Chrome style={styles.mark} accessibilityLiveRegion="polite">
+              Prayed
+            </Chrome>
+            <Pill title={inCircle ? back : "Next request"} onPicture stretch onPress={inCircle ? () => router.back() : next} testID="pray-next" />
+            {inCircle ? null : againAt !== null ? (
+              <Chrome step="note" style={{ color: ON_PICTURE.muted, textAlign: "center" }} accessibilityLiveRegion="polite" testID="pray-again-set">
+                {prayAgainLine(againAt)}
+              </Chrome>
+            ) : againOn ? (
+              <Pressable
+                onPress={() =>
+                  void prayAgain(user, request.id)
+                    .then((at) => (at === null ? AccessibilityInfo.announceForAccessibility("Notifications are off for Yada in iPhone Settings.") : setAgainAt(at)))
+                    .catch(() => AccessibilityInfo.announceForAccessibility("Couldn’t set the reminder. Try again."))
+                }
+                accessibilityRole="button"
+                hitSlop={8}
+                style={styles.again}
+                testID="pray-again"
+              >
+                <Chrome step="note" style={{ color: ON_PICTURE.text, fontWeight: "600" }}>
+                  Pray again tomorrow
+                </Chrome>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : (
+          <View style={{ rowGap: 8 }}>
+            {/* PR-60: a white pill that fills with ink while you hold, as Sit's Begin is white on the picture. */}
+            <Pressable
+              onPressIn={() => start("hold")}
+              onPressOut={release}
+              disabled={holding === "timer"}
+              accessibilityRole="button"
+              accessibilityLabel={`Hold while you pray, about ${HOLD_SECONDS} seconds`}
+              accessibilityHint="Or use a timer instead"
+              style={[styles.hold, { minHeight: pill }]}
+              testID="pray-hold"
+            >
+              <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: BRAND.ink, opacity: 0.14, width: fill.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }) }]} />
+              <Chrome style={{ color: BRAND.ink, fontWeight: "600" }}>{holding === "hold" ? "Keep holding" : holding === "timer" ? "Praying…" : "Hold while you pray"}</Chrome>
+            </Pressable>
+            {holding === null ? (
+              <GlassButton shape="capsule" onPicture onPress={() => start("timer")} accessibilityLabel={`Use a timer instead of holding, ${HOLD_SECONDS} seconds`} style={styles.second} testID="pray-timer">
+                <Chrome style={{ color: ON_PICTURE.text, fontWeight: "600" }}>Use a timer instead</Chrome>
+              </GlassButton>
+            ) : null}
           </View>
         )}
       </View>
-      {queue === null ? null : request === undefined ? (
-        // XT-03: with no one left, the way on is to ask, or back to Pray.
-        <View style={{ rowGap: 12, alignItems: "center" }}>
-          <Pressable
-            onPress={() => {
-              router.back();
-              router.push("/pray/ask");
-            }}
-            accessibilityRole="button"
-            style={[styles.hold, { minHeight: pill, backgroundColor: palette.ink }]}
-            testID="pray-none-ask"
-          >
-            <Chrome style={{ color: palette.paper, fontWeight: "600" }}>Ask for prayer</Chrome>
-          </Pressable>
-          <Pressable onPress={() => router.back()} accessibilityRole="button" style={[styles.timer, { backgroundColor: palette.fill }]} testID="pray-none-back">
-            <Chrome step="note" tone="ink" style={{ fontWeight: "600" }}>
-              Back to Pray
-            </Chrome>
-          </Pressable>
-        </View>
-      ) : request.answeredAt !== undefined ? (
-        <View style={{ rowGap: 12, alignItems: "stretch" }}>
-          <Chrome tone="accent" style={styles.prayedMark}>
-            ✓ Answered · you prayed for it
-          </Chrome>
-          <Pressable onPress={() => router.back()} accessibilityRole="button" style={[styles.hold, { minHeight: pill, backgroundColor: palette.ink }]} testID="pray-answered-back">
-            <Chrome style={{ color: palette.paper, fontWeight: "600" }}>Back to Pray</Chrome>
-          </Pressable>
-        </View>
-      ) : prayed ? (
-        <View style={{ rowGap: 12, alignItems: "stretch" }}>
-          <Chrome tone="accent" style={styles.prayedMark} accessibilityLiveRegion="polite">
-            ✓ Prayed
-          </Chrome>
-          <Pressable onPress={inCircle ? () => router.back() : next} accessibilityRole="button" style={[styles.hold, { minHeight: pill, backgroundColor: palette.ink }]} testID="pray-next">
-            <Chrome style={{ color: palette.paper, fontWeight: "600" }}>{inCircle ? back : "Next request"}</Chrome>
-          </Pressable>
-          {inCircle ? null : againAt !== null ? (
-            <Chrome step="note" tone="muted" style={{ textAlign: "center" }} accessibilityLiveRegion="polite" testID="pray-again-set">
-              {prayAgainLine(againAt)}
-            </Chrome>
-          ) : againOn ? (
-            <Pressable
-              onPress={() =>
-                void prayAgain(user, request.id)
-                  .then((at) => (at === null ? AccessibilityInfo.announceForAccessibility("Notifications are off for Yada in iPhone Settings.") : setAgainAt(at)))
-                  .catch(() => AccessibilityInfo.announceForAccessibility("Couldn’t set the reminder. Try again."))
-              }
-              accessibilityRole="button"
-              hitSlop={8}
-              style={styles.again}
-              testID="pray-again"
-            >
-              <Chrome step="note" tone="accent" style={{ fontWeight: "600" }}>
-                Pray again tomorrow
-              </Chrome>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : (
-        <View style={{ rowGap: 12, alignItems: "center" }}>
-          <Pressable
-            onPressIn={() => start("hold")}
-            onPressOut={release}
-            disabled={holding === "timer"}
-            accessibilityRole="button"
-            accessibilityLabel={`Hold to pray, about ${HOLD_SECONDS} seconds`}
-            accessibilityHint="Or use a timer instead"
-            style={[styles.hold, { minHeight: pill, backgroundColor: palette.fill }]}
-            testID="pray-hold"
-          >
-            <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: palette.ink, opacity: 0.16, width: fill.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] }) }]} />
-            <Chrome tone="ink" style={{ fontWeight: "600" }}>
-              {holding === "hold" ? "Keep holding" : holding === "timer" ? "Praying…" : "Hold to pray"}
-            </Chrome>
-          </Pressable>
-          {holding === null ? (
-            <Pressable onPress={() => start("timer")} accessibilityRole="button" accessibilityLabel={`Use a timer instead of holding, ${HOLD_SECONDS} seconds`} style={[styles.timer, { backgroundColor: palette.fill }]} testID="pray-timer">
-              <Chrome step="note" tone="ink" style={{ fontWeight: "600" }}>
-                Use a timer instead
-              </Chrome>
-            </Pressable>
-          ) : null}
-        </View>
-      )}
     </View>
   );
 }
@@ -244,11 +256,12 @@ export default function PrayForSomeone() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   top: { flexDirection: "row", justifyContent: "space-between", minHeight: 44 },
-  round: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  middle: { flex: 1, justifyContent: "center", paddingHorizontal: 8 },
-  request: { fontFamily: FONTS.scripture, fontSize: 24, lineHeight: 33, textAlign: "center" },
-  hold: { alignSelf: "stretch", borderRadius: 999, overflow: "hidden", alignItems: "center", justifyContent: "center" },
-  timer: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, justifyContent: "center" },
+  middle: { flexGrow: 1, justifyContent: "center", rowGap: 16, paddingVertical: 16 },
+  who: { flexDirection: "row", alignItems: "center", columnGap: 10 },
+  where: { width: 36, height: 36, borderRadius: 18, backgroundColor: ON_PICTURE.glass, alignItems: "center", justifyContent: "center" },
+  request: { color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontSize: 30, lineHeight: 39, letterSpacing: -0.3 },
+  hold: { alignSelf: "stretch", borderRadius: 999, overflow: "hidden", alignItems: "center", justifyContent: "center", backgroundColor: ON_PICTURE.text },
+  second: { alignSelf: "stretch", minHeight: 48, justifyContent: "center" },
   again: { alignSelf: "center", minHeight: 44, justifyContent: "center" },
-  prayedMark: { textAlign: "center", fontSize: 15, fontWeight: "600" },
+  mark: { color: ON_PICTURE.text, textAlign: "center", fontWeight: "600" },
 });

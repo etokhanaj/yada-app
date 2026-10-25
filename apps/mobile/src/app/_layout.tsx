@@ -26,6 +26,7 @@ import { prayAgainOf } from "../data/prayNotify";
 import { refreshReminder, targetOf } from "../data/reminder";
 import { followListening, indexSpotlight, updateWidgets, watchDoors } from "../data/system";
 import { followTogether } from "../data/together";
+import { followAccepted } from "../data/accepted";
 import { listen } from "../data/audio";
 import { openFromOutside } from "../components/navigation";
 import * as Notifications from "expo-notifications";
@@ -39,6 +40,7 @@ import { loadSettings, saveSetting } from "../data/user";
 import { SHEET_MEDIUM, useAXLevel, useIsDark, usePalette } from "../design/tokens";
 import { useReduceMotion } from "../lib/motion";
 import { watchAccessibility } from "../state/accessibility";
+import { useAudio } from "../state/audio";
 import { useSettings } from "../state/settings";
 
 // The splash (brief §8.16) stays until LaunchStage draws its copy, which then
@@ -162,8 +164,14 @@ export default function RootLayout() {
     // Siri, App Shortcuts and Spotlight (MS-02, MS-03).
     const doors = watchDoors(data.user);
     const listening = followListening();
+    // LS-31: a reading that can't be had opens its sheet over whatever screen Listen was pressed on.
+    const unreadable = useAudio.subscribe((now, before) => {
+      if (now.unavailable !== null && before.unavailable === null) router.push("/listen-unavailable");
+    });
     // Pray together (PC-16): FaceTime can start a session before any Pray screen is open.
     const praying = followTogether();
+    // A circle's invitation or an ask's link, accepted wherever Yada is (data/accepted.ts).
+    const acceptedShares = followAccepted();
     void updateWidgets(data.user, data.core).catch(() => undefined);
     // After the first screens have what they need: thirty thousand verses are no launch task.
     const indexing = setTimeout(() => void indexSpotlight(data.user, data.core).catch(() => undefined), 5000);
@@ -180,7 +188,9 @@ export default function RootLayout() {
       sub.remove();
       doors();
       listening();
+      unreadable();
       praying();
+      acceptedShares();
       clearTimeout(indexing);
       appState.remove();
     };
@@ -281,6 +291,9 @@ export default function RootLayout() {
     sheetCornerRadius: 38,
     contentStyle: { backgroundColor: palette.sheet },
   };
+  // A short sheet is as tall as what it holds (Build 12; John, 25 Oct 2026: "bottom sheet is quite high"); at AX sizes,
+  // where it can outgrow the screen, it opens large and scrolls. Its screen passes `fit` to SheetScreen to match.
+  const fitted = ax ? { ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 } : { ...sheet, sheetAllowedDetents: "fitToContents" as const };
 
   return (
     // The chapter swipe (SW-01) needs gesture handling from the root.
@@ -320,11 +333,21 @@ export default function RootLayout() {
           <Stack.Screen name="pray/ask" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
           {/* Add to your list and Edit (PC-09, PC-11): a sheet like Ask. */}
           <Stack.Screen name="pray/add" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
-          {/* PT-40: the + on Pray, a sheet sized to its rows. */}
-          <Stack.Screen name="pray/add-or-ask" options={{ ...sheet, sheetAllowedDetents: [0.6, 1], sheetInitialDetentIndex: ax ? 1 : 0 }} />
+          {/* PT-40: the + on Pray, a sheet sized to its rows: 0.6 left half the sheet blank under three rows (Sit audit, 24 Oct
+              2026). Not fitToContents: SheetScreen's own scroll collapses under it (design-system.md). */}
+          <Stack.Screen name="pray/add-or-ask" options={fitted} />
+          {/* Ask someone (AO-02, AO-03): a sheet to write in, large; the asked person's side (AO-04) on a picture. */}
+          <Stack.Screen name="pray/ask-someone" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          <Stack.Screen name="pray/asked" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           {/* FL-03 and FL-04: Pray for others, one at a time, and Silence on its own, on the calm ground. FL-02's prayer
               view prays a Bible prayer. */}
           <Stack.Screen name="pray/through" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          {/* Sit with a verse (SW-01 to SW-06): the setup and its session are full screens on the day's picture; Choose a
+              verse is a sheet over the setup; Amen replaces the session. */}
+          <Stack.Screen name="sit/index" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          <Stack.Screen name="sit/choose" options={sheet} />
+          <Stack.Screen name="sit/session" options={{ presentation: "fullScreenModal", animation: "fade", gestureEnabled: false }} />
+          <Stack.Screen name="sit/amen" options={{ presentation: "fullScreenModal", animation: "fade", gestureEnabled: false }} />
           <Stack.Screen name="silence" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           <Stack.Screen name="prayer" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           {/* New circle (PC-02 to PC-04): explained, named, invited, in one sheet. */}
@@ -332,20 +355,22 @@ export default function RootLayout() {
           {/* Joining (PC-07): after iCloud's own accept, full screen on the forest. */}
           <Stack.Screen name="pray/joined" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           {/* Pray together (PC-15, PC-17): the first-time sheet and Plan a time; the call itself is full screen (PC-16). */}
-          <Stack.Screen name="pray/together-start" options={sheet} />
-          <Stack.Screen name="pray/plan" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          <Stack.Screen name="pray/together-start" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
+          <Stack.Screen name="pray/plan" options={fitted} />
           <Stack.Screen name="pray/together" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           {/* DR-16: the day's verse fills the screen, closed by its ×; DR-14: About this picture is a sheet over it. */}
           <Stack.Screen name="verse" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
-          <Stack.Screen name="picture" options={sheet} />
+          <Stack.Screen name="picture" options={fitted} />
           {/* About a book (SC-05): the introduction in a sheet over the reading. */}
           <Stack.Screen name="about" options={sheet} />
-          {/* Your space: a note opens large, the keyboard takes the lower half (PS-03); Share as an image shows its card whole (PS-05). */}
-          <Stack.Screen name="note" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          {/* NT-30: a note opens at medium, so the verse stays in view above it; it grows to large. */}
+          <Stack.Screen name="note" options={sheet} />
           <Stack.Screen name="share-image" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
           {/* A circle needs iCloud (CI-03): the same sheet as XT-05. Its own short detent, as tall as its line and two
               pills: the medium detent left half the sheet empty under them (John, 18 Oct 2026). Large at AX sizes. */}
-          <Stack.Screen name="pray/icloud" options={{ ...sheet, sheetAllowedDetents: [0.36, 1], sheetInitialDetentIndex: ax ? 1 : 0 }} />
+          {/* LS-31: as short as its two lines and two pills, large at AX sizes, as pray/icloud below. */}
+          <Stack.Screen name="listen-unavailable" options={fitted} />
+          <Stack.Screen name="pray/icloud" options={fitted} />
           {/* PR-09: Pray for someone is a calm full screen, closed by its ×. */}
           <Stack.Screen name="pray/someone" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
           {/* Daily prayer (DO-04–06): full screen over the day's picture; closed by its × or Amen. */}
@@ -365,12 +390,12 @@ export default function RootLayout() {
           <Stack.Screen name="guide" options={sheet} />
           {/* NP-01, RT-05: the reminder asked for at the first passage's end, a page of its own; Not now is its way out. */}
           <Stack.Screen name="remind-ask" options={{ presentation: "fullScreenModal", animation: sheetsFade ? "fade" : "slide_from_bottom", gestureEnabled: false }} />
-          {/* RT-02: Your rhythm now holds the week, the year grid and how it works, so it opens large. */}
-          <Stack.Screen name="rhythm" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />
+          {/* YO-30: You, a page from Today's header; it replaces Your rhythm's sheet. */}
+          <Stack.Screen name="you" />
           {/* RT-01, RT-08: back after a month or more, over everything, closed by its × or Continue. */}
           <Stack.Screen name="return" options={{ presentation: "fullScreenModal", animation: "fade", gestureEnabled: false }} />
           {/* RT-07: three ways to start small. */}
-          <Stack.Screen name="start-small" options={{ ...sheet, sheetAllowedDetents: ax ? [1] : [SHEET_MEDIUM], sheetInitialDetentIndex: 0 }} />
+          <Stack.Screen name="start-small" options={fitted} />
           <Stack.Screen name="evidence" options={sheet} />
           {/* Contents and Search open large: lists to scan, not notes beside the text. */}
           <Stack.Screen name="contents" options={{ ...sheet, sheetAllowedDetents: [1], sheetInitialDetentIndex: 0 }} />

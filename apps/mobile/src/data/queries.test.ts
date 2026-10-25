@@ -15,8 +15,8 @@ import { originalLanguage } from "../lib/originalLanguage";
 import { buildFtsQuery, planSearch, splitSnippet } from "../lib/searchQuery";
 import { parseCatalogue, verifyDownload, verseTextIn } from "../lib/translations";
 import {
-  checkTranslationFile, countInBook, countPassages, countsByBook, countVerses, getChapter, getLanguageLetters, getLexeme,
-  getOccurrences, getSources, getTexts, getTextsForOrds, getTextsInRange, getTokens, getTranslationSources,
+  bookBounds, checkTranslationFile, countInBook, countPassages, countPassagesByBook, countsByBook, countVerses, getChapter, getLanguageLetters, getLexeme,
+  getOccurrences, getSources, nearestTerm, getTexts, getTextsForOrds, getTextsInRange, getTokens, getTranslationSources,
   readableTranslations, routeTranslation, searchPassages, searchWordsByForm, searchWordsByGloss, unrouteTranslation, type Db,
 } from "./queries";
 
@@ -131,6 +131,23 @@ describe.skipIf(!haveBundles)("queries against the core bundle", { timeout: 30_0
     expect(splitSnippet(hits[0]?.snippet ?? "").some((p) => p.hit && /love/i.test(p.text))).toBe(true);
     // Syntax characters are inert once quoted.
     await expect(searchPassages(core, buildFtsQuery('love" OR (') ?? "", "BSB", 5)).resolves.toBeDefined();
+  });
+
+  it("counts a search's verses by book, adding up to the total, and lists one book's alone (SE-31)", async () => {
+    const match = buildFtsQuery("peace") ?? "";
+    const books = await countPassagesByBook(core, match, "WEB");
+    expect(books.reduce((n, b) => n + b.count, 0)).toBe(await countPassages(core, match, "WEB"));
+    expect(books.map((b) => b.book).slice(0, 2)).toEqual(["GEN", "EXO"]);
+    const john = books.find((b) => b.book === "JHN");
+    const [lo, hi] = bookBounds("JHN");
+    const hits = await searchPassages(core, match, "WEB", 500, [lo, hi]);
+    expect(hits.length).toBe(john?.count);
+    expect(hits.every((h) => h.ord >= lo && h.ord <= hi)).toBe(true);
+  });
+
+  it("offers the nearest word the Bible's text holds, and none for a word it holds (SE-32)", async () => {
+    expect(await nearestTerm(core, "anxous")).toBe("anxious");
+    expect(await nearestTerm(core, "peace")).toBeNull();
   });
 
   it("finds λόγος by form and love by gloss", async () => {

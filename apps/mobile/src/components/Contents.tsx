@@ -110,42 +110,55 @@ function ContentsMore() {
   );
 }
 
-/** C-02's grid, for chapters and (CT-03) a chapter's verses: 5 columns, 3 at AX sizes; the current one in ink. */
+/**
+ * The number grid, for a book's chapters and (CT-03) a chapter's verses: 6 columns, 4 at AX sizes (CH-30); the current
+ * one filled in ink. Chapters already read (CH-30) wear the selection wash with a 3 pt accent bar along their foot, so
+ * read is never told by colour alone (design-system.md); VoiceOver hears "read".
+ */
 export function NumberGrid({
   numbers,
   current,
+  read,
   onPick,
   label,
   testID,
+  onCurrentLayout,
 }: {
   numbers: readonly number[];
   current: number | null;
+  /** Where the current cell sits in the grid, so a long book's sheet can open on it (CH-30). */
+  onCurrentLayout?: (y: number) => void;
+  /** The numbers already read: chapters only. */
+  read?: ReadonlySet<number>;
   onPick: (n: number) => void;
   label: (n: number) => string;
   testID: (n: number) => string;
 }) {
   const palette = usePalette();
   const { ax } = useLayout();
-  const columns = ax ? 3 : 5;
+  const columns = ax ? 4 : 6;
   return (
     <View style={styles.grid}>
       {numbers.map((n) => {
         const on = n === current;
+        const done = !on && read?.has(n) === true;
         return (
           <Pressable
             key={n}
             onPress={() => onPick(n)}
             accessibilityRole="button"
-            accessibilityLabel={`${label(n)}${on ? ", reading" : ""}`}
+            accessibilityLabel={`${label(n)}${on ? ", reading" : done ? ", read" : ""}`}
             accessibilityState={{ selected: on }}
+            onLayout={on && onCurrentLayout !== undefined ? (e) => onCurrentLayout(e.nativeEvent.layout.y) : undefined}
             testID={testID(n)}
             style={({ pressed }) => [
               styles.cell,
-              { width: `${100 / columns - 2}%`, height: ax ? 96 : 56, backgroundColor: on ? palette.ink : palette.fill },
+              { width: `${(100 - (columns - 1) * GAP) / columns}%`, height: ax ? 56 : 48, backgroundColor: on ? palette.ink : done ? palette.selection : palette.fill },
+              done ? { borderBottomWidth: 3, borderBottomColor: palette.accent } : null,
               pressed && !on ? { opacity: 0.6 } : null,
             ]}
           >
-            <Chrome tone={on ? "paper" : "ink"} style={{ fontFamily: "Literata", fontSize: 20, fontWeight: on ? "600" : "400" }} maxFontSizeMultiplier={1.7}>
+            <Chrome tone={on ? "paper" : "ink"} style={{ fontWeight: "600", fontSize: 17, fontVariant: ["tabular-nums"] }} maxFontSizeMultiplier={1.7}>
               {n}
             </Chrome>
           </Pressable>
@@ -186,6 +199,9 @@ export function usePickChapter(from: string | undefined) {
   };
 }
 
+/** The gap between cells, in percent of the row, so the columns always fill it exactly. */
+const GAP = 2;
+
 const styles = StyleSheet.create({
   top: {
     flexDirection: "row",
@@ -202,11 +218,12 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    columnGap: "2.5%",
+    columnGap: `${GAP}%`,
     rowGap: 8,
   },
   cell: {
-    borderRadius: 16,
+    borderRadius: 14,
+    overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
   },

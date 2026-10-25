@@ -1,18 +1,30 @@
 /**
- * The devotional (canvas DR-13): Spurgeon's entry for the date, whole and unchanged, his heading first and the
- * credit once at the end. Public domain (Morning and Evening; read from the pinned CCEL copy, docs/build-7-plan.md
- * §3). Never written or edited by Yada (rule 2); an entry John rejects in review is never shown.
+ * The devotional (DR-13; Build 12 DV-30, John 24 Oct 2026: "where our devotional?"). Spurgeon's entry for the date,
+ * whole and unchanged: "Devotional · morning", his heading large in Literata, the verse it is on, the reading, the
+ * other half of the day, the credit. Docked: Share, and Sit with its verse (SW-01 with that verse). No Listen: it is
+ * not recorded, and no iPhone voice reads (Build 12). Reaching the end ticks it on Today.
+ *
+ * Public domain (Morning and Evening; read from the pinned CCEL copy, docs/build-7-plan.md §3). Never written or
+ * edited by Yada (rule 2); an entry John rejects in review is never shown.
  */
 
+import { formatVerseId, parseReference } from "@yada/schema";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
+import { Capsule } from "../components/ActionBar";
+import { Icon } from "../components/Icon";
 import { ListRow, PageScreen } from "../components/Page";
 import { SourceLine } from "../components/SourceLine";
 import { Chrome, Prose } from "../components/Type";
+import { useAppData, useCore } from "../data/AppData";
 import { openDevotional } from "../data/bundles";
-import { FONTS } from "../design/tokens";
+import { textOf } from "../data/today";
+import { markDone } from "../data/user";
+import { FONTS, useLayout } from "../design/tokens";
+import { sittable } from "../lib/sit";
+import { useSettings } from "../state/settings";
 
 interface Entry {
   readonly heading: string;
@@ -22,7 +34,12 @@ interface Entry {
 
 export default function Devotional() {
   const { key, part } = useLocalSearchParams<{ key: string; part: string }>();
+  const core = useCore();
+  const { user } = useAppData();
+  const translation = useSettings((s) => s.translation);
+  const { ax, pill } = useLayout();
   const [entry, setEntry] = useState<Entry | null>(null);
+  const [verse, setVerse] = useState<{ text: string; bsb: boolean; place: string } | null>(null);
   // DR-13 ends on the other half of the day ("For the evening · Matthew 24:39"); John kept both, 16 Oct 2026.
   const other = part === "evening" ? "morning" : "evening";
   const [otherRef, setOtherRef] = useState<string | null>(null);
@@ -36,33 +53,62 @@ export default function Devotional() {
       if (!live) return;
       setEntry(row);
       setOtherRef(next?.ref ?? null);
+      // His verse, in the reader's translation (the BSB under a licensed one, rule 9), for Sit with it.
+      const r = row === null ? null : parseReference(row.ref);
+      if (r === null || r.verse === undefined) return;
+      const at = { book: r.book, chapter: r.chapter, verse: r.verse };
+      const v = await textOf(core, at, translation);
+      if (live && v.text !== "" && sittable(v.text)) setVerse({ text: v.text, bsb: v.bsb, place: formatVerseId(at) });
     });
     return () => {
       live = false;
     };
-  }, [key, part]);
+  }, [key, part, other, core, translation]);
 
-  const title = part === "evening" ? "Evening devotional" : "Morning devotional";
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  // DR-13's date line, from the entry's own key; without DR-13's "· morning", which the title already says.
-  const date = key === undefined || key.length !== 4 ? "" : `${Number(key.slice(2))} ${months[Number(key.slice(0, 2)) - 1] ?? ""}`;
+  const sit = () =>
+    verse !== null &&
+    entry !== null &&
+    router.push({ pathname: "/sit", params: { text: verse.text, ref: entry.ref, bsb: verse.bsb ? "1" : "", place: verse.place, why: "Devotional" } });
+
+  const heading =
+    entry === null ? null : (
+      <View style={{ rowGap: 6 }}>
+        <Chrome step="note" tone="muted" style={{ fontWeight: "600" }}>
+          {part === "evening" ? "Devotional · evening" : "Devotional · morning"}
+        </Chrome>
+        <Chrome tone="ink" accessibilityRole="header" style={{ fontFamily: FONTS.scripture, fontWeight: "400" }} size={30} maxFontSizeMultiplier={1.6}>
+          {entry.heading}
+        </Chrome>
+        <Chrome step="note" tone="muted">
+          {entry.ref}
+        </Chrome>
+      </View>
+    );
+
   return (
-    <PageScreen title={title} back="Today" testID="devotional">
+    <PageScreen
+      title={entry?.heading ?? "Devotional"}
+      titleNode={heading ?? <View />}
+      back="Today"
+      // Reaching the end of the reading ticks it on Today (TD-30).
+      onReachEnd={() => void markDone(user, "devotional").catch(() => undefined)}
+      footer={
+        verse === null ? undefined : (
+          <View style={ax ? { rowGap: 8 } : { flexDirection: "row", columnGap: 8 }}>
+            <Capsule square={!ax} grow={ax} height={pill} onPress={() => router.push({ pathname: "/share-image", params: { verse: verse.place } })} label={`Share ${entry?.ref ?? ""}`} testID="devotional-share">
+              <Icon name="share" size={20} />
+            </Capsule>
+            <Capsule grow height={pill} onPress={sit} label={`Sit with ${entry?.ref ?? "this verse"}`} testID="devotional-sit">
+              <Icon name="sit" size={20} />
+              <Chrome tone="ink" numberOfLines={1} style={{ fontWeight: "600" }}>{`Sit with ${entry?.ref ?? ""}`}</Chrome>
+            </Capsule>
+          </View>
+        )
+      }
+      testID="devotional"
+    >
       {entry === null ? null : (
         <View style={{ rowGap: 16 }}>
-          <View style={{ rowGap: 4 }}>
-            {date !== "" ? (
-              <Chrome step="note" tone="muted">
-                {date}
-              </Chrome>
-            ) : null}
-            <Chrome tone="ink" style={{ fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 34, fontWeight: "600" }}>
-              {entry.heading}
-            </Chrome>
-            <Chrome step="note" tone="muted">
-              {entry.ref}
-            </Chrome>
-          </View>
           {entry.body
             .split(/\n\s*\n/u)
             .filter((p) => p.trim() !== "")

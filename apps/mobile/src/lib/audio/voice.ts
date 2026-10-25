@@ -5,8 +5,7 @@
  * from the player's controls, https://mobbin.com/screens/e8c63ed4-2e3a-48cb-a080-7aa53b5524a8, and Matter its
  * speeds, https://mobbin.com/screens/e76e8878-9a63-45fc-8049-2e7d40cd7930.
  *
- * The voice is chosen in the Voice sheet, Heart or George (John, 13 Oct 2026). Where neither has a reading, the
- * system voice reads unasked.
+ * The voice is chosen in the Voice sheet, Heart or George (John, 13 Oct 2026). No other voice reads (Build 12).
  */
 
 import { SPEEDS, speedLabel } from "./session";

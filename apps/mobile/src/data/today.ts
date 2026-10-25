@@ -11,19 +11,19 @@ import { openDevotional } from "./bundles";
 import { songOnly } from "./office";
 import { DAY_PICTURES } from "./pictures.generated";
 import { loadMcheyne, loadYourPlan } from "./plans";
-import { type Db, getTexts } from "./queries";
+import { type Db, getTexts, getTextsInRange } from "./queries";
 import { loadProgress } from "./startHere";
 import { loadPrayLocal } from "./prayLocal";
-import { loadDays, loadPositionAt, loadSettings } from "./user";
+import { loadDays, loadDone, loadPositionAt, loadSettings } from "./user";
 import { label as psalmsLabel, parsePsalter, type PsalmSet, setForChoice } from "../lib/dailyPsalms";
 import { verseFor } from "../lib/dailyLight";
 import { MCHEYNE_TOTAL, nextPortion, portionLabel, MCHEYNE_READINGS } from "../lib/plans";
 import { excerptOf, shortRef } from "../lib/reader";
 import { DAILY_LIGHT_DATASET, PICTURES_DATASET, type SourceInput, SPURGEON_DATASET } from "../lib/sources";
 import { verseLabel } from "../lib/saved";
-import { homeLead } from "../lib/startHere";
+import { homeLead, passageCount, passageIndexAt } from "../lib/startHere";
 import { type Rhythm, rhythmOf, todayKey } from "../lib/rhythm";
-import { dayOf, mmdd, opening, type Part, partOf } from "../lib/today";
+import { dayOf, mmdd, opening, type Part, partOf, readingMinutes } from "../lib/today";
 
 export interface Place {
   readonly book: BookCode;
@@ -38,27 +38,46 @@ export interface TodayData {
   readonly verse: { readonly text: string; readonly ref: string; readonly place: Place; readonly bsb: boolean } | null;
   /** This part's psalms and the other part's, for Later / Earlier. Null when Settings › Daily psalms is Off; no
    *  other under One a day (DR-04). */
-  readonly psalms: { readonly label: string; readonly opening: string; readonly place: Place } | null;
+  readonly psalms: {
+    readonly label: string;
+    readonly opening: string;
+    readonly place: Place;
+    /** About how long the set takes to read (TD-30), and its chapters as Today's done keys ("read:PSA.116"). */
+    readonly minutes: number;
+    readonly chapters: readonly string[];
+  } | null;
   readonly other: { readonly part: Part; readonly label: string; readonly place: Place; readonly spurgeon: boolean } | null;
   /** Daily prayer (DO-01), when Settings › Daily psalms is Daily prayer: the first words of the Venite in the
    *  morning, of Simeon's song in the evening (both fixed parts of that office, so the card never names a missing step). */
   readonly office: { readonly opening: string; readonly ref: string } | null;
-  readonly devotional: { readonly heading: string; readonly ref: string; readonly key: string; readonly part: Part } | null;
+  readonly devotional: { readonly heading: string; readonly ref: string; readonly key: string; readonly part: Part; readonly minutes: number } | null;
   /** Your plan's next reading, or "A place to start" before anything has been read (XT-01); with Daily psalms Off and
    *  no plan ever chosen, "Choose a plan", which then leads the page (EB-01). */
   readonly plan:
     | { readonly kind: "start" }
     /** `finished`: every passage of John read; the card says so and offers the plans (decided 24 Oct 2026). */
     | { readonly kind: "choose"; readonly finished?: boolean }
-    | { readonly kind: "john"; readonly title: string; readonly sub: string; readonly count: string; readonly place: Place }
-    | { readonly kind: "mcheyne"; readonly title: string; readonly sub: string; readonly place: Place };
+    | { readonly kind: "john"; readonly title: string; readonly sub: string; readonly count: string; readonly place: Place; readonly minutes: number }
+    | { readonly kind: "mcheyne"; readonly title: string; readonly sub: string; readonly place: Place; readonly minutes: number };
   /** The lamp: none before a day has ever counted (XT-01). */
   readonly rhythm: Rhythm;
   /** The Pray card (DR-11): the list's size and its first two lines. Null on the first day with an empty list (XT-01). */
   readonly pray: { readonly count: number; readonly first: readonly string[] } | null;
+  /** What was finished today (TD-30's ticks): "sit", "pray", "office", "devotional", "read:JHN.2". */
+  readonly done: ReadonlySet<string>;
 }
 
-async function textOf(core: Db, place: Place, translation: string): Promise<{ text: string; bsb: boolean }> {
+/** How many words a run of verses holds, in the reader's text or the BSB where it has none (a licensed one, rule 9). */
+async function wordsIn(core: Db, ranges: ReadonlyArray<readonly [number, number]>, translation: string): Promise<number> {
+  let n = 0;
+  for (const [lo, hi] of ranges) {
+    for (const r of await getTextsInRange(core, lo, hi)) n += (r.texts[translation] ?? r.texts["BSB"] ?? "").split(/\s+/u).filter((w) => w !== "").length;
+  }
+  return n;
+}
+
+/** A verse in the reader's translation, or the BSB under a licensed one (rule 9): Today, and Sit's choices. */
+export async function textOf(core: Db, place: Place, translation: string): Promise<{ text: string; bsb: boolean }> {
   const ord = verseOrd(place.book, place.chapter, place.verse);
   if (ord === null) return { text: "", bsb: false };
   const texts = await getTexts(core, ord);
@@ -92,7 +111,14 @@ export async function loadToday(core: Db, user: SQLiteDatabase, translation: str
   if (set !== null) {
     const place = psalmPlace(set);
     const first = await textOf(core, place, translation);
-    psalms = { label: psalmsLabel(set), opening: opening(excerptOf(first.text)), place };
+    const ranges = set.map((r) => [verseOrd("PSA", r.psalm, r.from ?? 1), verseOrd("PSA", r.psalm, r.to ?? 999)] as const);
+    psalms = {
+      label: psalmsLabel(set),
+      opening: opening(excerptOf(first.text)),
+      place,
+      minutes: readingMinutes(await wordsIn(core, ranges, translation)),
+      chapters: [...new Set(set.map((r) => `read:PSA.${r.psalm}`))],
+    };
   }
 
   const verse = await dayVerse(core, translation, day, part);
@@ -105,13 +131,13 @@ export async function loadToday(core: Db, user: SQLiteDatabase, translation: str
     const key = mmdd(day);
     const entry = (p: Part) =>
       db
-        .getFirstAsync<{ heading: string; ref: string }>(
-          "SELECT heading, ref FROM entries WHERE mmdd = ? AND part IN (?, ?) AND status != 'rejected'",
+        .getFirstAsync<{ heading: string; ref: string; body: string }>(
+          "SELECT heading, ref, body FROM entries WHERE mmdd = ? AND part IN (?, ?) AND status != 'rejected'",
           [key, p, p === "morning" ? "am" : "pm"],
         )
         .catch(() => null);
     const row = await entry(part);
-    if (row !== null) devotional = { heading: row.heading, ref: row.ref, key, part };
+    if (row !== null) devotional = { heading: row.heading, ref: row.ref, key, part, minutes: readingMinutes(row.body.split(/\s+/u).filter((w) => w !== "").length) };
     otherSpurgeon = (await entry(otherPart)) !== null;
   }
 
@@ -128,6 +154,7 @@ export async function loadToday(core: Db, user: SQLiteDatabase, translation: str
         title: portionLabel(portion),
         sub: `Reading ${next.reading + 1} of ${MCHEYNE_TOTAL}`,
         place: { book: portion[0]?.b ?? "GEN", chapter: portion[0]?.c ?? 1, verse: portion[0]?.vs ?? 1 },
+        minutes: readingMinutes(await wordsIn(core, portion.map((g) => [verseOrd(g.b, g.c, g.vs ?? 1), verseOrd(g.b, g.c, g.ve ?? 999)] as const), translation)),
       };
     }
   } else if (progress.passages.length > 0 && progress.read.size >= progress.passages.length) {
@@ -147,17 +174,24 @@ export async function loadToday(core: Db, user: SQLiteDatabase, translation: str
     // The card is titled The Gospel of John: a place elsewhere (today's psalm) is Bible's Continue, not the
     // plan's, so here the plan's next passage leads instead (simulator, 15 Oct 2026: "Psalms 78:1").
     if (lead.kind === "continue" && pos !== null && pos.book === "JHN") {
-      plan = { kind: "john", title: shortRef(pos), sub: "Continue", count: `${progress.read.size} of ${progress.passages.length}`, place: pos };
+      const here = posOrd === null ? -1 : passageIndexAt(progress.passages, posOrd);
+      const count = here === -1 ? undefined : passageCount(here, progress.passages.length);
+      const at = here === -1 ? undefined : progress.passages[here];
+      const minutes = at === undefined ? 1 : readingMinutes(await wordsIn(core, [[at.start_ord, at.end_ord]], translation));
+      // TD-30 names the passage you're in ("The wedding at Cana"), not the verse you stopped at.
+      plan = { kind: "john", title: at?.label ?? shortRef(pos), sub: "Continue", count: count ?? passageCount(progress.read.size, progress.passages.length), place: pos, minutes };
     } else if (p !== undefined) {
       const start = ordToParts(p.start_ord);
-      plan = { kind: "john", title: p.label, sub: shortRef(start), count: `${progress.read.size + 1} of ${progress.passages.length}`, place: start };
+      const minutes = readingMinutes(await wordsIn(core, [[p.start_ord, p.end_ord]], translation));
+      plan = { kind: "john", title: p.label, sub: shortRef(start), count: passageCount(index ?? progress.read.size, progress.passages.length), place: start, minutes };
     }
   }
 
   const otherSet = choice === "1662" ? setForChoice(day, otherPart, choice) : null;
   // The office's words are the BSB's, whatever the reader's translation (Daily prayer is built on the BSB).
   const officeAt: { place: Place; ref: string } = part === "morning" ? { place: { book: "PSA", chapter: 95, verse: 1 }, ref: "Psalm 95:1" } : { place: { book: "LUK", chapter: 2, verse: 29 }, ref: "Luke 2:29" };
-  const office = choice === "office" ? { opening: opening(songOnly(excerptOf((await textOf(core, officeAt.place, "BSB")).text))), ref: officeAt.ref } : null;
+  // Build 12 (TD-30): the office is one of For you today every day, whatever Daily psalms is set to.
+  const office = { opening: opening(songOnly(excerptOf((await textOf(core, officeAt.place, "BSB")).text))), ref: officeAt.ref };
   const rhythm = rhythmOf(await loadDays(user), todayKey(now));
   const { list } = await loadPrayLocal(user);
   return {
@@ -171,7 +205,8 @@ export async function loadToday(core: Db, user: SQLiteDatabase, translation: str
     plan: choosePlan && plan.kind === "start" ? { kind: "choose" } : plan,
     rhythm,
     // XT-01: no Pray card on the first day; it comes once a day has counted, or when the list has anything.
-    pray: list.length === 0 && !rhythm.begun ? null : { count: list.length, first: list.slice(0, 2).map((item) => item.text) },
+    pray: list.length === 0 && !rhythm.begun ? null : { count: list.length, first: list.filter((item) => item.answered === undefined).slice(0, 2).map((item) => item.text) },
+    done: await loadDone(user, now),
   };
 }
 

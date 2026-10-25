@@ -23,10 +23,11 @@
  */
 
 import { Children, type ReactNode } from "react";
-import { type StyleProp, Text, type TextProps, type TextStyle, useWindowDimensions } from "react-native";
+import { Pressable, type StyleProp, StyleSheet, Text, type TextProps, type TextStyle, useWindowDimensions, View } from "react-native";
 
 import { type ScriptRun, splitScriptRuns } from "../design/lang";
 import { FONTS, LTR_PROSE, TYPE, type TypeStep, usePalette, useType } from "../design/tokens";
+import { Icon } from "./Icon";
 
 type Tone = "ink" | "muted" | "accent" | "paper";
 
@@ -218,14 +219,43 @@ export function Chrome({
   );
 }
 
-/** Build 7: a section's title, bold sans in ink, 22 pt on a page and 20 in a sheet (polish-2026-10-15.md). */
-export function SectionTitle({ children, style, inSheet = false, ...rest }: BaseProps & { inSheet?: boolean }) {
+/**
+ * Build 7: a section's title, bold sans in ink, 22 pt on a page and 20 in a sheet (polish-2026-10-15.md). Build 12
+ * adds `link`, "See all ›" on the right, the one way from a section to its whole list (YouVersion's sections), in
+ * place of each screen's own "All" link.
+ */
+export function SectionTitle({
+  children,
+  style,
+  inSheet = false,
+  link,
+  ...rest
+}: BaseProps & { inSheet?: boolean; link?: { title?: string; label: string; onPress: () => void; testID?: string } }) {
   const key = useFontScaleKey();
   const t = useTypeStyle("sectionTitle", "ink");
   const sheetSize = inSheet ? { fontSize: t.style.fontSize === undefined ? 20 : (t.style.fontSize * 20) / 22, lineHeight: t.style.lineHeight === undefined ? 24 : (t.style.lineHeight * 20) / 22 } : null;
+  if (link === undefined)
+    return (
+      <Text key={key} accessibilityRole="header" maxFontSizeMultiplier={t.maxFontSizeMultiplier} {...rest} style={[LTR_PROSE, t.style, sheetSize, style]}>
+        {children}
+      </Text>
+    );
   return (
-    <Text key={key} accessibilityRole="header" maxFontSizeMultiplier={t.maxFontSizeMultiplier} {...rest} style={[LTR_PROSE, t.style, sheetSize, style]}>
-      {children}
-    </Text>
+    <View style={[styles.head, style]}>
+      <Text key={key} accessibilityRole="header" maxFontSizeMultiplier={t.maxFontSizeMultiplier} {...rest} style={[LTR_PROSE, t.style, sheetSize, { flexShrink: 1 }]}>
+        {children}
+      </Text>
+      <Pressable onPress={link.onPress} accessibilityRole="button" accessibilityLabel={link.label} hitSlop={8} style={styles.link} testID={link.testID}>
+        <Chrome tone="accent" style={{ fontWeight: "600" }}>
+          {link.title ?? "See all"}
+        </Chrome>
+        <Icon name="forward" size={16} tone="accent" />
+      </Pressable>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  head: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", columnGap: 12, flexWrap: "wrap" },
+  link: { flexDirection: "row", alignItems: "center", columnGap: 2, minHeight: 44 },
+});

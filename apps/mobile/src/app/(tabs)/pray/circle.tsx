@@ -1,14 +1,13 @@
 /**
- * A circle (PC-05, PC-06, PC-24; Build 11 canvas, approved 18 Oct 2026): it opens on its own tone with its name in
- * Literata and its twelve places; its requests in Literata, each with Pray (the hold screen, PC-20) and how many prayed,
- * never who (build 8 plan §I.3); Ask docked above the tabs. New and empty, the empty ring says what to do first; back from
- * inviting, a toast says the invite went (PC-24). ⋯ holds People and Rename, and Delete for its creator or Leave for
- * everyone else, each confirmed with what it does. A request's own ⋯ is Renew or Delete on yours, Report or Block on
- * others' (§I.8, App Store guideline 1.2). Refs: Insight Timer's group header, KOHO's open places.
- *
- * Pray together (11e): one lime button under the name starts it in FaceTime (PC-14, PC-15); while some of the circle
- * are praying together, who, and Ask to join. A planned time sits under the name with how many are coming this week,
- * I'll be there and Add to calendar (PC-18); its ⋯ changes the time, says you can't make it, or stops planning (PC-22).
+ * A circle (Build 12 PC-30, approved by John 25 Oct 2026; PC-05, PC-06, PC-24 before it). It opens on its own picture,
+ * chosen when it was made, with its name in Literata and its people as faces, how many; Pray together as one pill
+ * (or, while some are praying together, who and Ask to join); the planned time as a row whose menu says you'll come,
+ * adds it to the calendar, changes it or stops it (PC-18, PC-22). Then its requests as raised cards (what people
+ * wrote): who asked and when, the request in Literata, how many prayed, never who (build 8 plan §I.3), and Pray or
+ * "You prayed". Ask docked, Invite beside it for the creator. ⋯ holds People, Plan a time and Rename, and Delete for
+ * its creator or Leave for everyone else, each confirmed with what it does. A request's own ⋯ is Renew or Delete on
+ * yours, Report or Block on others' (§I.8, App Store guideline 1.2). Refs: Insight Timer's group page
+ * (mobbin.com/screens/7d180646-2db6-4e3c-b7a6-b1d0f26761ec).
  */
 
 import { MenuView } from "@react-native-menu/menu";
@@ -23,25 +22,29 @@ import { Icon } from "../../../components/Icon";
 import { ListRow } from "../../../components/Page";
 import { usePictureStatusBar } from "../../../components/PictureStatusBar";
 import { Avatar } from "../../../components/pray/Avatar";
-import { circleTone } from "../../../components/pray/CircleCover";
-import { Places, Ring } from "../../../components/pray/Places";
+import { Badge } from "../../../components/Badge";
+import { FillPicture } from "../../../components/FillPicture";
+import { Pill } from "../../../components/Pill";
+import { Ring } from "../../../components/pray/Places";
+import { RaisedCard } from "../../../components/RaisedCard";
 import { useTabBarClearance } from "../../../components/TabBar";
 import { Toast } from "../../../components/Toast";
-import { Chrome, Prose } from "../../../components/Type";
+import { Chrome, Prose, SectionTitle } from "../../../components/Type";
+import { pictureFor } from "../../../data/pictures";
 import { useAppData } from "../../../data/AppData";
 import { block, hide, loadPrayLocal } from "../../../data/prayLocal";
 import { allowNotices, noticeGathering, startTogether, TOGETHER_SEEN, useTogether } from "../../../data/together";
 import { loadSettings } from "../../../data/user";
 import { BRAND, ON_PICTURE } from "../../../design/palette";
 import { FONTS, useLayout, usePalette } from "../../../design/tokens";
-import { CIRCLE_MAX, deleteCircleLine, inviteLine, offerable, prayedLine, requestLine } from "../../../lib/pray";
+import { askedLine, circlePicture, deleteCircleLine, inviteLine, offerable, prayedLine, requestLine } from "../../../lib/pray";
 import { comingLine, liveLine, myAnswer, nextTime, onNow, planLine, weekKey } from "../../../lib/together";
 
 /** iOS's own event sheet adds an event with no calendar access only from iOS 17; before that Add to calendar is left out. */
 const CALENDAR_SHEET = Platform.OS === "ios" && Number.parseInt(String(Platform.Version), 10) >= 17;
 
 export default function CirclePage() {
-  const params = useLocalSearchParams<{ id?: string; owner?: string; name?: string; owned?: string; people?: string; sent?: string }>();
+  const params = useLocalSearchParams<{ id?: string; owner?: string; name?: string; owned?: string; people?: string; sent?: string; picture?: string }>();
   const { id = "", owner = "", owned = "", sent } = params;
   const [name, setName] = useState(params.name ?? "Circle");
   const { user } = useAppData();
@@ -50,6 +53,7 @@ export default function CirclePage() {
   const { gutter, pill, ax } = useLayout();
   const clearance = useTabBarClearance();
   const [requests, setRequests] = useState<CircleRequest[] | null>(null);
+  const [prayedIds, setPrayedIds] = useState<ReadonlySet<string>>(new Set());
   const [members, setMembers] = useState<CircleMember[]>([]);
   const [toast, setToast] = useState(sent === "1");
   const [live, setLive] = useState<CircleLive>({ coming: [], together: [] });
@@ -64,6 +68,7 @@ export default function CirclePage() {
       // Hidden: the ones you reported. Unlike public requests, ones you prayed for stay, as the circle's shared list.
       .then(([all, local, people, now]) => {
         setRequests(offerable(all, local.hidden, local.blocked));
+        setPrayedIds(local.prayed);
         setMembers(people);
         setLive(now);
         const at = now.plan === undefined ? null : nextTime(now.plan, new Date());
@@ -116,7 +121,7 @@ export default function CirclePage() {
   const prayTogether = () => {
     if (inSession) return router.push("/pray/together");
     void loadSettings(user)
-      .then((st) => (st[TOGETHER_SEEN] === "1" ? startTogether(id, name) : router.push({ pathname: "/pray/together-start", params: { id, owner, name } })))
+      .then((st) => (st[TOGETHER_SEEN] === "1" ? startTogether(id, name) : router.push({ pathname: "/pray/together-start", params: { id, owner, name, picture: params.picture ?? "" } })))
       .catch(failed);
   };
   const come = (going: boolean) =>
@@ -135,14 +140,16 @@ export default function CirclePage() {
     void together?.addToCalendar(`${name} prays together`, planAt.getTime(), plan.minutes, plan.weekly).catch(failed);
   };
   const planActions = plan === undefined ? [] : [
+    answer === true ? { id: "cant", title: "Can’t make it this week" } : { id: "coming", title: "I’ll be there this week" },
+    ...(CALENDAR_SHEET ? [{ id: "calendar", title: "Add to calendar" }] : []),
     ...(plan.mine ? [{ id: "change", title: "Change the time" }] : []),
-    answer === false ? { id: "coming", title: "I’ll be there this week" } : { id: "cant", title: "Can’t make it this week" },
     ...(plan.mine ? [{ id: "stop", title: "Stop planning", attributes: { destructive: true } }] : []),
   ];
   const onPlan = (action: string) => {
     if (action === "change") openPlan();
     if (action === "coming") come(true);
     if (action === "cant") come(false);
+    if (action === "calendar") calendar();
     if (action === "stop")
       Alert.alert("Stop planning?", "The time goes for everyone in the circle, with who said they’d come.", [
         { text: "Cancel", style: "cancel" },
@@ -153,6 +160,7 @@ export default function CirclePage() {
   const options = [
     { id: "people", title: "People" },
     ...(together !== null && plan === undefined ? [{ id: "plan", title: "Plan a time to pray together" }] : []),
+    ...(creator && inviteLine(members.length) !== null ? [{ id: "invite", title: "Invite" }] : []),
     ...(creator ? [{ id: "rename", title: "Rename" }] : []),
     { id: "leave", title: creator ? "Delete circle" : "Leave circle", attributes: { destructive: true } },
   ];
@@ -161,6 +169,7 @@ export default function CirclePage() {
     if (action === "rename") rename();
     if (action === "plan") openPlan();
     if (action === "leave") confirmLeave();
+    if (action === "invite") invite();
   };
 
   const requestActions = (r: CircleRequest) =>
@@ -189,122 +198,114 @@ export default function CirclePage() {
 
   const now = Date.now();
   const empty = requests !== null && requests.length === 0;
+  const fresh = (requests ?? []).filter((r) => !r.mine && !prayedIds.has(r.id)).length;
+  const cover = pictureFor(Number(params.picture) || circlePicture({ id }), "morning");
+  const faces = [...joined, ...invited];
   return (
     <View style={{ flex: 1, backgroundColor: palette.paper }} testID="circle">
       {statusBar}
       <ScrollView contentContainerStyle={{ paddingBottom: clearance + pill + 40 }} onScroll={onScroll} scrollEventThrottle={32}>
-        <View onLayout={onBandLayout} style={[styles.band, { backgroundColor: circleTone(id), paddingTop: insets.top + 64, paddingHorizontal: gutter }]}>
-          <Chrome accessibilityRole="header" style={{ color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontWeight: "400", letterSpacing: -0.8 }} size={40}>
+        <View onLayout={onBandLayout} style={[styles.band, { backgroundColor: BRAND.forest, paddingTop: insets.top + 64, paddingHorizontal: gutter }]}>
+          {cover === undefined ? null : <FillPicture source={cover.image} />}
+          <View style={[StyleSheet.absoluteFill, { experimental_backgroundImage: BAND_FADE }]} />
+          <Chrome accessibilityRole="header" style={{ color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontWeight: "400", letterSpacing: -0.6, marginTop: ax ? 24 : 40 }} size={34}>
             {name}
           </Chrome>
-          <View style={{ marginTop: 16 }}>
-            <Places members={[...joined, ...invited]} />
+          <View style={styles.faces} accessible accessibilityLabel={`${joined.length} ${joined.length === 1 ? "person" : "people"}${invited.length > 0 ? `, ${invited.length} invited` : ""}`}>
+            {faces.slice(0, ax ? 3 : 5).map((m, i) => (
+              <View key={m.id} style={i === 0 ? null : { marginLeft: -8 }}>
+                <Avatar id={m.id} name={m.name} size={30} onDark open={!m.joined} />
+              </View>
+            ))}
+            <Chrome step="note" style={{ color: ON_PICTURE.strong, marginLeft: 10 }}>{`${joined.length} ${joined.length === 1 ? "person" : "people"}`}</Chrome>
           </View>
-          <Chrome step="note" style={{ color: ON_PICTURE.muted, fontWeight: "600", marginTop: 10 }}>{`${joined.length} of ${CIRCLE_MAX} · invite only`}</Chrome>
-          {together === null ? null : praying.length > 0 && !inSession ? (
-            <View style={[styles.live, { backgroundColor: ON_PICTURE.glass }]} accessibilityLiveRegion="polite" testID="circle-live">
-              <View style={styles.liveFaces}>
-                {praying.slice(0, 3).map((m) => (
-                  <Avatar key={m} id={m} name={nameOf(m)} size={26} onDark />
-                ))}
-              </View>
-              <Chrome step="note" style={{ color: ON_PICTURE.text, flex: 1, fontWeight: "600" }}>
-                {liveLine(praying.map(nameOf))}
-              </Chrome>
-              <Pressable onPress={askToJoin} disabled={asked} accessibilityRole="button" accessibilityState={{ disabled: asked }} style={[styles.small, { backgroundColor: BRAND.chartreuse, opacity: asked ? 0.6 : 1 }]} testID="circle-ask-join">
-                <Chrome step="note" style={{ color: BRAND.ink, fontWeight: "700" }}>
-                  {asked ? "Asked" : "Ask to join"}
-                </Chrome>
-              </Pressable>
-            </View>
-          ) : (
-            <Pressable onPress={prayTogether} accessibilityRole="button" style={[styles.together, { minHeight: pill, backgroundColor: BRAND.chartreuse }]} testID="circle-together">
-              <Icon name="phone" size={18} color={BRAND.ink} />
-              <Chrome style={{ color: BRAND.ink, fontWeight: "700" }}>{inSession ? "Back to praying together" : "Pray together"}</Chrome>
-            </Pressable>
-          )}
-          {together !== null && plan !== undefined && planAt !== null ? (
-            <View style={[styles.plan, { backgroundColor: ON_PICTURE.glass }]} testID="circle-plan">
-              <View style={styles.planHead}>
-                <Chrome step="note" style={{ color: BRAND.chartreuse, fontWeight: "600", letterSpacing: 0.4 }}>
-                  Praying together
-                </Chrome>
-                <MenuView shouldOpenOnLongPress={false} actions={planActions} onPressAction={({ nativeEvent }) => onPlan(nativeEvent.event)}>
-                  <View style={styles.more} accessible accessibilityRole="button" accessibilityLabel="Planned time options">
-                    <Icon name="more" size={18} color={ON_PICTURE.text} />
-                  </View>
-                </MenuView>
-              </View>
-              <Chrome style={{ color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontWeight: "400" }} size={22}>
-                {planLine(plan, planAt)}
-              </Chrome>
-              <Chrome step="note" style={{ color: ON_PICTURE.muted }}>
-                {comingLine(live.coming, week, joined.length)}
-              </Chrome>
-              <View style={[styles.planButtons, ax ? { flexDirection: "column", alignItems: "stretch" } : null]}>
-                <Pressable onPress={() => come(answer !== true)} accessibilityRole="button" accessibilityState={{ selected: answer === true }} style={[styles.small, styles.planButton, { backgroundColor: BRAND.chartreuse }]} testID="circle-coming">
-                  {answer === true ? <Icon name="check" size={16} color={BRAND.ink} /> : null}
-                  <Chrome step="note" style={{ color: BRAND.ink, fontWeight: "700" }}>
-                    {answer === true ? "You’re coming" : "I’ll be there"}
-                  </Chrome>
-                </Pressable>
-                {CALENDAR_SHEET ? (
-                <Pressable onPress={calendar} accessibilityRole="button" style={[styles.small, styles.planButton, { backgroundColor: ON_PICTURE.glassSolid }]} testID="circle-calendar">
-                  <Icon name="calendar" size={16} color={ON_PICTURE.text} />
-                  <Chrome step="note" style={{ color: ON_PICTURE.text, fontWeight: "600" }}>
-                    Add to calendar
-                  </Chrome>
-                </Pressable>
-                ) : null}
-              </View>
-            </View>
-          ) : null}
         </View>
 
-        <View style={{ paddingHorizontal: gutter }}>
+        <View style={{ paddingHorizontal: gutter, paddingTop: 20 }}>
+          {together === null ? null : praying.length > 0 && !inSession ? (
+            <View style={[styles.live, { backgroundColor: palette.selection }]} accessibilityLiveRegion="polite" testID="circle-live">
+              <View style={styles.liveFaces}>
+                {praying.slice(0, 3).map((m) => (
+                  <Avatar key={m} id={m} name={nameOf(m)} size={26} />
+                ))}
+              </View>
+              <Chrome step="note" tone="ink" style={{ flex: 1, fontWeight: "600" }}>
+                {liveLine(praying.map(nameOf))}
+              </Chrome>
+              <Pill small title={asked ? "Asked" : "Ask to join"} disabled={asked} onPress={askToJoin} testID="circle-ask-join" />
+            </View>
+          ) : (
+            <Pill title={inSession ? "Back to praying together" : "Pray together"} icon="people" stretch onPress={prayTogether} testID="circle-together" />
+          )}
+          {together !== null && plan !== undefined && planAt !== null ? (
+            <MenuView shouldOpenOnLongPress={false} actions={planActions} onPressAction={({ nativeEvent }) => onPlan(nativeEvent.event)}>
+              <ListRow
+                first
+                leading={
+                  <View style={[styles.bell, { backgroundColor: palette.fill }]}>
+                    <Icon name="calendar" size={20} />
+                  </View>
+                }
+                title={planLine(plan, planAt)}
+                subtitle={answer === true ? `${comingLine(live.coming, week, joined.length)} · you too` : comingLine(live.coming, week, joined.length)}
+                label={`${planLine(plan, planAt)}. ${comingLine(live.coming, week, joined.length)}. Options`}
+                onPress={() => undefined}
+                testID="circle-plan"
+              />
+            </MenuView>
+          ) : null}
+
           {empty ? (
             <View style={styles.empty}>
               <Ring members={joined} size={150} onDark={false} />
               <Prose step="scripture" style={{ textAlign: "center", marginTop: 8 }}>
                 {invited.length > 0 ? `${invited.length} ${invited.length === 1 ? "person" : "people"} invited.` : "Nothing asked yet."}
               </Prose>
-              <Chrome step="note" tone="muted" style={{ textAlign: "center", maxWidth: 280 }}>
-                {invited.length > 0 ? "They appear here when they join. You can ask the first request now." : "Invite the people you pray with. Then ask the first request."}
-              </Chrome>
             </View>
-          ) : null}
-          {(requests ?? []).map((r, i) => {
+          ) : (
+            <View style={styles.sectionHead}>
+              <SectionTitle>Requests</SectionTitle>
+              {fresh > 0 ? <Badge text={`${fresh} new`} /> : null}
+            </View>
+          )}
+          {(requests ?? []).map((r) => {
+            const asked = askedLine(r.firstName, r.createdAt, now);
             const prayed = prayedLine(r.prayed);
-            const meta = [r.firstName === "" ? null : r.firstName, requestLine(r, now), prayed].filter((x) => x !== null).join(" · ");
+            const done = prayedIds.has(r.id);
             return (
-              <View key={r.id} style={[styles.request, i === 0 ? null : { borderTopColor: palette.divider, borderTopWidth: StyleSheet.hairlineWidth }]}>
-                <Prose>{r.text}</Prose>
+              <RaisedCard key={r.id} testID={`circle-request-${r.id}`}>
                 <View style={styles.meta}>
-                  <Avatar id={r.creator} name={r.firstName} size={24} />
-                  <Chrome step="note" tone="muted" style={{ flex: 1 }}>
-                    {meta}
+                  <Avatar id={r.creator} name={r.firstName} size={32} />
+                  <Chrome step="note" tone="muted" style={{ flex: 1, fontWeight: "600" }}>
+                    {r.mine ? `You · ${requestLine(r, now)}` : (asked ?? "")}
                   </Chrome>
-                  {r.mine ? null : (
-                    <Pressable onPress={() => pray(r)} accessibilityRole="button" accessibilityLabel={`Pray for this: ${r.text}`} style={[styles.pray, { backgroundColor: palette.selection }]}>
-                      <Chrome tone="accent" style={{ fontWeight: "600" }} size={14}>
-                        Pray
-                      </Chrome>
-                    </Pressable>
-                  )}
                   <MenuView shouldOpenOnLongPress={false} actions={requestActions(r)} onPressAction={({ nativeEvent }) => onRequest(r, nativeEvent.event)}>
                     <View style={styles.more} accessible accessibilityRole="button" accessibilityLabel={r.mine ? "More: renew, delete" : "More: report, block"}>
                       <Icon name="more" size={18} tone="muted" />
                     </View>
                   </MenuView>
                 </View>
-              </View>
+                <Chrome tone="ink" style={styles.requestText} maxFontSizeMultiplier={2}>
+                  {r.text}
+                </Chrome>
+                <View style={styles.foot}>
+                  <Chrome step="note" tone="muted">
+                    {prayed ?? ""}
+                  </Chrome>
+                  {r.mine ? null : done ? (
+                    <View style={styles.prayed}>
+                      <Icon name="check" size={14} tone="muted" />
+                      <Chrome step="note" tone="muted">
+                        You prayed
+                      </Chrome>
+                    </View>
+                  ) : (
+                    <Pill small title="Pray" label={`Pray for this: ${r.text}`} onPress={() => pray(r)} />
+                  )}
+                </View>
+              </RaisedCard>
             );
           })}
-          {creator && inviteLine(members.length) !== null ? (
-            <View style={{ marginTop: 16 }}>
-              <ListRow first title="Invite" subtitle={`${CIRCLE_MAX - members.length} more can join`} onPress={invite} testID="circle-invite" />
-            </View>
-          ) : null}
         </View>
       </ScrollView>
 
@@ -316,13 +317,18 @@ export default function CirclePage() {
           </View>
         </GlassButton>
         <MenuView shouldOpenOnLongPress={false} actions={options} onPressAction={({ nativeEvent }) => choose(nativeEvent.event)}>
-          <GlassButton onPicture accessibilityLabel={creator ? "Circle options: People, Rename, Delete" : "Circle options: People, Leave"} testID="circle-more">
+          <GlassButton onPicture accessibilityLabel={creator ? "Circle options: People, Invite, Rename, Delete" : "Circle options: People, Leave"} testID="circle-more">
             <Icon name="more" size={20} tone="white" />
           </GlassButton>
         </MenuView>
       </View>
 
       <View style={[styles.dock, { bottom: clearance - 12, left: gutter, right: gutter }]}>
+        {creator && inviteLine(members.length) !== null ? (
+          <Pressable onPress={invite} accessibilityRole="button" accessibilityLabel={`Invite to ${name}`} style={[styles.dockSquare, { width: pill, height: pill, backgroundColor: palette.card }]} testID="circle-invite">
+            <Icon name="plus" size={20} />
+          </Pressable>
+        ) : null}
         <Pressable onPress={empty && creator && invited.length === 0 ? invite : ask} accessibilityRole="button" style={[styles.dockPill, { minHeight: pill, backgroundColor: palette.ink }]} testID="circle-ask">
           <Chrome style={{ color: palette.paper, fontWeight: "600" }}>{empty && creator && invited.length === 0 ? `Invite to ${name}` : `Ask ${name}`}</Chrome>
         </Pressable>
@@ -332,23 +338,25 @@ export default function CirclePage() {
   );
 }
 
+/** Clear at the top for the picture, dark under the name and faces. */
+const BAND_FADE = "linear-gradient(rgba(8,12,10,0.35), rgba(8,12,10,0.15) 40%, rgba(8,12,10,0.7))";
+
 const styles = StyleSheet.create({
-  band: { paddingBottom: 24 },
+  band: { paddingBottom: 22, overflow: "hidden" },
   top: { position: "absolute", left: 0, right: 0, flexDirection: "row", justifyContent: "space-between", zIndex: 2 },
   backRow: { flexDirection: "row", alignItems: "center", columnGap: 4 },
+  faces: { flexDirection: "row", alignItems: "center", marginTop: 10 },
   empty: { alignItems: "center", rowGap: 8, paddingTop: 28 },
-  request: { paddingVertical: 18, rowGap: 12 },
+  sectionHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 26, marginBottom: 12 },
   meta: { flexDirection: "row", alignItems: "center", columnGap: 10 },
-  pray: { minHeight: 36, paddingHorizontal: 14, borderRadius: 999, justifyContent: "center" },
+  requestText: { fontFamily: FONTS.scripture, fontWeight: "400", fontSize: 21, lineHeight: 28, marginTop: 10, marginBottom: 8 },
+  foot: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 },
+  prayed: { flexDirection: "row", alignItems: "center", columnGap: 4 },
   more: { width: 36, height: 44, alignItems: "center", justifyContent: "center" },
-  dock: { position: "absolute", zIndex: 3 },
-  together: { flexDirection: "row", alignItems: "center", justifyContent: "center", columnGap: 8, borderRadius: 999, marginTop: 18 },
-  live: { flexDirection: "row", alignItems: "center", columnGap: 10, borderRadius: 18, padding: 10, marginTop: 18 },
+  bell: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  dock: { position: "absolute", zIndex: 3, flexDirection: "row", columnGap: 8 },
+  dockSquare: { borderRadius: 999, alignItems: "center", justifyContent: "center" },
+  dockPill: { flex: 1, borderRadius: 999, alignItems: "center", justifyContent: "center" },
+  live: { flexDirection: "row", alignItems: "center", columnGap: 10, borderRadius: 18, padding: 10 },
   liveFaces: { flexDirection: "row", columnGap: 2 },
-  small: { minHeight: 40, paddingHorizontal: 16, borderRadius: 999, alignItems: "center", justifyContent: "center" },
-  plan: { borderRadius: 20, padding: 16, rowGap: 6, marginTop: 14 },
-  planHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  planButtons: { flexDirection: "row", gap: 10, marginTop: 8 },
-  planButton: { flexDirection: "row", columnGap: 6, minHeight: 44 },
-  dockPill: { borderRadius: 999, alignItems: "center", justifyContent: "center" },
 });

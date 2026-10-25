@@ -1,72 +1,67 @@
 /**
- * Silence on its own (FL-04, PT-46; approved by John 24 Oct 2026: "the silence experience looks flat and dead"). It was
- * only the last step of Sit with this; here it is its own way to pray. Choose how long, with rain if you like (AS-01),
- * then the Settle orb's ring (BR-05 A) runs down the time on the night ground with the minutes left under it, and
- * nothing else. When it closes: a soft haptic, the end said aloud for VoiceOver (PR-06), Amen, and the day counted.
+ * Silence on its own (FL-04, PT-46; approved by John 24 Oct 2026: "the silence experience looks flat and dead"; Build 12
+ * SL-30, approved 25 Oct 2026). One of the four ways to pray, on the day's picture blurred, as Sit is. Choose how long,
+ * with rain if you like (AS-01), Begin; then the time left large inside the ring Sit's orb uses, the ring running down
+ * in lime, "of 10 min" under it, and Pause. When it closes: a soft haptic, the end said aloud for VoiceOver (PR-06),
+ * Amen, and the day counted.
  *
- * The ring is one animation over the whole span; the minutes under it update on a 15 s countdown that stops when this
- * screen closes (the one timer CLAUDE.md allows).
+ * The ring is one animation over the span; the time inside it updates on a one-second countdown that stops when the
+ * screen closes or is paused (the one timer CLAUDE.md allows).
  */
 
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 
+import { GlassButton } from "../components/Glass";
 import { Icon } from "../components/Icon";
+import { PauseButton } from "../components/PauseButton";
+import { PictureGround } from "../components/PictureGround";
+import { Pill } from "../components/Pill";
 import { Chrome } from "../components/Type";
 import { useAppData } from "../data/AppData";
 import { setAmbient, useAmbient } from "../data/ambient";
 import { countDay } from "../data/user";
 import { BRAND, ON_PICTURE } from "../design/palette";
 import { FONTS, useLayout } from "../design/tokens";
-import { DEFAULT_SILENCE, SILENCE_MINUTES, timeLeft } from "../lib/sit";
+import { clock, DEFAULT_SILENCE, SILENCE_MINUTES, timeLeft } from "../lib/sit";
 import { useAccessibility } from "../state/accessibility";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const SIZE = 280;
-const R = 128;
-const AROUND = 2 * Math.PI * R;
 
 export default function Silence() {
   const { user } = useAppData();
   const insets = useSafeAreaInsets();
-  const { gutter } = useLayout();
+  const { gutter, ax } = useLayout();
   const reduceMotion = useAccessibility((s) => s.reduceMotion);
   const rain = useAmbient((s) => s.on);
   const [minutes, setMinutes] = useState<number>(DEFAULT_SILENCE);
   const [endsAt, setEndsAt] = useState<number | null>(null);
+  // Paused: the time that was left, so Resume carries on from there.
+  const [held, setHeld] = useState<number | null>(null);
   const [ended, setEnded] = useState(false);
   const [now, setNow] = useState(Date.now());
   const left = useRef(new Animated.Value(1)).current;
   useEffect(() => () => void setAmbient(false), []);
 
+  const size = ax ? 230 : 290;
+  const r = size / 2 - 3;
+  const around = 2 * Math.PI * r;
+
   useEffect(() => {
     if (endsAt === null) return;
     const span = endsAt - Date.now();
-    if (!reduceMotion)
-      Animated.timing(left, {
-        toValue: 0,
-        duration: span,
-        easing: Easing.linear,
-        useNativeDriver: false,
-      }).start();
-    const tick = setInterval(() => setNow(Date.now()), 15_000);
+    if (!reduceMotion) Animated.timing(left, { toValue: 0, duration: span, easing: Easing.linear, useNativeDriver: false }).start();
+    const tick = setInterval(() => setNow(Date.now()), 1000);
     const end = setTimeout(() => {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       AccessibilityInfo.announceForAccessibility("Silence has ended");
       void countDay(user).catch(() => undefined);
       void setAmbient(false);
+      setEndsAt(null);
       setEnded(true);
     }, span);
     return () => {
@@ -81,95 +76,62 @@ export default function Silence() {
     setNow(Date.now());
     setEndsAt(Date.now() + minutes * 60_000);
   };
+  const togglePause = () => {
+    if (held !== null) {
+      setNow(Date.now());
+      setEndsAt(Date.now() + held);
+      setHeld(null);
+    } else if (endsAt !== null) {
+      setHeld(Math.max(0, endsAt - Date.now()));
+      setEndsAt(null);
+    }
+  };
 
+  const running = endsAt !== null || held !== null;
+  const msLeft = held ?? (endsAt === null ? 0 : endsAt - now);
   return (
-    <View
-      style={[
-        styles.root,
-        { paddingTop: insets.top + 6, paddingBottom: insets.bottom + 24 },
-      ]}
-      testID="silence"
-    >
-      <StatusBar style="light" />
-      <View style={{ paddingHorizontal: 16 }}>
+    <View style={[styles.root, { paddingTop: insets.top + 4, paddingBottom: insets.bottom + 24 }]} testID="silence">
+      <PictureGround blurred />
+      <View style={[styles.bar, { paddingHorizontal: gutter - 8 }]}>
         {ended ? (
           <View style={{ height: 44 }} />
         ) : (
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="End, back to Pray"
-            style={styles.round}
-            testID="silence-close"
-          >
-            <Icon name="close" size={20} tone="paper" />
-          </Pressable>
+          <GlassButton onPicture onPress={() => router.back()} accessibilityLabel="End, back to Pray" testID="silence-close">
+            <Icon name="close" size={20} tone="white" />
+          </GlassButton>
+        )}
+        <Chrome step="note" style={{ color: ON_PICTURE.strong, fontWeight: "600" }} accessibilityElementsHidden>
+          {/* Before Begin the ring already says Silence (12h QA: it said it twice). */}
+          {running ? "Silence" : ""}
+        </Chrome>
+        {ended ? (
+          <View style={{ width: 44 }} />
+        ) : (
+          // AS-01: rain is a switch, so it says when it is on, in lime as the ring is.
+          <GlassButton onPicture onPress={() => void setAmbient(!rain)} accessibilityRole="switch" accessibilityState={{ checked: rain }} accessibilityLabel="The sound of rain" testID="silence-rain">
+            <Icon name="cloud" size={20} color={rain ? BRAND.chartreuse : ON_PICTURE.text} />
+          </GlassButton>
         )}
       </View>
 
       <View style={styles.middle}>
-        <View
-          style={{
-            width: SIZE,
-            height: SIZE,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Svg
-            width={SIZE}
-            height={SIZE}
-            style={[StyleSheet.absoluteFill, { overflow: "visible" }]}
-          >
-            <Defs>
-              <RadialGradient id="silenceGlow" cx="50%" cy="50%" r="50%">
-                <Stop
-                  offset="0.3"
-                  stopColor={BRAND.chartreuse}
-                  stopOpacity={ended ? 0.24 : 0.12}
-                />
-                <Stop offset="1" stopColor={BRAND.chartreuse} stopOpacity={0} />
-              </RadialGradient>
-            </Defs>
-            <Circle
-              cx={SIZE / 2}
-              cy={SIZE / 2}
-              r={SIZE * 0.6}
-              fill="url(#silenceGlow)"
-            />
-            <Circle
-              cx={SIZE / 2}
-              cy={SIZE / 2}
-              r={R}
-              fill="none"
-              stroke={BRAND.onNight}
-              strokeOpacity={0.12}
-              strokeWidth={1.5}
-            />
+        <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+          <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+            <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={ON_PICTURE.mark} strokeWidth={1.5} />
             {ended ? (
-              <Circle
-                cx={SIZE / 2}
-                cy={SIZE / 2}
-                r={R}
-                fill="none"
-                stroke={BRAND.chartreuse}
-                strokeWidth={3}
-              />
-            ) : endsAt !== null && !reduceMotion ? (
+              <Circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={BRAND.chartreuse} strokeWidth={3} />
+            ) : running && !reduceMotion ? (
               <AnimatedCircle
-                cx={SIZE / 2}
-                cy={SIZE / 2}
-                r={R}
+                cx={size / 2}
+                cy={size / 2}
+                r={r}
                 fill="none"
                 stroke={BRAND.chartreuse}
                 strokeWidth={3}
                 strokeLinecap="round"
-                strokeDasharray={`${AROUND} ${AROUND}`}
-                strokeDashoffset={left.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [AROUND, 0],
-                })}
-                transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
+                strokeDasharray={`${around} ${around}`}
+                strokeDashoffset={left.interpolate({ inputRange: [0, 1], outputRange: [around, 0] })}
+                transform={`rotate(-90 ${size / 2} ${size / 2})`}
               />
             ) : null}
           </Svg>
@@ -178,15 +140,16 @@ export default function Silence() {
               <Chrome style={styles.word} size={40} accessibilityRole="header">
                 Amen
               </Chrome>
-              <Chrome
-                step="note"
-                style={styles.under}
-              >{`${minutes} minutes of silence`}</Chrome>
+              <Chrome step="note" style={styles.under}>{`${minutes} minutes of silence`}</Chrome>
             </>
-          ) : endsAt !== null ? (
-            <Chrome style={styles.under} accessibilityLiveRegion="polite">
-              {timeLeft(endsAt - now)}
-            </Chrome>
+          ) : running ? (
+            // The seconds are for the eye; VoiceOver hears the minutes, so it is not read every second.
+            <View accessible accessibilityLabel={held !== null ? `Paused, ${timeLeft(msLeft).toLowerCase()}` : timeLeft(msLeft)} style={{ alignItems: "center" }}>
+              <Chrome style={styles.time} size={ax ? 56 : 64} maxFontSizeMultiplier={1}>
+                {clock(msLeft / 1000)}
+              </Chrome>
+              <Chrome step="note" style={styles.under}>{`of ${minutes} min`}</Chrome>
+            </View>
           ) : (
             <Chrome style={styles.word} size={40} accessibilityRole="header">
               Silence
@@ -194,12 +157,8 @@ export default function Silence() {
           )}
         </View>
 
-        {endsAt === null && !ended ? (
-          <View
-            style={styles.chips}
-            accessibilityRole="radiogroup"
-            accessibilityLabel="How long"
-          >
+        {!running && !ended ? (
+          <View style={[styles.chips, { paddingHorizontal: gutter }]} accessibilityRole="radiogroup" accessibilityLabel="How long">
             {SILENCE_MINUTES.map((m) => (
               <Pressable
                 key={m}
@@ -207,115 +166,36 @@ export default function Silence() {
                 accessibilityRole="radio"
                 accessibilityState={{ checked: m === minutes }}
                 accessibilityLabel={`${m} minutes`}
-                style={[
-                  styles.chip,
-                  {
-                    backgroundColor:
-                      m === minutes ? BRAND.onNight : ON_PICTURE.glass,
-                  },
-                ]}
+                style={[styles.chip, { backgroundColor: m === minutes ? ON_PICTURE.text : ON_PICTURE.glass }]}
                 testID={`silence-${m}`}
               >
-                <Chrome
-                  style={{
-                    fontWeight: "600",
-                    color: m === minutes ? BRAND.ink : BRAND.onNight,
-                  }}
-                >{`${m} min`}</Chrome>
+                <Chrome style={{ fontWeight: "600", color: m === minutes ? BRAND.ink : ON_PICTURE.text }}>{`${m} min`}</Chrome>
               </Pressable>
             ))}
           </View>
         ) : null}
       </View>
 
-      <View style={{ paddingHorizontal: gutter, rowGap: 12 }}>
-        {endsAt === null && !ended ? (
-          <Pressable
-            onPress={() => void setAmbient(!rain)}
-            accessibilityRole="button"
-            accessibilityLabel={
-              rain ? "Stop the sound of rain" : "Add the sound of rain"
-            }
-            style={styles.rain}
-            testID="silence-rain"
-          >
-            <Chrome style={{ color: BRAND.chartreuse, fontWeight: "600" }}>
-              {rain ? "Rain · Stop" : "+ Add rain"}
-            </Chrome>
-          </Pressable>
-        ) : null}
+      <View style={{ paddingHorizontal: gutter, alignItems: "center" }}>
         {ended ? (
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            style={styles.primary}
-            testID="silence-done"
-          >
-            <Chrome style={styles.primaryText}>Done</Chrome>
-          </Pressable>
-        ) : endsAt === null ? (
-          <Pressable
-            onPress={begin}
-            accessibilityRole="button"
-            accessibilityLabel={`Begin ${minutes} minutes of silence`}
-            style={styles.primary}
-            testID="silence-begin"
-          >
-            <Chrome style={styles.primaryText}>Begin</Chrome>
-          </Pressable>
-        ) : null}
+          <Pill title="Done" onPicture stretch onPress={() => router.back()} testID="silence-done" />
+        ) : running ? (
+          <PauseButton paused={held !== null} onPress={togglePause} testID="silence-pause" />
+        ) : (
+          <Pill title="Begin" onPicture stretch onPress={begin} label={`Begin ${minutes} minutes of silence`} testID="silence-begin" />
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BRAND.night },
-  round: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: ON_PICTURE.glass,
-  },
-  middle: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    rowGap: 30,
-  },
-  word: {
-    color: BRAND.onNight,
-    fontFamily: FONTS.scripture,
-    fontWeight: "400",
-  },
-  under: {
-    color: BRAND.onNight,
-    opacity: 0.75,
-    marginTop: 6,
-    textAlign: "center",
-  },
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-  },
-  chip: {
-    minHeight: 46,
-    paddingHorizontal: 14,
-    borderRadius: 23,
-    justifyContent: "center",
-  },
-  rain: { alignSelf: "center", minHeight: 44, justifyContent: "center" },
-  primary: {
-    minHeight: 54,
-    borderRadius: 27,
-    backgroundColor: BRAND.chartreuse,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  primaryText: { color: BRAND.ink, fontWeight: "600" },
+  root: { flex: 1 },
+  bar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  middle: { flex: 1, alignItems: "center", justifyContent: "center", rowGap: 30 },
+  word: { color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontWeight: "400" },
+  time: { color: ON_PICTURE.text, fontWeight: "300", fontVariant: ["tabular-nums"] },
+  under: { color: ON_PICTURE.muted, marginTop: 4, textAlign: "center" },
+  chips: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 },
+  chip: { minHeight: 46, paddingHorizontal: 14, borderRadius: 23, justifyContent: "center" },
 });

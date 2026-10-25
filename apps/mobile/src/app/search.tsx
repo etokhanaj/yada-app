@@ -1,63 +1,84 @@
 /**
- * Search (canvas S-01…S-04, E-04): a sheet with the field focused and
- * `Cancel`, as Apple Books' in-book search. Groups under sentence-case labels:
+ * Search (SE-30 to SE-32, Build 12): a sheet with the field focused and `Cancel`, as Apple Books' in-book search, and
+ * the Search tab, a page under the bar with its large title.
  *
- *   Go to       "jn 3 16", "1 cor 14:34", "Genesis" — the forgiving parser
- *   Dictionary  Translation Words' terms, before the verses (DI-03, PD-04)
- *   Guides      a passage title finds its guide (IA-06)
- *   Words       Greek/Hebrew forms via word_forms, or English via glosses (5, then Show all)
- *   Passages    FTS5 over the reader's translation, every term quoted
+ * Before anything is typed (SE-30): the ways in as tint tiles, For when you're as picture tiles (as Pray draws them),
+ * then Recent, the last searches, kept on this phone only (data/user.ts recent_searches).
  *
- * Words sit above passages, few and capped, as Telegram puts chats above
- * messages (https://mobbin.com/screens/9faafc96-77c1-4cb1-8a81-d6bde4047fa2).
+ * Results (SE-31): a reference goes first as Go to. Then the verses, which came last under Dictionary, Guides and
+ * Words: their true count and the books they fall in, each a pill with its own count to jump by, the searched word
+ * marked in each verse. Yada holds nothing on which verses are best known, so it never puts a "best" one first (RU-16):
+ * they stay in Bible order, as a concordance lists them. Words, Guides, Dictionary (and People, when a name finds a
+ * Tyndale profile) are pills beside Verses, each its own list.
+ *
+ * Nothing found (SE-32): "Did you mean anxious?" from the nearest word the Bible's own index holds (lib/search.ts), and
+ * when the word is a mood, its picture tile.
  *
  * Search follows the translation (John, 12 Oct 2026). A licensed version is searched through the proxy
  * (EG-06): its verses, the way to the BSB's own search with Words, and the notice (§7). Offline, or if
  * that search fails, the BSB is searched and one line says so (EG-07). Nothing found there is stored.
- *
- * Before anything is typed, Search offers the dictionary to browse (DI-04). VM-01 draws six moments there (Anxious,
- * Afraid…); their verse lists need a vetted source and John's review (build-7-plan.md, "Verses for a moment"), and no
- * bundle holds them, so they are not drawn.
  */
 
-import { BOOK_CODES, formatDisplayRef, formatVerseId, ordToParts, parseVerseId, verseOrd } from "@yada/schema";
-import { router } from "expo-router";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { BOOK_CODES, type BookCode, formatDisplayRef, formatVerseId, ordToParts, parseVerseId, verseOrd } from "@yada/schema";
+import { router, useFocusEffect } from "expo-router";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type NativeScrollEvent, type NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { FilterPills } from "../components/FilterPills";
 import { Icon } from "../components/Icon";
 import { useTabBarClearance } from "../components/TabBar";
 import { readerHref, useSheetNav } from "../components/navigation";
-import { ListRow } from "../components/Page";
-import { SheetScreen, TextLink } from "../components/Sheet";
+import { LargeTitle, ListRow } from "../components/Page";
+import { NEAR_END, SheetScreen, TextLink } from "../components/Sheet";
+import { PictureTile, TileGrid, TintTile } from "../components/Tiles";
 import { SectionTitle, Chrome, Original, Prose, Scripture } from "../components/Type";
-import { useCore, useLog, useQuery } from "../data/AppData";
+import { useAppData, useCore, useLog, useQuery } from "../data/AppData";
 import {
+  bookBounds,
   countPassages,
+  countPassagesByBook,
   getTexts,
   type Lexeme,
+  nearestTerm,
   type PassageHit,
   searchPassages,
   searchWordsByForm,
   searchWordsByGloss,
 } from "../data/queries";
 import { isLicensedCode } from "../data/licensed";
+import { pictureFor } from "../data/pictures";
+import { PRAYERS_OF_THE_BIBLE } from "../data/prayersOfTheBible";
 import { searchProfiles } from "../data/study";
 import { licensedEnabled, useLicensedSearch } from "../data/useLicensedChapter";
-import { FONTS, useLayout, usePalette } from "../design/tokens";
+import { listRecentSearches, rememberSearch } from "../data/user";
+import { useLayout, usePalette } from "../design/tokens";
 import { fieldDirection } from "../lib/fieldDirection";
-import { MOMENTS, opening, tilePassages } from "../lib/moments";
+import { type Moment, MOMENTS } from "../lib/moments";
 import { formatRange } from "../lib/chapters";
 import { findGuides, findTerms, firstSentence } from "../lib/dictionary";
 import { excerptOf } from "../lib/reader";
+import { moodFor } from "../lib/search";
 import { createSearchLogger } from "../lib/searchLog";
 import { planSearch, type SearchPlan, splitSnippet } from "../lib/searchQuery";
 import { whoLine } from "../lib/study";
-import { psalmTitleLine } from "../lib/systemSurfaces";
 import { useSettings } from "../state/settings";
 
 const WORDS_SHOWN = 5;
+/** All books: the first hundred in Bible order, the book pills reaching the rest. One book: up to three hundred. */
+const VERSES_SHOWN = 100;
+const BOOK_VERSES_SHOWN = 300;
+const RECENT_SHOWN = 5;
+/**
+ * Verses are drawn a page at a time as the list nears its foot: "peace" drew every row at once and the app stopped
+ * answering touch for most of a minute (Release build QA, 25 Oct 2026).
+ */
+const VERSE_PAGE = 30;
+
+type Kind = "verses" | "words" | "guides" | "dictionary" | "people";
+const KIND_TITLES: Record<Kind, string> = { verses: "Verses", words: "Words", guides: "Guides", dictionary: "Dictionary", people: "People" };
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 /**
  * IA-15: Search is also the round button beside the tab bar, a tab of its own (app/(tabs)/search.tsx), so it is one
@@ -68,6 +89,7 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
   const palette = usePalette();
   const { ax } = useLayout();
   const core = useCore();
+  const { user } = useAppData();
   const log = useLog();
   const reading = useSettings((s) => s.translation);
   const [input, setInput] = useState("");
@@ -86,12 +108,30 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
   // The core holds no licensed text: everything here searches the BSB under a licensed reading.
   const translation = isLicensedCode(reading) ? "BSB" : reading;
   const [allWords, setAllWords] = useState(false);
+  const [kind, setKind] = useState<Kind | null>(null);
+  const [book, setBook] = useState<BookCode | null>(null);
+  const [pages, setPages] = useState(1);
+  const [recent, setRecent] = useState<string[]>([]);
+
+  const loadRecent = useCallback(() => {
+    void listRecentSearches(user, RECENT_SHOWN)
+      .then(setRecent)
+      .catch(() => setRecent([]));
+  }, [user]);
+  useFocusEffect(loadRecent);
+  const remember = (q: string) => {
+    if (q.trim() === "") return;
+    void rememberSearch(user, q).then(loadRecent, () => undefined);
+  };
 
   // Debounced: a query per keystroke would make typing feel heavy.
   useEffect(() => {
     const timer = setTimeout(() => {
       setQuery(input.trim());
       setAllWords(false);
+      setKind(null);
+      setBook(null);
+      setPages(1);
     }, 180);
     return () => clearTimeout(timer);
   }, [input]);
@@ -109,11 +149,12 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
                 translation
               ] ?? "",
           };
-    const [people, passages, total, words] = await Promise.all([
+    const [people, passages, total, books, words] = await Promise.all([
       // Tyndale's profiles in the books whose study notes are downloaded (canvas TD-03).
       plan.reference === null ? searchProfiles(query) : Promise.resolve([]),
-      plan.fts === null ? Promise.resolve([] as PassageHit[]) : searchPassages(core, plan.fts, translation, 100),
+      plan.fts === null ? Promise.resolve([] as PassageHit[]) : searchPassages(core, plan.fts, translation, VERSES_SHOWN),
       plan.fts === null ? Promise.resolve(0) : countPassages(core, plan.fts, translation),
+      plan.fts === null ? Promise.resolve([]) : countPassagesByBook(core, plan.fts, translation),
       plan.wordKey !== null
         ? searchWordsByForm(core, plan.wordKey)
         : plan.glossWord !== null
@@ -123,8 +164,17 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
     // The dictionary and guide titles are in the app (data/dictionary.generated.ts): found with no book's file here.
     const terms = plan.reference === null ? findTerms(query) : [];
     const guides = plan.reference === null ? findGuides(query) : [];
-    return { plan, reference, people, passages, total, words, terms, guides };
+    const nothing = reference === null && people.length === 0 && passages.length === 0 && words.length === 0 && terms.length === 0 && guides.length === 0;
+    // SE-32: one English word that found nothing; a phrase or Greek has no single word to offer.
+    const suggestion = nothing && plan.fts !== null && /^\p{Script=Latin}+$/u.test(query) ? await nearestTerm(core, query) : null;
+    return { plan, reference, people, passages, total, books, words, terms, guides, nothing, suggestion };
   }, [query, translation]);
+
+  const fts = data?.plan.fts ?? null;
+  const { data: bookHits } = useQuery(
+    async () => (book === null || fts === null ? null : searchPassages(core, fts, translation, BOOK_VERSES_SHOWN, bookBounds(book))),
+    [fts, translation, book],
+  );
 
   const searchLog = useMemo(() => createSearchLogger((detail) => log("search", undefined, detail)), [log]);
   useEffect(() => () => searchLog.dispose(), [searchLog]);
@@ -133,8 +183,13 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
   }, [searchLog, query]);
 
   const { jumpTo } = useSheetNav();
-  const open = (href: Parameters<typeof router.push>[0]) => {
+  /** Opening a result keeps what found it in Recent (SE-30). */
+  const leave = () => {
     searchLog.settle();
+    remember(query);
+  };
+  const open = (href: Parameters<typeof router.push>[0]) => {
+    leave();
     router.push(href);
   };
   /**
@@ -142,31 +197,30 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
    * Search closes first, as it does for a verse, so a page is never drawn inside a sheet.
    */
   const openPage = (href: Parameters<typeof router.push>[0]) => {
-    searchLog.settle();
+    leave();
     if (!inTab) router.back();
     router.push(href);
   };
   const back = inTab ? "Search" : "Back";
   /** A verse or chapter: Search closes and the reader opens, never inside the sheet. */
   const read = (target: Parameters<typeof jumpTo>[0]) => {
-    searchLog.settle();
+    leave();
     if (inTab) router.push(readerHref(target));
     else jumpTo(target);
+  };
+  /** A recent search, or the word "Did you mean" offers: searched at once, as the Search key would. */
+  const searchFor = (q: string) => {
+    setInput(q);
+    setQuery(q);
+    setSubmitted(q);
+    setAllWords(false);
+    setKind(null);
+    setBook(null);
+    setPages(1);
   };
 
   // From the raw input, not the debounced query, so the first Hebrew letter turns the field at once.
   const direction = fieldDirection(input);
-
-  const empty =
-    query.length >= 2 &&
-    data !== undefined &&
-    data !== null &&
-    data.reference === null &&
-    data.people.length === 0 &&
-    data.passages.length === 0 &&
-    data.words.length === 0 &&
-    data.terms.length === 0 &&
-    data.guides.length === 0;
 
   const field = (
     <View style={styles.searchRow}>
@@ -189,8 +243,10 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
             setSubmitted(sent);
             searchLog.typed(sent, searchDetail(planSearch(sent)));
             searchLog.settle();
+            remember(sent);
           }}
-          placeholder="Search the Bible"
+          // SE-30's own words: what the field takes.
+          placeholder="Words, a verse or a book"
           placeholderTextColor={palette.mutedInk}
           maxFontSizeMultiplier={2}
           // Direction follows the first strong character, so Hebrew types right to left (brief §5).
@@ -218,15 +274,33 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
   );
 
   const ref = data?.reference ?? null;
+  const showLicensed = licensed?.status === "ok";
+  // The BSB's verses on the phone, unless a licensed search is under way or answered.
+  const showVerses = data != null && data.passages.length > 0 && (licensedCode === null || licensed === undefined || fallback);
+  const kinds: Kind[] =
+    data == null
+      ? []
+      : [
+          ...(showVerses || showLicensed ? (["verses"] as const) : []),
+          ...(data.words.length > 0 ? (["words"] as const) : []),
+          ...(data.guides.length > 0 ? (["guides"] as const) : []),
+          ...(data.terms.length > 0 ? (["dictionary"] as const) : []),
+          ...(data.people.length > 0 ? (["people"] as const) : []),
+        ];
+  const shown: Kind | undefined = kind !== null && kinds.includes(kind) ? kind : kinds[0];
+  const empty = query.length >= 2 && data != null && data.nothing && !showLicensed;
+  const mood = empty ? moodFor(data.suggestion ?? query) : undefined;
+  const openMood = (m: Moment) => openPage({ pathname: "/moment", params: { name: m.name, reopen: inTab ? "" : "1" } });
+
   return (
-    <Frame inTab={inTab} field={field}>
+    <Frame inTab={inTab} field={field} onNearEnd={() => setPages((n) => Math.min(n + 1, Math.ceil(BOOK_VERSES_SHOWN / VERSE_PAGE)))}>
       {input === "" && query === "" ? (
-        <View testID="search-browse">
-          <SectionTitle inSheet style={styles.section}>For a moment</SectionTitle>
-          <MomentTiles onOpen={(name) => openPage({ pathname: "/moment", params: { name, reopen: inTab ? "" : "1" } })} />
-          <SectionTitle inSheet style={styles.section}>Browse</SectionTitle>
-          <ListRow first title="Dictionary" onPress={() => openPage({ pathname: "/dictionary", params: { back } })} testID="browse-dictionary" />
-        </View>
+        <Browse
+          recent={recent}
+          onRecent={searchFor}
+          onMood={openMood}
+          onPage={(pathname) => openPage({ pathname, params: { back } })}
+        />
       ) : null}
 
       {ref !== null ? (
@@ -251,83 +325,101 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
         </View>
       ) : null}
 
-      {/* DI-03, PD-04: a term finds its dictionary entry before the verses. */}
-      {data !== undefined && data !== null && data.terms.length > 0 ? (
-        <View testID="result-dictionary">
-          <SectionTitle inSheet style={styles.section}>Dictionary</SectionTitle>
-          {data.terms.map((entry, i) => (
-            <ListRow
-              key={entry.term}
-              first={i === 0}
-              title={entry.term}
-              label={`${entry.term}, ${firstSentence(entry.definition)}`}
-              onPress={() => openPage({ pathname: "/dictionary/term", params: { term: entry.term, back } })}
-              testID={`result-term-${entry.term}`}
-            >
-              <Chrome step="note" tone="muted">
-                {firstSentence(entry.definition)}
-              </Chrome>
-            </ListRow>
-          ))}
+      {kinds.length > 1 ? (
+        <View style={{ marginTop: 14 }}>
+          <FilterPills options={kinds.map((k) => ({ key: k, title: KIND_TITLES[k] }))} chosen={shown ?? "verses"} onChoose={setKind} testID="search-kind" />
         </View>
       ) : null}
 
-      {/* IA-06: a passage title finds its guide, a sheet over Search as People's pages are. */}
-      {data !== undefined && data !== null && data.guides.length > 0 ? (
-        <View testID="result-guides">
-          <SectionTitle inSheet style={styles.section}>Guides</SectionTitle>
-          {data.guides.map((guide, i) => (
-            <ListRow
-              key={guide.ref}
-              first={i === 0}
-              book
-              title={guide.title}
-              label={`${guide.title}, ${formatRange(guide.ref)}`}
-              onPress={() => open({ pathname: "/guide", params: { ref: guide.ref } })}
-              testID={`result-guide-${guide.ref}`}
-            >
-              <Chrome step="note" tone="muted">
-                {formatRange(guide.ref)}
-              </Chrome>
-            </ListRow>
-          ))}
-        </View>
-      ) : null}
+      {/* SE-31: the verses, their true count and the books they fall in. */}
+      {shown === "verses" && data != null ? (
+        <View testID="result-verses">
+          {fallback && query.length >= 2 ? (
+            <Prose step="note" tone="muted" style={{ marginTop: 12 }} testID="search-offline">
+              {offline
+                ? "You’re offline, so this searches the BSB."
+                : licensed?.status === "limit"
+                  ? `This searches the BSB: this month’s ${reading} searches are used.`
+                  : `This searches the BSB: the ${reading} search didn’t answer.`}
+            </Prose>
+          ) : null}
 
-      {/* A name finds the person first, then the verses that name them (canvas TD-03). */}
-      {data !== undefined && data !== null && data.people.length > 0 ? (
-        <View>
-          <SectionTitle inSheet style={styles.section}>People</SectionTitle>
-          {data.people.map((person, i) => {
-            const who = whoLine(person.title ?? "", person.text);
-            const line = who === null ? "Tyndale" : `${who} · Tyndale`;
-            return (
-              <ListRow
-                key={`${person.book}-${person.id}`}
-                first={i === 0}
-                testID={`result-person-${person.id}`}
-                title={person.title ?? ""}
-                label={`${person.title ?? ""}, ${line.replace(" · ", ", from ")}`}
-                onPress={() =>
-                  open({
-                    pathname: "/understand/person",
-                    params: { book: person.book, id: String(person.id), from: formatVerseId(ordToParts(person.ord_start)), via: "search" },
-                  })
-                }
-              >
+          {showLicensed ? (
+            <View testID="licensed-results">
+              <SectionTitle inSheet style={styles.section}>{`Verses in the ${licensed.translation}`}</SectionTitle>
+              {licensed.verses.map((v, i) => {
+                const at = parseVerseId(v.verseId);
+                return (
+                  <ListRow
+                    key={v.verseId}
+                    first={i === 0}
+                    overline={v.reference}
+                    onPress={at === null ? undefined : () => read({ book: at.book, chapter: at.chapter, verse: at.verse, select: true })}
+                  >
+                    <Scripture step="claim" numberOfLines={ax ? 3 : 2} style={{ fontFamily: "Literata" }}>
+                      {v.text}
+                    </Scripture>
+                  </ListRow>
+                );
+              })}
+              <SectionTitle inSheet style={styles.section}>Also</SectionTitle>
+              <ListRow first title="Search the BSB instead" onPress={() => setBsbInstead(true)} testID="search-bsb-instead">
                 <Chrome step="note" tone="muted">
-                  {line}
+                  on this iPhone · with Words
                 </Chrome>
               </ListRow>
-            );
-          })}
+              <Chrome step="note" tone="muted" style={{ marginTop: 12 }} testID="licensed-search-notice">
+                {licensed.copyright}
+              </Chrome>
+            </View>
+          ) : null}
+
+          {showVerses ? (
+            <>
+              <View style={[styles.versesHead, styles.section]}>
+                <SectionTitle inSheet testID="result-verses-count">
+                  {plural(data.total, "verse", "verses")}
+                </SectionTitle>
+                <Chrome step="note" tone="muted">
+                  {`in ${plural(data.books.length, "book", "books")}`}
+                </Chrome>
+              </View>
+              {data.books.length > 1 ? (
+                <View style={{ marginTop: 6, marginBottom: 4 }}>
+                  <FilterPills<BookCode | "all">
+                    options={[
+                      { key: "all", title: "All", count: data.total, label: `All books, ${plural(data.total, "verse", "verses")}` },
+                      ...data.books.map((b) => ({
+                        key: b.book,
+                        title: BOOK_CODES[b.book].name,
+                        count: b.count,
+                        label: `${BOOK_CODES[b.book].name}, ${plural(b.count, "verse", "verses")}`,
+                      })),
+                    ]}
+                    chosen={book ?? "all"}
+                    onChoose={(k) => {
+                      setBook(k === "all" ? null : k);
+                      setPages(1);
+                    }}
+                    testID="search-book"
+                  />
+                </View>
+              ) : null}
+              <VerseList
+                hits={book === null ? data.passages : (bookHits ?? [])}
+                drawn={pages * VERSE_PAGE}
+                books={data.books}
+                more={moreLine(book === null ? data.total : (data.books.find((b) => b.book === book)?.count ?? 0), book === null ? data.passages.length : (bookHits?.length ?? 0), book === null && data.books.length > 1)}
+                onRead={read}
+              />
+            </>
+          ) : null}
         </View>
       ) : null}
 
-      {data !== undefined && data !== null && data.words.length > 0 ? (
-        <View>
-          <SectionTitle inSheet style={styles.section}>Words</SectionTitle>
-          {(allWords ? data.words : data.words.slice(0, WORDS_SHOWN)).map((lexeme, i) => (
+      {shown === "words" && data != null ? (
+        <View testID="result-words">
+          {data.words.slice(0, allWords ? undefined : WORDS_SHOWN).map((lexeme, i) => (
             <ListRow
               key={lexeme.occurrenceKey}
               first={i === 0}
@@ -358,66 +450,70 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
         </View>
       ) : null}
 
-      {licensed?.status === "ok" ? (
-        <View testID="licensed-results">
-          <SectionTitle inSheet style={styles.section}>{`Verses in the ${licensed.translation}`}</SectionTitle>
-          {licensed.verses.map((v, i) => {
-            const at = parseVerseId(v.verseId);
-            return (
-              <ListRow
-                key={v.verseId}
-                first={i === 0}
-                overline={v.reference}
-                onPress={at === null ? undefined : () => read({ book: at.book, chapter: at.chapter, verse: at.verse, select: true })}
-              >
-                <Scripture step="claim" numberOfLines={ax ? 3 : 2} style={{ fontFamily: "Literata" }}>
-                  {v.text}
-                </Scripture>
-              </ListRow>
-            );
-          })}
-          <SectionTitle inSheet style={styles.section}>Also</SectionTitle>
-          <ListRow first title="Search the BSB instead" onPress={() => setBsbInstead(true)} testID="search-bsb-instead">
-            <Chrome step="note" tone="muted">
-              on this iPhone · with Words
-            </Chrome>
-          </ListRow>
-          <Chrome step="note" tone="muted" style={{ marginTop: 12 }} testID="licensed-search-notice">
-            {licensed.copyright}
-          </Chrome>
+      {/* IA-06: a passage title finds its guide, a sheet over Search as People's pages are. */}
+      {shown === "guides" && data != null ? (
+        <View testID="result-guides">
+          {data.guides.map((guide, i) => (
+            <ListRow
+              key={guide.ref}
+              first={i === 0}
+              book
+              title={guide.title}
+              label={`${guide.title}, ${formatRange(guide.ref)}`}
+              onPress={() => open({ pathname: "/guide", params: { ref: guide.ref } })}
+              testID={`result-guide-${guide.ref}`}
+            >
+              <Chrome step="note" tone="muted">
+                {formatRange(guide.ref)}
+              </Chrome>
+            </ListRow>
+          ))}
         </View>
       ) : null}
 
-      {fallback && query.length >= 2 ? (
-        <Prose step="note" tone="muted" style={{ marginTop: 12 }} testID="search-offline">
-          {offline
-            ? "You’re offline, so this searches the BSB."
-            : licensed?.status === "limit"
-              ? `This searches the BSB: this month’s ${reading} searches are used.`
-              : `This searches the BSB: the ${reading} search didn’t answer.`}
-        </Prose>
+      {/* DI-03, PD-04: a term finds its dictionary entry. */}
+      {shown === "dictionary" && data != null ? (
+        <View testID="result-dictionary">
+          {data.terms.map((entry, i) => (
+            <ListRow
+              key={entry.term}
+              first={i === 0}
+              title={entry.term}
+              label={`${entry.term}, ${firstSentence(entry.definition)}`}
+              onPress={() => openPage({ pathname: "/dictionary/term", params: { term: entry.term, back } })}
+              testID={`result-term-${entry.term}`}
+            >
+              <Chrome step="note" tone="muted">
+                {firstSentence(entry.definition)}
+              </Chrome>
+            </ListRow>
+          ))}
+        </View>
       ) : null}
 
-      {data !== undefined && data !== null && data.passages.length > 0 && (licensedCode === null || licensed === undefined || fallback) ? (
-        <View>
-          <SectionTitle inSheet style={styles.section}>{`Verses · ${data.total}`}</SectionTitle>
-          {data.passages.map((hit, i) => {
-            const parts = ordToParts(hit.ord);
+      {/* A name finds the person (canvas TD-03). */}
+      {shown === "people" && data != null ? (
+        <View testID="result-people">
+          {data.people.map((person, i) => {
+            const who = whoLine(person.title ?? "", person.text);
+            const line = who === null ? "Tyndale" : `${who} · Tyndale`;
             return (
               <ListRow
-                key={hit.ord}
+                key={`${person.book}-${person.id}`}
                 first={i === 0}
-                testID={`result-passage-${hit.ord}`}
-                overline={formatDisplayRef(parts)}
-                onPress={() => read({ book: parts.book, chapter: parts.chapter, verse: parts.verse, select: true })}
+                testID={`result-person-${person.id}`}
+                title={person.title ?? ""}
+                label={`${person.title ?? ""}, ${line.replace(" · ", ", from ")}`}
+                onPress={() =>
+                  open({
+                    pathname: "/understand/person",
+                    params: { book: person.book, id: String(person.id), from: formatVerseId(ordToParts(person.ord_start)), via: "search" },
+                  })
+                }
               >
-                <Scripture step="claim" numberOfLines={ax ? 3 : 2} style={{ fontFamily: "Literata" }}>
-                  {splitSnippet(hit.snippet).map((piece, j) => (
-                    <Scripture key={j} step="claim" style={[{ fontFamily: "Literata" }, piece.hit ? { fontWeight: "600" } : null]}>
-                      {piece.text}
-                    </Scripture>
-                  ))}
-                </Scripture>
+                <Chrome step="note" tone="muted">
+                  {line}
+                </Chrome>
               </ListRow>
             );
           })}
@@ -425,33 +521,238 @@ export default function SearchScreen({ inTab = false }: { inTab?: boolean }) {
       ) : null}
 
       {empty ? (
-        <View style={{ marginTop: 20 }} testID="search-empty">
-          <Prose step="explanation">No results for “{query}”.</Prose>
-          <Prose step="note" tone="muted" style={{ marginTop: 6 }}>
-            Search takes references, English words, and Greek or Hebrew.
-          </Prose>
-        </View>
+        <NothingFound query={query} suggestion={data.suggestion} mood={mood} onSuggestion={searchFor} onMood={openMood} />
       ) : null}
     </Frame>
   );
 }
 
+/** SE-30: the ways in, the moods and Recent, before anything is typed. */
+function Browse({
+  recent,
+  onRecent,
+  onMood,
+  onPage,
+}: {
+  recent: readonly string[];
+  onRecent: (q: string) => void;
+  onMood: (m: Moment) => void;
+  onPage: (pathname: "/pray/bible" | "/plans" | "/dictionary") => void;
+}) {
+  const { ax, gutter } = useLayout();
+  return (
+    <View testID="search-browse">
+      {/* Places has no page of its own yet (a place opens only from its verse, understand/place), so it is not drawn. */}
+      <View style={{ marginTop: 14 }}>
+        <TileGrid>
+          {PRAYERS_OF_THE_BIBLE.length > 0 ? (
+            <TintTile
+              tint="sand"
+              icon="book-open"
+              title="Bible prayers"
+              line={plural(PRAYERS_OF_THE_BIBLE.length, "prayer", "prayers")}
+              onPress={() => onPage("/pray/bible")}
+              testID="search-way-bible"
+            />
+          ) : null}
+          {/* plans.tsx lists two: John passage by passage and M'Cheyne's whole Bible. */}
+          <TintTile tint="forest" icon="calendar" title="Reading plans" line="2 plans" onPress={() => onPage("/plans")} testID="search-way-plans" />
+          <TintTile tint="sky" icon="search" title="Dictionary" line="Words of the Bible" onPress={() => onPage("/dictionary")} testID="browse-dictionary" />
+        </TileGrid>
+      </View>
+
+      <SectionTitle inSheet style={{ marginTop: 26, marginBottom: 10 }}>
+        For when you’re
+      </SectionTitle>
+      <ScrollView
+        horizontal={!ax}
+        showsHorizontalScrollIndicator={false}
+        style={ax ? null : { marginHorizontal: -gutter }}
+        contentContainerStyle={ax ? styles.moodsAx : [styles.moods, { paddingHorizontal: gutter }]}
+      >
+        {MOMENTS.map((m) => (
+          <PictureTile
+            key={m.name}
+            title={m.name}
+            image={pictureFor(m.picture, "morning")?.image}
+            onPress={() => onMood(m)}
+            label={`When you’re ${m.name.toLowerCase()}: verses for this moment`}
+            testID={`moment-${m.name}`}
+          />
+        ))}
+      </ScrollView>
+
+      {recent.length > 0 ? (
+        <>
+          <SectionTitle inSheet style={{ marginTop: 26, marginBottom: 2 }}>
+            Recent
+          </SectionTitle>
+          {recent.map((q, i) => (
+            <ListRow key={q} first={i === 0} title={q} label={`Search for ${q}`} onPress={() => onRecent(q)} testID={`search-recent-${i}`} />
+          ))}
+        </>
+      ) : null}
+    </View>
+  );
+}
+
+/** SE-31's rows: each book's name and true count above its verses, in Bible order, the searched word marked. */
+function VerseList({
+  hits,
+  drawn,
+  books,
+  more,
+  onRead,
+}: {
+  hits: readonly PassageHit[];
+  /** How many rows to draw now; more come as the list nears its foot. */
+  drawn: number;
+  books: ReadonlyArray<{ book: BookCode; count: number }>;
+  more: string | null;
+  onRead: (target: { book: BookCode; chapter: number; verse: number; select: boolean }) => void;
+}) {
+  const palette = usePalette();
+  const { ax } = useLayout();
+  const counts = new Map(books.map((b) => [b.book, b.count]));
+  let previous: BookCode | null = null;
+  return (
+    <View>
+      {hits.slice(0, drawn).map((hit) => {
+        const parts = ordToParts(hit.ord);
+        const head = parts.book !== previous;
+        previous = parts.book;
+        return (
+          <View key={hit.ord}>
+            {head ? (
+              <Chrome step="note" tone="muted" accessibilityRole="header" style={styles.bookHead}>
+                {`${BOOK_CODES[parts.book].name} · ${counts.get(parts.book) ?? ""}`}
+              </Chrome>
+            ) : null}
+            <ListRow
+              first={head}
+              testID={`result-passage-${hit.ord}`}
+              overline={formatDisplayRef(parts)}
+              onPress={() => onRead({ book: parts.book, chapter: parts.chapter, verse: parts.verse, select: true })}
+            >
+              <Scripture step="claim" numberOfLines={ax ? 3 : 2} style={{ fontFamily: "Literata" }}>
+                {/* Plain Text inherits the row's type step: a Scripture per piece read the type settings once per word. */}
+                {splitSnippet(hit.snippet).map((piece, j) =>
+                  piece.hit ? (
+                    <Text key={j} style={{ backgroundColor: palette.highlight, color: palette.ink }}>
+                      {piece.text}
+                    </Text>
+                  ) : (
+                    piece.text
+                  ),
+                )}
+              </Scripture>
+            </ListRow>
+          </View>
+        );
+      })}
+      {more !== null && drawn >= hits.length ? (
+        <Chrome step="note" tone="muted" style={{ marginTop: 12 }} testID="search-verses-more">
+          {more}
+        </Chrome>
+      ) : null}
+    </View>
+  );
+}
+
+/** Said under a list that stops short of what the search holds, so the count above it is never contradicted. */
+function moreLine(total: number, shown: number, books: boolean): string | null {
+  if (shown === 0 || shown >= total) return null;
+  return books ? `The first ${shown} of ${total}. Choose a book for the rest.` : `The first ${shown} of ${total}.`;
+}
+
+/** SE-32: the nearest word the Bible uses, and the mood's picture when the word is one. */
+function NothingFound({
+  query,
+  suggestion,
+  mood,
+  onSuggestion,
+  onMood,
+}: {
+  query: string;
+  suggestion: string | null;
+  mood: Moment | undefined;
+  onSuggestion: (q: string) => void;
+  onMood: (m: Moment) => void;
+}) {
+  return (
+    <View style={{ marginTop: 22 }} testID="search-empty">
+      {suggestion !== null ? (
+        <Pressable
+          onPress={() => onSuggestion(suggestion)}
+          accessibilityRole="button"
+          accessibilityLabel={`Did you mean ${suggestion}? Searches for ${suggestion}`}
+          style={{ minHeight: 44, justifyContent: "center" }}
+          testID="search-did-you-mean"
+        >
+          <Prose step="explanation" style={{ fontWeight: "600" }}>
+            Did you mean{" "}
+            <Prose step="explanation" tone="accent" style={{ fontWeight: "600", textDecorationLine: "underline" }}>
+              {suggestion}
+            </Prose>
+            ?
+          </Prose>
+        </Pressable>
+      ) : null}
+      <Prose step={suggestion === null ? "explanation" : "note"} tone={suggestion === null ? "ink" : "muted"} style={{ marginTop: 4 }}>
+        Nothing matches “{query}”.
+      </Prose>
+      {suggestion === null ? (
+        <Prose step="note" tone="muted" style={{ marginTop: 6 }}>
+          Search takes references, English words, and Greek or Hebrew.
+        </Prose>
+      ) : null}
+      {mood !== undefined ? (
+        <>
+          <SectionTitle inSheet style={{ marginTop: 24, marginBottom: 10 }}>
+            {`For when you’re ${mood.name.toLowerCase()}`}
+          </SectionTitle>
+          <PictureTile
+            wide
+            title={mood.name}
+            image={pictureFor(mood.picture, "morning")?.image}
+            onPress={() => onMood(mood)}
+            label={`When you’re ${mood.name.toLowerCase()}: verses for this moment`}
+            testID={`search-mood-${mood.name}`}
+          />
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 /** The sheet over the reader, or the page in the Search tab: the field on top, results scrolling under it, clear of the tab bar. */
-function Frame({ inTab, field, children }: { inTab: boolean; field: ReactNode; children: ReactNode }) {
+function Frame({ inTab, field, children, onNearEnd }: { inTab: boolean; field: ReactNode; children: ReactNode; onNearEnd: () => void }) {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
   const tabClearance = useTabBarClearance();
   const { gutter, tabs } = useLayout();
   if (!inTab)
     return (
-      <SheetScreen title="Search" header={field} backLabel={null} footer={false} keyboard testID="search">
+      <SheetScreen title="Search" header={field} backLabel={null} footer={false} keyboard onNearEnd={onNearEnd} testID="search">
         {children}
       </SheetScreen>
     );
   return (
     <View style={{ flex: 1, backgroundColor: palette.paper, paddingTop: (tabs === "top" ? 0 : insets.top) + 8 }} testID="search-tab">
-      <View style={{ paddingHorizontal: gutter, paddingBottom: 8 }}>{field}</View>
-      <ScrollView keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: gutter, paddingBottom: tabClearance }}>
+      {/* SE-30: the tab's large title over the field, which stays put while the results scroll. */}
+      <View style={{ paddingHorizontal: gutter, paddingBottom: 8 }}>
+        <LargeTitle>Search</LargeTitle>
+        <View style={{ marginTop: 8 }}>{field}</View>
+      </View>
+      <ScrollView
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+          const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+          if (contentOffset.y + layoutMeasurement.height >= contentSize.height - NEAR_END) onNearEnd();
+        }}
+        scrollEventThrottle={64}
+        contentContainerStyle={{ paddingHorizontal: gutter, paddingBottom: tabClearance }}>
         {children}
       </ScrollView>
     </View>
@@ -492,61 +793,8 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 4,
   },
-});
-
-/** The tile's few words: enough to know the verse, not to read it there. */
-const TILE_WORDS = 5;
-
-/**
- * VM-01: Search before you type offers six moments to start from, each tile its name over the opening words of its
- * first passage (BSB). One card per moment: each is a self-contained thing you tap (CLAUDE.md cards, 24 pt radius,
- * soft fill, no shadow). Two columns; one at accessibility sizes.
- */
-function MomentTiles({ onOpen }: { onOpen: (name: string) => void }) {
-  const core = useCore();
-  const palette = usePalette();
-  const { ax } = useLayout();
-  const tiles = tilePassages();
-  const { data: words } = useQuery(async () => {
-    const out = new Map<string, string>();
-    for (const [name, q] of tiles) {
-      const at = ordToParts(q.start);
-      const text = (await getTexts(core, q.start)).BSB ?? "";
-      out.set(name, at.verse === 1 ? psalmTitleLine(at.book, 1, text).body : text);
-    }
-    return out;
-  }, []);
-  return (
-    <View style={[tileStyles.grid, ax ? { flexDirection: "column" } : null]}>
-      {MOMENTS.map((m) => {
-        const line = words?.get(m.name);
-        return (
-          <Pressable
-            key={m.name}
-            onPress={() => onOpen(m.name)}
-            accessibilityRole="button"
-            accessibilityLabel={`${m.name}. Verses for this moment${line !== undefined ? `, the first: ${line}` : ""}`}
-            style={({ pressed }) => [tileStyles.tile, ax ? null : tileStyles.half, { backgroundColor: pressed ? palette.fill : palette.card }]}
-            testID={`moment-${m.name}`}
-          >
-            {/* VM-01's .vmtl and .vmto: the name in Literata, the opening words beneath in its italic, muted. */}
-            <Chrome tone="ink" size={22} style={{ fontFamily: FONTS.scripture, fontWeight: "600", letterSpacing: -0.3 }}>
-              {m.name}
-            </Chrome>
-            {line !== undefined ? (
-              <Chrome tone="muted" size={15} numberOfLines={2} style={{ fontFamily: FONTS.scriptureItalic, marginTop: 14 }}>
-                {opening(line, TILE_WORDS)}
-              </Chrome>
-            ) : null}
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-const tileStyles = StyleSheet.create({
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  half: { width: "48%", flexGrow: 1 },
-  tile: { borderRadius: 24, paddingVertical: 16, paddingHorizontal: 18, minHeight: 150, justifyContent: "space-between" },
+  versesHead: { flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between", columnGap: 12 },
+  bookHead: { fontWeight: "600", marginTop: 16 },
+  moods: { columnGap: 10 },
+  moodsAx: { rowGap: 10 },
 });

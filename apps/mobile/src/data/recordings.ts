@@ -13,6 +13,8 @@
 
 import { type AudioInfo, AudioInfoSchema, BOOK_CODES, type BookCode, type ChapterTimings, ChapterTimingsSchema, isBookCode } from "@yada/schema";
 import { Directory, File, Paths } from "expo-file-system";
+import type { EventSubscription } from "expo-modules-core";
+import { addNetworkStateListener } from "expo-network";
 import * as Notifications from "expo-notifications";
 import { AppState } from "react-native";
 import { create } from "zustand";
@@ -26,7 +28,7 @@ export const DEFAULT_NARRATOR = "heart";
 
 /** A text a voice reads. Licensed versions are never among them (rule 9): the schema allows only these. */
 export type ReadText = AudioInfo["translation"];
-const READ_TEXTS: readonly ReadText[] = ["BSB", "WEB", "KJV", "LSV"];
+export const READ_TEXTS: readonly ReadText[] = ["BSB", "WEB", "KJV", "LSV"];
 /** The text a page's version is read in, or null where no voice reads it. */
 export const readText = (translation: string): ReadText | null => READ_TEXTS.find((t) => t === translation) ?? null;
 /** A book's reading in one text: "BSB/JHN". */
@@ -350,8 +352,8 @@ export function titleOnPhone(book: BookCode, chapter: number, narrator = narrato
 }
 
 /**
- * The titles file, checked like a chapter. Optional: without it the iPhone voice says the same words
- * (spokenTitle), so a failure here is never the reader's problem and never "offline".
+ * The titles file, checked like a chapter. Optional: without it the reading goes straight to verse 1
+ * (data/audio.ts sayTitle), so a failure here is never the reader's problem and never "offline".
  */
 function ensureTitles(book: BookCode, narrator: string): Promise<void> {
   // Each chapter fetched asks for the titles file; one fetch at a time, as their shared .partial needs.
@@ -406,6 +408,31 @@ async function notifyIfAway(book: BookCode, chapters: number): Promise<void> {
     identifier: `downloaded-${book}`,
     content: { title: `${BOOK_CODES[book].name} is downloaded`, body: `${chapters} chapters, ready to listen offline.` },
     trigger: null,
+  });
+}
+
+/** Downloads waiting for the connection (LS-31), and the one listener that starts them when it comes back. */
+const waiting = new Map<string, { book: BookCode; text: ReadText }>();
+let waitingFor: EventSubscription | null = null;
+
+/**
+ * LS-31's "Download when online": now if online, else as soon as the network says it is back. The network's own event
+ * starts it (CLAUDE.md: no polling); a queue left when Yada closes is not kept.
+ */
+export function downloadWhenOnline(book: BookCode, text: ReadText = "BSB"): void {
+  if (useRecordings.getState().online === true) {
+    void downloadBook(book, text);
+    return;
+  }
+  waiting.set(readingKey(book, text), { book, text });
+  waitingFor ??= addNetworkStateListener(({ isInternetReachable }) => {
+    if (isInternetReachable !== true) return;
+    waitingFor?.remove();
+    waitingFor = null;
+    refreshing = null;
+    const all = [...waiting.values()];
+    waiting.clear();
+    void refreshRecordings().then(() => all.forEach((w) => void downloadBook(w.book, w.text)));
   });
 }
 

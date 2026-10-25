@@ -30,7 +30,8 @@ export function GlassSurface({ children, onPicture = false }: { children: ReactN
   const reduceTransparency = useAccessibility((s) => s.reduceTransparency);
   return (
     // Shadow on the outer view, clip on the inner: a clipped view drops its shadow.
-    <View style={[styles.shadow, { shadowOpacity: isDark ? 0 : 0.06 }]}>
+    // A hairline and a barely-there lift, not a drop shadow (John, 24 Oct 2026: "the shadow here is too much").
+    <View style={[styles.shadow, { shadowOpacity: isDark ? 0 : 0.05 }]}>
       <View
         style={[
           styles.clip,
@@ -93,8 +94,8 @@ const styles = StyleSheet.create({
   shadow: {
     borderRadius: 999,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 7,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
   },
   clip: {
     borderRadius: 999,

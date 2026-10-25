@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   backAfterGap,
+  passageCount,
   bookThread,
   homeLead,
   listMark,
@@ -163,5 +164,13 @@ describe("back after a gap (MM-05)", () => {
     expect(backAfterGap("2026-10-11T08:00:00Z", now)).toBe(false);
     expect(backAfterGap(null, now)).toBe(false);
     expect(backAfterGap("not a date", now)).toBe(false);
+  });
+});
+
+describe("the plan card's count (Sit audit, 24 Oct 2026)", () => {
+  it("counts by the passage's place in the book, not by how many are read", () => {
+    expect(passageCount(0, 46)).toBe("1 of 46");
+    // Rereading passage 3 with five read says 3, not 6.
+    expect(passageCount(2, 46)).toBe("3 of 46");
   });
 });

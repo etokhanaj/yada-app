@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { SHEET_MEDIUM } from "../design/sheet";
 import {
-  barItems,
   barTopIn,
   sheetTopIn,
   chapterTitle,
@@ -11,11 +10,12 @@ import {
   type HeaderScroll,
   excerptOf,
   markSegments,
-  moreActions,
+  shareActions,
   splitSuperscription,
   scrollToClearBar,
   shortRef,
   splitDivineName,
+  verseTiles,
 } from "./reader";
 
 describe("splitDivineName", () => {
@@ -58,28 +58,20 @@ describe("titles", () => {
   });
 });
 
-describe("barItems", () => {
-  it("leads with Understand, then Compare and More; Original leaves the bar (IA-05)", () => {
-    expect(barItems(true, false)).toEqual(["understand", "compare", "more"]);
+describe("verseTiles", () => {
+  it("draws RD-31's tiles in order: Sit, Note, Share, Compare, Save, Play from", () => {
+    expect(verseTiles(true, true)).toEqual(["sit", "note", "share", "compare", "save", "play"]);
   });
 
-  it("keeps Original when there is no Understand, as the only way to the Greek (J01-15)", () => {
-    expect(barItems(false, false)).toEqual(["original", "compare", "more"]);
+  it("leaves out Sit under a licensed translation and Play from where the chapter has no voice", () => {
+    expect(verseTiles(false, false)).toEqual(["note", "share", "compare", "save"]);
   });
+});
 
-  it("is two rows at AX sizes so the verse stays visible (E-02)", () => {
-    expect(barItems(true, true)).toEqual(["understand", "more"]);
-    expect(barItems(false, true)).toEqual(["original", "more"]);
-  });
-
-  it("moves Compare into More at AX sizes, and never Original", () => {
-    expect(moreActions(true, false, true)).toEqual(["Compare", "Share as an image", "Share", "Bookmark"]);
-    expect(moreActions(true, true, true)).toEqual(["Compare", "Share as an image", "Share", "Remove bookmark"]);
-    expect(moreActions(false, false, true)).toEqual(["Share as an image", "Share", "Bookmark"]);
-  });
-
-  it("offers no image of a licensed translation's words (rule 9)", () => {
-    expect(moreActions(false, false, false)).toEqual(["Share", "Bookmark"]);
+describe("shareActions", () => {
+  it("holds Copy (RD-31) and offers no image of a licensed translation's words (rule 9)", () => {
+    expect(shareActions(true)).toEqual(["Share", "Share as an image", "Copy"]);
+    expect(shareActions(false)).toEqual(["Share", "Copy"]);
   });
 });
 
@@ -221,6 +213,12 @@ describe("splitSuperscription", () => {
 });
 
 describe("excerptOf", () => {
+  it("drops Psalm 119's letter heading, keeping the psalm's own words", () => {
+    expect(excerptOf("ALEPH Blessed are those whose ways are blameless")).toBe("Blessed are those whose ways are blameless");
+    expect(excerptOf("BETH How can a young man keep his way pure?")).toBe("How can a young man keep his way pure?");
+    expect(excerptOf("HE is my God")).toBe("HE is my God");
+  });
+
   it("skips a superscription that names a tune (Psalm 80, Psalm 8)", () => {
     expect(
       excerptOf("For the choirmaster. To the tune of “The Lilies of the Covenant.” A Psalm of Asaph. Hear us, O Shepherd of Israel"),

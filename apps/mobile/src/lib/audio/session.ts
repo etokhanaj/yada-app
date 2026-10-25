@@ -36,23 +36,6 @@ export function speedAccessibilityLabel(speed: number): string {
   return `Speed, ${speed} times`;
 }
 
-/**
- * AVSpeechUtterance's rate for each speed, measured rather than computed (docs/research/
- * speech-cadence.md). The scale is far from linear: below the default 0.5 the compact voice
- * slows in coarse steps (0.46–0.5 sound the same; 0.2 is still 0.79× as fast), and above it
- * the voice speeds up steeply (0.6 is 1.6×). Each rate was chosen so the words of John 1:1–2
- * and Genesis 4:23 take 1/speed as long as at 1×.
- *
- * 1× is 0.44, a step under the default: about 9% slower than the voice's own pace, as long-form
- * narration runs slower than speech (150–160 words a minute against the voice's 217 here). It
- * sits inside the step, since 0.45 is the step's edge. Rests (cadence.ts) are scaled apart.
- */
-const RATES: Readonly<Record<Speed, number>> = { 0.8: 0.25, 1: 0.44, 1.25: 0.525, 1.5: 0.56 };
-
-export function rateFor(speed: number): number {
-  return isSpeed(speed) ? RATES[speed] : RATES[1];
-}
-
 export type AfterVerse =
   | { readonly kind: "verse"; readonly index: number }
   | { readonly kind: "chapter"; readonly chapter: number }

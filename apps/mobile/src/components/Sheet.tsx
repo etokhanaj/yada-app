@@ -60,6 +60,9 @@ function useBackName(title: string): string | null {
 
 const SheetSize = createContext<SheetSizeValue>({ large: false, headerHeight: 0, byReader: false });
 
+/** How close to the foot, in points, counts as near it: about two screens of rows ahead of the thumb. */
+export const NEAR_END = 1200;
+
 /** A size change this soon after a touch on the sheet is taken as the reader's drag. */
 const DRAG_WINDOW_MS = 1500;
 export const useSheetSize = () => useContext(SheetSize);
@@ -82,7 +85,23 @@ export function SheetScreen({
   leading,
   noBack = false,
   keyboard = false,
+  fit = false,
+  titleInBody = false,
+  onNearEnd,
 }: {
+  /** The foot of the body is near: Search draws its next verses then rather than all at once (SE-31, QA 25 Oct 2026). */
+  onNearEnd?: () => void;
+  /**
+   * The body leads with the title itself, large (PM-30: a place's name in Literata): the bar keeps ‹ and × and draws
+   * no title, so the name is not said twice. The title still names this page to the next one's ‹.
+   */
+  titleInBody?: boolean;
+  /**
+   * The sheet is as tall as what it holds (Build 12; John, 25 Oct 2026: "bottom sheet is quite high"). Its route uses
+   * `sheetAllowedDetents: "fitToContents"`; header, body and foot are laid out in turn, with no scroll view to fill,
+   * since a filling scroll view inside a sized-to-content sheet collapses it (TestFlight build 9).
+   */
+  fit?: boolean;
   /** A text control where `‹` would be, on a sheet's first screen: Translations' `Choose`. */
   leading?: ReactNode;
   /** A root sheet over a full-screen view (Voice over the player) has no screen of its own behind it: × only. */
@@ -143,7 +162,11 @@ export function SheetScreen({
     settled.current = large;
   }, [large]);
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => setScrolled(e.nativeEvent.contentOffset.y > 2);
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+    setScrolled(contentOffset.y > 2);
+    if (onNearEnd !== undefined && contentOffset.y + layoutMeasurement.height >= contentSize.height - NEAR_END) onNearEnd();
+  };
 
   const round = (icon: "back" | "close", label: string, onPress: () => void, id: string, named: string | null = null) => (
     <Pressable
@@ -168,7 +191,9 @@ export function SheetScreen({
     </Pressable>
   );
 
-  const titleBlock = (
+  const titleBlock = titleInBody ? (
+    ax ? null : <View style={styles.title} />
+  ) : (
     <View style={[styles.title, ax ? styles.titleAx : null]}>
       <Chrome step="sheetTitle" tone="ink" accessibilityRole="header" style={{ textAlign: ax ? "left" : "center" }}>
         {title}
@@ -197,7 +222,7 @@ export function SheetScreen({
   return (
     <SheetSize.Provider value={{ large, headerHeight: chrome.header, byReader }}>
       <View
-        style={{ flex: 1, backgroundColor: palette.sheet }}
+        style={fit ? { backgroundColor: palette.sheet } : { flex: 1, backgroundColor: palette.sheet }}
         onTouchStart={() => (touchedAt.current = Date.now())}
         onTouchEnd={() => (touchedAt.current = Date.now())}
         // On an iPad the system draws a sheet as a centred form sheet narrower than the window, whole and with no detent
@@ -214,7 +239,7 @@ export function SheetScreen({
           The ScrollView fills the sheet; header and footer overlay it, and
           their measured heights become the content's padding.
         */}
-        <ScrollView
+        {fit ? null : <ScrollView
           ref={scrollRef}
           style={StyleSheet.absoluteFill}
           contentContainerStyle={[
@@ -231,14 +256,14 @@ export function SheetScreen({
           scrollEventThrottle={32}
         >
           {children}
-        </ScrollView>
+        </ScrollView>}
 
         <View
           onLayout={(e) => {
             const header = Math.round(e.nativeEvent.layout.height);
             setChrome((c) => (c.header === header ? c : { ...c, header }));
           }}
-          style={[styles.header, { backgroundColor: palette.sheet }, scrolled ? { boxShadow: `0 1px 0 ${palette.divider}` } : null]}
+          style={[styles.header, fit ? styles.inFlow : null, { backgroundColor: palette.sheet }, scrolled ? { boxShadow: `0 1px 0 ${palette.divider}` } : null]}
         >
           {header !== undefined ? (
             header
@@ -259,13 +284,16 @@ export function SheetScreen({
           )}
         </View>
 
+        {/* The inset sheet already floats above the home indicator, so no safe-area padding under it (12h QA: 80 pt of empty sheet). */}
+        {fit ? <View style={[styles.body, { paddingTop: 6, paddingBottom: 24 }]}>{children}</View> : null}
+
         {footer ? (
         <View
           onLayout={(e) => {
             const height = Math.round(e.nativeEvent.layout.height);
             setChrome((c) => (c.footer === height ? c : { ...c, footer: height }));
           }}
-          style={[styles.footer, { backgroundColor: palette.sheet, paddingBottom: Math.max(insets.bottom - 20, 14) }]}
+          style={[styles.footer, fit ? styles.inFlow : null, { backgroundColor: palette.sheet, paddingBottom: Math.max(insets.bottom - 20, 14) }]}
         >
           {foot !== undefined ? foot : (
           <Pressable
@@ -484,6 +512,7 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: 22,
   },
+  inFlow: { position: "relative" },
   footer: {
     position: "absolute",
     left: 0,

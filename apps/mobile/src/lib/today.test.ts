@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dayOf, dayParam, earlierDays, greeting, laterRow, mmdd, opening, parseDayParam, partOf, partSpan, pictureDay, whenLabel } from "./today";
+import { cardPictureDays, dayOf, dayParam, doneLine, readingMinutes, earlierDays, greeting, laterRow, mmdd, officeName, opening, parseDayParam, partOf, partSpan, pictureDay, whenLabel } from "./today";
 
 describe("Later and Earlier (DR-11, DR-12)", () => {
   it("names the other part's psalms and, when there is an entry, the devotional", () => {
@@ -92,5 +92,32 @@ describe("the day's verse, earlier (DR-16, DR-19)", () => {
     expect(morning.map((d) => `${d.day.getDate()} ${d.part}`)).toEqual(["3 morning", "2 evening", "2 morning", "1 evening", "1 morning"]);
     const evening = earlierDays(new Date(2026, 9, 2, 20));
     expect(evening.map((d) => `${d.day.getDate()} ${d.part}`)).toEqual(["2 evening", "2 morning", "1 evening", "1 morning"]);
+  });
+});
+
+describe("the office's name (decision 4)", () => {
+  it("is the afternoon's between noon and five, the evening's from five", () => {
+    expect(officeName(new Date(2026, 9, 24, 9))).toBe("Morning prayer");
+    expect(officeName(new Date(2026, 9, 24, 12))).toBe("Afternoon prayer");
+    expect(officeName(new Date(2026, 9, 24, 16, 59))).toBe("Afternoon prayer");
+    expect(officeName(new Date(2026, 9, 24, 17))).toBe("Evening prayer");
+  });
+});
+
+describe("For you today (TD-30, TD-31)", () => {
+  it("says how long a reading takes at 200 words a minute, never under a minute", () => {
+    expect(readingMinutes(351)).toBe(2);
+    expect(readingMinutes(40)).toBe(1);
+    expect(readingMinutes(1200)).toBe(6);
+  });
+
+  it("gives the cards the days after today's picture, wrapping after the 30th", () => {
+    expect(cardPictureDays(24, 3)).toEqual([25, 26, 27]);
+    expect(cardPictureDays(29, 3)).toEqual([30, 1, 2]);
+  });
+
+  it("counts what is done only once something is", () => {
+    expect(doneLine(0, 6)).toBeNull();
+    expect(doneLine(1, 6)).toBe("1 of 6 done");
   });
 });

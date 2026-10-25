@@ -69,11 +69,17 @@ export function splitDivineName(text: string): TextSegment[] {
 const SUPERSCRIPTION = /^((?:For the choirmaster[^.]*\.(?:\s+(?!A (?:Psalm|Song|Maskil|Miktam|Prayer|Shiggaion)\b)(?:[^.“]*“[^”]*”|[^.“]+\.))*\s+)?A (?:Psalm|Song|Maskil|Miktam|Prayer|Shiggaion)\b[^.]*\.)\s+/u;
 
 /**
+ * Psalm 119's eight-verse sections open with their Hebrew letter in capitals ("ALEPH Blessed are…"); an excerpt is
+ * the psalm's words, not the heading (Today's psalms card, 12d QA, 24 Oct 2026).
+ */
+const ACROSTIC = /^(?:ALEPH|BETH|GIMEL|DALETH|HE|WAW|VAV|ZAYIN|HETH|CHETH|TETH|YODH|YOD|KAPH|LAMEDH|LAMED|MEM|NUN|SAMEKH|AYIN|PE|TSADDE|TSADE|QOPH|RESH|SHIN|SIN|TAW|TAV)\s+(?=[A-Z])/u;
+
+/**
  * List excerpts drop a psalm's superscription, which the BSB prints inside
- * verse 1: Psalm 23:1 begins "The LORD", not "A Psalm of David." (S18).
+ * verse 1: Psalm 23:1 begins "The LORD", not "A Psalm of David." (S18). They drop Psalm 119's letter headings too.
  */
 export function excerptOf(text: string): string {
-  return text.replace(SUPERSCRIPTION, "");
+  return text.replace(SUPERSCRIPTION, "").replace(ACROSTIC, "");
 }
 
 /**
@@ -113,35 +119,26 @@ export function shortRef(ref: { book: BookCode; chapter: number; verse: number }
 }
 
 // ---------------------------------------------------------------------------
-// Action bar
+// A chosen verse's sheet
 // ---------------------------------------------------------------------------
 
-export type BarItem = "understand" | "original" | "compare" | "more";
+export type VerseTile = "sit" | "note" | "share" | "compare" | "save" | "play";
 
 /**
- * IA-05: on a selected verse, one row: Understand (primary) · Compare · ⋯.
- * Original leaves the bar: the Greek is evidence inside Understand ("Closer
- * to the Greek", Go further › Original), not a destination. No Understand
- * (and no placeholder) when the verse has no entry (amendment 3); then
- * Original stays, as the only way to the verse's Greek, until every verse's
- * Understand has something in it (package A's study notes). At AX sizes
- * only the first action and More, so the list never covers the verse it
- * acts on (amendment 4; Esther 8:9, v2-review X1).
+ * RD-31: under the colours and the primary (Understand, or Original when the verse has no Understand: then it is the
+ * only way to the verse's Greek, J01-15), the labelled tiles in the frame's order. Sit only for an open translation and
+ * a short selection: it reads the words aloud (rule 9). Play from only when the chapter can be read aloud (AU-03).
  */
-export function barItems(hasEntry: boolean, ax: boolean): BarItem[] {
-  if (ax) return hasEntry ? ["understand", "more"] : ["original", "more"];
-  return hasEntry ? ["understand", "compare", "more"] : ["original", "compare", "more"];
+export function verseTiles(sittable: boolean, playable: boolean): VerseTile[] {
+  return [...(sittable ? (["sit"] as const) : []), "note", "share", "compare", "save", ...(playable ? (["play"] as const) : [])];
 }
 
 /**
- * What `More` holds (HM-02): Share as an image, Share, Bookmark. Copy moved to the bar's second row beside the
- * colours and Note (PS-01). At AX sizes it also carries Compare, which the list dropped. No image of a licensed
- * translation's words: its rights holder's terms cover quoting text with the notice, not making pictures of it
- * (CLAUDE.md rule 9, docs/licensed-translations.md).
+ * Share's menu (RD-31: Copy lives in Share). No image of a licensed translation's words: its rights holder's terms
+ * cover quoting text with the notice, not making pictures of it (CLAUDE.md rule 9, docs/licensed-translations.md).
  */
-export function moreActions(ax: boolean, bookmarked: boolean, imageable: boolean): string[] {
-  const shared = [...(imageable ? ["Share as an image"] : []), "Share", bookmarked ? "Remove bookmark" : "Bookmark"];
-  return ax ? ["Compare", ...shared] : shared;
+export function shareActions(imageable: boolean): string[] {
+  return ["Share", ...(imageable ? ["Share as an image"] : []), "Copy"];
 }
 
 /**

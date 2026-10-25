@@ -68,6 +68,14 @@ export function passageIndexAt(passages: readonly Passage[], ord: number): numbe
   return passages.findIndex((p) => p.start_ord <= ord && ord <= p.end_ord);
 }
 
+/**
+ * "3 of 46": where a passage sits in the book, for the plan card. Counted by place, not by how many are read, so
+ * rereading passage 3 says 3, and a passage begun but not finished is never "0 of 46" (Sit audit, 24 Oct 2026).
+ */
+export function passageCount(index: number, count: number): string {
+  return `${index + 1} of ${count}`;
+}
+
 /** Indexes of the finished passages, from the read pericope ids (unknown ids are ignored). */
 export function readIndexes(passages: readonly Passage[], readIds: Iterable<string>): Set<number> {
   const ids = new Set(readIds);

@@ -7,7 +7,6 @@ import {
   isSpeed,
   nowPlayingFor,
   progressSegments,
-  rateFor,
   segmentFill,
   speedAccessibilityLabel,
   speedLabel,
@@ -30,12 +29,6 @@ describe("speed", () => {
     expect(speedLabel(1)).toBe("1×");
     expect(speedLabel(1.25)).toBe("1.25×");
     expect(speedAccessibilityLabel(1)).toBe("Speed, 1 times");
-  });
-
-  it("maps to AVSpeechUtterance's rate, 1× a step under the default 0.5", () => {
-    expect(rateFor(1)).toBe(0.44);
-    expect([0.8, 1, 1.25, 1.5].map(rateFor)).toEqual([0.25, 0.44, 0.525, 0.56]);
-    expect(rateFor(3)).toBe(0.44);
   });
 });
 

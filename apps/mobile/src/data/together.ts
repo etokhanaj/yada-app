@@ -10,6 +10,7 @@ import { AccessibilityInfo } from "react-native";
 import { create } from "zustand";
 
 import { circlesCloud, type Gathering, together } from "../../modules/yada-pray";
+import { circlePicture } from "../lib/pray";
 import { comingNotice, GATHER_PREFIX, NOTICE_MINUTES, nextTime, ringNotice } from "../lib/together";
 
 /** PC-15 is shown once per person (settings store, this phone). */
@@ -19,6 +20,8 @@ interface Session {
   readonly circle: string;
   readonly owner: string;
   readonly name: string;
+  /** The circle's picture (lib/pray.ts circlePicture), the call's ground. */
+  readonly picture: number;
 }
 
 interface TogetherState {
@@ -46,7 +49,7 @@ export function followTogether(): () => void {
         const found = (await cloud.list().catch(() => [])).find((c) => c.id === circle);
         if (found === undefined) return void together?.leave().catch(() => undefined);
         const me = (await cloud.members(found.id, found.owner).catch(() => [])).find((m) => m.me)?.id ?? "";
-        useTogether.setState({ ...EMPTY, session: { circle, owner: found.owner, name: found.name || name }, startedAt: Date.now(), me, here: me === "" ? [] : [me] });
+        useTogether.setState({ ...EMPTY, session: { circle, owner: found.owner, name: found.name || name, picture: circlePicture(found) }, startedAt: Date.now(), me, here: me === "" ? [] : [me] });
         await cloud.together(found.id, found.owner, "on").catch(() => undefined);
         if (me !== "") await together?.here(me).catch(() => undefined);
         router.push("/pray/together");

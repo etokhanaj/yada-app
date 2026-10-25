@@ -51,7 +51,19 @@ export interface Palette {
   readonly highlights: Readonly<Record<HighlightColor, string>>;
   /** The same colours saturated, for the bar's dots and Saved's 6 pt bar beside each excerpt (PS-01, PS-04). */
   readonly swatches: Readonly<Record<HighlightColor, string>>;
+  /**
+   * Build 12 (design-system.md § Build 12 additions): four soft grounds for things of one kind side by side (Pray's
+   * ways to pray, Search's ways in, Bible prayers' needs). The name on them stays in ink; the tint never carries a
+   * meaning of its own.
+   */
+  readonly tints: Readonly<Record<Tint, string>>;
+  /** A raised card's ground (something a person wrote: a prayer request), with `raisedShadow` under it. */
+  readonly raised: string;
+  /** The raised card's soft shadow, as a boxShadow; in dark a hairline ring, since a shadow can't show on near-black. */
+  readonly raisedShadow: string;
 }
+
+export type Tint = "forest" | "sand" | "sky" | "clay";
 
 const SWATCHES = { yellow: "#E6C93A", green: "#69B24E", blue: "#4C93D6", pink: "#D96A9A" } as const;
 
@@ -73,6 +85,9 @@ const LIGHT: Palette = {
   card: "#F4F4F2",
   highlights: { yellow: "#FBEFA6", green: "#D6F0C8", blue: "#CFE5F8", pink: "#F7D7E5" },
   swatches: SWATCHES,
+  tints: { forest: "#E3ECE5", sand: "#F3EDE2", sky: "#E4EDF4", clay: "#F4E6E0" },
+  raised: "#FFFFFF",
+  raisedShadow: "0 1px 2px rgba(17,19,17,0.06), 0 6px 20px rgba(17,19,17,0.07)",
 };
 
 const DARK: Palette = {
@@ -93,6 +108,9 @@ const DARK: Palette = {
   // muted ink, and on the old washes they fell to 3.6:1 (John, 19 Oct 2026). Each now keeps muted text at 4.5:1.
   highlights: { yellow: "#3E3418", green: "#1F3B24", blue: "#1C3348", pink: "#45263A" },
   swatches: SWATCHES,
+  tints: { forest: "#16241E", sand: "#221F19", sky: "#17202A", clay: "#261B17" },
+  raised: "#171917",
+  raisedShadow: "0 0 0 1px #262826",
 };
 
 /**
@@ -140,14 +158,21 @@ export const ON_PICTURE = {
 } as const;
 
 /**
+ * Build 12's scrims over a picture (canvas `.scrim`): Sit's setup keeps the picture and darkens the top and the foot,
+ * where the words and the controls sit; the session darkens the blurred picture evenly, so white words read on any day.
+ */
+export const SCRIM = {
+  setup: "linear-gradient(rgba(8,12,10,0.55), rgba(8,12,10,0.35) 40%, rgba(8,12,10,0.8))",
+  deep: "rgba(8,12,10,0.62)",
+} as const;
+
+/**
  * Yada's brand grounds, the same in both appearances: the forest card (DO-01, the calm close), its night (Return,
  * the launch, a full-screen verse with no picture, RT-08: "the deep forest, never blank") and the chartreuse kicker.
  */
 export const BRAND = {
   forest: "#183F35",
   forestDark: "#0F2A23",
-  // The forest card in dark mode (design-system.md): lifted off the near-black ground, where #183F35 sinks into it.
-  forestCardDark: "#1E4A3E",
   night: "#0E1814",
   chartreuse: "#DBEC9A",
   // Text on chartreuse (the lit lamp's count) and on the night ground (Sit with this).
@@ -155,12 +180,14 @@ export const BRAND = {
   onNight: "#F2F4EF",
 } as const;
 
+/** Something new (a circle's "1 new"): lime with ink words, never red (Build 12). */
+export const BADGE = { ground: BRAND.chartreuse, ink: BRAND.ink } as const;
+
 /**
- * The Settle orb's light (BR-05 A, John 23 Oct 2026): pale at the centre through chartreuse to a dimmer green at its
- * edge, so it reads as lit rather than flat on the night ground. The one source of these colours; only the orb uses
- * them.
+ * Sit's breathing orb (SW-03, John 24 Oct 2026: "this screen can be better"): one soft lime, pale at the centre, so the
+ * seconds inside it read in ink (13:1) on any day's picture. The one source of these colours; only the orb uses them.
  */
-export const ORB_LIGHT = { centre: "#EEF5D2", edge: "#A3BC75", rim: "#7E9A5E" } as const;
+export const ORB_LIGHT = { centre: "#F3F8DD", middle: "#E3EFB5", edge: "#CFE291" } as const;
 
 /**
  * People's avatar hues (docs/colour-rules.md, John 18 Oct 2026): one hue per person, from their id, the same on every
@@ -179,9 +206,6 @@ export type AvatarHue = keyof typeof AVATAR_HUES;
 export const AVATAR_INK = { onDeep: "#FFFFFF", onPale: "#16231E" } as const;
 /** An open place in a circle (PC-05, PC-08): a ring with nothing in it. */
 export const AVATAR_SLOT = { onLight: "rgba(22,35,30,0.28)", onDark: "rgba(242,245,234,0.4)" } as const;
-
-/** A circle's tone for its cover and band, from the circle's id; it means nothing (not "new", not "yours"). */
-export const CIRCLE_TONES = ["#1F4A3D", "#22302A", "#4E6E60"] as const;
 
 /** Colours iOS draws itself in a native menu: a destructive item's red title, and a plain item's icon. */
 export const SYSTEM = {

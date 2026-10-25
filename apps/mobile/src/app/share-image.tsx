@@ -3,7 +3,7 @@
  * picture, white, dark), then Save to Photos and Share. What was saved or shared is listed under Saved › Images (PS-04).
  *
  * Reached from a selected verse's ⋯ (HM-02) and Saved › Images. Never for a licensed translation's words: the reader's
- * ⋯ does not offer it there (lib/reader.ts moreActions), and this sheet draws the BSB if one arrives anyway (rule 9).
+ * Share on the verse sheet does not offer it there (lib/reader.ts shareActions), and this sheet draws the BSB if one arrives anyway (rule 9).
  */
 
 import { parseVerseId, verseOrd } from "@yada/schema";

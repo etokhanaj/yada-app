@@ -12,7 +12,6 @@ import { create } from "zustand";
 import type { VerseText } from "../data/queries";
 import type { Repeat, Stop } from "../lib/audio/stop";
 import type { WordRange } from "../lib/audio/text";
-import type { Voice } from "../../modules/yada-speech";
 
 export type PlayStatus = "playing" | "paused" | "finished";
 
@@ -26,7 +25,7 @@ export interface AudioSession {
   /** The drawn word being spoken, in the current verse's display text. */
   readonly word: WordRange | null;
   readonly status: PlayStatus;
-  /** Read by the human recording (BA-01), not the iPhone voice. */
+  /** The chapter's recording is ready to read from (BA-01). */
   readonly recorded?: boolean;
   /** The chapter's name is being said before its first verse (build 6, LB-08). */
   readonly titling?: boolean;
@@ -40,10 +39,11 @@ export interface AudioSession {
 interface AudioState {
   session: AudioSession | null;
   speed: number;
-  /** The best system voice, which reads where there is no reading by Heart or George. Null: no English voice installed, so Listen is hidden there. */
-  voice: Voice | null;
-  /** "You're offline." under the player's title, when a reading couldn't be had (BA-05). */
-  voiceNote: string | null;
+  /**
+   * LS-31: the reading couldn't be had, so the session paused. The sheet says why and offers the book's download
+   * (offline) or Try again (a reading that didn't load). Null once it is answered or the reading plays.
+   */
+  unavailable: { readonly reason: "offline" | "failed"; readonly book: BookCode; readonly translation: string } | null;
   /** LB-02: where the reading stops on its own; back to null once it has. */
   stop: Stop | null;
   /** LB-05: what loops, for memorising. */
@@ -53,8 +53,7 @@ interface AudioState {
 export const useAudio = create<AudioState>(() => ({
   session: null,
   speed: 1,
-  voice: null,
-  voiceNote: null,
+  unavailable: null,
   stop: null,
   repeat: null,
 }));

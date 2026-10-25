@@ -1,4 +1,4 @@
-# Search is a sheet with the field focused (S-01…S-04, E-04): a forgiving
+# Search (SE-30 to SE-32; S-01…S-04, E-04): a forgiving
 # reference, an English word, a Greek word across the Bible, no results, and
 # Contents from the reader title (C-01, C-02).
 appId: studio.yada.reader
@@ -8,7 +8,7 @@ appId: studio.yada.reader
 # Home (ON-01); wait for either before choosing.
 - extendedWaitUntil:
     visible:
-      id: "reader-back|home-saved"
+      id: "reader-back|home-search"
     timeout: 20000
 # Home may sit under more than one reader: the cold launch resumes one at the saved place and
 # a deep link pushes another, so ‹ Home can take more than one tap (simulator, 11 Oct 2026).
@@ -16,7 +16,7 @@ appId: studio.yada.reader
     times: 3
     while:
       notVisible:
-        id: home-saved
+        id: home-search
     commands:
       - tapOn:
           id: reader-back
@@ -36,10 +36,12 @@ appId: studio.yada.reader
 - waitForAnimationToEnd
 - eraseText: 20
 - inputText: "love"
-- assertVisible: "Words"
+# SE-31: the verses first, with their count; Words is a pill beside them.
+- assertVisible: "331 verses"
+- tapOn:
+    id: search-kind-words
 - assertVisible: "agapaō.*"
 - assertVisible: "Show all 25 words"
-- assertVisible: "Verses · 331"
 - tapOn:
     id: search-field
 - waitForAnimationToEnd
@@ -59,6 +61,8 @@ appId: studio.yada.reader
 - inputText: "Melchizedekk"
 - assertVisible:
     id: search-empty
+# SE-32: the nearest word the Bible's text holds.
+- assertVisible: "Did you mean Melchizedek?"
 - tapOn:
     id: tab-bible
 - waitForAnimationToEnd
@@ -67,8 +71,14 @@ appId: studio.yada.reader
 
 - openLink: studio.yada.reader:///read/1CO/14
 - waitForAnimationToEnd
+# CH-30: the chapter half opens the book's chapters; "1 Corinthians ›" goes on to every book.
 - tapOn:
     id: reader-contents
+- waitForAnimationToEnd
+- assertVisible:
+    id: contents-chapters
+- tapOn:
+    id: contents-books
 - waitForAnimationToEnd
 - assertVisible:
     id: contents
@@ -79,4 +89,4 @@ appId: studio.yada.reader
 - tapOn:
     id: chapter-1CO-15
 - waitForAnimationToEnd
-- assertVisible: "1 Corinthians 15, BSB"
+- assertVisible: "1 Corinthians 15"

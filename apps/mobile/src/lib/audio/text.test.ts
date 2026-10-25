@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import { splitDivineName } from "../reader";
-import { phrasesOf } from "./cadence";
 import { markPieces, spokenFor, spokenOffsetOf, toneAt, wordAt, wordRanges } from "./text";
 
 /** The drawn word a spoken substring starts in, found the way AVSpeechSynthesizer reports it. */
@@ -93,47 +92,40 @@ describe("spokenOffsetOf", () => {
 });
 
 /**
- * Every word the synthesizer would report for `display` read phrase by phrase (cadence.ts):
- * each utterance reports ranges from its own start, and the app adds the phrase's offset.
+ * Every word a recording reports for `display` from word `from` on: playSegment is given each word's offset in the
+ * spoken form (data/audio.ts), reports them back as it reaches each word, and the app maps them to drawn words.
  */
-function heardThroughPhrases(display: string, from = 0): string[] {
+function heardFromRecording(display: string, from = 0): string[] {
   const spoken = spokenFor(display);
   const words = wordRanges(display);
-  const heard: string[] = [];
-  for (const p of phrasesOf(spoken.text, from)) {
-    const utterance = spoken.text.slice(p.start, p.end);
-    for (const m of utterance.matchAll(/\S+/g)) {
-      const i = wordAt(words, spoken, p.start + m.index);
-      const w = i === null ? undefined : words[i];
-      heard.push(w === undefined ? "?" : display.slice(w.start, w.end));
-    }
-  }
-  return heard;
+  return words.slice(from).map((w) => {
+    const i = wordAt(words, spoken, spokenOffsetOf(spoken, w));
+    const hit = i === null ? undefined : words[i];
+    return hit === undefined ? "?" : display.slice(hit.start, hit.end);
+  });
 }
 
-describe("word mapping through phrases", () => {
-  it("lands every reported word on its drawn word, across cuts", () => {
+describe("word mapping from a recording's timings", () => {
+  it("lands every reported word on its drawn word", () => {
     const display = "Then Lamech said to his wives: “Adah and Zillah, hear my voice; wives of Lamech, listen to my speech. For I have slain a man.";
-    expect(heardThroughPhrases(display)).toEqual(wordRanges(display).map((w) => display.slice(w.start, w.end)));
+    expect(heardFromRecording(display)).toEqual(wordRanges(display).map((w) => display.slice(w.start, w.end)));
   });
 
-  it("keeps LORD, YHWH and the LSV's silent marks exact after a cut", () => {
+  it("keeps LORD, YHWH and the LSV's silent marks exact", () => {
     const display = "A PSALM OF DAVID. YHWH [is] my shepherd; I do not lack, || In pastures of tender grass He causes me to lie down.";
-    const heard = heardThroughPhrases(display);
+    const heard = heardFromRecording(display);
     expect(heard.slice(0, 7)).toEqual(["A", "PSALM", "OF", "DAVID.", "YHWH", "[is]", "my"]);
     expect(heard).not.toContain("?");
+    // The silent mark is never lit: its place lands on the word after it.
     expect(heard).not.toContain("||");
     expect(heard[heard.indexOf("lack,") + 1]).toBe("In");
   });
 
   it("resumes mid-verse at the same drawn word (speed change)", () => {
     const display = "He cried out, saying, “This is He of whom I said, ‘He was before me.’” Then the LORD spoke.";
-    const spoken = spokenFor(display);
     const words = wordRanges(display);
     const of = words.findIndex((w) => display.slice(w.start, w.end) === "whom");
-    expect(heardThroughPhrases(display, spokenOffsetOf(spoken, words[of]!))).toEqual(
-      words.slice(of).map((w) => display.slice(w.start, w.end)),
-    );
+    expect(heardFromRecording(display, of)).toEqual(words.slice(of).map((w) => display.slice(w.start, w.end)));
   });
 });
 

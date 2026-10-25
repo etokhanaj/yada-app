@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { DICTIONARY, DICTIONARY_FROM, type DictionaryRow, GUIDES } from "../data/dictionary.generated";
-import { dictionaryEntry, entryOf, findGuides, findTerms, firstSentence, groupDictionary } from "./dictionary";
+import { DICTIONARY_GROUPS, dictionaryEntry, dictionaryWords, entryOf, filterWords, findGuides, findTerms, firstSentence } from "./dictionary";
 
 const ROWS: DictionaryRow[] = [
   ["abomination", "kt", "Something that causes disgust. More text.", [1043032, 1, 2008026, 3]],
@@ -26,10 +26,11 @@ describe("the generated dictionary", () => {
     expect(DICTIONARY_FROM).toEqual(shipped);
   });
 
-  it("holds every group DI-04 draws, and John's first guide", () => {
-    const groups = groupDictionary();
-    expect(groups.map((g) => g.title)).toEqual(["Key words", "People and places", "Other words"]);
-    for (const g of groups) expect(g.terms.length).toBeGreaterThan(100);
+  it("holds every group DI-30 draws, and John's first guide", () => {
+    const words = dictionaryWords();
+    expect(DICTIONARY_GROUPS.map((g) => g.title)).toEqual(["Key words", "People and places", "More words"]);
+    for (const g of DICTIONARY_GROUPS) expect(words.filter((w) => w.kind === g.kind).length).toBeGreaterThan(100);
+    for (const w of words) expect(w.letter).toMatch(/^[A-Z]$/u);
     expect(GUIDES).toContainEqual(["The Word became flesh", "JHN.1.1-1.18"]);
     expect(new Set(DICTIONARY.map((r) => r[0])).size).toBe(DICTIONARY.length);
   });
@@ -50,8 +51,17 @@ describe("dictionary entries", () => {
     expect(dictionaryEntry("aaron", ROWS)).toBeNull();
   });
 
-  it("groups A to Z within each kind", () => {
-    expect(groupDictionary(ROWS).map((g) => g.terms)).toEqual([["abomination", "Almighty", "church", "Holy Spirit", "Pharisee"], ["Aaron"], ["acacia"]]);
+  it("gives each word its own first sentence and its rail letter (DI-30)", () => {
+    const words = dictionaryWords(ROWS);
+    expect(words[0]).toEqual({ term: "abomination", kind: "kt", first: "Something that causes disgust.", letter: "A" });
+    expect(dictionaryWords([["Ēl", "names", "A name.", []]])[0]?.letter).toBe("E");
+  });
+
+  it("filters as you type: words that begin with it, then words that hold it", () => {
+    const words = dictionaryWords(ROWS);
+    expect(filterWords("a", words).map((w) => w.term)).toEqual(["abomination", "Almighty", "Aaron", "acacia", "Pharisee"]);
+    expect(filterWords("SPIRIT", words).map((w) => w.term)).toEqual(["Holy Spirit"]);
+    expect(filterWords("  ", words)).toHaveLength(ROWS.length);
   });
 
   it("cuts a definition at its first sentence", () => {

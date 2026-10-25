@@ -28,7 +28,7 @@ Mobbin screen in a comment (CLAUDE.md).
   book. Its kicker is chartreuse, its text white.
 - No state by colour alone: a wash always comes with a bar, an underline or a word.
 - White on pictures and on forest and night grounds: `ON_PICTURE` (text, strong, muted, glass, mark, track, disc);
-  people's avatars: `AVATAR_HUES` (deep on light, pale on dark and forest); a circle: `CIRCLE_TONES`; iOS's own menu
+  people's avatars: `AVATAR_HUES` (deep on light, pale on dark and forest); a circle: its own picture (`circlePicture`); iOS's own menu
   colours: `SYSTEM`; every switch is `components/Toggle.tsx`. No colour literal outside `design/` **(tested**,
   `system.test.ts`). The full rule map, with contrast figures: `docs/colour-rules.md`.
 - System surfaces (widgets, Lock Screen, Live Activity, the reminder's long-press) use the same palette, copied into
@@ -61,6 +61,7 @@ Scripture is never set in the system sans: Sit with this and Pray for someone di
 |---|---|---|
 | A page pushed onto the stack | `PageScreen` (back capsule naming where it goes, large title) | |
 | Anything presented as a sheet (`options={sheet}`, `formSheet`) | `SheetScreen` (title, round × and ‹, its own scroll) **(tested)** | `PageScreen` inside a sheet: its scroll view collapses and the sheet draws blank (Ask for prayer, TestFlight build 9) |
+| A pushed page whose job is one action (Sit with a verse) | `PageScreen footer`: the reader's docked bar (`BarFrame`) holding that one pill, plus at most one square secondary beside it | the primary in the middle of the scroll, under a list |
 | A full-screen moment (Return, end of a book, Daily prayer, Sit with this) | a `fullScreenModal` route with its own ground, a 44 pt × top left, one primary pill at the foot | a white page with a large title |
 | A section inside a sheet | `Section` from `Sheet.tsx` (bold ink title) | a hand-made `Label` heading |
 | One tappable self-contained thing (the reading to do now, a plan, the day's picture) | a card: `card` fill, 24 pt radius, no shadow, never nested, never around text or a list | a box around a list or a paragraph |
@@ -72,6 +73,25 @@ Scripture is never set in the system sans: Sit with this and Pray for someone di
 | A text field | the field itself carries the words; a pill-shaped field on `card` for short answers; Literata for what the reader writes to God or about Scripture | an `Alert.prompt` for anything a reader will meet more than once |
 | A picture that fills a box (Today, the day's verse, Return, Daily prayer, the share image) | `FillPicture` in a box that clips (`overflow: "hidden"`) **(tested)** | an `<Image>` with `StyleSheet.absoluteFill`: it drew far larger and showed a corner of the picture; unclipped, it drew past its box |
 | An action bar for a field | `InputAccessoryView` over the keyboard, and the same bar in the sheet when no on-screen keyboard is up | a button the keyboard covers |
+
+## Build 12 additions (John, 24 Oct 2026)
+
+Adopted from the YouVersion study (`docs/design-system-upgrade-2026-10-24.md`) and drawn on the Build 12 canvas
+(https://claude.ai/artifact/K7W4ov2ti3cY2csqgXCb1h, Main). Built in Build 12; until then the frames are the spec.
+
+| You need | Use |
+|---|---|
+| A row for a person, a circle or a saved verse | `ListRow leading action`: a 56 pt picture, highlight swatch or avatar stack, two lines, one small `card`-filled `Pill` on the right (Pray, Sit), no chevron |
+| A section that shows part of a list | `SectionTitle link`: "See all ›" on the right |
+| Moods and topics | `PictureTile` on Yada's own photographs (`pictureFor`, each mood its fixed day), the name in Literata on a fade |
+| Ways to pray (or any four ways in) | `TintTile` in a `TileGrid`: `palette.tints` forest, sand, sky, clay; the name in ink **(tested)** |
+| Something a person wrote (a request, a note) | `RaisedCard`: `raised` with `raisedShadow`, 24 pt radius; the only shadow outside floating chrome **(tested)** |
+| Something new | `Badge` (`BADGE`: lime, ink words, "1 new"); never red |
+| The day's verse on its picture | `VerseActions`: Sit, Listen, Share, More as icon-over-label actions; no counts |
+| You | two `StatTile`s: days this year first (RT-02), days in a row; never a best |
+| An empty list | `EmptyState`: a title, one line, one primary pill (EM-01 draws no glyph) |
+| A sheet over a page | no shadow: the page behind dims (20% black in Light, 55% in Dark); the sheet is paper with a 28 pt top radius; cards inside a sheet sit on `fill`, so they show in Dark |
+| Filters over a list that scrolls sideways | `FilterPills`, the chosen one in ink; `Segmented` stays for two to four equal views |
 
 ## Motion and accessibility
 
@@ -85,7 +105,7 @@ Scripture is never set in the system sans: Sit with this and Pray for someone di
 ## Words
 
 Every word on screen earns its place: no subtitles that restate the layout, no "coming later", no counts that shame, no
-coloured category labels (CLAUDE.md). Say in one line who sees what wherever the reader shares anything (Pray, Circles).
+coloured words for a category: a category sits on a photograph or a tint instead (Build 12, CLAUDE.md). Say in one line who sees what wherever the reader shares anything (Pray, Circles).
 
 ## How to check a screen
 

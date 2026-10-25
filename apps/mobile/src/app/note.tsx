@@ -1,29 +1,27 @@
 /**
- * A note (PS-03): a sheet over the reader titled "Note" with the reference, the verse quoted in muted Literata, a
- * switch between the verse and the whole chapter, and the editor on the card fill. One line says who sees it. Saved as
- * the reader writes, so closing the sheet never loses a word; emptying a note deletes it.
+ * A note (NT-30): a sheet at the medium detent, so the verse it is on stays in view above it on the reader; "Note ·
+ * John 2:4" with Done, the note itself in Literata at the reading size, one line saying who sees it. Saved as the
+ * reader writes, so closing the sheet never loses a word; emptying a note deletes it.
  *
- * Reached from the bar's Note (PS-01), the note mark after a verse number (PS-02) and Saved › Notes (PS-04).
+ * Reached from the verse sheet's Note, the note mark after a verse number and Saved › Notes (a whole chapter's note
+ * opens with `whole=1`).
  */
 
-import { type BookCode, formatVerseId, isBookCode, verseOrd } from "@yada/schema";
+import { type BookCode, formatVerseId, isBookCode } from "@yada/schema";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
-import { Segmented } from "../components/Segmented";
+import { useSheetNav } from "../components/navigation";
+import { Pill } from "../components/Pill";
 import { SheetScreen } from "../components/Sheet";
-import { Chrome, Scripture } from "../components/Type";
-import { useAppData, useCore, useQuery } from "../data/AppData";
-import { cloudAvailable } from "../data/cloud";
-import { isLicensedCode } from "../data/licensed";
-import { getTextsForOrds } from "../data/queries";
+import { Chrome } from "../components/Type";
+import { useAppData } from "../data/AppData";
 import { loadNote, saveNote } from "../data/user";
-import { FONTS, usePalette } from "../design/tokens";
+import { FONTS, useLayout, usePalette, useType } from "../design/tokens";
 import { NOTE_MAX } from "../lib/highlights";
-import { chapterTitle, excerptOf } from "../lib/reader";
+import { chapterTitle } from "../lib/reader";
 import { verseLabel } from "../lib/saved";
-import { useSettings } from "../state/settings";
 
 /** Saving waits for a pause in typing, so a note is one write per thought, not one per letter. */
 const SAVE_DELAY_MS = 600;
@@ -37,27 +35,22 @@ const wholeNumber = (value: string | undefined, min: number): number | null => {
 export default function NoteSheet() {
   const params = useLocalSearchParams<{ book: string; chapter: string; verse?: string; whole?: string }>();
   const chapter = wholeNumber(params.chapter, 1);
-  // A note opened as a whole chapter's (Saved › Notes) has no verse to quote or switch to.
   const verse = params.verse === undefined ? null : wholeNumber(params.verse, 0);
   // A link that names no real place opens nothing rather than a note on "undefined.NaN" (code review, 18 Oct 2026).
   if (!isBookCode(params.book) || chapter === null || (params.verse !== undefined && verse === null)) return null;
-  return <NoteEditor book={params.book} chapter={chapter} verse={verse} startWhole={params.whole === "1" || verse === null} />;
+  return <NoteEditor book={params.book} chapter={chapter} verse={params.whole === "1" ? null : verse} />;
 }
 
-function NoteEditor({ book, chapter, verse, startWhole }: { book: BookCode; chapter: number; verse: number | null; startWhole: boolean }) {
+function NoteEditor({ book, chapter, verse }: { book: BookCode; chapter: number; verse: number | null }) {
   const palette = usePalette();
-  const core = useCore();
+  const { gutter } = useLayout();
+  const reading = useType("scripture");
+  const { closeSheet } = useSheetNav();
   const { user } = useAppData();
-  const translation = useSettings((s) => s.translation);
-  const [scope, setScope] = useState<"verse" | "chapter">(startWhole ? "chapter" : "verse");
-  const target = scope === "verse" && verse !== null ? formatVerseId(book, chapter, verse) : `${book}.${chapter}`;
+  const target = verse !== null ? formatVerseId(book, chapter, verse) : `${book}.${chapter}`;
+  const place = verse !== null ? verseLabel({ book, chapter, verse }) : chapterTitle(book, chapter);
   const [body, setBody] = useState<string | null>(null);
-
-  // A licensed version is not on the phone: the verse quoted is the BSB's (US-11).
-  const shown = isLicensedCode(translation) ? "BSB" : translation;
-  const ord = verse === null ? null : verseOrd(book, chapter, verse);
-  const { data: texts } = useQuery(async () => (ord === null ? new Map<number, string>() : getTextsForOrds(core, [ord], shown)), [ord, shown]);
-  const quote = ord === null ? "" : excerptOf(texts?.get(ord) ?? "");
+  const field = useRef<TextInput>(null);
 
   const pending = useRef<{ target: string; body: string } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -66,20 +59,22 @@ function NoteEditor({ book, chapter, verse, startWhole }: { book: BookCode; chap
     const next = pending.current;
     pending.current = null;
     if (next === null) return;
-    // A failed write keeps the words waiting, so the next blur or switch tries again rather than dropping them
-    // (code review, 18 Oct 2026); anything typed since is newer and wins.
+    // A failed write keeps the words waiting, so the next blur tries again rather than dropping them (code review,
+    // 18 Oct 2026); anything typed since is newer and wins.
     saveNote(user, next.target, next.body).catch(() => {
       if (pending.current === null) pending.current = next;
     });
   };
-  // Leaving the sheet, or switching between the verse and the chapter, saves what is waiting first.
+  // Leaving the sheet, by Done or a drag down, saves what is waiting first.
   useEffect(() => flush, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let live = true;
-    setBody(null);
     void loadNote(user, target).then((text) => {
-      if (live) setBody(text);
+      if (!live) return;
+      setBody(text);
+      // The caret is in the note once its words are in (NT-30): the sheet is opened to write.
+      requestAnimationFrame(() => field.current?.focus());
     });
     return () => {
       live = false;
@@ -93,57 +88,52 @@ function NoteEditor({ book, chapter, verse, startWhole }: { book: BookCode; chap
     timer.current = setTimeout(flush, SAVE_DELAY_MS);
   };
 
-  const verseName = verse === null ? null : verseLabel({ book, chapter, verse });
-  const chapterName = `All of ${chapterTitle(book, chapter)}`;
-  const place = scope === "verse" && verseName !== null ? verseName : chapterTitle(book, chapter);
+  const header = (
+    <View style={[styles.head, { paddingHorizontal: gutter }]}>
+      <Chrome step="sheetTitle" tone="ink" accessibilityRole="header" style={styles.title}>
+        {`Note · ${place}`}
+      </Chrome>
+      <Pill
+        primary
+        small
+        title="Done"
+        label="Done, close the note"
+        onPress={() => {
+          flush();
+          closeSheet();
+        }}
+        testID="note-done"
+      />
+    </View>
+  );
+
   return (
-    <SheetScreen title="Note" subtitle={place} backLabel={null} footer={false} noBack keyboard testID="note">
-      {quote === "" ? null : (
-        <Scripture step="claim" tone="muted" style={styles.quote}>
-          {quote}
-        </Scripture>
-      )}
-      {verseName === null ? null : (
-        <Segmented
-          label="Note on"
-          options={[
-            { value: "verse", label: verseName },
-            { value: "chapter", label: chapterName },
-          ]}
-          value={scope}
-          onChange={(next) => {
-            flush();
-            setScope(next);
-          }}
-          testID="note-scope"
-        />
-      )}
+    <SheetScreen title="Note" header={header} backLabel={null} footer={false} noBack keyboard testID="note">
+      {/* NT-30: the note in Literata at the reader's own size, on the sheet itself, not a field box. */}
       <TextInput
         value={body ?? ""}
         editable={body !== null}
         onChangeText={edit}
         onBlur={flush}
+        ref={field}
         multiline
         maxLength={NOTE_MAX}
         placeholder="Write a note"
         placeholderTextColor={palette.mutedInk}
         accessibilityLabel={`Your note on ${place}`}
-        style={[styles.field, { backgroundColor: palette.card, color: palette.ink }]}
+        style={[styles.field, { color: palette.ink, fontSize: reading.size, lineHeight: Math.round(reading.size * 1.5) }]}
         testID="note-field"
       />
-      <View style={styles.kept}>
-        <Chrome step="note" tone="muted">
-          {cloudAvailable() ? "Kept on this iPhone and in your iCloud. Only you see it." : "Kept on this iPhone. Only you see it."}
-        </Chrome>
-      </View>
+      <Chrome step="note" tone="muted" style={styles.kept}>
+        Only you see your notes
+      </Chrome>
     </SheetScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  // The verse quoted in muted Literata (PS-03); the claim step alone is the system face.
-  quote: { marginBottom: 16, fontFamily: FONTS.scripture },
-  // PS-03: the editor on the card fill, Literata, as anything the reader writes about Scripture (design system).
-  field: { marginTop: 20, minHeight: 140, borderRadius: 24, padding: 16, fontFamily: FONTS.scripture, fontSize: 17, lineHeight: 25, textAlignVertical: "top" },
-  kept: { marginTop: 10 },
+  head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", columnGap: 12, minHeight: 56, paddingTop: 10 },
+  title: { flexShrink: 1 },
+  field: { marginTop: 4, minHeight: 120, padding: 0, fontFamily: FONTS.scripture, textAlignVertical: "top" },
+  kept: { marginTop: 8 },
 });

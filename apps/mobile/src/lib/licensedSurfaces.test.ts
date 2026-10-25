@@ -38,15 +38,16 @@ describe("system surfaces (Siri, Spotlight, App Intents, widgets, Now Playing)",
       .sort();
     expect(importers).toEqual([
       "app/_layout.tsx",
+      // A dictionary word (DI-31): asks only whether the reader's version is licensed, to show the BSB's verses instead.
+      "app/dictionary/term.tsx",
       "app/evidence/choose.tsx",
       "app/evidence/translations.tsx",
       // Verses for a moment (VM-10): asks only whether the reader's version is licensed, to say the words are the BSB.
       "app/moment.tsx",
-      // Your space (PS-03, PS-04): the note's quoted verse and Saved's excerpts ask only whether a code is licensed,
-      // and draw the BSB if it is (US-11, rule 9). The share image uses the system surfaces' allow-list instead.
-      "app/note.tsx",
       "app/read/[book]/[chapter].tsx",
       "app/recent.tsx",
+      // Your space (PS-04): Saved's excerpts ask only whether a code is licensed, and draw the BSB if it is (US-11,
+      // rule 9). The share image uses the system surfaces' allow-list instead.
       "app/saved.tsx",
       "app/search.tsx",
       // Sources and licences names the versions read online (ST-04); it reads no licensed text.
@@ -55,6 +56,8 @@ describe("system surfaces (Siri, Spotlight, App Intents, widgets, Now Playing)",
       // stress test, 15 Oct 2026); it reads no licensed text.
       "app/translations.tsx",
       "data/audio.ts",
+      // Choose a verse (SW-02): asks only whether the reader's version is licensed, to search the BSB instead (rule 9).
+      "data/sitChoices.ts",
       "data/useLicensedChapter.ts",
       "data/user.ts",
     ]);

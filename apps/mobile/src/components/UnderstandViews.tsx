@@ -47,7 +47,6 @@ import { BSB_BASIS, bsbStandsIn, notInLine, onPhoneOrder, verseTextIn } from "..
 import { factsFor, halfView, offlineLine, plainHeading, plainSegments, readersLead, readerLines, spokenPlain } from "../lib/understand";
 import { useSettings } from "../state/settings";
 import { useSheets } from "../state/sheets";
-import { HearPassage } from "./HearPassage";
 import { Icon } from "./Icon";
 import { useSheetBase } from "./navigation";
 import { OmittedVerseNote, useOmittedVerse } from "./OmittedVerse";
@@ -299,9 +298,6 @@ function HalfViewBody({ book, verse, passage, onMore }: { book: BookCode; verse:
           ))}
         </Section>
       ) : null}
-      {/* UL-01: the verse's passage read aloud from its first verse, above More on this verse; each its own
-          section, a section gap apart (HearPassage carries its own). */}
-      {passage !== null ? <HearPassage book={book} startOrd={passage.startOrd} range={passageSubtitle(passage)} /> : null}
       <View style={{ marginTop: sectionGap }}>
         {/* Grows this sheet rather than pushing a page (review §2.3): a disclosure, so ⌄ rather than ›. Without
             it the row read as plain text (UX pass, 15 Oct 2026). Semibold, as VS-01's `.morev .claim`. */}

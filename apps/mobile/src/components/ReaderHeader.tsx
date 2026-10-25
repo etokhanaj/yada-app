@@ -3,15 +3,18 @@
  *
  * Glass controls with the text scrolling under them, no bar and no rule: a
  * paper fade instead (Apple Books reader chrome,
- * https://mobbin.com/screens/d6766fdb-6038-4359-99d3-adf6a50ca363). `‹ Home`,
- * or the return chip after a jump, then one centred title target — book and
- * chapter, the translation small beneath — that opens Contents (amendment 13),
- * then `Aa`. The title is centred on the screen, not between the buttons: both
- * sides take the wider one's width (v2-review: 0 pt offset).
+ * https://mobbin.com/screens/d6766fdb-6038-4359-99d3-adf6a50ca363). `‹ Bible`,
+ * or the return chip after a jump, then the chapter and the version as one split
+ * control (RD-30): `John 2` opens the book's chapters (CH-30), `WEB` the
+ * translations, each its own sheet. Then `Aa`. The control is centred on the
+ * screen, not between the buttons: both sides take the wider one's width
+ * (v2-review: 0 pt offset). Under it a hairline of how far through the chapter
+ * the reader is (RD-30), in the accent on a fill track.
  *
  * While reading it steps back to one 13 pt line under the island (D-05,
- * YouVersion's scroll state); scrolling up or tapping the line restores it.
- * From AX3 the controls take one row and the title wraps on the next.
+ * YouVersion's scroll state), the hairline still under it; scrolling up or
+ * tapping the line restores it. From AX3 the controls take one row and the
+ * split control the next, and `‹` drops its word (RD-30 AX5).
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -34,8 +37,10 @@ export function ReaderHeader({
   translation,
   back,
   collapsed,
+  progress,
   onBack,
-  onContents,
+  onChapters,
+  onTranslations,
   onType,
   onExpand,
   onHeight,
@@ -45,8 +50,11 @@ export function ReaderHeader({
   /** null = `‹ Bible`, the tab under the reader (IA v4, build 7). */
   back: { label: string; accessibility: string } | null;
   collapsed: boolean;
+  /** 0 to 1, how far through the chapter: an Animated.Value the reader sets as it scrolls, so a scroll never re-renders the screen. */
+  progress: Animated.Value;
   onBack: () => void;
-  onContents: () => void;
+  onChapters: () => void;
+  onTranslations: () => void;
   onType: () => void;
   onExpand: () => void;
   /** Height of the full header, fade excluded: where the text starts. */
@@ -88,9 +96,11 @@ export function ReaderHeader({
       }}
     >
       <Icon name="back" size={18} tone="muted" />
-      <Chrome tone="ink" size={16} numberOfLines={1} style={{ fontWeight: "500", marginRight: 2 }}>
-        {back === null ? "Bible" : back.label}
-      </Chrome>
+      {twoRows && back === null ? null : (
+        <Chrome tone="ink" size={16} numberOfLines={1} style={{ fontWeight: "500", marginRight: 2 }}>
+          {back === null ? "Bible" : back.label}
+        </Chrome>
+      )}
     </GlassButton>
   );
 
@@ -110,37 +120,44 @@ export function ReaderHeader({
     </GlassButton>
   );
 
-  const titleButton = (
+  const half = (text: string, label: string, hint: string, onPress: () => void, testID: string) => (
     <Pressable
-      onPress={onContents}
+      onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${title}, ${translation}`}
-      accessibilityHint="Opens books, chapters and translations"
-      testID="reader-contents"
-      style={({ pressed }) => [twoRows ? styles.titleRows : styles.title, pressed ? { opacity: 0.6 } : null]}
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      testID={testID}
+      style={({ pressed }) => [styles.half, pressed ? { opacity: 0.6 } : null]}
     >
-      <Chrome step="sheetTitle" tone="ink" numberOfLines={twoRows ? undefined : 1}>
-        {title}
+      <Chrome tone="ink" numberOfLines={1} style={{ fontWeight: "600" }} maxFontSizeMultiplier={2.2}>
+        {text}
       </Chrome>
-      {twoRows ? null : (
-        // Measured once at its natural width, never seen or read.
-        <Chrome
-          step="sheetTitle"
-          style={styles.measure}
-          onTextLayout={(e) => setTitleWidth(Math.ceil(e.nativeEvent.lines[0]?.width ?? 0))}
-          accessible={false}
-          importantForAccessibility="no-hide-descendants"
-        >
-          {title}
-        </Chrome>
-      )}
-      <View style={styles.translation}>
-        <Chrome step="note" tone="muted" style={{ fontWeight: "500", fontSize: twoRows ? 13 : 12 }} maxFontSizeMultiplier={twoRows ? 2.2 : 1.6}>
-          {translation}
-        </Chrome>
-        <Icon name="down" size={10} tone="muted" strokeWidth={2.5} maxScale={1.6} />
-      </View>
     </Pressable>
+  );
+
+  const split = (
+    <View
+      style={[styles.split, { backgroundColor: palette.fill }]}
+      onLayout={(e) => {
+        const w = Math.ceil(e.nativeEvent.layout.width);
+        setTitleWidth((t) => (t === w ? t : w));
+      }}
+    >
+      {half(title, title, "Opens the book's chapters", onChapters, "reader-contents")}
+      <View style={[styles.splitRule, { backgroundColor: palette.divider }]} />
+      {half(translation, `Translation, ${translation}`, "Opens the translations", onTranslations, "reader-translation")}
+    </View>
+  );
+
+  const track = (
+    <View style={[styles.track, { backgroundColor: palette.fill }]} accessible={false} importantForAccessibility="no-hide-descendants">
+      <Animated.View
+        style={[
+          styles.progress,
+          { backgroundColor: palette.accent, transform: [{ scaleX: progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: "clamp" }) }] },
+        ]}
+      />
+    </View>
   );
 
   return (
@@ -162,15 +179,16 @@ export function ReaderHeader({
                 {backButton}
                 {typeButton}
               </View>
-              <View style={styles.row2}>{titleButton}</View>
+              <View style={styles.row2}>{split}</View>
             </>
           ) : (
             <View style={styles.row}>
               <View style={[styles.side, { minWidth: centred ? balanced : 0 }]}>{backButton}</View>
-              {titleButton}
+              <View style={styles.middle}>{split}</View>
               <View style={[styles.side, { minWidth: centred ? balanced : 0, alignItems: "flex-end" }]}>{typeButton}</View>
             </View>
           )}
+          {track}
         </View>
         <View style={fade} />
       </Animated.View>
@@ -202,6 +220,7 @@ export function ReaderHeader({
               {title} · {translation}
             </Chrome>
           </Pressable>
+          {track}
         </View>
         {reduceTransparency ? null : <View style={fade} />}
       </Animated.View>
@@ -232,31 +251,39 @@ const styles = StyleSheet.create({
   side: {
     flexShrink: 0,
   },
-  title: {
+  middle: {
     flex: 1,
     minWidth: 0,
-    minHeight: 44,
     alignItems: "center",
-    justifyContent: "center",
   },
-  titleRows: {
-    minHeight: 44,
-    alignItems: "flex-start",
-    justifyContent: "center",
-  },
-  translation: {
+  split: {
     flexDirection: "row",
-    alignItems: "center",
-    columnGap: 2,
+    alignItems: "stretch",
+    maxWidth: "100%",
+    borderRadius: 22,
+    overflow: "hidden",
   },
-  measure: {
-    position: "absolute",
-    opacity: 0,
-    left: 0,
-    top: 0,
-    width: 1000,
-    textAlign: "left",
-    alignSelf: "flex-start",
+  half: {
+    minHeight: 44,
+    paddingHorizontal: 14,
+    justifyContent: "center",
+    flexShrink: 1,
+  },
+  splitRule: {
+    width: StyleSheet.hairlineWidth,
+  },
+  track: {
+    height: 2,
+    borderRadius: 1,
+    marginTop: 8,
+    marginHorizontal: 16,
+    overflow: "hidden",
+  },
+  // Scaled from its left edge: the bar is drawn full width and shrunk, so it moves on the native driver.
+  progress: {
+    height: 2,
+    width: "100%",
+    transformOrigin: "left",
   },
   mini: {
     minHeight: 44,

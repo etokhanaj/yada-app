@@ -157,6 +157,11 @@ export function askedLine(firstName: string, createdAt: number | undefined, now:
   return [firstName.trim() === "" ? null : firstName.trim(), age].filter((x) => x !== null).join(" · ") || null;
 }
 
+/** Your requests on Pray (PR-51): newest first, answered or not; one with no date (asked before build 10) goes last. */
+export function newestFirst<T extends { readonly createdAt?: number }>(list: readonly T[]): T[] {
+  return [...list].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+}
+
 /** "3 people prayed · 5 days left" or "Answered 12 Oct · 7 people prayed" (PR-11): under Live and Answered, so no "Live". */
 export function mineLine(r: { readonly expiresAt: number; readonly answeredAt?: number; readonly prayed?: number }, now: number): string {
   const n = r.prayed ?? 0;
@@ -209,9 +214,14 @@ export function yoursLine(r: { readonly expiresAt: number; readonly prayed?: num
   return [n <= 0 ? null : `Yours: ${n} ${n === 1 ? "person" : "people"} prayed`, left === 0 ? "Ended" : `${left} ${left === 1 ? "day" : "days"} left`].filter((x) => x !== null).join(" · ");
 }
 
+/** A circle's picture (PC-30): the one chosen at New circle, or for an older circle one fixed by its id. */
+export function circlePicture(c: { readonly id: string; readonly picture?: number }): number {
+  return c.picture !== undefined && c.picture >= 1 && c.picture <= 30 ? c.picture : hashIndex(c.id, 30) + 1;
+}
+
 /** A circle's route params: the circle page and the welcome open with these. */
-export function circleParams(c: { readonly id: string; readonly owner: string; readonly name: string; readonly owned: boolean; readonly people: number }): Record<string, string> {
-  return { id: c.id, owner: c.owner, name: c.name, owned: c.owned ? "1" : "", people: String(c.people) };
+export function circleParams(c: { readonly id: string; readonly owner: string; readonly name: string; readonly owned: boolean; readonly people: number; readonly picture?: number }): Record<string, string> {
+  return { id: c.id, owner: c.owner, name: c.name, owned: c.owned ? "1" : "", people: String(c.people), picture: String(circlePicture(c)) };
 }
 
 /** PA-03: the two prayer notifications, both on until turned off. Kept per device, as the reading reminder is. */

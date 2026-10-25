@@ -1,50 +1,50 @@
 /**
- * Daily prayer, guided (DO-04–06; John, 17 Oct 2026: "make the prayers more visual"). The day's picture full bleed
- * under a soft scrim, one part at a time in large Literata, the step marks, Next and, on the last part, Amen, which
- * returns to Today. After Insight Timer, Oura, Forest and Opal's sessions (mobbin.com/screens/7bf892dd-c66e-4a13-
- * be51-3a9633d0a363, 7be5795d-113c-493f-a297-ae5b4fbd4fc9, c6485d4b-493d-440e-847e-6b3ba1176d45,
- * b7a85dff-8e86-4211-9dec-73f5bf2ac492). Long parts scroll within their step. Opened for the evening (Build 10), it
- * prays the evening office over the evening's picture.
+ * The day's office, guided (DO-04 to DO-06; Build 12 OF-30, John 24 Oct 2026). One part at a time over the day's
+ * picture, blurred to colour as in Sit with a verse: × and a segment per part at the top, rain on the right; the
+ * office's name and the part's over its words in Literata, the reference under them; Next docked, then Amen. Amen
+ * counts the day and ticks the office on Today. Long parts scroll within their step. Opened for the evening, it prays
+ * the evening office over the evening's picture; from noon to five its name is "Afternoon prayer" (decision 4).
  */
 
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useCore } from "../data/AppData";
+import { GlassButton } from "../components/Glass";
+import { Icon } from "../components/Icon";
+import { PictureGround } from "../components/PictureGround";
+import { StepSegments } from "../components/StepSegments";
+import { Pill } from "../components/Pill";
+import { Chrome } from "../components/Type";
+import { useAppData, useCore } from "../data/AppData";
 import { setAmbient, useAmbient } from "../data/ambient";
 import { loadOffice, type OfficeStep } from "../data/office";
-import { pictureFor } from "../data/pictures";
-import { FONTS, useLayout } from "../design/tokens";
-import { dayOf, type Part, partOf } from "../lib/today";
+import { countDay, markDone } from "../data/user";
 import { BRAND, ON_PICTURE } from "../design/palette";
-import { useAccessibility } from "../state/accessibility";
-import { FillPicture } from "../components/FillPicture";
-
-const FOREST = BRAND.forest;
+import { FONTS, useLayout } from "../design/tokens";
+import { dayOf, officeName, type Part, partOf } from "../lib/today";
 
 export default function Office() {
   const core = useCore();
+  const { user } = useAppData();
   const insets = useSafeAreaInsets();
   const { ax, gutter } = useLayout();
   const [steps, setSteps] = useState<OfficeStep[] | null>(null);
   const [at, setAt] = useState(0);
   const params = useLocalSearchParams<{ part?: string }>();
   // The part comes from the card that opened this; opened without one (an old link), it follows the clock.
-  const part: Part = params.part === "evening" || params.part === "morning" ? params.part : partOf(new Date());
-  const day = dayOf(new Date());
-  const picture = pictureFor(day, part);
+  const now = new Date();
+  const part: Part = params.part === "evening" || params.part === "morning" ? params.part : partOf(now);
+  const name = part === "evening" ? "Evening prayer" : officeName(now);
 
   useEffect(() => {
     let live = true;
-    void loadOffice(core, day, part).then((s) => live && setSteps(s));
+    void loadOffice(core, dayOf(new Date()), part).then((s) => live && setSteps(s));
     return () => {
       live = false;
     };
-    // The day is fixed for the session; reloading on every render would refetch each step.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [core]);
+  }, [core, part]);
 
   const rain = useAmbient((s) => s.on);
   // Leaving prayer ends the sound: it never plays on behind another screen.
@@ -52,67 +52,49 @@ export default function Office() {
 
   const step = steps?.[at];
   const last = steps !== null && at === steps.length - 1;
-  const next = () => (last ? router.back() : setAt((n) => n + 1));
+  const next = () => {
+    if (!last) return setAt((n) => n + 1);
+    void countDay(user).catch(() => undefined);
+    void markDone(user, "office").catch(() => undefined);
+    router.back();
+  };
 
-  const solid = useAccessibility((s) => s.reduceTransparency);
   return (
-    <View style={[styles.root, { backgroundColor: FOREST }]} testID="office">
-      {picture !== undefined ? <FillPicture source={picture.image} alt={picture.alt} /> : null}
-      {/* Darker where the words sit, at least 86% (design system), and solid under Reduce Transparency (images audit). */}
-      <View
-        pointerEvents="none"
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            experimental_backgroundImage: solid
-              ? "linear-gradient(rgba(8,14,12,0.88), rgba(8,14,12,0.94))"
-              : "linear-gradient(rgba(8,14,12,0.5), rgba(8,14,12,0.86) 40%, rgba(8,14,12,0.9))",
-          },
-        ]}
-      />
-      <View style={[styles.top, { top: insets.top + 8, left: gutter, right: gutter }]}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={part === "evening" ? "Close evening prayer" : "Close daily prayer"} style={styles.close} testID="office-close">
-          <Text style={styles.closeX}>×</Text>
-        </Pressable>
-        {steps !== null ? (
-          <View style={styles.marks} accessible accessibilityLabel={`Part ${at + 1} of ${steps.length}`}>
-            {steps.map((s, i) => (
-              <View key={`${s.ref}-${i}`} style={[styles.mark, i <= at ? styles.markOn : null]} />
-            ))}
-          </View>
-        ) : null}
-      </View>
-      <ScrollView
-        style={{ flex: 1, marginTop: insets.top + 64, marginBottom: insets.bottom + 96 }}
-        contentContainerStyle={{ flexGrow: 1, justifyContent: ax ? "flex-start" : "center", paddingHorizontal: gutter + 12 }}
-      >
-        {step !== undefined ? (
-          <View>
-            <Text style={styles.label} accessibilityRole="header" maxFontSizeMultiplier={2}>
-              {step.label}
-            </Text>
-            <Text style={[styles.text, ax ? { fontSize: 34, lineHeight: 46 } : null]} accessibilityLanguage="en">
-              {step.text}
-            </Text>
-            <Text style={styles.ref} maxFontSizeMultiplier={2}>
-              {step.ref}
-            </Text>
-          </View>
-        ) : null}
-      </ScrollView>
-      <View style={[styles.foot, { bottom: insets.bottom + 24, left: gutter, right: gutter }]}>
-        <Pressable
+    <View style={styles.root} testID="office">
+      <PictureGround blurred part={part} />
+      <View style={[styles.top, { paddingTop: insets.top + 4, paddingHorizontal: gutter - 8 }]}>
+        <GlassButton onPicture onPress={() => router.back()} accessibilityLabel={`End ${name.toLowerCase()}`} testID="office-close">
+          <Icon name="close" size={20} tone="white" />
+        </GlassButton>
+        <StepSegments count={steps?.length ?? 0} fill={(i) => (i <= at ? 1 : 0)} label={steps === null ? name : `${step?.label ?? ""}, part ${at + 1} of ${steps.length}`} />
+        <GlassButton
+          onPicture
           onPress={() => void setAmbient(!rain)}
-          accessibilityRole="button"
-          accessibilityLabel={rain ? "Stop the sound of rain" : "Add the sound of rain"}
-          style={styles.sound}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: rain }}
+          accessibilityLabel="The sound of rain"
           testID="office-rain"
         >
-          <Text style={styles.soundText}>{rain ? "Rain · Stop" : "+ Add rain"}</Text>
-        </Pressable>
-        <Pressable onPress={next} disabled={step === undefined} accessibilityRole="button" accessibilityLabel={last ? "Amen, back to Today" : "Next part"} style={styles.next} testID="office-next">
-          <Text style={styles.nextText}>{last ? "Amen" : "Next"}</Text>
-        </Pressable>
+          <Icon name="cloud" size={20} color={rain ? BRAND.chartreuse : ON_PICTURE.text} />
+        </GlassButton>
+      </View>
+      <ScrollView contentContainerStyle={[styles.body, { paddingHorizontal: gutter, justifyContent: ax ? "flex-start" : "center" }]} showsVerticalScrollIndicator={false}>
+        {step === undefined ? null : (
+          <View style={{ rowGap: 12 }}>
+            <Chrome step="note" style={{ color: ON_PICTURE.strong, fontWeight: "600" }} accessibilityRole="header">
+              {`${name} · ${step.label}`}
+            </Chrome>
+            <Text style={styles.text} maxFontSizeMultiplier={1.4} accessibilityLanguage="en">
+              {step.text}
+            </Text>
+            <Chrome step="note" style={{ color: ON_PICTURE.muted }}>
+              {step.ref}
+            </Chrome>
+          </View>
+        )}
+      </ScrollView>
+      <View style={{ paddingHorizontal: gutter, paddingBottom: insets.bottom + 16 }}>
+        <Pill title={last ? "Amen" : "Next"} onPicture stretch disabled={step === undefined} onPress={next} label={last ? `Amen, the end of ${name.toLowerCase()}` : "Next part"} testID="office-next" />
       </View>
     </View>
   );
@@ -120,18 +102,7 @@ export default function Office() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  top: { position: "absolute", flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 1 },
-  close: { width: 44, height: 44, borderRadius: 22, backgroundColor: ON_PICTURE.glass, alignItems: "center", justifyContent: "center" },
-  closeX: { color: ON_PICTURE.text, fontSize: 26, lineHeight: 28 },
-  marks: { flexDirection: "row", columnGap: 6 },
-  mark: { width: 18, height: 3, borderRadius: 2, backgroundColor: ON_PICTURE.mark },
-  markOn: { backgroundColor: ON_PICTURE.text },
-  label: { color: ON_PICTURE.strong, fontSize: 13, fontWeight: "600", marginBottom: 14 },
-  text: { color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontSize: 26, lineHeight: 36 },
-  ref: { color: ON_PICTURE.muted, fontSize: 13, marginTop: 14 },
-  foot: { position: "absolute", flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  sound: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 },
-  soundText: { color: ON_PICTURE.strong, fontSize: 15 },
-  next: { minHeight: 50, minWidth: 110, paddingHorizontal: 26, borderRadius: 25, backgroundColor: ON_PICTURE.text, alignItems: "center", justifyContent: "center" },
-  nextText: { color: FOREST, fontSize: 17, fontWeight: "600" },
+  top: { flexDirection: "row", alignItems: "center", columnGap: 14 },
+  body: { flexGrow: 1, paddingVertical: 24 },
+  text: { color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontSize: 30, lineHeight: 40, letterSpacing: -0.3 },
 });

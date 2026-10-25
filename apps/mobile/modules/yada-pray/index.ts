@@ -47,6 +47,8 @@ export interface Circle {
   readonly owned: boolean;
   readonly name: string;
   readonly people: number;
+  /** The day picture (1 to 30) chosen at New circle; 0 for a circle made before Build 12. */
+  readonly picture: number;
 }
 
 export interface CircleRequest {
@@ -58,6 +60,7 @@ export interface CircleRequest {
   readonly expiresAt: number;
   /** Members see how many, never who (plan §I.3). */
   readonly prayed: number;
+  readonly createdAt: number;
 }
 
 /** Someone in a circle (PC-08): the first name iCloud shares with the circle, empty when it shares none. */
@@ -106,7 +109,7 @@ interface YadaCirclesModule {
   /** FL-06: CloudKit's own notice when a circle you're in has a new request, in fixed words; off removes it. */
   watchCircles(on: boolean): Promise<void>;
   list(): Promise<Circle[]>;
-  create(name: string): Promise<string>;
+  create(name: string, picture: number): Promise<string>;
   /** Resolves when the invite sheet closes: true only if someone was invited. */
   invite(id: string): Promise<boolean>;
   requests(id: string, owner: string): Promise<CircleRequest[]>;
@@ -119,7 +122,14 @@ interface YadaCirclesModule {
   members(id: string, owner: string): Promise<CircleMember[]>;
   removeMember(id: string, member: string): Promise<void>;
   rename(id: string, name: string): Promise<void>;
+  /** Circles' zone names, and an ask's as "ask-…|owner", accepted since last asked. */
   takeAccepted(): Promise<string[]>;
+  addListener(name: "onAccepted", listener: () => void): { remove(): void };
+  /** Ask someone (AO-01 to AO-04): one request shared with one person by its link. */
+  askOne(text: string, to: string): Promise<{ id: string; url: string }>;
+  /** Your asks of one person, newest first; `answeredAt` 0 when not answered. */
+  asks(): Promise<OneAsk[]>;
+  answerAsk(id: string): Promise<void>;
   /** Remove my data: circles you made go for everyone; in ones you joined, what you wrote goes and you leave. */
   removeAll(): Promise<void>;
   live(id: string, owner: string): Promise<CircleLive>;
@@ -153,3 +163,23 @@ interface YadaTogetherModule {
 }
 
 export const together: YadaTogetherModule | null = Platform.OS === "ios" ? requireOptionalNativeModule<YadaTogetherModule>("YadaTogether") : null;
+
+/** An ask of one person (AO-01 to AO-04), as the asker sees it; `answeredAt` 0 when not answered. */
+export interface OneAsk {
+  readonly id: string;
+  readonly text: string;
+  readonly to: string;
+  readonly createdAt: number;
+  readonly expiresAt: number;
+  readonly answeredAt: number;
+  readonly prayed: number;
+}
+
+/** Ask someone's system sheets (ios/YadaAskModule.swift): the contact picker needs no access to the contacts. */
+interface YadaAskModule {
+  pickPerson(): Promise<{ name: string; first: string; phones: string[]; emails: string[] } | null>;
+  sendText(to: string[], body: string): Promise<"sent" | "cancelled" | "unavailable">;
+  shareText(body: string): Promise<boolean>;
+}
+
+export const askNative: YadaAskModule | null = Platform.OS === "ios" ? requireOptionalNativeModule<YadaAskModule>("YadaAsk") : null;

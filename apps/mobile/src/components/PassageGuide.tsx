@@ -1,9 +1,10 @@
 /**
  * The passage guide, no AI (build plan Phase 2; canvas NA-04, JR-05, UL-02, UL-04, ON-04, UX-06, UX-07).
- * The same slots for every kind of writing: the headline → From the study notes → Hear this passage → Readers
- * differ → Read it alongside → Go deeper → Sources → Next (RU-03, fresh-eyes review approved by John 23 Oct 2026).
+ * The same slots for every kind of writing: the headline → From the study notes → Readers differ → Places → Read it
+ * alongside → Go deeper → Sources → Next (RU-03, fresh-eyes review approved by John 23 Oct 2026). Hear this passage
+ * is gone (John, 25 Oct 2026: "the play button beside Understand is enough").
  *
- * - The headline, under its kind as the section title (What happens / Part of …): one line on what the passage is.
+ * - The headline leads, large in Literata with no label (UN-30): one line on what the passage is.
  * - From the study notes: the last sentence of Tyndale's note on the passage's first verse, word for word, with
  *   where the note starts (RU-3: John 1 answered in the note's own words). No note, no section (rules 2 and 4).
  * - Readers differ: a passage's approved debate lines, each a source's own sentence.
@@ -35,7 +36,6 @@ import { formatRange, formatRangeInBook, printedRef } from "../lib/chapters";
 import { type GuideContent, guideRows, lastSentence, passageAfter, passageRef, passagesTouched, studyNoteCaption, versesLabel } from "../lib/passageGuide";
 import { alongsideLabel, offlineLine, plainSegments } from "../lib/understand";
 import { useGuide } from "../state/guide";
-import { HearPassage } from "./HearPassage";
 import { ListRow } from "./Page";
 import { PlacesInPassage } from "./PlacesInPassage";
 import { useSheetBase } from "./navigation";
@@ -224,13 +224,12 @@ function GuideBody({
   const from = idOf(passage.startOrd);
   return (
     <>
-      {/* RU-03: the headline alone leads, under its kind ("What happens", "Part of"), at explanation size. */}
+      {/* UN-30: what happens leads, large in Literata and with no label over it, as the canvas draws it (it was the
+          section "What happens" at explanation size, RU-03). */}
       {headline !== null ? (
-        <Section title={passage.headlineKind} first={first}>
-          <Prose step="explanation" testID="guide-headline">
-            {headline}
-          </Prose>
-        </Section>
+        <Chrome tone="ink" size={26} style={[styles.lead, first ? null : { marginTop: sectionGap }]} testID="guide-headline">
+          {headline}
+        </Chrome>
       ) : null}
       {studyLine !== null ? (
         <Section title="From the study notes" first={first && headline === null}>
@@ -241,8 +240,6 @@ function GuideBody({
           <SourceLine style={{ marginTop: 4 }}>{studyLine.caption}</SourceLine>
         </Section>
       ) : null}
-      {/* UL-02: under the headline and the note, the passage read aloud from its first verse; the sheet closes so the words are in view. */}
-      <HearPassage book={passage.id.split(".")[0] as BookCode} startOrd={passage.startOrd} range={formatRange(passage.id)} />
       {passage.debates.length > 0 ? (
         <Section title="Readers differ">
           {passage.debates.map((d) => (
@@ -300,5 +297,6 @@ export function AlongsideRows({ refs, from }: { refs: readonly string[]; from: s
 }
 
 const styles = StyleSheet.create({
+  lead: { fontFamily: FONTS.scripture, fontWeight: "400", letterSpacing: -0.3, marginTop: 4 },
   nextTitle: { fontFamily: FONTS.scripture, fontSize: 20, lineHeight: 26, letterSpacing: -0.2, fontWeight: "600" },
 });

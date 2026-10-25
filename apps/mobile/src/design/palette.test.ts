@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { contrast, over } from "./contrast";
-import { AVATAR_HUES, AVATAR_INK, BRAND, CIRCLE_TONES, PALETTES, type Palette } from "./palette";
+import { AVATAR_HUES, AVATAR_INK, BRAND, PALETTES, type Palette } from "./palette";
 
 /**
  * Brief §5: text ≥ 4.5:1 everywhere; state marks (selection bar, underline,
@@ -107,9 +107,5 @@ describe("avatar hues and circle tones (docs/colour-rules.md)", () => {
       expect(contrast(BRAND.forest, pale), `${hue} pale on forest`).toBeGreaterThanOrEqual(3);
       expect(contrast(PALETTES.dark.paper, pale), `${hue} pale on dark`).toBeGreaterThanOrEqual(3);
     }
-  });
-
-  it("a circle's tone takes white text", () => {
-    for (const tone of CIRCLE_TONES) expect(contrast("#FFFFFF", tone), tone).toBeGreaterThanOrEqual(4.5);
   });
 });

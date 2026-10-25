@@ -114,7 +114,7 @@ appId: studio.yada.reader
 - runFlow:
     when:
       notVisible:
-        id: home-saved
+        id: home-search
     commands:
       - tapOn:
           id: reader-back
@@ -163,7 +163,7 @@ appId: studio.yada.reader
     notVisible:
       id: translations
     timeout: 5000
-- assertVisible: "John 1, BSB"
+- assertVisible: "John 1"
 
 # Remove YLT with ⋯ → Remove (stale hierarchy, as above).
 - launchApp
@@ -205,4 +205,4 @@ appId: studio.yada.reader
 # Leave the simulator on BSB, as a cold launch finds it.
 - launchApp
 - waitForAnimationToEnd
-- assertVisible: "John 1, BSB"
+- assertVisible: "John 1"

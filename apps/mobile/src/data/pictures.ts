@@ -6,7 +6,12 @@
 import { pictureDay, type Part } from "../lib/today";
 import { type DayPicture, DAY_PICTURES } from "./pictures.generated";
 
-export function pictureFor(day: Date, part: Part): DayPicture | undefined {
-  const n = pictureDay(day);
+/**
+ * Every photograph comes through here (build-12-plan.md, Pictures). A date gives the day's picture; a number is a fixed
+ * day for a thing that keeps its own picture, a mood or a plan (decisions 3 and 5, John 24 Oct 2026), so the pool can
+ * grow without code changes.
+ */
+export function pictureFor(day: Date | number, part: Part): DayPicture | undefined {
+  const n = typeof day === "number" ? Math.min(Math.max(Math.round(day), 1), 30) : pictureDay(day);
   return DAY_PICTURES.find((p) => p.day === n && p.part === part);
 }

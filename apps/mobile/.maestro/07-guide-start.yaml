@@ -34,8 +34,9 @@ appId: studio.yada.reader
 - waitForAnimationToEnd
 - assertVisible: "The Word became flesh"
 - assertVisible: "John 1:1–18"
-# RU-03: the headline leads under its kind, then the study note's sentence, then Go deeper and Sources.
-- assertVisible: "What happens"
+# UN-30: the headline leads with no label over it, then the study note's sentence, then Go deeper and Sources.
+- assertVisible:
+    id: guide-headline
 - assertVisible: "From the study notes"
 - scrollUntilVisible:
     element:

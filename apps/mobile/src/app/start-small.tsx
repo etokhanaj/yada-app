@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { readerHref } from "../components/navigation";
+import { useLayout } from "../design/tokens";
 import { SheetScreen } from "../components/Sheet";
 import { Chrome } from "../components/Type";
 import { useCore } from "../data/AppData";
@@ -33,6 +34,7 @@ interface Words {
 }
 
 export default function StartSmallScreen() {
+  const fitSheet = !useLayout().ax;
   const { place } = useLocalSearchParams<{ place?: string }>();
   const at = place === undefined || place === "" ? null : parseVerseId(place);
   const core = useCore();
@@ -81,7 +83,7 @@ export default function StartSmallScreen() {
   };
 
   return (
-    <SheetScreen title="Start small" backLabel={null} noBack footer={false} testID="start-small">
+    <SheetScreen fit={fitSheet} title="Start small" backLabel={null} noBack footer={false} testID="start-small">
       <View style={{ rowGap: 10 }}>
         {options.map((o) => {
           const w = words[o.kind];

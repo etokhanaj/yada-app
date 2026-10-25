@@ -1,36 +1,19 @@
-// Read-along on Apple's on-device speech (canvas AU-01…AU-07, refs_ic: "free and offline, with word
-// timings for the ink pill").
+// The recordings by Heart and George, a verse at a time (BA-01), with Now Playing, remote commands, the breath's
+// haptics and Sit's rain. Apple's on-device speech was removed in Build 12 (John, 24 Oct 2026: "our default sound is
+// the apple voice, can we change that?"): every verse is now read from a recording.
 //
-// Why a local module and not expo-speech: expo-speech reports word boundaries on iOS, but it leaves the
-// audio session in its default ambient category (silent with the ring switch off, stopped when the screen
-// locks), exposes no voice quality beyond enhanced, and has no Now Playing or remote commands. Reading a
-// chapter with the phone in a pocket needs all three.
-//
-// One verse per speak call, as phrases: JS cuts a verse at its sentences and clauses and chooses the rests
-// (lib/audio/cadence.ts), because SSML <break> and IPA attributes move the word ranges off the plain text
-// (docs/research/speech-cadence.md). Each phrase is its own utterance with a postUtteranceDelay, Apple's
-// documented way to pause between sentences, and its ranges are reported plus the phrase's offset, so JS
-// sees offsets into the verse's whole spoken form. JS owns the queue (data/audio.ts); events carry the id
-// JS chose, so an event from a cancelled verse is ignored there.
+// JS owns the queue (data/audio.ts); events carry the id JS chose, so an event from a cancelled verse is ignored there.
 
 import AVFoundation
 import ExpoModulesCore
 import MediaPlayer
 import UIKit
 
-struct Phrase: Record {
-  @Field var text: String = ""
-  /// UTF-16 offset of this phrase in the verse's spoken form (JS strings and NSRange agree on UTF-16).
-  @Field var offset: Int = 0
-  /// Seconds of rest after this phrase, already scaled for the speed.
-  @Field var pause: Double = 0
-}
-
 struct NowPlaying: Record {
   @Field var title: String = ""
   @Field var artist: String = ""
   @Field var playing: Bool = false
-  /// From a recording's timings; absent for the iPhone voice, which has no length to show.
+  /// From the recording's timings.
   @Field var elapsed: Double? = nil
   @Field var duration: Double? = nil
   @Field var rate: Double = 1
@@ -52,10 +35,9 @@ struct Segment: Record {
 }
 
 public class YadaSpeechModule: Module {
-  private let synth = AVSpeechSynthesizer()
   private let breath = BreathHaptics()
-  /// The human-read recording (BA-01): one chapter file, played a verse at a time so JS keeps one queue for
-  /// both voices. A verse that follows on in the same file carries on without a seek, so there is no gap.
+  /// The recording (BA-01): one chapter file, played a verse at a time. A verse that follows on in the same file
+  /// carries on without a seek, so there is no gap.
   private var player: AVPlayer?
   private var playerPath: String?
   /// The chapter now streaming, kept alive here: an asset's resource loader holds its delegate weakly.
@@ -67,94 +49,29 @@ public class YadaSpeechModule: Module {
   private var segmentId: String?
   private var nextWord = 0
   private var ticker: Timer?
-  private var delegate: Delegate?
   private var commandsReady = false
   private var sessionObservers: [NSObjectProtocol] = []
-  /// The verse now queued is in the reader's Personal Voice.
-  fileprivate var speakingPersonal = false
   /// A quiet sound under Daily prayer or Sit with this (AS-01, build 8): opt-in, looped, faded in and out.
   private var ambient: AVAudioPlayer?
 
   public func definition() -> ModuleDefinition {
     Name("YadaSpeech")
 
-    Events("onStart", "onRange", "onFinish", "onCancel", "onRemote", "onInterruption", "onRouteLost", "onVoiceUnavailable", "onBuffering", "onStreamSaved", "onStreamFailed")
+    Events("onStart", "onRange", "onFinish", "onRemote", "onInterruption", "onRouteLost", "onBuffering", "onStreamSaved", "onStreamFailed")
 
     OnCreate {
-      let delegate = Delegate(module: self)
-      self.delegate = delegate
-      self.synth.delegate = delegate
-      // The synthesizer plays through the app's session, so the category below governs it.
-      self.synth.usesApplicationAudioSession = true
       self.observeSession()
     }
 
     OnDestroy {
       self.sessionObservers.forEach { NotificationCenter.default.removeObserver($0) }
-      self.synth.stopSpeaking(at: .immediate)
+      self.stopRecording()
     }
-
-    /// The best installed English voice, or null when there is none (Listen is then hidden).
-    Function("voice") { () -> [String: Any]? in
-      guard let voice = Self.bestVoice() else { return nil }
-      return Self.describe(voice)
-    }
-
-    /// "unsupported" (before iOS 17, and in the Simulator), "notDetermined", "denied" or "authorized".
-    Function("personalVoiceStatus") { () -> String in
-      Self.personalStatus()
-    }
-
-    /// Asks once, when the reader chooses Personal Voice in the player; never at launch.
-    AsyncFunction("requestPersonalVoice") { (promise: Promise) in
-      guard #available(iOS 17.0, *) else {
-        promise.resolve("unsupported")
-        return
-      }
-      AVSpeechSynthesizer.requestPersonalVoiceAuthorization { _ in
-        promise.resolve(Self.personalStatus())
-      }
-    }
-
-    /// The reader's own Personal Voice, when authorized and one has been made; else null.
-    Function("personalVoice") { () -> [String: Any]? in
-      guard let voice = Self.personalVoice() else { return nil }
-      return Self.describe(voice)
-    }
-
-    /// `voiceId` null: the best system voice. `lead`: the rest before the first phrase, in seconds.
-    AsyncFunction("speak") { (id: String, phrases: [Phrase], rate: Double, lead: Double, voiceId: String?) in
-      try self.activateSession()
-      self.setUpRemoteCommands()
-      // The recording runs on past a verse's end by design; the iPhone voice taking over must silence it
-      // (review, 12 Oct 2026: both read at once after a switch in the Voice sheet).
-      if self.player != nil { self.stopRecording() }
-      if self.synth.isSpeaking || self.synth.isPaused {
-        self.synth.stopSpeaking(at: .immediate)
-      }
-      self.delegate?.tags.removeAll()
-      let voice = self.voiceFor(voiceId)
-      self.speakingPersonal = Self.isPersonal(voice)
-      let clamped = Float(min(max(rate, Double(AVSpeechUtteranceMinimumSpeechRate)), Double(AVSpeechUtteranceMaximumSpeechRate)))
-      for (k, phrase) in phrases.enumerated() {
-        let utterance = AVSpeechUtterance(string: phrase.text)
-        utterance.voice = voice
-        utterance.rate = clamped
-        utterance.preUtteranceDelay = k == 0 ? max(0, lead) : 0
-        // No rest after the last phrase: didFinish fires before a postUtteranceDelay runs (probe,
-        // 11 Oct 2026), so the rest between verses is the next verse's lead instead.
-        utterance.postUtteranceDelay = k == phrases.count - 1 ? 0 : max(0, phrase.pause)
-        self.delegate?.tags[ObjectIdentifier(utterance)] = Tag(
-          utterance: utterance, id: id, offset: phrase.offset, first: k == 0, last: k == phrases.count - 1)
-        self.synth.speak(utterance)
-      }
-    }.runOnQueue(.main)
 
     /// One verse of a recording: plays from `start`, reports each word as it passes and finishes at `end`.
     AsyncFunction("playSegment") { (id: String, segment: Segment, rate: Double) in
       try self.activateSession()
       self.setUpRemoteCommands()
-      if self.synth.isSpeaking || self.synth.isPaused { self.synth.stopSpeaking(at: .immediate) }
       if self.playerPath != segment.path || self.player == nil {
         self.stopRecording()
         self.player = try self.makePlayer(segment)
@@ -175,23 +92,16 @@ public class YadaSpeechModule: Module {
     }.runOnQueue(.main)
 
     AsyncFunction("pause") {
-      // .immediate, not .word: pause answers the tap at once, and continue resumes mid-word cleanly.
-      _ = self.synth.pauseSpeaking(at: .immediate)
       self.pausePlayer()
     }.runOnQueue(.main)
 
     AsyncFunction("resume") { () -> Bool in
       try self.activateSession()
-      // Paused in the Personal Voice, then Play from the lock screen: didEnterBackground saw it paused
-      // and sent nothing, so continuing would read on in the Personal Voice in the background (voiceFor).
-      // False makes JS restart at the word, and that speak call gets the system voice.
-      if self.speakingPersonal && UIApplication.shared.applicationState != .active { return false }
-      if let player = self.player, self.segment != nil {
-        player.rate = self.playRate
-        self.startTicker()
-        return true
-      }
-      return self.synth.continueSpeaking()
+      // False when nothing was paused mid-verse: JS plays the verse again from its start.
+      guard let player = self.player, self.segment != nil else { return false }
+      player.rate = self.playRate
+      self.startTicker()
+      return true
     }.runOnQueue(.main)
 
     // AS-01 (John, 17 Oct 2026): "ambient sound ... an easy way they can opt in or out". A release build passes a
@@ -229,9 +139,6 @@ public class YadaSpeechModule: Module {
 
     AsyncFunction("stop") {
       self.stopRecording()
-      self.synth.stopSpeaking(at: .immediate)
-      self.delegate?.tags.removeAll()
-      self.speakingPersonal = false
     }.runOnQueue(.main)
 
     AsyncFunction("setNowPlaying") { (info: NowPlaying) in
@@ -356,84 +263,6 @@ public class YadaSpeechModule: Module {
     return player
   }
 
-  // MARK: - Voice
-
-  static func describe(_ voice: AVSpeechSynthesisVoice) -> [String: Any] {
-    [
-      "id": voice.identifier,
-      "name": voice.name,
-      "language": voice.language,
-      "quality": qualityName(voice.quality),
-    ]
-  }
-
-  /// Premium > enhanced > default; among equals, the device's own English (en-GB on a UK phone), then
-  /// en-US, then any en-*. Novelty voices (Bad News, Bubbles…) and Personal Voice are never chosen here:
-  /// Personal Voice is the reader's own choice (personalVoice).
-  static func bestVoice() -> AVSpeechSynthesisVoice? {
-    let preferred = Locale.preferredLanguages.first { $0.hasPrefix("en") } ?? "en-US"
-    let english = AVSpeechSynthesisVoice.speechVoices().filter { voice in
-      guard voice.language.hasPrefix("en") else { return false }
-      if #available(iOS 17.0, *) {
-        if voice.voiceTraits.contains(.isNoveltyVoice) || voice.voiceTraits.contains(.isPersonalVoice) { return false }
-      }
-      return true
-    }
-    func rank(_ v: AVSpeechSynthesisVoice) -> (Int, Int) {
-      let quality: Int
-      switch v.quality {
-      case .premium: quality = 3
-      case .enhanced: quality = 2
-      default: quality = 1
-      }
-      let place = v.language == preferred ? 2 : (v.language == "en-US" ? 1 : 0)
-      return (quality, place)
-    }
-    return english.max { a, b in rank(a) < rank(b) }
-  }
-
-  /// The voice for a speak call. A Personal Voice only while authorized and in the foreground: in the
-  /// background it is reported to fall back or fail (Apple Developer Forums thread 736148, unanswered),
-  /// so the lock screen reads in the best system voice and the reader's own voice returns in the app.
-  private func voiceFor(_ id: String?) -> AVSpeechSynthesisVoice? {
-    guard let id, let voice = AVSpeechSynthesisVoice(identifier: id) else { return Self.bestVoice() }
-    guard Self.isPersonal(voice) else { return voice }
-    let usable = Self.personalStatus() == "authorized" && UIApplication.shared.applicationState == .active
-    return usable ? voice : Self.bestVoice()
-  }
-
-  static func isPersonal(_ voice: AVSpeechSynthesisVoice?) -> Bool {
-    guard let voice, #available(iOS 17.0, *) else { return false }
-    return voice.voiceTraits.contains(.isPersonalVoice)
-  }
-
-  static func personalVoice() -> AVSpeechSynthesisVoice? {
-    guard personalStatus() == "authorized" else { return nil }
-    return AVSpeechSynthesisVoice.speechVoices().first { isPersonal($0) }
-  }
-
-  static func personalStatus() -> String {
-    guard #available(iOS 17.0, *) else { return "unsupported" }
-    switch AVSpeechSynthesizer.personalVoiceAuthorizationStatus {
-    case .authorized: return "authorized"
-    case .denied: return "denied"
-    case .notDetermined: return "notDetermined"
-    default: return "unsupported"
-    }
-  }
-
-  static func qualityName(_ quality: AVSpeechSynthesisVoiceQuality) -> String {
-    switch quality {
-    case .premium: return "premium"
-    case .enhanced: return "enhanced"
-    default: return "default"
-    }
-  }
-
-  // MARK: - Audio session
-
-  /// Playback, spoken audio: keeps reading with the screen locked or the ring switch on silent, and lets
-  /// other spoken-audio apps pause rather than talk over it.
   private func activateSession() throws {
     let session = AVAudioSession.sharedInstance()
     if session.category != .playback || session.mode != .spokenAudio {
@@ -450,7 +279,6 @@ public class YadaSpeechModule: Module {
             let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
       if type == .began {
         // A call or Siri: pause and stay paused unless the system says to resume (coordinator, 11 Oct 2026).
-        _ = self.synth.pauseSpeaking(at: .immediate)
         self.pausePlayer()
         self.sendEvent("onInterruption", ["began": true, "shouldResume": false])
       } else {
@@ -462,15 +290,8 @@ public class YadaSpeechModule: Module {
       guard let self, let raw = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
             AVAudioSession.RouteChangeReason(rawValue: raw) == .oldDeviceUnavailable else { return }
       // Headphones pulled or Bluetooth gone: never carry on out of the speaker.
-      _ = self.synth.pauseSpeaking(at: .immediate)
       self.pausePlayer()
       self.sendEvent("onRouteLost", [:])
-    })
-    sessionObservers.append(center.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] _ in
-      // The verse queued is in the Personal Voice, which is not used in the background (voiceFor): JS
-      // restarts it at the word being spoken, and that speak call gets the system voice.
-      guard let self, self.speakingPersonal, self.synth.isSpeaking, !self.synth.isPaused else { return }
-      self.sendEvent("onVoiceUnavailable", [:])
     })
   }
 
@@ -496,50 +317,6 @@ public class YadaSpeechModule: Module {
     // No times exist (there is no audio file), so seeking and ±15 s would be invented.
     for command in [center.skipForwardCommand, center.skipBackwardCommand, center.changePlaybackPositionCommand, center.seekForwardCommand, center.seekBackwardCommand] {
       command.isEnabled = false
-    }
-  }
-
-  // MARK: - Delegate
-
-  /// Which verse an utterance belongs to, where its phrase sits, and whether it opens or closes the
-  /// verse. It holds the utterance, so the ObjectIdentifier key cannot be reused while the tag is kept.
-  struct Tag {
-    let utterance: AVSpeechUtterance
-    let id: String
-    let offset: Int
-    let first: Bool
-    let last: Bool
-  }
-
-  final class Delegate: NSObject, AVSpeechSynthesizerDelegate {
-    weak var module: YadaSpeechModule?
-    var tags: [ObjectIdentifier: Tag] = [:]
-
-    init(module: YadaSpeechModule) {
-      self.module = module
-    }
-
-    func speechSynthesizer(_ s: AVSpeechSynthesizer, didStart u: AVSpeechUtterance) {
-      guard let tag = tags[ObjectIdentifier(u)], tag.first else { return }
-      module?.sendEvent("onStart", ["id": tag.id])
-    }
-
-    func speechSynthesizer(_ s: AVSpeechSynthesizer, willSpeakRangeOfSpeechString range: NSRange, utterance u: AVSpeechUtterance) {
-      guard let tag = tags[ObjectIdentifier(u)] else { return }
-      module?.sendEvent("onRange", ["id": tag.id, "location": tag.offset + range.location, "length": range.length])
-    }
-
-    func speechSynthesizer(_ s: AVSpeechSynthesizer, didFinish u: AVSpeechUtterance) {
-      guard let tag = tags.removeValue(forKey: ObjectIdentifier(u)) else { return }
-      // A verse ends with its last phrase; the others hand on inside the synthesizer's own queue.
-      guard tag.last else { return }
-      module?.speakingPersonal = false
-      module?.sendEvent("onFinish", ["id": tag.id])
-    }
-
-    func speechSynthesizer(_ s: AVSpeechSynthesizer, didCancel u: AVSpeechUtterance) {
-      guard let tag = tags.removeValue(forKey: ObjectIdentifier(u)) else { return }
-      module?.sendEvent("onCancel", ["id": tag.id])
     }
   }
 }

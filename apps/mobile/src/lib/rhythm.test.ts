@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dayKey, rhythmOf, todayKey } from "./rhythm";
+import { dayKey, rhythmOf, thisWeek, todayKey } from "./rhythm";
 
 // 15 Oct 2026 is a Thursday; its week runs Monday 12 to Sunday 18.
 const T = "2026-10-15";
@@ -50,5 +50,17 @@ describe("the streak (plan §2 row 8)", () => {
   it("keys days on Today's clock: 1 am is still yesterday", () => {
     expect(todayKey(new Date(2026, 9, 16, 1, 0))).toBe(T);
     expect(dayKey(new Date(2026, 0, 5))).toBe("2026-01-05");
+  });
+});
+
+describe("this week (YO-30)", () => {
+  it("runs Monday to Sunday with today marked", () => {
+    const w = thisWeek(["2026-10-13"], T);
+    expect(w.map((d) => d.counted)).toEqual([false, true, false, false, false, false, false]);
+    expect(w.filter((d) => d.today).map((d) => d.key)).toEqual([T]);
+  });
+
+  it("never counts a day after today", () => {
+    expect(thisWeek(["2026-10-17"], T).some((d) => d.counted)).toBe(false);
   });
 });

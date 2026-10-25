@@ -1,5 +1,6 @@
 /**
- * Plan a time (PC-17, and Change the time from PC-22; Build 11 canvas): the day large, then the time, weekly or once,
+ * Plan a time (Build 12 PC-35, approved by John 25 Oct 2026: the days as S M T W T F S across the width, a sheet as
+ * tall as what it holds; PC-17 and PC-22 before it): the day large, then the time, weekly or once,
  * and about how long; everyone in the circle sees it and can say they'll come. A circle holds one planned time. Refs:
  * Canopi's "Every Sunday" in large type (mobbin.com/screens/62df0969-ea9c-4338-84d8-48aa32cecc68); Strava's weekly
  * repeat (c3065753-302b-4a90-9118-6cbad60f7db2).
@@ -12,6 +13,7 @@ import { useState } from "react";
 import { AccessibilityInfo, Pressable, StyleSheet, View } from "react-native";
 
 import { circlesCloud } from "../../../modules/yada-pray";
+import { FilterPills } from "../../components/FilterPills";
 import { Icon } from "../../components/Icon";
 import { Pill } from "../../components/Pill";
 import { SheetScreen } from "../../components/Sheet";
@@ -21,10 +23,10 @@ import { FONTS, useLayout, usePalette } from "../../design/tokens";
 import { clock, DAY_NAMES, LENGTHS, weekdayOf } from "../../lib/together";
 
 export default function Plan() {
+  const fitSheet = !useLayout().ax;
   const p = useLocalSearchParams<{ id?: string; owner?: string; name?: string; weekday?: string; hour?: string; minute?: string; weekly?: string; minutes?: string }>();
   const { id = "", owner = "", name = "Circle" } = p;
   const palette = usePalette();
-  const { ax } = useLayout();
   const [weekday, setWeekday] = useState(Number(p.weekday ?? weekdayOf(new Date())));
   const [time, setTime] = useState({ hour: Number(p.hour ?? 20), minute: Number(p.minute ?? 0) });
   const [weekly, setWeekly] = useState(p.weekly !== "0");
@@ -69,11 +71,11 @@ export default function Plan() {
   );
 
   return (
-    <SheetScreen title="Pray together" backLabel={null} noBack footer={false} closeLabel="Cancel" testID="plan">
+    <SheetScreen fit={fitSheet} title="Pray together" backLabel={null} noBack footer={false} closeLabel="Cancel" testID="plan">
       <Chrome accessibilityRole="header" tone="ink" style={{ fontFamily: FONTS.scripture, fontWeight: "400", letterSpacing: -0.6 }} size={34}>
         {weekly ? `Every ${day}` : `This ${day}`}
       </Chrome>
-      <View style={[styles.days, ax ? { flexWrap: "wrap", gap: 8 } : { justifyContent: "space-between" }]} accessibilityRole="radiogroup" accessibilityLabel="Day">
+      <View style={styles.days} accessibilityRole="radiogroup" accessibilityLabel="Day">
         {DAY_NAMES.map((n, i) => {
           const on = weekday === i + 1;
           return (
@@ -83,7 +85,7 @@ export default function Plan() {
               accessibilityRole="radio"
               accessibilityLabel={n}
               accessibilityState={{ checked: on }}
-              style={[styles.day, { width: ax ? 64 : 44, height: ax ? 64 : 44, backgroundColor: on ? palette.ink : palette.fill }]}
+              style={[styles.day, { backgroundColor: on ? palette.ink : palette.fill }]}
               testID={`plan-day-${i + 1}`}
             >
               <Chrome tone={on ? "paper" : "ink"} style={{ fontWeight: "600" }} maxFontSizeMultiplier={1.4}>
@@ -94,7 +96,11 @@ export default function Plan() {
         })}
       </View>
 
-      <View style={{ marginTop: 18 }}>
+      <View style={{ marginTop: 14 }}>
+        <FilterPills options={[{ key: "weekly", title: "Weekly" }, { key: "once", title: "Once" }]} chosen={weekly ? "weekly" : "once"} onChoose={(k) => setWeekly(k === "weekly")} testID="plan-repeats" />
+      </View>
+
+      <View style={{ marginTop: 8 }}>
         <View style={[styles.opt, { borderTopWidth: 0 }]}>
           <Chrome tone="muted">Time</Chrome>
           <DateTimePicker
@@ -106,25 +112,21 @@ export default function Plan() {
             testID="plan-time"
           />
         </View>
-        {option("Repeats", weekly ? "Weekly" : "Once", [{ id: "weekly", title: "Weekly" }, { id: "once", title: "Once" }], (v) => setWeekly(v === "weekly"), "plan-repeats")}
         {option("For about", `${minutes} min`, LENGTHS.map((m) => ({ id: String(m), title: `${m} minutes` })), (v) => setMinutes(Number(v)), "plan-length")}
       </View>
 
-      <View style={styles.lock}>
-        <Icon name="people" size={14} tone="muted" />
-        <Chrome step="note" tone="muted" style={{ flex: 1 }}>{`${name} sees it and can say they’ll come.`}</Chrome>
-      </View>
-      <View style={{ marginTop: 22 }}>
-        <Pill title={busy ? "Planning…" : "Plan it"} onPress={() => void save()} primary disabled={busy} testID="plan-save" />
+      <Chrome step="note" tone="muted" style={{ marginTop: 12 }}>{`Everyone in ${name} sees it.`}</Chrome>
+      <View style={{ marginTop: 18 }}>
+        <Pill title={busy ? "Planning…" : "Plan it"} onPress={() => void save()} primary stretch disabled={busy} testID="plan-save" />
       </View>
     </SheetScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  days: { flexDirection: "row", marginTop: 16 },
-  day: { borderRadius: 999, alignItems: "center", justifyContent: "center" },
+  days: { flexDirection: "row", justifyContent: "space-between", columnGap: 6, marginTop: 16 },
+  // Seven equal circles across the width at every text size: at AX sizes they wrapped onto two rows (PC-35).
+  day: { flex: 1, aspectRatio: 1, maxWidth: 52, borderRadius: 999, alignItems: "center", justifyContent: "center" },
   opt: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 52, borderTopWidth: StyleSheet.hairlineWidth },
   optRight: { flexDirection: "row", alignItems: "center", columnGap: 6 },
-  lock: { flexDirection: "row", alignItems: "center", columnGap: 6, marginTop: 16 },
 });

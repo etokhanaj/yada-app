@@ -1,7 +1,7 @@
 import { verseOrd } from "@yada/schema";
 import { describe, expect, it } from "vitest";
 
-import { lastLine, MOMENTS, momentNamed, opening, passageLabel, tilePassages } from "./moments";
+import { lastLine, MOMENTS, momentNamed, opening, passageLabel } from "./moments";
 
 describe("verses for a moment (VM-01 to VM-09)", () => {
   it("holds John's six moments and the 38 passages he kept, in his order", () => {
@@ -23,16 +23,6 @@ describe("verses for a moment (VM-01 to VM-09)", () => {
   it("shows a long passage's opening and a short one whole", () => {
     expect(opening("Cast all your anxiety on Him, because He cares for you.", 46)).toBe("Cast all your anxiety on Him, because He cares for you.");
     expect(opening("Therefore I tell you, do not worry about your life,", 5)).toBe("Therefore I tell you, do…");
-  });
-
-  it("never opens two tiles on the same passage", () => {
-    const tiles = [...tilePassages().values()].map((q) => q.start);
-    expect(new Set(tiles).size).toBe(6);
-    const shared = tilePassages([
-      { name: "A", support: false, passages: [{ start: 1, end: 1 }, { start: 2, end: 2 }] },
-      { name: "B", support: false, passages: [{ start: 1, end: 1 }, { start: 3, end: 3 }] },
-    ]);
-    expect(shared.get("B")?.start).toBe(3);
   });
 
   it("says the last passage is the last, in words", () => {

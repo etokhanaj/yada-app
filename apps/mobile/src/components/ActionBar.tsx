@@ -1,34 +1,20 @@
 /**
- * The reader's bar, docked to the bottom (decision 2; canvas IA-04, IA-05,
- * J01-15). Replaces the floating SelectionPill, which covered the verse it
- * acted on (0A).
+ * The reader's docked chrome (decision 2): the bar at rest, and a chosen verse's sheet.
  *
- * At rest (IA-04, RestBar): `Understand 1:1–18`, the passage, is the primary
- * action. On a selected verse (IA-05, ActionBar): one row, `Understand 1:1`
- * in ink, then Compare and `⋯`. Original leaves the bar (lib/reader.ts
- * barItems). Mobbin's reading apps fill the primary action with ink, not a
- * brand colour (Deepstash,
- * https://mobbin.com/screens/780e563b-579c-4bf4-a941-4c4a550e3628; Crouton's
- * docked pill, https://mobbin.com/screens/bfb5df79-f490-45d3-b573-35d72f6ff3c8).
- * `⋯` is the native iOS menu (Apple Books,
- * https://mobbin.com/screens/fda02365-2264-4eff-a55e-7850616e58bf). At AX sizes
- * the actions stack as a list of two, so the bar never covers the verse
- * (amendment 4).
+ * At rest (IA-04, RD-30, RestBar): `Understand 2:1–12`, the passage, is the primary action, with Listen beside it
+ * (AU-01). Nothing else: chapter arrows here sat where the player's verse arrows sit and meant something else; the next
+ * chapter is at the chapter's end (RD-33), the title opens every chapter (CH-30), and a swipe still turns.
  *
- * Audio (package E): at rest Listen sits in RestBar's `audio` slot (AU-01).
- * When the chapter can be read aloud, `playFrom` is set and the selection bar
- * adds `▶ 1:6` as a secondary capsule before Understand, or `Play from 1:6`
- * second in the AX list (AU-03). A tap in the reader still means "select", so
- * jumping the audio is one tap from there (John, 11 Oct 2026). Original stays
- * out of the bar and out of `⋯` while playing too: IA-05 drops it for good, and
- * Understand opens it in place.
+ * A chosen verse (RD-31, VerseSheet): one sheet docked to the bottom, in place of IA-05's two-row bar and its ⋯ menu.
+ * The verse's reference and ×, the four highlight colours, Understand as the primary (Original when the verse has no
+ * Understand, as the only way to its Greek), then Sit, Note, Share, Compare, Save and Play from as labelled tiles. Copy
+ * lives in Share's native menu with Share as an image. A colour already on the selection is ringed in ink and a second
+ * tap clears it. The page behind is not dimmed and the sheet is not modal: more verses are still tapped to widen the
+ * selection, as before. Mobbin's reading apps fill the primary action with ink, not a brand colour (Deepstash,
+ * https://mobbin.com/screens/780e563b-579c-4bf4-a941-4c4a550e3628); YouVersion's verse sheet puts the colours over
+ * labelled actions. While audio plays the now-playing strip stays above it (John, 15 Oct 2026).
  *
- * Your space (PS-01, HM-02): under the actions a second row, the four highlight colours in one grey pill, then
- * Note and Copy; at AX sizes they are rows of the list, after Understand. A colour already on the selection is
- * ringed in ink and a second tap clears it.
- *
- * Paper ground, hairline top, no shadow. To VoiceOver it comes after the
- * verses and appearing does not move focus (brief §5).
+ * To VoiceOver it comes after the verses and appearing does not move focus (brief §5).
  */
 
 import { MenuView } from "@react-native-menu/menu";
@@ -40,21 +26,19 @@ import { FONTS, SPRING, useLayout, usePalette } from "../design/tokens";
 import { useReduceMotion } from "../lib/motion";
 import type { OriginalLanguage } from "../lib/originalLanguage";
 import { HIGHLIGHT_COLORS, type HighlightColor } from "../lib/highlights";
-import { type BarItem, barItems, moreActions } from "../lib/reader";
-import { MediaIcon } from "./audio/MediaIcon";
-import { Icon } from "./Icon";
+import { shareActions, type VerseTile, verseTiles } from "../lib/reader";
+import { Icon, type IconName } from "./Icon";
 import { Chrome } from "./Type";
 
 /** Native menu glyphs are SF Symbols: UIMenu takes system images only. */
 const MENU_IMAGES: Readonly<Record<string, string>> = {
-  Compare: "rectangle.split.2x1",
-  "Share as an image": "photo",
   Share: "square.and.arrow.up",
-  Bookmark: "bookmark",
-  "Remove bookmark": "bookmark.slash",
+  "Share as an image": "photo",
+  Copy: "doc.on.doc",
 };
 
-export function ActionBar({
+export function VerseSheet({
+  reference,
   verseLabel,
   hasEntry,
   bookmarked,
@@ -62,18 +46,19 @@ export function ActionBar({
   language,
   onUnderstand,
   onOriginal,
-  onCompare,
-  onMenu,
+  onAction,
+  onClose,
   onHeight,
   playFrom = null,
   nowPlaying = null,
   highlight,
   imageable,
+  sittable = false,
   onHighlight,
-  onNote,
-  onCopy,
 }: {
-  /** "14:34" or "14:34–35". */
+  /** "John 2:4" or "John 2:4–5": the sheet's title. */
+  reference: string;
+  /** "2:4" or "2:4–5". */
   verseLabel: string;
   hasEntry: boolean;
   bookmarked: boolean;
@@ -81,133 +66,54 @@ export function ActionBar({
   /** The selection's own language: Daniel 3 is Aramaic, though the book is set in Hebrew script. */
   language: OriginalLanguage;
   onUnderstand: () => void;
-  /** Only offered when the verse has no Understand (lib/reader.ts barItems). */
+  /** Only offered when the verse has no Understand. */
   onOriginal: () => void;
-  onCompare: () => void;
-  /** Copy, Share, Bookmark / Remove bookmark (and Compare at AX sizes). */
-  onMenu: (action: string) => void;
+  /** By the reader's lowercase action ids: sit with this, note, share, share as an image, copy, compare, bookmark. */
+  onAction: (action: string) => void;
+  /** × clears the selection. */
+  onClose: () => void;
   onHeight: (height: number) => void;
-  /** The chapter can be read aloud: offer Play from the selection's first verse, first in the row, second in the AX list (AU-03). */
+  /** The chapter can be read aloud: Play from the selection's first verse (AU-03). */
   playFrom?: (() => void) | null;
-  /** While audio plays: the now-playing strip above the actions (ReaderBars NowPlayingStrip). */
+  /** While audio plays: the now-playing strip above the sheet's contents (ReaderBars NowPlayingStrip). */
   nowPlaying?: ReactNode;
   /** The colour every selected verse already has, or null. */
   highlight: HighlightColor | null;
   /** Share as an image is offered (not for a licensed translation's words). */
   imageable: boolean;
+  /** Sit with this is offered: an open translation and a short selection. */
+  sittable?: boolean;
   /** A colour for the selection, or null to clear it. */
   onHighlight: (color: HighlightColor | null) => void;
-  onNote: () => void;
-  onCopy: () => void;
 }) {
   const palette = usePalette();
-  const { ax, pill } = useLayout();
-  const items = barItems(hasEntry, ax);
-  const menu = moreActions(ax, bookmarked, imageable);
+  const { ax, pill, control } = useLayout();
   const firstVerse = verseLabel.split(/[–-]/)[0] ?? verseLabel;
+  const verseOnly = (label: string) => label.split(":")[1] ?? label;
 
-  const originalName = `Original ${language}`;
-
-  const audio =
-    playFrom === null ? null : (
-      // In the row, ▶ alone: "▶ 14:33" beside "Understand 14:33" said the verse twice and cut Understand to
-      // "Understand 1…" (UX pass, 15 Oct 2026). The selected verse is in view; VoiceOver hears which verse.
-      <Capsule key="play" square={!ax} height={pill} onPress={playFrom} label={`Play from verse ${firstVerse.split(":")[1] ?? firstVerse}`} testID="bar-play-from">
-        {ax ? (
-          <>
-            <Chrome tone="ink" style={{ fontWeight: "500", flex: 1 }}>
-              {`Play from ${firstVerse}`}
-            </Chrome>
-            <MediaIcon name="play" size={30} maxScale={1} />
-          </>
-        ) : (
-          <MediaIcon name="play" size={18} maxScale={1} />
-        )}
-      </Capsule>
-    );
-
-  const button = (item: BarItem) => {
-    if (item === "understand") {
-      return (
-        <Capsule
-          key={item}
-          primary
-          grow
-          height={pill}
-          onPress={onUnderstand}
-          label={`Understand verse ${verseLabel.split(":")[1] ?? verseLabel}`}
-          testID="bar-understand"
-        >
-          <Chrome tone="paper" numberOfLines={1} style={{ fontWeight: "600" }}>
-            Understand {verseLabel}
-          </Chrome>
-        </Capsule>
-      );
-    }
-    if (item === "original") {
-      return (
-        <Capsule key={item} grow height={pill} onPress={onOriginal} label={originalName} testID="bar-original">
-          {ax ? null : (
-            <Chrome
-              tone="ink"
-              style={{ fontFamily: script === "hebrew" ? FONTS.hebrew : FONTS.greek, fontSize: 21, lineHeight: 24, marginTop: -2 }}
-              maxFontSizeMultiplier={1.4}
-            >
-              {script === "hebrew" ? "א" : "α"}
-            </Chrome>
-          )}
-          <Chrome tone="ink" style={{ fontWeight: "500" }}>
-            Original
-          </Chrome>
-        </Capsule>
-      );
-    }
-    if (item === "compare") {
-      // IA-05: beside Understand, Compare is its glyph alone; it keeps its word when Original
-      // shares the row (no Understand), as J01-15 drew it.
-      return (
-        <Capsule key={item} grow={!hasEntry} square={hasEntry} height={pill} onPress={onCompare} label={`Compare translations of ${verseLabel}`} testID="bar-compare">
-          <Icon name="compare" size={hasEntry ? 18 : 16} />
-          {hasEntry ? null : (
-            <Chrome tone="ink" style={{ fontWeight: "500" }}>
-              Compare
-            </Chrome>
-          )}
-        </Capsule>
-      );
-    }
-    return (
-      <MenuView
-        key={item}
-        style={ax ? styles.wide : hasEntry || playFrom !== null ? { width: pill } : styles.cell}
-        shouldOpenOnLongPress={false}
-        // imageColor always set: without it @react-native-menu draws the glyph transparent (index.tsx, 10 Oct 2026).
-        actions={menu.map((title) => ({ id: title.toLowerCase(), title, image: MENU_IMAGES[title], imageColor: palette.ink }))}
-        onPressAction={({ nativeEvent }) => onMenu(nativeEvent.event)}
-        testID="bar-more"
+  const primary = hasEntry ? (
+    <Capsule primary height={pill} onPress={onUnderstand} label={`Understand verse ${verseOnly(verseLabel)}`} testID="bar-understand">
+      <Chrome tone="paper" numberOfLines={1} style={{ fontWeight: "600" }}>
+        Understand {verseLabel}
+      </Chrome>
+    </Capsule>
+  ) : (
+    <Capsule primary height={pill} onPress={onOriginal} label={`Original ${language}`} testID="bar-original">
+      <Chrome
+        tone="paper"
+        style={{ fontFamily: script === "hebrew" ? FONTS.hebrew : FONTS.greek, fontSize: 21, lineHeight: 24, marginTop: -2 }}
+        maxFontSizeMultiplier={1.4}
       >
-        {/* The menu is a UIButton; a child that took the touch would keep it from opening.
-            VoiceOver still focuses the child, and its activation tap falls through. */}
-        <View
-          pointerEvents="none"
-          accessible
-          accessibilityRole="button"
-          accessibilityLabel="More actions"
-          style={[styles.capsule, { height: ax ? undefined : pill, minHeight: pill, backgroundColor: palette.fill }, ax ? styles.list : null]}
-        >
-          {ax ? (
-            <Chrome tone="ink" style={{ fontWeight: "500", flex: 1 }}>
-              More
-            </Chrome>
-          ) : null}
-          <Icon name="more" size={22} />
-        </View>
-      </MenuView>
-    );
-  };
+        {script === "hebrew" ? "א" : "α"}
+      </Chrome>
+      <Chrome tone="paper" style={{ fontWeight: "600" }}>
+        Original {language}
+      </Chrome>
+    </Capsule>
+  );
 
-  const dots = (
-    <View style={[styles.dots, { backgroundColor: palette.fill, minHeight: pill }, ax ? styles.wide : null]} accessibilityRole="radiogroup" accessibilityLabel="Highlight">
+  const swatches = (
+    <View style={styles.swatches} accessibilityRole="radiogroup" accessibilityLabel="Highlight">
       {HIGHLIGHT_COLORS.map((color) => {
         const on = highlight === color;
         return (
@@ -221,62 +127,94 @@ export function ActionBar({
             style={styles.dot}
             testID={`bar-highlight-${color}`}
           >
-            {/* PS-01's 28 pt swatch with a hairline inner ring; the colour on the selection is ringed in ink. */}
+            {/* RD-31's 40 pt swatch with a hairline inner ring; the colour on the selection is ringed in ink. */}
             <View style={[styles.swatch, { backgroundColor: palette.highlights[color], borderColor: on ? palette.ink : palette.edge, borderWidth: on ? 2 : 1 }]} />
           </Pressable>
         );
       })}
     </View>
   );
-  const labelled = (label: string, icon: "note" | "copy", onPress: () => void, testID: string) => (
-    <Capsule height={pill} onPress={onPress} label={label} testID={testID}>
-      {ax ? (
-        <>
-          <Chrome tone="ink" style={{ fontWeight: "500", flex: 1 }}>
-            {label}
-          </Chrome>
-          <Icon name={icon} size={22} />
-        </>
-      ) : (
-        <>
-          <Icon name={icon} size={16} />
-          <Chrome tone="ink" step="note" style={{ fontWeight: "600" }}>
-            {label}
-          </Chrome>
-        </>
-      )}
-    </Capsule>
-  );
-  const note = labelled("Note", "note", onNote, "bar-note");
-  const copy = labelled("Copy", "copy", onCopy, "bar-copy");
 
-  const [first, ...rest] = items.map(button);
+  const tileFace = (icon: IconName, title: string) => (
+    <>
+      <Icon name={icon} size={22} />
+      <Chrome step="note" tone="ink" numberOfLines={1} style={{ fontWeight: "600" }} maxFontSizeMultiplier={2.2}>
+        {title}
+      </Chrome>
+    </>
+  );
+  const tileStyle = [styles.tile, ax ? styles.tileAx : null, { backgroundColor: palette.fill }];
+  const tile = (key: VerseTile, icon: IconName, title: string, label: string, onPress: () => void, testID: string, selected?: boolean) => (
+    <Pressable
+      key={key}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={selected === undefined ? undefined : { selected }}
+      style={({ pressed }) => [tileStyle, pressed ? { opacity: 0.72 } : null]}
+      testID={testID}
+    >
+      {tileFace(icon, title)}
+    </Pressable>
+  );
+
+  const tiles = verseTiles(sittable, playFrom !== null).map((key) => {
+    switch (key) {
+      case "sit":
+        return tile(key, "sit", "Sit", `Sit with ${reference}`, () => onAction("sit with this"), "bar-sit");
+      case "note":
+        return tile(key, "note", "Note", `Note on ${reference}`, () => onAction("note"), "bar-note");
+      case "compare":
+        return tile(key, "compare", "Compare", `Compare translations of ${verseLabel}`, () => onAction("compare"), "bar-compare");
+      case "save":
+        // Saved, not "Remove bookmark": the tile says what is true, and VoiceOver hears that a second tap undoes it.
+        return tile(key, "bookmark", bookmarked ? "Saved" : "Save", bookmarked ? `Saved, ${reference}. Removes the bookmark` : `Save ${reference}`, () => onAction("bookmark"), "bar-save", bookmarked);
+      case "play":
+        return tile(key, "play", "Play from", `Play from verse ${verseOnly(firstVerse)}`, () => playFrom?.(), "bar-play-from");
+      case "share":
+        return (
+          <MenuView
+            key={key}
+            style={[styles.tileSlot, ax ? styles.tileAx : null]}
+            shouldOpenOnLongPress={false}
+            // imageColor always set: without it @react-native-menu draws the glyph transparent (index.tsx, 10 Oct 2026).
+            actions={shareActions(imageable).map((title) => ({ id: title.toLowerCase(), title, image: MENU_IMAGES[title], imageColor: palette.ink }))}
+            onPressAction={({ nativeEvent }) => onAction(nativeEvent.event)}
+            testID="bar-share"
+          >
+            {/* The menu is a UIButton; a child that took the touch would keep it from opening. */}
+            <View pointerEvents="none" accessible accessibilityRole="button" accessibilityLabel={imageable ? "Share, as an image, or Copy" : "Share or Copy"} style={[tileStyle, styles.tileFill]}>
+              {tileFace("share", "Share")}
+            </View>
+          </MenuView>
+        );
+    }
+  });
+
   return (
-    <BarFrame onHeight={onHeight} testID="action-bar">
+    <BarFrame onHeight={onHeight} testID="verse-sheet" sheet>
       {nowPlaying}
-      {ax ? (
-        <View style={{ rowGap: 8 }}>
-          {first}
-          {audio}
-          {dots}
-          {note}
-          {copy}
-          {rest}
-        </View>
-      ) : (
-        <View style={{ rowGap: 8 }}>
-          <View style={styles.row}>
-            {audio}
-            {first}
-            {rest}
-          </View>
-          <View style={styles.row}>
-            <View style={styles.cell}>{dots}</View>
-            {note}
-            {copy}
-          </View>
-        </View>
-      )}
+      <View style={styles.head}>
+        <Chrome step="sheetTitle" tone="ink" accessibilityRole="header" style={{ flex: 1 }}>
+          {reference}
+        </Chrome>
+        <Pressable
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          accessibilityHint="Clears the chosen verses"
+          testID="bar-close"
+          // The sheet's own round control: white with a hairline ring (polish-2026-10-15.md).
+          style={({ pressed }) => [styles.round, { width: control, height: control, backgroundColor: palette.sheet, borderColor: palette.edge, opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Icon name="close" size={18} strokeWidth={2.2} />
+        </Pressable>
+      </View>
+      {swatches}
+      <View style={{ rowGap: 10 }}>
+        {primary}
+        <View style={styles.tiles}>{tiles}</View>
+      </View>
     </BarFrame>
   );
 }
@@ -326,7 +264,12 @@ export function RestBar({
   );
 }
 
-function BarFrame({ children, onHeight, testID }: { children: ReactNode; onHeight: (height: number) => void; testID: string }) {
+/**
+ * The docked bar's ground: the reader's bars, and a page's pinned primary action (PageScreen `footer`, Sit with a verse).
+ * `sheet`: RD-31's verse sheet, on the sheet ground with its 28 pt top corners; the hairline stays, since in light the
+ * sheet and the page are both white and nothing dims behind it.
+ */
+export function BarFrame({ children, onHeight, testID, sheet = false }: { children: ReactNode; onHeight: (height: number) => void; testID: string; sheet?: boolean }) {
   const palette = usePalette();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
@@ -341,8 +284,9 @@ function BarFrame({ children, onHeight, testID }: { children: ReactNode; onHeigh
       style={[
         styles.bar,
         {
-          backgroundColor: palette.paper,
+          backgroundColor: sheet ? palette.sheet : palette.paper,
           boxShadow: `0 -1px 0 ${palette.divider}`,
+          ...(sheet ? styles.sheet : null),
           paddingBottom: Math.max(insets.bottom, 12),
           opacity: enter,
           transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
@@ -366,8 +310,11 @@ export function Capsule({
   label,
   hint,
   testID,
+  selected,
 }: {
   children: ReactNode;
+  /** A capsule that toggles (Sit's rain): VoiceOver hears whether it is on. */
+  selected?: boolean;
   primary?: boolean;
   grow?: boolean;
   square?: boolean;
@@ -385,6 +332,7 @@ export function Capsule({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={hint}
+      accessibilityState={selected === undefined ? undefined : { selected }}
       testID={testID}
       style={({ pressed }) => [
         styles.capsule,
@@ -428,12 +376,27 @@ const styles = StyleSheet.create({
     columnGap: 6,
     paddingHorizontal: 12,
   },
-  dots: {
+  sheet: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingTop: 16,
+    rowGap: 12,
+  },
+  head: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around",
+    columnGap: 12,
+  },
+  round: {
     borderRadius: 999,
-    paddingHorizontal: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  swatches: {
+    flexDirection: "row",
+    columnGap: 4,
+    marginLeft: -2,
   },
   dot: {
     width: 44,
@@ -442,9 +405,36 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   swatch: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  // Three to a row, two at AX sizes (RD-31).
+  tiles: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    columnGap: 8,
+    rowGap: 8,
+  },
+  tile: {
+    width: "31.5%",
+    minHeight: 64,
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    rowGap: 6,
+  },
+  tileAx: {
+    width: "48.5%",
+  },
+  // Share's menu wraps the tile, so the wrapper takes the tile's width and the tile fills it.
+  tileSlot: {
+    width: "31.5%",
+  },
+  tileFill: {
+    width: "100%",
   },
   list: {
     justifyContent: "flex-start",

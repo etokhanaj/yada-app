@@ -77,6 +77,14 @@ vi.mock("./translations", () => ({ MANIFEST_URL: "http://local/manifest.json" })
 // NT-08's notice runs only when Yada is not on screen; under test it is.
 vi.mock("expo-notifications", () => ({ getPermissionsAsync: async () => ({ status: "denied" }), scheduleNotificationAsync: async () => undefined }));
 vi.mock("react-native", () => ({ AppState: { currentState: "active" } }));
+// LS-31's queued download listens for the network; the test holds the listener and calls it as the network would.
+let networkListener: ((e: { isInternetReachable?: boolean }) => void) | null = null;
+vi.mock("expo-network", () => ({
+  addNetworkStateListener: (listener: (e: { isInternetReachable?: boolean }) => void) => {
+    networkListener = listener;
+    return { remove: () => (networkListener = null) };
+  },
+}));
 
 const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
 const audio = new Uint8Array([1, 2, 3, 4]);
@@ -172,7 +180,7 @@ describe("streaming (ST-01, ST-02)", () => {
     expect(onDisk()).toEqual([]);
   });
 
-  it("offline, nothing streams and the iPhone voice reads (BA-05)", async () => {
+  it("offline, nothing streams (LS-31 then says so)", async () => {
     manifestDown = true;
     useRecordings.setState({ online: false });
     try {
@@ -192,7 +200,7 @@ describe("chapter names (LB-08)", () => {
     expect(titleOnPhone("JHN", 3)).toBeNull();
   });
 
-  it("missing on the server is not offline: the iPhone voice says the name instead", async () => {
+  it("missing on the server is not offline: the reading goes straight to verse 1", async () => {
     served.delete(TITLES);
     await ensureChapter("JHN", 1);
     expect(titleOnPhone("JHN", 1)).toBeNull();
@@ -362,5 +370,23 @@ describe("the WEB, KJV and LSV readings (LB-09–11)", () => {
   it("no voice ever reads a licensed version (rule 9)", () => {
     for (const code of ["NIV", "NKJV", "NLT", "MSG"]) expect(readText(code)).toBeNull();
     expect(readText("KJV")).toBe("KJV");
+  });
+});
+
+describe("Download when online (LS-31)", () => {
+  it("waits for the network to come back, then downloads the book", async () => {
+    useRecordings.setState({ online: false });
+    recordings.downloadWhenOnline("JHN");
+    expect(networkListener).not.toBeNull();
+    networkListener?.({ isInternetReachable: false });
+    expect(onDisk()).toEqual([]);
+    networkListener?.({ isInternetReachable: true });
+    await vi.waitFor(() => expect(onDisk()).toEqual(["jhn-001.json", "jhn-001.m4a"]));
+    expect(networkListener).toBeNull();
+  });
+
+  it("downloads at once when online", async () => {
+    recordings.downloadWhenOnline("JHN");
+    await vi.waitFor(() => expect(onDisk()).toEqual(["jhn-001.json", "jhn-001.m4a"]));
   });
 });

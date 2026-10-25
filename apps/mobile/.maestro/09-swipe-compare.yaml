@@ -21,7 +21,7 @@ appId: studio.yada.reader
     end: "10%,50%"
     duration: 300
 - waitForAnimationToEnd
-- assertVisible: "John 2, BSB"
+- assertVisible: "John 2"
 - assertVisible:
     id: passage-title-JHN.2.1-2.12
 # A selected verse turns the swipe off (SW-04): the page stays.
@@ -32,7 +32,7 @@ appId: studio.yada.reader
     end: "10%,50%"
     duration: 300
 - waitForAnimationToEnd
-- assertVisible: "John 2, BSB"
+- assertVisible: "John 2"
 # CP-01: the bar's Compare opens Compare itself, yours first and each version against it.
 - openLink: studio.yada.reader:///read/JHN/3?verse=16&select=1
 - waitForAnimationToEnd
@@ -72,4 +72,4 @@ appId: studio.yada.reader
 - tapOn:
     id: end-next
 - waitForAnimationToEnd
-- assertVisible: "Acts 1, BSB"
+- assertVisible: "Acts 1"

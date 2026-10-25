@@ -15,6 +15,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 import { isSyncedSetting, nextStamp } from "../lib/cloudSync";
 import { type HighlightColor, type ImageGround, isHighlightColor, NOTE_MAX } from "../lib/highlights";
 import { todayKey } from "../lib/rhythm";
+import { withKeptWord } from "../lib/sitChoices";
 import { LICENSED_DDL } from "./licensed";
 
 export const USER_DB = "user.db";
@@ -110,6 +111,14 @@ CREATE TABLE IF NOT EXISTS books_begun (
   at   TEXT NOT NULL
 );
 
+-- What was finished today, for Today's "For you today" ticks (TD-30): "sit", "pray", "office", "devotional", or
+-- "read:JHN.2" for a chapter read to its end. On this phone only; the day itself counts in rhythm_days.
+CREATE TABLE IF NOT EXISTS today_done (
+  day  TEXT NOT NULL,
+  what TEXT NOT NULL,
+  PRIMARY KEY (day, what)
+);
+
 -- The days that count towards the streak (build 7, lib/rhythm.ts): a local date on Today's clock, once.
 CREATE TABLE IF NOT EXISTS rhythm_days (
   day TEXT PRIMARY KEY
@@ -145,6 +154,13 @@ CREATE TABLE IF NOT EXISTS verse_images (
   ground      TEXT NOT NULL,
   picture_day INTEGER NOT NULL,
   created_at  TEXT NOT NULL
+);
+
+-- Search's Recent (SE-30): what the reader searched, newest first, on this phone only and never synced. One row per
+-- search whatever its capitals, so "Peace" after "peace" moves it to the top rather than listing it twice.
+CREATE TABLE IF NOT EXISTS recent_searches (
+  query TEXT PRIMARY KEY COLLATE NOCASE,
+  at    TEXT NOT NULL
 );
 
 -- Downloaded Understand bundles, one per book (data/understand.ts), kept the same way.
@@ -364,6 +380,11 @@ export async function loadChapterNotes(db: SQLiteDatabase, book: string, chapter
   return { verses, chapter: whole };
 }
 
+/** SW-06: a word kept from a sit goes on its own line in the verse's note, under what the note already holds. */
+export async function keepWord(db: SQLiteDatabase, verseId: string, word: string): Promise<void> {
+  await saveNote(db, verseId, withKeptWord(await loadNote(db, verseId), word));
+}
+
 /** Every note, newest first (PS-04 Saved › Notes). */
 export async function listNotes(db: SQLiteDatabase): Promise<Array<{ target: string; body: string; updated_at: string }>> {
   return db.getAllAsync("SELECT target, body, updated_at FROM notes WHERE body != '' ORDER BY updated_at DESC");
@@ -516,6 +537,16 @@ export async function countDay(db: SQLiteDatabase, now = new Date()): Promise<vo
   if (result.changes > 0) onChange();
 }
 
+/** TD-30: something on Today was finished; its card then shows a tick. */
+export async function markDone(db: SQLiteDatabase, what: string, now = new Date()): Promise<void> {
+  await db.runAsync("INSERT OR IGNORE INTO today_done (day, what) VALUES (?, ?)", [todayKey(now), what]);
+}
+
+export async function loadDone(db: SQLiteDatabase, now = new Date()): Promise<Set<string>> {
+  const rows = await db.getAllAsync<{ what: string }>("SELECT what FROM today_done WHERE day = ?", [todayKey(now)]);
+  return new Set(rows.map((r) => r.what));
+}
+
 export async function loadDays(db: SQLiteDatabase): Promise<string[]> {
   const rows = await db.getAllAsync<{ day: string }>("SELECT day FROM rhythm_days");
   return rows.map((r) => r.day);
@@ -534,4 +565,23 @@ export async function markChapterRead(db: SQLiteDatabase, key: string): Promise<
 export async function loadChaptersRead(db: SQLiteDatabase): Promise<Set<string>> {
   const rows = await db.getAllAsync<{ chapter_key: string }>("SELECT chapter_key FROM chapters_read");
   return new Set(rows.map((r) => r.chapter_key));
+}
+
+/** SE-30 shows the last few; a few more are kept so clearing one search never empties the list. */
+const RECENT_KEPT = 20;
+
+/** Puts `query` at the top of Search's Recent, and trims the list to RECENT_KEPT. */
+export async function rememberSearch(db: SQLiteDatabase, query: string, at = new Date()): Promise<void> {
+  const q = query.trim();
+  if (q === "") return;
+  await db.runAsync("INSERT INTO recent_searches (query, at) VALUES (?, ?) ON CONFLICT(query) DO UPDATE SET query = excluded.query, at = excluded.at", [
+    q,
+    at.toISOString(),
+  ]);
+  await db.runAsync("DELETE FROM recent_searches WHERE query NOT IN (SELECT query FROM recent_searches ORDER BY at DESC LIMIT ?)", [RECENT_KEPT]);
+}
+
+export async function listRecentSearches(db: SQLiteDatabase, limit = 5): Promise<string[]> {
+  const rows = await db.getAllAsync<{ query: string }>("SELECT query FROM recent_searches ORDER BY at DESC LIMIT ?", [limit]);
+  return rows.map((r) => r.query);
 }

@@ -16,15 +16,14 @@
  *
  * The speed button opens a native menu of speeds (lib/audio/voice.ts). The voice is named under the
  * title (BA-01): Heart or George, each as a computer voice, opening the Voice sheet (BA-03) where the book
- * has a reading; "iPhone voice" where it has none, the system voice reading unasked (John, 13 Oct 2026:
- * the iPhone voice and Personal Voice are no longer choices).
+ * has a reading. No other voice reads (Build 12): where the reading can't be had, LS-31 says so.
  */
 
 import { type MenuAction, MenuView } from "@react-native-menu/menu";
 import { BOOK_CODES, type BookCode, formatVerseId } from "@yada/schema";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Buffering, bufferingLabel } from "../components/audio/Buffering";
@@ -73,14 +72,7 @@ export default function PlayerScreen() {
     const timer = setInterval(() => setNow(Date.now()), 15_000);
     return () => clearInterval(timer);
   }, [stop]);
-  const voiceNote = useAudio((s) => s.voiceNote);
-  // "You're offline." appears under the title, so VoiceOver is told; it goes when the player closes.
-  useEffect(() => {
-    if (voiceNote !== null) AccessibilityInfo.announceForAccessibility(voiceNote);
-  }, [voiceNote]);
-  useEffect(() => () => useAudio.setState({ voiceNote: null }), []);
   useEffect(() => void refreshRecordings(), []);
-  const note = voiceNote;
   // DR-08: Settings › Daily psalms, so a psalm of today's set is titled by the set and can stop at its end.
   const { user } = useAppData();
   const [psalter, setPsalter] = useState<PsalterChoice | null>(null);
@@ -163,7 +155,8 @@ export default function PlayerScreen() {
   // text: the choice of voice where two read it (the BSB), the book's download in every text
   // (docs/build-6-decisions.md). A chapter already on the phone plays without the manifest, so a playing
   // reading opens it by itself (offline too), and the player asks for the manifest about the rest.
-  const voiceLine = session.recorded !== true ? "iPhone voice" : reading === undefined ? "Computer voice" : `${reading.narrator_name}, computer voice`;
+  // Only Heart or George ever reads (Build 12): no iPhone voice to name.
+  const voiceLine = reading === undefined ? "Computer voice" : `${reading.narrator_name}, computer voice`;
   const voiceChoices = recordedBook || session.recorded === true;
 
   // VoiceOver reads a row by each element's top edge, so in the one-row layout every control is as
@@ -312,11 +305,6 @@ export default function PlayerScreen() {
         </View>
         {ax ? null : <View style={{ width: 44 }} />}
       </View>
-      {note !== null ? (
-        <Chrome tone="muted" step="note" style={[styles.hint, { textAlign: ax ? "left" : "center" }]} testID="voice-hint">
-          {note}
-        </Chrome>
-      ) : null}
 
       <View style={{ flex: 1 }}>
         <ScrollView
@@ -533,11 +521,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     rowGap: 1,
-  },
-  hint: {
-    marginTop: 4,
-    marginBottom: 8,
-    marginHorizontal: 32,
   },
   round: {
     borderRadius: 999,

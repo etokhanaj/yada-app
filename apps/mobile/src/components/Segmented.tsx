@@ -1,12 +1,13 @@
 /**
  * A segmented control (canvas `.seg`): equal segments in a grey capsule, the chosen one raised on the sheet colour
- * with a hairline ring. Used by Saved's Highlights · Notes · Bookmarks · Images (PS-04) and the Note sheet's verse or
+ * with a hairline ring. Used by the Note sheet's verse or
  * whole-chapter switch (PS-03). At AX sizes the segments stack (two to a row for four, one for two), as the AX frames
  * draw them, so no label is cut.
  */
 
 import { Pressable, StyleSheet, View } from "react-native";
 
+import { BRAND, ON_PICTURE } from "../design/palette";
 import { useLayout, usePalette } from "../design/tokens";
 import { Chrome } from "./Type";
 
@@ -15,6 +16,7 @@ export function Segmented<T extends string>({
   value,
   onChange,
   label,
+  onPicture = false,
   testID,
 }: {
   options: ReadonlyArray<{ readonly value: T; readonly label: string }>;
@@ -22,16 +24,20 @@ export function Segmented<T extends string>({
   onChange: (value: T) => void;
   /** What the choice is, for VoiceOver: "Show", "Note on". */
   label: string;
+  /** On a picture (SW-01's length): a glass track, the chosen segment white with ink words. */
+  onPicture?: boolean;
   testID?: string;
 }) {
   const palette = usePalette();
   const { ax } = useLayout();
-  const perRow = ax ? (options.length > 2 ? 2 : 1) : options.length;
+  // Three short options stay on one line at AX sizes, shrinking to fit: two to a row left the third alone (SW-01's
+  // 5, 10 and 15 min at AX5, 12b QA).
+  const perRow = ax ? (options.length === 3 ? 3 : options.length > 2 ? 2 : 1) : options.length;
   return (
     <View
       accessibilityRole="tablist"
       accessibilityLabel={label}
-      style={[styles.track, { backgroundColor: palette.fill, borderRadius: ax ? 32 : 999 }]}
+      style={[styles.track, { backgroundColor: onPicture ? ON_PICTURE.glass : palette.fill, borderRadius: ax ? 32 : 999 }]}
       testID={testID}
     >
       {options.map((option) => {
@@ -47,16 +53,21 @@ export function Segmented<T extends string>({
             style={[
               styles.segment,
               { width: `${100 / perRow}%` },
-              on ? [styles.on, { backgroundColor: palette.sheet, borderColor: palette.edge }] : null,
+              on ? [styles.on, onPicture ? { backgroundColor: ON_PICTURE.text, borderColor: ON_PICTURE.text } : { backgroundColor: palette.sheet, borderColor: palette.edge }] : null,
             ]}
             testID={testID === undefined ? undefined : `${testID}-${option.value}`}
           >
             {/* Four segments take the canvas's smaller label (PS-04), so "Highlights" and "Bookmarks" fit whole. */}
             <Chrome
               tone={on ? "ink" : "muted"}
-              step={options.length > 2 ? "note" : "chrome"}
-              numberOfLines={ax ? 2 : 1}
-              style={{ fontWeight: on ? "600" : "500", textAlign: "center", fontSize: options.length > 2 && !ax ? 13 : undefined }}
+              step={options.length > 2 && !onPicture ? "note" : "chrome"}
+              numberOfLines={ax && perRow !== 3 ? 2 : 1}
+              adjustsFontSizeToFit={ax && perRow === 3}
+              minimumFontScale={0.6}
+              style={[
+                { fontWeight: on || onPicture ? "600" : "500", textAlign: "center", fontSize: options.length > 2 && !ax && !onPicture ? 13 : undefined },
+                onPicture ? { color: on ? BRAND.ink : ON_PICTURE.text } : null,
+              ]}
             >
               {option.label}
             </Chrome>

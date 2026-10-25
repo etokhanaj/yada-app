@@ -17,13 +17,13 @@ function files(dir: string): string[] {
   return out;
 }
 
-/** Routes the root layout presents as a form sheet: `options={sheet}`, `{ ...sheet, … }` or `presentation: "formSheet"`. */
+/** Routes the root layout presents as a form sheet: `options={sheet}` or `{fitted}` (sized to content), `{ ...sheet, … }` or `presentation: "formSheet"`. */
 function sheetRoutes(): string[] {
   const layout = read("app/_layout.tsx");
   const routes = new Set<string>();
   for (const m of layout.matchAll(/<Stack\.Screen\s+name="([^"]+)"([\s\S]*?)\/>/gu)) {
     const options = m[2] ?? "";
-    if (/options=\{\s*sheet\s*\}|options=\{\{\s*\.\.\.sheet\b|presentation:\s*"formSheet"/u.test(options)) routes.add(m[1] ?? "");
+    if (/options=\{\s*(?:sheet|fitted)\s*\}|options=\{\{\s*\.\.\.(?:sheet|fitted)\b|presentation:\s*"formSheet"/u.test(options)) routes.add(m[1] ?? "");
   }
   return [...routes];
 }
@@ -41,7 +41,7 @@ describe("the design system (docs/design-system.md)", () => {
   });
 
   it("finds the sheet routes it checks", () => {
-    expect(sheetRoutes()).toEqual(expect.arrayContaining(["pray/ask", "pray/icloud", "understand", "rhythm", "start-small"]));
+    expect(sheetRoutes()).toEqual(expect.arrayContaining(["pray/ask", "pray/icloud", "understand", "note", "start-small"]));
   });
 
   // TestFlight build 9: Ask for prayer was a full page inside a form sheet; its scroll view collapsed and only the
@@ -95,5 +95,29 @@ describe("the design system (docs/design-system.md)", () => {
 
   it("keeps rows at 56 pt", () => {
     expect(read("components/Page.tsx")).toMatch(/listRow:\s*\{[^}]*minHeight:\s*56/u);
+  });
+
+  // Build 12 (John, 24 Oct 2026): cards may now cast a shadow, but only the raised card, for what people wrote. A
+  // hairline drawn as a boxShadow ("0 -1px 0") is a divider, not a shadow; floating chrome keeps its own barely-there lift.
+  it("casts a shadow only through RaisedCard (and the floating chrome)", () => {
+    const allowed = new Set([
+      "components/RaisedCard.tsx",
+      "components/Glass.tsx", // floating chrome's hairline lift
+      "components/Segmented.tsx", // the switch's thumb
+      "components/TranslationCover.tsx", // the covers' own shading (MT-02)
+    ]);
+    const blurred = /shadowOpacity|shadowRadius|elevation:|boxShadow:[^,}]*[`"]-?\d+(?:px)? -?\d+(?:px)? [1-9]/u;
+    const offenders = [...files("app"), ...files("components")].filter((f) => !allowed.has(f) && blurred.test(read(f)));
+    expect(offenders).toEqual([]);
+  });
+
+  // Build 12: the four tints colour ways to pray; a screen takes them from the palette, never its own pastel.
+  it("takes the tints from the palette", () => {
+    const palette = read("design/palette.ts");
+    const tints = [...palette.matchAll(/tints: \{([^}]*)\}/gu)].flatMap((m) => (m[1] ?? "").match(/#[0-9A-Fa-f]{6}/gu) ?? []);
+    expect(tints).toHaveLength(8);
+    const stray = [...files("app"), ...files("components")].filter((f) => tints.some((t) => read(f).includes(t)));
+    expect(stray).toEqual([]);
+    expect(read("components/Tiles.tsx")).toMatch(/palette\.tints\[tint\]/u);
   });
 });

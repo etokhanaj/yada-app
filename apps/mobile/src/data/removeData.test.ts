@@ -71,13 +71,14 @@ describe("Remove my data", () => {
     await db.runAsync("INSERT INTO chapters_read (chapter_key) VALUES (?)", ["JHN.3"]);
     await user.toggleBookmark(db, "PSA.23.1");
     await user.saveSetting(db, "appearance", "dark");
-    for (const table of ["highlights", "notes", "verse_images", "chapters_read", "bookmarks"]) expect(count(table)).toBe(1);
+    await user.rememberSearch(db, "peace");
+    for (const table of ["highlights", "notes", "verse_images", "chapters_read", "bookmarks", "recent_searches"]) expect(count(table)).toBe(1);
 
     pray.calls = [];
     expect(await removeMyData(db, {} as never)).toBe("done");
     expect(pray.calls).toEqual(["removeMine", "removeAll"]);
 
-    for (const table of ["highlights", "notes", "verse_images", "chapters_read", "bookmarks"]) expect(count(table)).toBe(0);
+    for (const table of ["highlights", "notes", "verse_images", "chapters_read", "bookmarks", "recent_searches"]) expect(count(table)).toBe(0);
     expect(await user.loadSettings(db)).toEqual({ appearance: "dark" });
   });
 

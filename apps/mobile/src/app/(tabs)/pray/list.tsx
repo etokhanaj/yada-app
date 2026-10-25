@@ -9,6 +9,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { AccessibilityInfo, Pressable, StyleSheet, View } from "react-native";
 
+import { EmptyState } from "../../../components/EmptyState";
 import { Icon } from "../../../components/Icon";
 import { PageScreen } from "../../../components/Page";
 import { Toast } from "../../../components/Toast";
@@ -139,29 +140,38 @@ export default function YourList() {
       <PageScreen
         title="Your list"
         back="Pray"
-        subtitle="Only you see it"
+        // Empty, the empty state says it and holds the one Add (EM-01).
+        subtitle={list.length > 0 ? "Only you see it" : undefined}
         clearTabBar
         testID="pray-list"
         right={
-          <Pressable
-            onPress={add}
-            accessibilityRole="button"
-            accessibilityLabel="Add to your list"
-            hitSlop={8}
-            style={styles.addLink}
-            testID="pray-add-row"
-          >
-            <Icon name="plus" size={18} tone="accent" />
-            <Chrome tone="accent" style={{ fontWeight: "600" }}>
-              Add
-            </Chrome>
-          </Pressable>
+          list.length === 0 ? undefined : (
+            <Pressable
+              onPress={add}
+              accessibilityRole="button"
+              accessibilityLabel="Add to your list"
+              hitSlop={8}
+              style={styles.addLink}
+              testID="pray-add-row"
+            >
+              <Icon name="plus" size={18} tone="accent" />
+              <Chrome tone="accent" style={{ fontWeight: "600" }}>
+                Add
+              </Chrome>
+            </Pressable>
+          )
         }
       >
-        {open.length === 0 ? (
-          <Prose style={{ marginTop: 4 }}>
-            Who would you like to pray for?
-          </Prose>
+        {/* Only answered ones left: the header's Add is the way on, so nothing stands above Answered. */}
+        {list.length === 0 ? (
+          <EmptyState
+            title="No one on your list yet"
+            line="Only you see this list."
+            action="Add someone"
+            icon="plus"
+            onAction={add}
+            testID="pray-list-empty"
+          />
         ) : (
           open.map((x, n) => row(x, n === 0))
         )}

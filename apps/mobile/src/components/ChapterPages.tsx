@@ -128,7 +128,6 @@ export function EndOfBook({ book, onNext, onClose }: { book: BookCode; onNext: (
       </ScrollView>
       <View style={{ paddingHorizontal: gutter }}>
         <NextCard
-          quiet
           kicker="Next"
           title={nextName}
           verse={upNext}

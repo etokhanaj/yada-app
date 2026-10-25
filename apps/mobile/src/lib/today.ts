@@ -24,6 +24,16 @@ export function partOf(now: Date): Part {
   return h >= EVENING_FROM || h < DAY_TURNS_AT ? "evening" : "morning";
 }
 
+/**
+ * The office's name on its card (Build 12 decision 4, John 24 Oct 2026): between noon and five it is "Afternoon
+ * prayer"; the office itself is still the morning's until the evening psalms (partOf).
+ */
+export function officeName(now: Date): string {
+  const part = partOf(now);
+  if (part === "evening") return "Evening prayer";
+  return now.getHours() >= 12 ? "Afternoon prayer" : "Morning prayer";
+}
+
 /** When a day's morning or evening begins and ends, so the watch turns them over on its own (AW-01). */
 export function partSpan(day: Date, part: Part): { from: Date; until: Date } {
   const at = (offset: number, hour: number) => new Date(day.getFullYear(), day.getMonth(), day.getDate() + offset, hour);
@@ -116,4 +126,22 @@ export function laterRow(part: Part, psalms: string, spurgeon: boolean): { title
   return spurgeon
     ? { title: "This morning", subtitle: `${psalms} and the devotional`, label: `This morning: ${psalms} and the morning devotional` }
     : { title: "This morning", subtitle: psalms, label: `This morning: ${psalms}` };
+}
+
+/** About how long reading takes, at an unhurried 200 words a minute (TD-30: Spurgeon's 351 words, about 2 min). */
+export function readingMinutes(words: number): number {
+  return Math.max(1, Math.round(words / 200));
+}
+
+/**
+ * The day pictures For you today's cards take (build-12-plan.md, Pictures): the days after today's in turn, so no
+ * picture shows twice on the screen with the verse's own. Days 1 to 30, wrapping.
+ */
+export function cardPictureDays(today: number, count: number): number[] {
+  return Array.from({ length: count }, (_, i) => ((today + i) % 30) + 1);
+}
+
+/** "1 of 6 done" over For you today, once something is done (TD-31); nothing before. */
+export function doneLine(done: number, of: number): string | null {
+  return done === 0 ? null : `${done} of ${of} done`;
 }

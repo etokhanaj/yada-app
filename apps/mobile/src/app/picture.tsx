@@ -8,6 +8,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
+import { useLayout } from "../design/tokens";
 import { SheetScreen } from "../components/Sheet";
 import { Chrome } from "../components/Type";
 import { pictureFor } from "../data/pictures";
@@ -16,6 +17,7 @@ import { dayLabel, dayOf, parseDayParam, type Part, partOf } from "../lib/today"
 import { verseLabel } from "../lib/saved";
 
 export default function AboutPicture() {
+  const fitSheet = !useLayout().ax;
   const params = useLocalSearchParams<{ day?: string; part?: string }>();
   const day = parseDayParam(params.day) ?? dayOf(new Date());
   const part: Part = params.part === "evening" ? "evening" : params.part === "morning" ? "morning" : partOf(new Date());
@@ -33,7 +35,7 @@ export default function AboutPicture() {
           ["Licence", picture.licence],
         ];
   return (
-    <SheetScreen title="About this picture" subtitle={dayLabel(day)} backLabel={null} footer={false} noBack testID="about-picture">
+    <SheetScreen fit={fitSheet} title="About this picture" subtitle={dayLabel(day)} backLabel={null} footer={false} noBack testID="about-picture">
       {rows.map(([label, value]) => (
         <View key={label} style={styles.row} accessible accessibilityLabel={`${label}: ${value}`}>
           <Chrome step="note" tone="muted">

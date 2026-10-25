@@ -69,3 +69,18 @@ export function rhythmOf(days: Iterable<string>, today: string): Rhythm {
   }
   return { streak, lit, thisYear, begun: counted.size > 0 };
 }
+
+/**
+ * This week, Monday to Sunday, for You's row of dots (YO-30; the year grid it sat over went with Your rhythm). After
+ * today is never counted: drawn empty, never as a miss.
+ */
+export function thisWeek(days: Iterable<string>, today: string): { key: string; counted: boolean; today: boolean }[] {
+  const counted = new Set(days);
+  const monday = parse(weekOf(parse(today)));
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + i);
+    const key = dayKey(day);
+    return { key, counted: counted.has(key) && key <= today, today: key === today };
+  });
+}

@@ -19,8 +19,8 @@ appId: studio.yada.reader
     id: verse-34
 - waitForAnimationToEnd
 - assertVisible:
-    id: action-bar
-# IA-05: Understand, Compare, More; Original has left the bar (it lives in Understand).
+    id: verse-sheet
+# RD-31: Understand leads the sheet, Compare is a tile; Original is offered only without Understand.
 - assertNotVisible:
     id: bar-original
 - assertVisible:
@@ -104,11 +104,11 @@ appId: studio.yada.reader
 - stopApp
 - launchApp
 - waitForAnimationToEnd
-- assertVisible: "1 Corinthians 14, BSB"
+- assertVisible: "1 Corinthians 14"
 - assertVisible:
     id: verse-34
 - assertNotVisible:
-    id: action-bar
+    id: verse-sheet
 - assertNotVisible:
     id: understand
 # Maestro's iOS driver keeps a stale hierarchy once a native sheet has been dismissed and
@@ -157,11 +157,11 @@ appId: studio.yada.reader
     id: back-to-reading
 - waitForAnimationToEnd
 # Back on the reader, same chapter, verse 34 still selected.
-- assertVisible: "1 Corinthians 14, BSB"
+- assertVisible: "1 Corinthians 14"
 - assertVisible:
     id: verse-34
 - assertVisible:
-    id: action-bar
+    id: verse-sheet
 # A verse with no explanation offers no Understand (J01-15), only Original. Once 1 Timothy's study
 # bundle is on the device (it downloads the first time the book opens online), a verse with a
 # note, cross-reference or person offers Understand for those (SN-01), so which capsule shows

@@ -1,13 +1,11 @@
 /**
- * Pray, a tab of its own (PT-46; FL-01 to FL-06; canvas https://claude.ai/artifact/RFdeRVhQ51Bce2E45DRQwJ, approved by
- * John 24 Oct 2026: "make pray its own tab"; "the stoic page ... make you choose a style"). It opens on ways to pray,
- * each its own tile, as stoic.'s Library separates breathing from meditation
- * (mobbin.com/screens/707eaf59-9086-4479-bdbf-0338f589fe51): the day's office wide on the picture, then Sit with a
- * verse, Bible prayers, Pray for others and Silence; then When you're, the six moments (VM). Below, People are places,
- * not ways: Your list, Everyone on Yada, and each circle as a cover with how many requests you haven't prayed (PC-01).
- * One + opens Add or ask (PT-40). Tiles are things you do; rows are places you go. A request you prayed for that was
- * answered in the last week shows as one quiet line above People (PC-23). Without CloudKit the list, the ways and the
- * moments still work and the rest is left out (XT-05).
+ * Pray, a tab of its own (PT-46), in the Build 12 system (PR-50, PR-51; John, 24 Oct 2026: "some lists are plain… make
+ * it more rich than flat all the time"). The day's office on its picture with its own Begin; the ways to pray on four
+ * tints; For when you're as picture tiles. Then People, each a row with a picture or avatars and a Pray pill: Your list,
+ * each circle with a lime badge for requests you haven't prayed, Everyone on Yada, and New circle. Then Your requests,
+ * the newest two as raised cards, with See all. Tiles are things you do; rows are places you go. A request you prayed
+ * for that was answered in the last week shows as one quiet line above People (PC-23). Without CloudKit the list, the
+ * ways and the moments still work and the rest is left out (XT-05).
  */
 
 import { router, useFocusEffect } from "expo-router";
@@ -28,12 +26,13 @@ import {
   prayCloud,
 } from "../../../../modules/yada-pray";
 import { FillPicture } from "../../../components/FillPicture";
+import { GlassButton } from "../../../components/Glass";
+import { Badge } from "../../../components/Badge";
 import { Icon, type IconName } from "../../../components/Icon";
 import { ListRow, PageScreen } from "../../../components/Page";
-import {
-  CircleCover,
-  NewCircleCover,
-} from "../../../components/pray/CircleCover";
+import { AvatarStack } from "../../../components/pray/CircleCover";
+import { RequestCard } from "../../../components/pray/RequestCard";
+import { PictureTile, TileGrid, TintTile } from "../../../components/Tiles";
 import { Chrome, SectionTitle } from "../../../components/Type";
 import { useAppData, useCore } from "../../../data/AppData";
 import { pictureFor } from "../../../data/pictures";
@@ -43,16 +42,19 @@ import { PRAYERS_OF_THE_BIBLE } from "../../../data/prayersOfTheBible";
 import { dayVerse } from "../../../data/today";
 import { BRAND, ON_PICTURE } from "../../../design/palette";
 import { FONTS, useLayout, usePalette } from "../../../design/tokens";
+import { type AskedRequest, asRequest } from "../../../lib/askSomeone";
 import { MOMENTS } from "../../../lib/moments";
 import {
   answeredLines,
   circleParams,
   ICLOUD_WAIT_MS,
+  newestFirst,
   offerable,
+  peopleLine,
   recentlyAnswered,
   withinTime,
 } from "../../../lib/pray";
-import { dayOf, partOf } from "../../../lib/today";
+import { dayOf, officeName, partOf } from "../../../lib/today";
 import { useSettings } from "../../../state/settings";
 
 interface CircleView {
@@ -68,13 +70,13 @@ export default function Pray() {
   const { user } = useAppData();
   const core = useCore();
   const translation = useSettings((s) => s.translation);
-  const palette = usePalette();
   const { gutter, ax } = useLayout();
   const [openList, setOpenList] = useState(0);
   const [waiting, setWaiting] = useState(0);
   const [circles, setCircles] = useState<CircleView[]>([]);
   const [circlesFailed, setCirclesFailed] = useState(false);
   const [answeredOne, setAnsweredOne] = useState<PrayerRequest | null>(null);
+  const [mine, setMine] = useState<AskedRequest[]>([]);
   const [verse, setVerse] = useState<Verse>(null);
   const now = new Date();
   const part = partOf(now);
@@ -95,6 +97,9 @@ export default function Pray() {
             prayCloud.fetch([...local.prayed].slice(0, 50)).catch(() => []),
           ]);
           setAnsweredOne(recentlyAnswered(prayedFor, Date.now())[0] ?? null);
+          // Your requests (PR-51): asked of everyone and asked of one person (AO-01), newest two.
+          const [everyone, ones] = await Promise.all([prayCloud.mine().catch(() => []), circlesCloud?.asks().catch(() => []) ?? Promise.resolve([])]);
+          setMine(newestFirst<AskedRequest>([...everyone, ...ones.map(asRequest)]).slice(0, 2));
           setWaiting(offerable(open, local.prayed, local.blocked).length);
         }
         if (circlesCloud === null) return;
@@ -118,14 +123,6 @@ export default function Pray() {
         setCircles(views);
         // FL-06: the new-request notice covers any circle joined since it was last set.
         if (views.length > 0) void watchCircles(user).catch(() => undefined);
-        // An invitation accepted while Yada opened goes to the welcome (PC-07), then the circle.
-        const accepted = await cloud.takeAccepted();
-        const joined = views.find((v) => accepted.includes(v.circle.id));
-        if (joined !== undefined)
-          router.push({
-            pathname: "/pray/joined",
-            params: circleParams(joined.circle),
-          });
       })
       .catch(() => {
         setCircles([]);
@@ -148,6 +145,7 @@ export default function Pray() {
         ref: verse.ref,
         bsb: verse.bsb ? "1" : "",
         place: `${verse.place.book}.${verse.place.chapter}.${verse.place.verse}`,
+        why: "Today",
       },
     });
   };
@@ -160,243 +158,207 @@ export default function Pray() {
       clearTabBar
       testID="pray"
       right={
-        <Pressable
-          onPress={() => router.push("/pray/add-or-ask")}
-          accessibilityRole="button"
-          accessibilityLabel="Add or ask"
-          style={[styles.plus, { backgroundColor: palette.fill }]}
-          testID="pray-plus"
-        >
-          <Icon name="plus" size={22} />
-        </Pressable>
+        // A + alone didn't say what it adds (Sit audit, 24 Oct 2026): the capsule names it, as ‹ Today names where back goes.
+        <GlassButton shape="capsule" onPress={() => router.push("/pray/add-or-ask")} accessibilityLabel="Add a prayer or ask for one" testID="pray-plus">
+          <Icon name="plus" size={18} />
+          <Chrome tone="ink" style={{ fontWeight: "500", marginRight: 2 }}>
+            Prayer
+          </Chrome>
+        </GlassButton>
       }
     >
-      {/* The day's office, wide on the picture: the one way to pray that needs no choosing. */}
+      {/* PR-50: the day's office, wide on the picture with its own Begin: the one way to pray that needs no choosing.
+          The whole card is the button; Begin shows what a tap does. */}
       <Pressable
         onPress={() => router.push({ pathname: "/office", params: { part } })}
         accessibilityRole="button"
-        accessibilityLabel={`${part === "evening" ? "Evening" : "Morning"} prayer, about 15 minutes`}
-        style={({ pressed }) => [
-          styles.office,
-          { backgroundColor: BRAND.forest, opacity: pressed ? 0.9 : 1 },
-        ]}
+        accessibilityLabel={`${officeName(now)}, about 15 minutes. Begin`}
+        style={({ pressed }) => [styles.office, ax ? styles.officeAx : null, { backgroundColor: BRAND.forest, opacity: pressed ? 0.9 : 1 }]}
         testID="pray-office"
       >
         {picture !== undefined ? <FillPicture source={picture.image} /> : null}
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { experimental_backgroundImage: FADE },
-          ]}
-        />
+        <View style={[StyleSheet.absoluteFill, { experimental_backgroundImage: FADE }]} />
         <View style={styles.officeText}>
-          <Chrome
-            style={{
-              color: ON_PICTURE.text,
-              fontFamily: FONTS.scripture,
-              fontWeight: "400",
-            }}
-            size={28}
-          >
-            {part === "evening" ? "Evening prayer" : "Morning prayer"}
-          </Chrome>
-          <Chrome step="note" style={{ color: ON_PICTURE.strong }}>
-            15 min
-          </Chrome>
+          <View style={{ flexShrink: 1 }}>
+            <Chrome style={{ color: ON_PICTURE.text, fontFamily: FONTS.scripture, fontWeight: "400" }} size={26}>
+              {officeName(now)}
+            </Chrome>
+            <Chrome step="note" style={{ color: ON_PICTURE.strong, marginTop: 2 }}>
+              15 min
+            </Chrome>
+          </View>
+          <View style={[styles.begin, { backgroundColor: ON_PICTURE.text }]}>
+            <Icon name="play" size={16} color={BRAND.ink} filled />
+            <Chrome style={{ color: BRAND.ink, fontWeight: "600" }}>Begin</Chrome>
+          </View>
         </View>
       </Pressable>
 
-      <View style={[styles.ways, ax ? styles.waysAx : null]}>
-        <Way
-          icon="target"
-          title="Sit with a verse"
-          line="8 min"
-          onPress={sit}
-          testID="pray-way-sit"
-        />
-        {PRAYERS_OF_THE_BIBLE.length > 0 ? (
-          <Way
-            icon="book-open"
-            title="Bible prayers"
-            line={`${PRAYERS_OF_THE_BIBLE.length} prayers`}
-            onPress={() => router.push("/pray/bible")}
-            testID="pray-way-bible"
+      <View style={{ marginTop: 10 }}>
+        <TileGrid>
+          <TintTile
+            tint="forest"
+            icon="sit"
+            title="Sit with a verse"
+            line="5–15 min"
+            onPress={sit}
+            testID="pray-way-sit"
           />
-        ) : null}
-        <Way
-          icon="people"
-          title="Pray for others"
-          line={
-            others > 0
-              ? `${others} ${others === 1 ? "person" : "people"}`
-              : "Your list and circles"
-          }
-          onPress={() => router.push("/pray/through")}
-          testID="pray-way-others"
-        />
-        <Way
-          icon="hourglass"
-          title="Silence"
-          line="3–20 min"
-          onPress={() => router.push("/silence")}
-          testID="pray-way-silence"
-        />
+          {PRAYERS_OF_THE_BIBLE.length > 0 ? (
+            <TintTile
+              tint="sand"
+              icon="book-open"
+              title="Bible prayers"
+              line={`${PRAYERS_OF_THE_BIBLE.length} prayers`}
+              onPress={() => router.push("/pray/bible")}
+              testID="pray-way-bible"
+            />
+          ) : null}
+          <TintTile
+            tint="sky"
+            icon="people"
+            title="Pray for others"
+            // "One by one" says this prays through them; People › Your list below is where they're kept (Sit audit,
+            // 24 Oct 2026: "2 people" twice on one screen read as the same place).
+            line={others > 0 ? `${others} ${others === 1 ? "person" : "people"}, one by one` : "Your list and circles"}
+            onPress={() => router.push("/pray/through")}
+            testID="pray-way-others"
+          />
+          <TintTile
+            tint="clay"
+            icon="hourglass"
+            title="Silence"
+            line="3–20 min"
+            onPress={() => router.push("/silence")}
+            testID="pray-way-silence"
+          />
+        </TileGrid>
       </View>
 
       <SectionTitle style={{ marginTop: 26, marginBottom: 10 }}>
-        When you’re
+        For when you’re
       </SectionTitle>
       <ScrollView
         horizontal={!ax}
         showsHorizontalScrollIndicator={false}
         style={ax ? null : { marginHorizontal: -gutter }}
         contentContainerStyle={
-          ax ? styles.chipsAx : [styles.chips, { paddingHorizontal: gutter }]
+          ax ? styles.moodsAx : [styles.moods, { paddingHorizontal: gutter }]
         }
       >
         {MOMENTS.map((m) => (
-          <Pressable
+          <PictureTile
             key={m.name}
+            title={m.name}
+            image={pictureFor(m.picture, "morning")?.image}
             onPress={() =>
               router.push({
                 pathname: "/moment",
                 params: { name: m.name, from: "pray" },
               })
             }
-            accessibilityRole="button"
-            accessibilityLabel={`When you’re ${m.name.toLowerCase()}: verses to pray with`}
-            style={({ pressed }) => [
-              styles.chip,
-              { backgroundColor: palette.fill, opacity: pressed ? 0.7 : 1 },
-            ]}
+            label={`When you’re ${m.name.toLowerCase()}: verses to pray with`}
             testID={`pray-moment-${m.name}`}
-          >
-            <Chrome
-              tone="ink"
-              style={{ fontFamily: FONTS.scripture, fontWeight: "400" }}
-              size={19}
-            >
-              {m.name}
-            </Chrome>
-          </Pressable>
+          />
         ))}
       </ScrollView>
 
       {answeredOne !== null ? <AnsweredLine request={answeredOne} /> : null}
 
-      <SectionTitle style={{ marginTop: 28, marginBottom: 2 }}>
-        People
-      </SectionTitle>
+      <SectionTitle style={{ marginTop: 28, marginBottom: 2 }}>People</SectionTitle>
       <ListRow
         first
+        leading={<Thumb icon="lock" />}
         title="Your list"
-        subtitle="Only you"
+        subtitle={openList > 0 ? `${openList} ${openList === 1 ? "prayer" : "prayers"} · only you` : "Only you"}
         onPress={() => router.push("/pray/list")}
+        action={openList > 0 ? { title: "Pray", label: "Pray through your list", onPress: () => router.push({ pathname: "/pray/through", params: { scope: "list" } }) } : undefined}
         testID="pray-list-row"
       />
+      {circles.map((v) => (
+        <ListRow
+          key={v.circle.id}
+          leading={<AvatarStack members={v.members} />}
+          title={v.circle.name}
+          subtitle={
+            <View style={styles.meta}>
+              {v.fresh > 0 ? <Badge text={`${v.fresh} new`} /> : null}
+              <Chrome step="note" tone="muted">
+                {peopleLine(v.circle.people)}
+              </Chrome>
+            </View>
+          }
+          label={[v.circle.name, peopleLine(v.circle.people), v.fresh > 0 ? `${v.fresh} new` : null].filter((x) => x !== null).join(". ")}
+          onPress={() => router.push({ pathname: "/pray/circle", params: circleParams(v.circle) })}
+          action={
+            v.fresh > 0
+              ? { title: "Pray", label: `Pray for ${v.circle.name}`, onPress: () => router.push({ pathname: "/pray/through", params: { scope: "circle", id: v.circle.id, owner: v.circle.owner } }) }
+              : undefined
+          }
+          testID={`pray-circle-${v.circle.id}`}
+        />
+      ))}
       {prayCloud !== null ? (
         <ListRow
+          leading={<Thumb icon="globe" forest />}
           title="Everyone on Yada"
-          subtitle={
-            waiting > 0 ? `${waiting} waiting` : "None waiting just now"
-          }
+          subtitle={waiting > 0 ? `${waiting} asking just now` : "None waiting just now"}
           onPress={() => router.push("/pray/mine")}
+          action={waiting > 0 ? { title: "Pray", label: "Pray for someone on Yada", onPress: () => router.push("/pray/someone") } : undefined}
           testID="pray-everyone-row"
         />
       ) : null}
-      {circlesCloud !== null ? (
-        <View style={{ marginTop: 16 }}>
-          <ScrollView
-            horizontal={!ax}
-            showsHorizontalScrollIndicator={false}
-            style={ax ? null : { marginHorizontal: -gutter }}
-            contentContainerStyle={
-              ax ? { rowGap: 12 } : { columnGap: 12, paddingHorizontal: gutter }
-            }
+      {circlesCloud !== null && !circlesFailed ? (
+        <ListRow leading={<Thumb icon="plus" />} title="New circle" subtitle="Up to 12 people" onPress={() => router.push("/pray/new-circle")} testID="pray-new-circle" />
+      ) : null}
+      {circlesFailed ? (
+        // A list that didn't load says so, rather than looking like no circles (QA, 24 Oct 2026).
+        <Pressable onPress={reload} accessibilityRole="button" style={{ marginTop: 8, minHeight: 44, justifyContent: "center" }} testID="pray-circles-retry">
+          <Chrome step="note" tone="muted">
+            Your circles didn’t load.{" "}
+            <Chrome step="note" tone="accent" style={{ fontWeight: "600" }}>
+              Try again
+            </Chrome>
+          </Chrome>
+        </Pressable>
+      ) : null}
+
+      {mine.length > 0 ? (
+        <>
+          <SectionTitle
+            style={{ marginTop: 28, marginBottom: 12 }}
+            link={{ label: "See all your requests", onPress: () => router.push("/pray/mine"), testID: "pray-requests-all" }}
           >
-            {circles.map((v) => (
-              <CircleCover
-                key={v.circle.id}
-                circle={v.circle}
-                members={v.members}
-                fresh={v.fresh}
-                onPress={() =>
-                  router.push({
-                    pathname: "/pray/circle",
-                    params: circleParams(v.circle),
-                  })
-                }
-              />
-            ))}
-            <NewCircleCover onPress={() => router.push("/pray/new-circle")} />
-          </ScrollView>
-          {circlesFailed ? (
-            // A list that didn't load says so, rather than looking like no circles (QA, 24 Oct 2026).
-            <Pressable
-              onPress={reload}
-              accessibilityRole="button"
-              style={{ marginTop: 8, minHeight: 44, justifyContent: "center" }}
-              testID="pray-circles-retry"
-            >
-              <Chrome step="note" tone="muted">
-                Your circles didn’t load.{" "}
-                <Chrome step="note" tone="accent" style={{ fontWeight: "600" }}>
-                  Try again
-                </Chrome>
-              </Chrome>
-            </Pressable>
-          ) : null}
-        </View>
+            Your requests
+          </SectionTitle>
+          {mine.map((r) => (
+            <RequestCard
+              key={r.id}
+              request={r}
+              to={r.to}
+              now={Date.now()}
+              onAnswered={() =>
+                void (r.to === undefined ? prayCloud?.markAnswered(r.id) : circlesCloud?.answerAsk(r.id))
+                  ?.then(reload)
+                  .catch(() => AccessibilityInfo.announceForAccessibility("Couldn’t mark it answered. Try again."))
+              }
+            />
+          ))}
+        </>
       ) : null}
     </PageScreen>
   );
 }
 
-/** A way to pray (PT-46): its glyph, its name on one line, and one fact. */
-function Way({
-  icon,
-  title,
-  line,
-  onPress,
-  testID,
-}: {
-  icon: IconName;
-  title: string;
-  line: string;
-  onPress: () => void;
-  testID: string;
-}) {
+/** A row's 56 pt picture where it has no people to show (PR-51): its glyph on fill, or white on the forest. */
+function Thumb({ icon, forest = false }: { icon: IconName; forest?: boolean }) {
   const palette = usePalette();
   const { ax } = useLayout();
+  const box = ax ? 64 : 56;
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${title}, ${line}`}
-      style={({ pressed }) => [
-        styles.way,
-        ax ? styles.wayAx : null,
-        { backgroundColor: palette.fill, opacity: pressed ? 0.8 : 1 },
-      ]}
-      testID={testID}
-    >
-      <Icon name={icon} size={26} />
-      <View>
-        <Chrome
-          tone="ink"
-          style={{ fontFamily: FONTS.scripture, fontWeight: "400" }}
-          size={19}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.85}
-        >
-          {title}
-        </Chrome>
-        <Chrome step="note" tone="muted" style={{ marginTop: 3 }}>
-          {line}
-        </Chrome>
-      </View>
-    </Pressable>
+    <View style={[styles.thumb, { width: box, height: box, backgroundColor: forest ? BRAND.forest : palette.fill }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Icon name={icon} size={22} {...(forest ? { tone: "white" as const } : {})} />
+    </View>
   );
 }
 
@@ -438,44 +400,19 @@ function AnsweredLine({ request }: { request: PrayerRequest }) {
 const FADE = "linear-gradient(rgba(8,20,15,0) 35%, rgba(8,20,15,0.7))";
 
 const styles = StyleSheet.create({
-  plus: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   office: {
-    height: 170,
+    height: 176,
     borderRadius: 24,
     overflow: "hidden",
     justifyContent: "flex-end",
   },
-  officeText: { padding: 16 },
-  ways: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    rowGap: 10,
-    marginTop: 10,
-  },
-  waysAx: { flexDirection: "column" },
-  way: {
-    width: "48.5%",
-    minHeight: 132,
-    borderRadius: 24,
-    padding: 16,
-    justifyContent: "space-between",
-  },
-  wayAx: { width: "100%", rowGap: 14 },
-  chips: { columnGap: 8 },
-  chipsAx: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    minHeight: 46,
-    paddingHorizontal: 20,
-    borderRadius: 23,
-    justifyContent: "center",
-  },
+  officeAx: { height: 210 },
+  officeText: { padding: 16, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 10 },
+  begin: { flexDirection: "row", alignItems: "center", columnGap: 6, minHeight: 40, paddingHorizontal: 16, borderRadius: 20 },
+  thumb: { borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  meta: { flexDirection: "row", alignItems: "center", columnGap: 6, flexWrap: "wrap" },
+  moods: { columnGap: 10 },
+  moodsAx: { rowGap: 10 },
   answered: {
     flexDirection: "row",
     alignItems: "center",

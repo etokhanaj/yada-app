@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { booksReadThrough, rangeInBook, recentTag, verseLabel, yourReadingLine } from "./saved";
+import { rangeInBook, recentTag, savedLine, verseLabel } from "./saved";
 
 describe("verseLabel", () => {
   it("names a single psalm a Psalm", () => {
@@ -29,22 +29,12 @@ describe("rangeInBook", () => {
   });
 });
 
-describe("Your reading (PS-04)", () => {
-  it("says the days this year and the book read through, as the frame does", () => {
-    expect(yourReadingLine(41, ["RUT"])).toBe("41 days this year · Ruth read through");
+describe("You's Saved row (YO-30)", () => {
+  it("counts what is kept, as the frame does", () => {
+    expect(savedLine({ highlights: 4, notes: 1, bookmarks: 0, images: 0 })).toBe("4 highlights · 1 note");
   });
 
-  it("counts several books rather than naming one, and says one day", () => {
-    expect(yourReadingLine(1, ["RUT", "JUD"])).toBe("1 day this year · 2 books read through");
-  });
-
-  it("leaves the row out when there is nothing to say", () => {
-    expect(yourReadingLine(0, [])).toBeNull();
-    expect(yourReadingLine(0, ["JUD"])).toBe("Jude read through");
-  });
-
-  it("finds a book read through only when every chapter is read", () => {
-    expect(booksReadThrough(new Set(["RUT.1", "RUT.2", "RUT.3", "RUT.4", "JHN.1"]))).toEqual(["RUT"]);
-    expect(booksReadThrough(new Set(["RUT.1", "RUT.2", "RUT.3"]))).toEqual([]);
+  it("is empty when nothing is kept", () => {
+    expect(savedLine({ highlights: 0, notes: 0, bookmarks: 0, images: 0 })).toBeNull();
   });
 });
