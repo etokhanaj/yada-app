@@ -27,6 +27,8 @@ DEFINE SCHEMA
         text            ENCRYPTED STRING,
         firstName       ENCRYPTED STRING,
         expiresAt       TIMESTAMP,
+        to              ENCRYPTED STRING,
+        answeredAt      TIMESTAMP,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_world"
@@ -75,6 +77,17 @@ DEFINE SCHEMA
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_world"
+    );
+
+    RECORD TYPE cloudkit.share (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE,
+        cloudkit.title  STRING,
+        picture         INT64
     );
 
     RECORD TYPE Coming (
