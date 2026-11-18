@@ -4,7 +4,7 @@ import { alignWords, AudioRefused, audioText, buildAudio, chapterTimings, cutPar
 
 /**
  * The timings only ever come from the recording: the recogniser's words are compared with the BSB's and
- * dropped (docs/research/bsb-audio-printing-check.md).
+ * dropped (docs/licences/bsb-audio-printing-check.md).
  */
 describe("aligning a recording with the BSB text", () => {
   const heard = [

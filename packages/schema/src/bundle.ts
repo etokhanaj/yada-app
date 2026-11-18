@@ -357,7 +357,7 @@ export const BundleManifestSchema = z.object({
    * like study bundles. They replace the AI entries the `understand` kind of `bundles` carried.
    */
   understand: z.array(UnderstandInfoSchema).optional(),
-  /** Human-read BSB recordings, per narrator and book (docs/research/bsb-audio-printing-check.md). */
+  /** Human-read BSB recordings, per narrator and book (docs/licences/bsb-audio-printing-check.md). */
   audio: z.array(AudioInfoSchema).optional(),
 });
 export type BundleManifest = z.infer<typeof BundleManifestSchema>;

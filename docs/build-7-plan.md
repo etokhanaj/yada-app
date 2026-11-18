@@ -112,7 +112,7 @@ carry-overs from build 6.
 | 12 | **Contents ⋯:** Recent, Book order (Traditional / A to Z), Choose a verse | CT-01–03 | drawn |
 | 13 | **System polish:** white, spacing, titles, controls, cards used right | all v2 frames | drawn; `docs/redesign/polish-2026-10-15.md` |
 | 14 | **Player, from the lyrics study:** tap a verse in the full player to play from it; select verses in the reader › Share as an image | §4 | to draw |
-| 16 | **Your space:** highlights in four colours, notes on a verse or chapter, Copy in the bar, Saved (highlights, notes, bookmarks, images, Your reading), export, an image for any verse | PS-01–05 | drawn; badges recommended against (`docs/research/bible-app-needs-2026-10.md`) |
+| 16 | **Your space:** highlights in four colours, notes on a verse or chapter, Copy in the bar, Saved (highlights, notes, bookmarks, images, Your reading), export, an image for any verse | PS-01–05 | drawn; badges recommended against (`bible-app-needs-2026-10.md` (in the private repo)) |
 | 17 | **Today's devotional and plan cards** redesigned: full width, title, author or reference, reading time, plan progress | DR-11, DR-12 | drawn |
 | 18 | **Pray, inside Today** (John approved 15 Oct 2026, via the build-next-release session): Sit with this (Settle, Breathe the verse, Sit with it, Silence); a private prayer list; Prayers of the Bible (the list awaits John's approval); pray for each other, lean v1 on the CloudKit public database | PR-01–12 | drawn |
 | 19 | **Learn a verse by heart:** the verse read aloud, then words fade a few at a time while the reader says it back; no score | to draw | decided by Claude for John, 15 Oct |
@@ -261,7 +261,7 @@ Nothing ships that isn't in this ledger with its licence read from the source (r
 4. **The reader's Search door,** now the reader covers the tabs.
 5. **Download a book's audio without playing it** (in the Voice sheet).
 6. **Learn a verse by heart** (fading words, building on Repeat) and **Verses for a moment** (from a public-domain
-   topical source), if John wants them: `docs/research/bible-app-needs-2026-10.md`.
+   topical source), if John wants them: `bible-app-needs-2026-10.md` (in the private repo).
 7. **Today with a Daily Light verse:** redraw DR-11, DR-16 and DR-18 with 1 November's verse and a matching picture,
    once the references are verified.
 

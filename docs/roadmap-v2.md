@@ -20,12 +20,12 @@ canvas before it is built. Licences are read from each source's own files before
 | Live Activity while listening | expo-widgets / ActivityKit | Lock Screen, Dynamic Island, StandBy; started and ended locally |
 | Assistive Access | `UISupportsFullScreenInAssistiveAccess` | One Info.plist key, then a check in Assistive Access |
 | NIV, NKJV and NLT for testers and users | A Cloudflare Worker that holds the API.Bible key server-side | The app never carries the key. The Worker enforces the 30-day cache refresh, deletion on request, attribution and non-commercial use on Starter. The privacy page gains a line about chapter requests going through Yada's server (no personal data). Display only: never read aloud, never in AI (rule 9; API.Bible §9.1) |
-| Human audio beyond BSB | WEB read by Winfred W. Henson (all 66 books, 2014–16; eBible.org: free to download, copy and listen) | Credit the narrator and the year, since it predates the 2020 WEB text; ask eBible.org for written confirmation first (`docs/research/audio-and-kjv-terms.md`) |
+| Human audio beyond BSB | WEB read by Winfred W. Henson (all 66 books, 2014–16; eBible.org: free to download, copy and listen) | Credit the narrator and the year, since it predates the 2020 WEB text; ask eBible.org for written confirmation first (`docs/licences/audio-and-kjv-terms.md`) |
 
 ## Legal checks open
 
 - KJV in the UK is under Crown rights, administered by Cambridge University Press. Yada already shows the KJV, so
-  CUP's terms for apps must be read before launch (`docs/research/audio-and-kjv-terms.md`).
+  CUP's terms for apps must be read before launch (`docs/licences/audio-and-kjv-terms.md`).
 
 ## Decisions needed before v2 work
 

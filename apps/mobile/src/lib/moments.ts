@@ -16,7 +16,7 @@ export interface MomentPassage {
 export interface Moment {
   readonly name: string;
   readonly passages: readonly MomentPassage[];
-  /** The helpline line beneath (docs/research/moments-topics.md): Anxious, Afraid, Grieving and Lonely only. */
+  /** The helpline line beneath (`moments-topics.md` (in the private repo)): Anxious, Afraid, Grieving and Lonely only. */
   readonly support: boolean;
   /** The day picture the mood keeps on its tile (Build 12 decision 3, John 24 Oct 2026). */
   readonly picture: number;

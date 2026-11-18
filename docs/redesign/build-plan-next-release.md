@@ -45,7 +45,7 @@ Ask John before any `git push` or `gh pr create`. Before either, run `/deslop`, 
 | JPS 1917 | `translation-jps.v1.db` (built locally), `hebrew-numbering.ts` | Public domain, UK confirmed. **Held from the manifest** until the app handles Old-Testament-only texts (`OT_ONLY_TEXTS_READY = false` in `apps/mobile/src/lib/sources.ts`). |
 | Sources record | `sources.manifest.json`, `apps/mobile/src/lib/sources.ts` | Complete: unfoldingWord, the Berean tables, MACULA, Glyssen, JPS, K&D, Ellicott, Driver and Neubauer, Clarke. |
 | Review queue | `packages/review` (`#/debates`) | Done; John used it. |
-| Study bundles merge | `docs/research/manifest-merge-plan.md` | A plan; not yet merged into `content/bundles/manifest.json`. |
+| Study bundles merge | `manifest-merge-plan.md` (in the private repo) | A plan; not yet merged into `content/bundles/manifest.json`. |
 
 ---
 
@@ -242,7 +242,7 @@ Use the current frames instead:
 **Supporting documents:**
 - `docs/no-ai-understand.md` (decision record);
 - `docs/redesign/review-2026-10-12.md` (slop, wireframe, states, haptics, magic moments);
-- `docs/research/debate-positions.md`;
-- `docs/research/jps-1917-licence.md`;
-- `docs/research/manifest-merge-plan.md`;
+- `debate-positions.md` (in the private repo);
+- `docs/licences/jps-1917-licence.md`;
+- `manifest-merge-plan.md` (in the private repo);
 - `docs/redesign/five-reader-test.md` (tasks 6–7 added).

@@ -426,7 +426,7 @@
     "attribution_text": "Berean Standard Bible audio narrated by Barry Hays, dedicated to the public domain (CC0 1.0).",
     "url": "https://bereanbible.com/audio/",
     "retrieved_at": "2026-10-12T00:00:00Z",
-    "modifications": "Licence read from https://bereanbible.com/audio/ (saved as content/raw/audio/bereanbible.com_audio.html, sha256 0587635e8654d41f50483d5afdc835e81ee7a60f03d5d8978d55aad0c5218e0b): 'These audio versions of God's Word have been dedicated to the public domain (CC0 1.0)'. MP3s pinned by sha256 at ingest; re-encoded to mono AAC 48 kbps per chapter; word timings made offline by aligning whisper.cpp output with the BSB text (the recogniser's words are discarded). Souer and Gilbert read an earlier printing and are not used (docs/research/bsb-audio-printing-check.md). Not offered in the app since 13 Oct 2026 (John kept the computer voices Heart and George); the files and pipeline support remain."
+    "modifications": "Licence read from https://bereanbible.com/audio/ (saved as content/raw/audio/bereanbible.com_audio.html, sha256 0587635e8654d41f50483d5afdc835e81ee7a60f03d5d8978d55aad0c5218e0b): 'These audio versions of God's Word have been dedicated to the public domain (CC0 1.0)'. MP3s pinned by sha256 at ingest; re-encoded to mono AAC 48 kbps per chapter; word timings made offline by aligning whisper.cpp output with the BSB text (the recogniser's words are discarded). Souer and Gilbert read an earlier printing and are not used (docs/licences/bsb-audio-printing-check.md). Not offered in the app since 13 Oct 2026 (John kept the computer voices Heart and George); the files and pipeline support remain."
   },
   {
     "source": "hexgrad / onnx-community (Hugging Face)",

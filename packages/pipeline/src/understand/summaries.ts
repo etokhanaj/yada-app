@@ -79,7 +79,7 @@ const LABEL_LINE = /^(?:the\s+)?(?:greeting|greetings|introduction|conclusion|cl
 
 /**
  * Passages Henry's outline steers, only those John chose. Steering every passage changed 284 summaries
- * (docs/research/henry-steer-2026-10-16.txt); on 18 Oct 2026 John read all 284 and chose the new summary for these
+ * (`henry-steer-2026-10-16.txt` (in the private repo)); on 18 Oct 2026 John read all 284 and chose the new summary for these
  * 66 and kept the old for 218 (docs/review-2026-10-18-henry-prayers.md). Acts 9:23–25 was accepted on 16 Oct.
  */
 const STEERED: ReadonlySet<string> = new Set([

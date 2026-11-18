@@ -16,7 +16,7 @@ this ships through the manifest.
    (`reviews: new Map()`), so its fixture moves for exactly these 66; update it on purpose, never wholesale.
 2. **Measure before writing anything shared:** rebuild all 66 books into a scratch folder and diff every summary against
    the live bundles. Pass only if exactly the 66 change, and each now reads as the "now" line in
-   `docs/research/henry-steer-2026-10-16.txt`. Anything else changing stops the run (rule 5: the fixture is suspect
+   `henry-steer-2026-10-16.txt` (in the private repo). Anything else changing stops the run (rule 5: the fixture is suspect
    first, then the rule).
 3. **Review status:** an approval is tied to the sha256 of the text shown, so the 66 new texts lose any earlier approval
    and show as flagged. John's "use new" chose the text; whether it also approves it is his call (question 1). If he says

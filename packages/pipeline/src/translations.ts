@@ -55,7 +55,7 @@ export const DOWNLOADABLE: readonly TranslationDef[] = [
   { code: "YLT", name: "Young's Literal Translation", year: 1898, cover: "paper", source: "ylt" },
   { code: "MSB", name: "Majority Standard Bible", year: 2024, cover: "lime", source: "msb" },
   // A Jewish rendering for Compare and "Readers differ" (John, 12 Oct 2026): Isaiah 7:14 "the young
-  // woman shall conceive". Public domain in the UK as well as the US: docs/research/jps-1917-licence.md.
+  // woman shall conceive". Public domain in the UK as well as the US: docs/licences/jps-1917-licence.md.
   {
     code: "JPS",
     name: "JPS 1917",

@@ -137,7 +137,7 @@ From `services/licensed-proxy`, with Node on PATH. Nothing here prints the key.
 5. Build for TestFlight with the URL in the environment:
    `EXPO_PUBLIC_LICENSED_PROXY_URL=https://yada-licensed-proxy.<subdomain>.workers.dev apps/mobile/scripts/release-ios.sh`.
    The script prints which URL the build carries.
-6. Before external testers: the privacy page line (draft in `docs/outreach/privacy-licensed-proxy.md`).
+6. Before external testers: the privacy page line (draft in `privacy-licensed-proxy.md` (in the private repo)).
 
 To serve a version the account holds: add it to `SERVED` in `wrangler.toml` and `npx wrangler deploy`.
 After changing `SERVED` (as on 12 Oct 2026, adding MSG), the deployed Worker serves the old set until

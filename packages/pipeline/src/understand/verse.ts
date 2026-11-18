@@ -882,7 +882,7 @@ export function assemble(data: BookData, derived: Derived, c: number, v: number)
   const approved = approvedPositions(deb);
   const kind = deb?.kind;
   if (deb !== undefined) {
-    // What a disputed verse shows depends on its kind (John, 12 Oct 2026; docs/research/debates-sort-2026-10-12.md):
+    // What a disputed verse shows depends on its kind (John, 12 Oct 2026; `debates-sort-2026-10-12.md` (in the private repo)):
     // "data": only the JPS 1917 verse (Old Testament) or the manuscript fact; "tn-readings": tN's readings, from
     // the verse notes or a chapter introduction that sets out two; "positions" and "held": nothing until John
     // approves. tN readings on the other kinds are about other words (Genesis 1:2's Spirit or wind) and mislead.

@@ -419,7 +419,7 @@ export const SOURCES: SourceDef[] = [
     // engjps_about.htm, read 12 Oct 2026: "Public Domain … Translation by: Jewish Publication Society".
     // The Sword module eBible builds from the same source says "This work is not copyrighted".
     // UK term (life + 70) checked against the 1917 preface's named editors and translators:
-    // docs/research/jps-1917-licence.md.
+    // docs/licences/jps-1917-licence.md.
     license: "PUBLIC_DOMAIN",
     attribution_text:
       "The Holy Scriptures According to the Masoretic Text (Jewish Publication Society of America, 1917). Public domain. From eBible.org.",

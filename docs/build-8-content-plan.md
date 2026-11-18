@@ -239,7 +239,7 @@ with the lions; Mark 12 gets the coin; 1 Timothy 3 gets the qualifications.
     lions, Acts 9:23–25 names Saul and the basket, Ezra 2 is less of a raw list. But Judges 2:6–9 becomes too
     thin and Hebrews 11 loses Jacob.
   - The flagged count is unchanged (52).
-  - Every change is in `docs/research/henry-steer-2026-10-16.txt`.
+  - Every change is in `henry-steer-2026-10-16.txt` (in the private repo).
   - **To switch it on,** `loadBook` would pass `henry: mhcSections(book)`. That waits for John to read the
     changes, and the golden pass counts would need updating.
 - **D3 to D6 are not started.** The measurement says steering alone does not answer most fix notes. They need

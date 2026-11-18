@@ -59,7 +59,7 @@ All public domain, read from each eBible package's `_about.htm` on 10 Oct 2026 (
 
 JPS 1917 was added 12 Oct 2026 (John), so Compare and "Readers differ" have a Jewish rendering:
 Isaiah 7:14 reads "the young woman shall conceive". It is public domain in the UK as well as the US
-(`docs/research/jps-1917-licence.md`). It is printed in Hebrew verse order and placed on English verse
+(`docs/licences/jps-1917-licence.md`). It is printed in Hebrew verse order and placed on English verse
 ids through TVTMS (`hebrew-numbering.ts`). Its manifest entry carries `testament: "OT"`, and the app must
 honour that before it is published.
 

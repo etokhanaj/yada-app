@@ -312,7 +312,7 @@ def ordinal(bk, c, v):
     r = core.execute("select ord from verses where book=? and chapter=? and verse=?", (bk, c, v)).fetchone()
     return r[0] if r else None
 
-# JPS 1917 (public domain, Old Testament only; docs/research/jps-1917-licence.md) lives in its own downloadable bundle,
+# JPS 1917 (public domain, Old Testament only; docs/licences/jps-1917-licence.md) lives in its own downloadable bundle,
 # keyed by core's ord after the Hebrew-numbering map. It gives Compare and Readers differ a Jewish rendering from data
 # (John, 12 Oct: Isaiah 7:14 "young woman", Psalm 22:16 "like a lion"). Absent bundle: no JPS, nothing else changes.
 _JPS_PATH = f"{B}/translation-jps.v1.db"
@@ -704,7 +704,7 @@ def assemble(bk, c, v):
     approved = approved if len(approved) >= 2 else []
     kind = deb and deb.get("kind")
     if deb:
-        # What a disputed verse shows depends on its kind (John, 12 Oct; docs/research/debates-sort-2026-10-12.md):
+        # What a disputed verse shows depends on its kind (John, 12 Oct; `debates-sort-2026-10-12.md` (in the private repo)):
         # "data": only the JPS 1917 verse (Old Testament) or the manuscript fact; "tn-readings": tN's readings, from the
         # verse notes or a chapter introduction that sets out two; "positions" and "held": nothing until John approves.
         # tN readings on the other kinds are about other words (Genesis 1:2's Spirit or wind) and would mislead.

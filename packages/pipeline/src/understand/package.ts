@@ -314,7 +314,7 @@ export function loadBook(book: string, options: { paths?: UnderstandPaths; verif
     list.push({ book: String(r["book"]), count: Number(r["count"]) });
   }
   core.close();
-  // JPS 1917 (public domain, Old Testament only; docs/research/jps-1917-licence.md) is its own optional
+  // JPS 1917 (public domain, Old Testament only; docs/licences/jps-1917-licence.md) is its own optional
   // download, keyed by core ord. Without it nothing about JPS shows and nothing else changes.
   const jpsPath = latest(paths.bundles, "translation-jps");
   if (jpsPath !== null && statSync(jpsPath).size > 0) {

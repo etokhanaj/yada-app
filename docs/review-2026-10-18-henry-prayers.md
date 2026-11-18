@@ -6,7 +6,7 @@ John's decisions, given in chat on 18 Oct 2026 and recorded on the review page
 ## Henry's outline: 66 use the new summary, 218 keep the old
 
 "Keep old" turns the replacement down. It does not approve the summary already in the app.
-Source of both versions: `docs/research/henry-steer-2026-10-16.txt`.
+Source of both versions: `henry-steer-2026-10-16.txt` (in the private repo).
 
 Use the new summary for:
 

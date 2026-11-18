@@ -29,7 +29,7 @@ This page is where to start. It narrows the scope in `docs/handoff-2026-10-12.md
   - **Profiles** show in every book they cite, not only where they first appear, so Peter, Pilate, Mary, Martha and Lazarus show under People in John. Frames: TY-01, TY-02. Code: `packages/pipeline/src/study.ts`, `apps/mobile/src/lib/study.ts`.
   - **The book intro summary** (Purpose, Author, Date, Setting) shows at a book's first chapter. `intro_summary` is already in each study bundle (`packages/schema/src/study.ts`), but nothing in the app reads it. Frames: TY-03, TY-04.
   - **Verse notes** stay as they are, behind Study notes.
-- **The study-bundle manifest merge**, so every book's study bundle can download. Follow `docs/research/manifest-merge-plan.md`. Downloads list Understand per book (DN-05).
+- **The study-bundle manifest merge**, so every book's study bundle can download. Follow `manifest-merge-plan.md` (in the private repo). Downloads list Understand per book (DN-05).
 
 **Moved to the build after this one** (don't build them; the frames stay on the canvas):
 - human BSB, WEB and KJV audio (BA, WA, US-01–04, MM-09). Its first task is the printing check by forced alignment
@@ -150,7 +150,7 @@ The licensed-audio, search-route and dates questions belong to the moved feature
   - The half view caps readings at 3 (`readers_half`).
   - Don't change any status.
 - **Sources and licences** are recorded in `sources.manifest.json` and `apps/mobile/src/lib/sources.ts`.
-  - The four public-domain commentaries are Keil & Delitzsch, Ellicott, Driver and Neubauer, and Clarke. Their death-date notes, and the CDPA s.57 notes for the translators with no death date found (James Martin, Francis Bolton, E. G. Punchard), are in the manifest and `docs/research/debate-sources.md`.
+  - The four public-domain commentaries are Keil & Delitzsch, Ellicott, Driver and Neubauer, and Clarke. Their death-date notes, and the CDPA s.57 notes for the translators with no death date found (James Martin, Francis Bolton, E. G. Punchard), are in the manifest and `debate-sources.md` (in the private repo).
   - Licences are read from source files, never from badges (rule 3).
 - **Open external items:**
   - BSB audio printing: settled by the alignment check in `docs/plan-additions-2026-10-12.md` §D (John approved). The
@@ -172,7 +172,7 @@ The licensed-audio, search-route and dates questions belong to the moved feature
 - `docs/redesign/build-plan-next-release.md` (phases and frames);
 - `docs/redesign/review-2026-10-12.md` (slop, wireframe, states, haptics, magic moments);
 - `docs/no-ai-understand.md` (decision record and rollout method);
-- `docs/research/manifest-merge-plan.md`;
-- `docs/research/tyndale-review.md`;
-- `docs/research/debate-positions.md` and `debate-sources.md`;
+- `manifest-merge-plan.md` (in the private repo);
+- `tyndale-review.md` (in the private repo);
+- `debate-positions.md` (in the private repo) and `debate-sources.md`;
 - `docs/licensed-translations.md`.

@@ -545,7 +545,7 @@ function audioManifestCommand(args: readonly string[]): number {
 /**
  * `yada manifest`: list every book's newest Understand bundle and every study bundle in
  * content/bundles/manifest.json, and drop the retired AI per-book bundles (docs/no-ai-understand.md:
- * "Bundles stop shipping entries"). Study follows docs/research/manifest-merge-plan.md: the fragment's
+ * "Bundles stop shipping entries"). Study follows `manifest-merge-plan.md` (in the private repo): the fragment's
  * entries as they stand, minus John, whose notes ship inside the app. Each listed file is checked
  * against its entry first, and the manifest is copied aside before it is rewritten. Nothing is
  * published: R2 is John's step.

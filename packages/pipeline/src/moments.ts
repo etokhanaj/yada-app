@@ -3,7 +3,7 @@
  * OpenBible.info's topic scores (topic-scores.zip, generated 2026-10-12, header "CC-BY License:
  * www.openbible.info/topics", licence read from the file itself, rule 3). The file holds references and a vote-based
  * score only, no verse text; the words shown are the BSB's, joined from core in the app. The six moments and their
- * topics are John's decision of 18 Oct 2026 (docs/research/moments-topics.md). Nothing here ships: `--write` writes
+ * topics are John's decision of 18 Oct 2026 (`moments-topics.md` (in the private repo)). Nothing here ships: `--write` writes
  * drafts for John's review queue, and the score only picks candidates. The app shows no score, rank or "most chosen"
  * (John, 18 Oct 2026: no voting and no ranking); the order a reader sees is the order John approves.
  */

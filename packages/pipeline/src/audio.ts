@@ -1,6 +1,6 @@
 /**
  * `yada audio <BOOK> [--narrator=hays]`: a BSB reading, chapter by chapter, for read-along
- * (build plan Phase 4; docs/plan-additions-2026-10-12.md §D; docs/research/bsb-audio-printing-check.md).
+ * (build plan Phase 4; docs/plan-additions-2026-10-12.md §D; docs/licences/bsb-audio-printing-check.md).
  *
  * Two kinds of reading, one path after the sound exists:
  * - a human narrator's MP3 in content/raw/audio/<narrator>/ (Berean Bible audio, CC0, pinned by sha256);

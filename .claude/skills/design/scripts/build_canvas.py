@@ -3221,11 +3221,11 @@ if STYLE != "v1":
         "• Two-verse sayings whose sentences lean (Luke 13:18–21) stay flagged until John's sample says whether to merge them with a neighbour.")
 # ================= John's round: Psalms, prophets, one order for every screen (next page, 12 Oct 2026) =================
 # From John's review of the Genesis, Psalms and Isaiah tests. Every line below is read from the pipeline's own drafts
-# (docs/research/passage-summaries-*-draft.txt) or from core.v5, never typed in: the canvas shows what ships.
+# (passage-summaries-*-draft.txt, kept in the private repo; YADA_SUMMARY_DRAFTS names their folder) or from core.v5, never typed in: the canvas shows what ships.
 if STYLE != "v1":
     def draft_block(book_file, rng):
         # One passage's block from the summary drafts, as {kind: text}; the summary body under "body".
-        lines_ = open(f"{Y}/.claude/worktrees/next-release/docs/research/passage-summaries-{book_file}-draft.txt", encoding="utf8").read().split("\n== ")
+        lines_ = open(f"{os.environ.get('YADA_SUMMARY_DRAFTS', Y)}/passage-summaries-{book_file}-draft.txt", encoding="utf8").read().split("\n== ")
         blk = next(b_ for b_ in lines_ if f"({rng})" in b_.split("\n")[0])
         out = {"label": blk.split("\n")[0].rsplit(" (", 1)[0]}
         for ln in blk.split("\n")[1:]:
