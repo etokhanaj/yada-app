@@ -1,140 +1,57 @@
 # Yada
 
-A Bible reader whose content is produced by an AI-built, human-reviewed pipeline and shipped as
-static per-book SQLite bundles. No runtime AI, no backend in v1.
+A Bible reader for iPhone that explains one passage at a time, in plain words, with the original Greek and Hebrew a tap away. It's for people who read the Bible on their own and find it hard to make sense of. I designed it and directed the build with Claude Code, as a side project.
 
-This repo is between steps 4 and 5 of the engineering sequence: **the schema, the full pipeline
-from raw sources to published bundles, and the review tool** are built; App v1 is next. Generation
-and publishing are built but have never run for real, because no API key or storage credential
-exists. `docs/handoff-2026-09-13.md` has the current state.
+**Website:** [yadabible.com](https://yadabible.com) · **Beta:** on Apple TestFlight (join from the website)
 
-## What exists
+<p>
+  <img src="docs/app-v1/02-reader-1co14.png" width="260" alt="Reading 1 Corinthians 14">
+  <img src="docs/app-v1/04-understand-1co14-34.png" width="260" alt="Understand: the passage in plain words, and where readers differ">
+  <img src="docs/app-v1/07-word-card.png" width="260" alt="A word card: the Greek word, its form and where else it appears">
+</p>
 
-### `packages/schema` — the single source of truth
+## Why I made it
 
-Zod schemas plus inferred types, shared by three consumers that must not drift apart: the pipeline's
-generation validator, the review tool, and the app's typed reads.
+It started with my own reading. I wanted to study the Bible more deeply, and what opened it up for me was seeing a single verse broken down: the original words, and the context around it, like what was happening at the time and how things worked then. When I went back to the Bible apps I used, none of them supported reading that way, and I kept noticing small UX fixes I wanted to make.
 
-| File | Contents |
-|---|---|
-| `src/refs.ts` | All 66 books (3-character USFM codes, canonical order, testament, chapter count), the `BOOK.chapter.verse` verse-id convention, verse ranges, and a forgiving `parseReference` for human input |
-| `src/claims.ts` | `Claim`, the four categories, evidence strength, grounding, typed evidence refs (verse / lexical / apparatus), and debated `positions` — which have no winner field, by design |
-| `src/entries.ts` | `VerseEntry`, `PericopeEntry`, `BookEntry`, and `SCHEMA_VERSION` |
-| `src/manifest.ts` | Per-dataset source manifest and `isCommercialSafe` (excludes BY-NC-ND) |
-| `src/validate.ts` | The deterministic quality contract as pure functions returning findings |
+I'm not alone in finding it hard. Lifeway Research found in 2020 that 57% of Protestant churchgoers find the Bible hard to make sense of on their own. Yada is built for that reader: read the passage, get the point in plain words, and go as deep as you want from there.
 
-Two structural rules live in Zod itself, because an entry that breaks them should never parse:
-`positions` may only appear on a `debated` claim, and `grounding: "model_knowledge"` caps
-`evidence_strength` at `supported`.
+## Key design decisions
 
-Everything semantic lives in `validate.ts` instead, so the CI regression tier can *report* rather
-than throw:
+**Listen like you read song lyrics.** When I listened to the Bible, I'd lose focus for a moment and then struggle to find my place again. Music apps already solve this with synced lyrics, so Yada borrows that pattern: as the audio plays, each word lights up, so you can always see where you are and find your place again. That meant building the word-by-word highlighting from scratch rather than from ready-made components, and a lot of work making the narration sound natural rather than robotic.
 
-- every verse evidence ref resolves to a real verse or range
-- every claim is one independently testable assertion (no unbracketed semicolon, at most one
-  sentence terminator — abbreviations like `v. 35` do not count)
-- `text` claims must be grounded in `source_data`
-- `debated` claims carry at least two positions, unless the entry is explicitly marked
-  `no_significant_dispute` (then it downgrades to a warning)
-- `display_rank` is unique **within a display group** — "What we can see" spans text and context,
-  "Where interpretation differs" spans interpretation and debated — because the group is what the
-  reader actually sees
-- an entry's verse falls inside its own pericope, and related passages resolve
+**Plain words first, depth on request.** Every passage opens with what it says in everyday language. The original language, word forms and cross-references are one tap further in, so a new reader isn't overwhelmed and a curious one is never blocked.
 
-### `packages/pipeline` — raw sources to a costed request
+**Where Christians disagree, Yada says so.** Some verses are read more than one way by faithful readers. Instead of picking a side, Yada sets out each reading from its source and leaves the choice to the reader. 1 Corinthians 14:34, shown above, is one example.
 
-Deterministic, and it stops before money is spent. `ingest` fetches and pins sources, regenerating
-`sources.manifest.json`; `normalize` builds `content/staging.db`, resolving Hebrew versification
-into English once; `derive` produces mechanical glosses and morpheme decomposition; `generate
---dry-run` builds and prices the exact requests that *would* be sent, and submits nothing.
+**Every explanation has a named source.** The explanations come from openly licensed scholarship, and each one says where it's from. If a reader wants to check, they can.
 
-Past that point every stage that could spend money or touch storage — `generate`, `adversary`,
-`regress --live`, `publish` — does nothing without `--confirm`, and model calls go through the
-ceiling in `budget.ts`. `ingest-responses`, `validate` and `regress` are deterministic and offline.
+**Every word of the original, with its form.** Tap a word to see the Greek or Hebrew, what it means, its grammar, and how often it appears in that book and the whole Bible. Search a name like Nicodemus and Yada finds the person, the Greek word and every passage they appear in.
 
-**There is no API key or storage credential in this repo; keys are read from the environment only.**
+**A habit that forgives you.** A day counts when you read or listen. One day of rest a week never breaks the streak, and if it stops, it simply starts again the next day you read. Missing a day shouldn't feel like failing.
 
-### `golden/` — seven fixtures, and the oracle that uses them
+**Private and offline by default.** The Bible text lives on the phone, so it works without signal. There's no account and nothing is collected. Bookmarks and your reading place sync through your own iCloud.
 
-The permanent regression suite. 1 Corinthians 14:34 is the canonical test verse: if the system
-handles this verse honestly, it is credible on ordinary ones. Six more cover the other genres.
+**Built for every reader.** Text goes up to the largest accessibility size, in light or dark, and listening helps people who find reading hard.
 
-`yada oracle` — and `derive.test.ts`, so it runs in CI — checks derived output against every
-fixture: same surfaces, same morpheme decomposition, same Strong's numbers. On its first run it
-reproduced two of seven. Of the five failures, **four were errors in the fixtures** and one was a
-bug in the derivation. Assume the oracle is right and the fixture is suspect until you have
-checked which.
+## Sources and licences
 
-`docs/derive-findings.md` records what those failures were and how each was resolved. Read it
-before changing `normalize` or the lexicon matching — two of the bugs it describes produced
-confident, well-formed, wrong data that no amount of reading the output would have caught.
+Every text, dataset and font in Yada is public domain or openly licensed. `sources.manifest.json` lists each one with its licence and the credit it requires.
 
-## Not built yet, or built but never run for real
+## What's in the repo
 
-| Path | Status |
-|---|---|
-| `apps/mobile` | App v1 (Expo, iOS): Home, a reader for all 66 books, Understand / Why / Original / word cards / occurrences, translation compare, passage Understand, Start here, search, bookmarks, recently explored, library. Bundle id `studio.yada.reader` and the name "Yada" are placeholders until name clearance (PRD 0E). Screenshots in `docs/app-v1/`. |
-| `packages/review` | Built: a local web app over `staging.db` — flagged, sampled, adversary and targeted-expert queues; approve (rating ≥4) and reject (reason required); every decision also written to `review/decisions.jsonl`. See its README. |
-| `content/` | Gitignored working data: raw sources, `staging.db`, request bodies, bundles. |
+| Path | What it holds |
+| --- | --- |
+| `apps/mobile/` | The iPhone app (React Native and Expo) |
+| `packages/schema/` | The shared data definitions the app, pipeline and review tool all read from |
+| `packages/pipeline/` | The pipeline that turns raw sources into the per-book bundles the app reads |
+| `packages/review/` | The review tool for checking content before it ships |
+| `web/` | yadabible.com |
+| `docs/` | Screens from the app, and working notes |
+| `docs/pipeline-notes.md` | The earlier engineering README: schema, pipeline and review tool in detail |
 
-Built but never yet run for real, because no key or R2 credential exists: generation, the
-adversarial pass, the live regression tier, and publishing. Each is tested only against injected
-fake clients.
+## Built with
 
-## Commands
+React Native, Expo and TypeScript, with SQLite bundles for the Bible text. I designed the app and directed the build with Claude Code, checking each change in the running app.
 
-```bash
-pnpm install
-pnpm -r typecheck     # tsc --noEmit per package
-pnpm -r test          # vitest per package
-pnpm test             # same tests via the root runner
-```
-
-The pipeline, from `packages/pipeline` (stages are ordered; each needs the one before it):
-
-```bash
-npx tsx src/cli.ts ingest                  # fetch + pin sources, regenerate the manifest
-npx tsx src/cli.ts normalize               # build content/staging.db
-npx tsx src/cli.ts derive JHN              # mechanical glosses + coverage
-npx tsx src/cli.ts oracle                  # derived output vs the golden fixtures
-npx tsx src/cli.ts generate --dry-run JHN  # build + price requests. Submits nothing.
-npx tsx src/cli.ts ingest-responses        # store valid generated entries as flagged; reject truncated, invalid or "reviewed" ones
-npx tsx src/cli.ts validate JHN            # 0C contract vs staging: cited lemmas/Strong's exist, refs resolve, gloss matches derivation
-npx tsx src/cli.ts adversary --dry-run JHN # build adversarial requests (Sonnet attacks each claim); --confirm spends, behind the budget gate
-npx tsx src/cli.ts regress                 # CI tier: golden fixtures vs Zod, contract, provenance, oracle. --live --confirm regenerates 1 Cor 14:34
-npx tsx src/cli.ts publish --dry-run       # verify bundles vs manifest; --confirm uploads to R2, manifest last, never unreviewed-dev
-```
-
-The review tool and the app's bundles:
-
-```bash
-pnpm --filter @yada/review dev             # review UI on localhost (API :4317, Vite :5173)
-pnpm --filter @yada/review export          # regenerate review/review_state.jsonl from staging.db
-pnpm --filter @yada/mobile bundles         # copy content/bundles into the app as assets
-```
-
-Requires Node 22+ and pnpm 10.
-
-## Conventions worth knowing before adding code
-
-- **Verse ids are `JHN.1.1`** — book code, chapter, verse — identical in the pipeline, in bundles,
-  and in the app. Pericope ids are explicit ranges: `1CO.14.26-14.40`.
-- **Derived is not generated.** `gloss` is mechanical, from alignment data. `close_rendering` is
-  composed and reviewed. Nothing composed is ever labelled literal.
-- **`confidence` is internal** and must never reach the UI as a score. `evidence_strength` is the
-  only user-facing signal.
-- **Schema changes are versioned.** Bump `SCHEMA_VERSION`; bundles and the app negotiate on it.
-- **Strong's numbers are zero-padded to four digits** — `G0746`, `H0430`. The lexicons write the
-  padded form and OSHB does not; a corpus mixing them joins for some words and silently misses for
-  others. Use `canonicalStrongs` rather than string-building one.
-- **Verse ids are English versification** (`CANONICAL_VERSIFICATION`), resolved once in `normalize`
-  and never again. Hebrew numbering diverges two different ways — a title inside verse 1 (Ps 23,
-  split) and a title *as* verse 1 (Ps 3, everything shifts) — plus cross-chapter shifts such as
-  Hebrew Gen 32:1 being English Gen 31:55. Superscriptions live at verse 0.
-- **Read licences from the source file, never from a repo badge.** This has caught three real
-  problems: SBLGNT is under its own EULA rather than the CC BY the PRD claims, TBESH's definitions
-  need Online Bible's permission, and morphhb carries a public-domain text and CC BY annotations
-  that must stay separate manifest entries.
-- **Never state a parse or a Strong's number the source data does not contain.** This binds the
-  pipeline as much as the generation prompt; the Greek fixtures failed it before the oracle caught
-  them.
+More of my work: [johnetokhana.com](https://johnetokhana.com)
