@@ -28,6 +28,7 @@ import {
   parseChapterText,
   parseServed,
   proxyChapterUrl,
+  queryParam,
   pruneLicensedCache,
   saveServed,
   type LicensedCode,
@@ -277,6 +278,31 @@ describe("through Yada's proxy (release and TestFlight builds)", () => {
     expect(init.headers).toEqual({ Accept: "application/json" });
     expect(result).toMatchObject({ status: "ok", translation: "NKJV", copyright: NOTICE, fromCache: false });
     if (result.status === "ok") expect(result.verses[1]?.text).toBe("Line one;\n     line two —\n  line three.");
+  });
+
+  it("encodes an apostrophe as the proxy's URL parser will, so the assertion matches", () => {
+    expect(queryParam("Lord's prayer")).toBe("Lord%27s%20prayer");
+    expect(new URL(`https://p.example/v1/search/NLT?q=${queryParam("Lord's")}`).search).toBe("?q=Lord%27s");
+  });
+
+  it("gives up waiting for a proof when the load times out", async () => {
+    const attest = { headers: () => new Promise<Record<string, string>>(() => undefined), reset: vi.fn() };
+    const result = await getLicensedChapter({ ...deps(), attest, timeoutMs: 20 }, "NKJV", "JHN", 3);
+    expect(result).toEqual({ status: "error", translation: "NKJV", reason: "timeout" });
+  });
+
+  it("carries the App Attest proof, and on a 401 drops the key and tries once more with a new one", async () => {
+    let n = 0;
+    const reset = vi.fn();
+    const attest = { headers: async (url: string) => ({ "Yada-Assertion": `${++n}:${url}` }), reset };
+    fetchMock.mockResolvedValueOnce(withServed({ error: "attest" }, "NKJV,NLT", 401));
+    const result = await getLicensedChapter({ ...deps(), attest }, "NKJV", "JHN", 3);
+    expect(result).toMatchObject({ status: "ok" });
+    expect(reset).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls.map(([, init]) => init.headers["Yada-Assertion"])).toEqual([
+      "1:https://proxy.example.test/v1/chapter/NKJV/JHN.3",
+      "2:https://proxy.example.test/v1/chapter/NKJV/JHN.3",
+    ]);
   });
 
   it("is usable without a key, and is cached under the same 30-day rule", async () => {

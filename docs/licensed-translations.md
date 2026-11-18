@@ -55,7 +55,15 @@ no app update.
   `yada-licensed-cache`, Bible text only, and served to every reader for 30 days after API.Bible sent it;
   a daily cron deletes expired copies and any version no longer in `SERVED`. The response carries
   `fetchedAt`, and the app counts its own 30 days from it. `Cache-Control: private, max-age=<seconds left>`;
-  errors are `no-store`. Nothing about readers is stored. Plan and stress test: `docs/licensed-online-plan.md`.
+  errors are `no-store`. Nothing about what anyone reads is stored. Plan and stress test: `docs/licensed-online-plan.md`.
+- **App Attest (John, 18 Nov 2026, before the source went public):** the proxy serves only genuine Yada on
+  a real Apple device (`src/attest/`, `modules/yada-attest`, `src/data/attest.ts`). Each install proves a
+  random Secure Enclave key once with Apple's attestation; every GET then carries an assertion over its
+  path in `Yada-Key-Id` and `Yada-Assertion`. One Durable Object per key keeps its public key and a
+  counter, nothing else: no account, no device name, nothing read. `ATTEST_REQUIRED = "off"` until a build
+  that attests is the one testers have; then set it `"on"` and deploy, and older builds fall back to the
+  BSB. The simulator has no App Attest, so simulator QA of licensed text needs `wrangler dev` with it off.
+  The App ID `studio.yada.reader` needs the App Attest capability before the next archive.
 - **Call budget:** every API.Bible call goes through one Durable Object (`src/gate.ts`), which fetches a
   chapter once however many readers ask together, and counts calls per plan month (`PLAN_MONTH_DAY`).
   Reading stops at 4,900 calls; search has its own 800. Past either, the route answers 503
@@ -87,8 +95,8 @@ dashboard after the first deploy):
 `EXPO_PUBLIC_LICENSED_PROXY_URL` into `extra.licensedProxy.url` (`app.config.ts`). It is a URL, not a
 secret. `app.config.ts` refuses one that is not https (plain http only for `localhost` outside Release,
 for `wrangler dev`), that carries credentials, a query or a fragment, or that is API.Bible itself. The
-request carries the translation, book and chapter in the path and an `Accept` header, nothing about the
-reader. Unset, the build offers no licensed versions, as before.
+request carries the translation, book and chapter in the path, an `Accept` header and, from the build after
+12, its App Attest proof (a random per-install key id and a signature), nothing about the reader. Unset, the build offers no licensed versions, as before.
 
 Unchanged: the 30-day cache and its launch-time deletion, the Online group, the needs-connection line,
 the verbatim notice under each chapter, never read aloud (`canSpeak`), never in AI

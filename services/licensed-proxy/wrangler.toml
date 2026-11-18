@@ -21,6 +21,12 @@ SERVED = "NKJV,NLT,MSG"
 # Day of the month the API.Bible Starter plan's 5,000 calls reset: the dashboard shows "Resets on
 # 11/9/2026" (read 18 Oct 2026).
 PLAN_MONTH_DAY = "9"
+# App Attest (src/attest): only genuine Yada may spend the plan's calls once the source is public (John,
+# 18 Nov 2026). The id is the team id and bundle id, both public in the app itself. ATTEST_REQUIRED stays
+# "off" until a build that attests is the one testers have, then "on" and a deploy; older builds then
+# fall back to the BSB. A request that carries an assertion is checked either way.
+APP_ATTEST_ID = "7X984JHGT2.studio.yada.reader"
+ATTEST_REQUIRED = "off"
 
 # One shared copy of each chapter read (John, 18 Oct 2026; docs/licensed-online-plan.md). Bible text
 # only, no reader data, deleted daily once past 30 days. The bucket must stay private: public access
@@ -35,9 +41,18 @@ bucket_name = "yada-licensed-cache"
 name = "GATE"
 class_name = "GateObject"
 
+# One Durable Object per installed app's App Attest key: its public key and counter, nothing else.
+[[durable_objects.bindings]]
+name = "KEYS"
+class_name = "KeyObject"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["GateObject"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["KeyObject"]
 
 # Daily prune of expired copies and of versions no longer served (§10, §11, §18.8).
 [triggers]

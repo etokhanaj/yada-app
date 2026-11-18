@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Gate, upstreamUrl, type ChapterStore, type CountStore, type GateDeps, type Stored } from "./gate";
-import { handle, type Env } from "./proxy";
+import { handle, type AttestClient, type Env } from "./proxy";
 import { servedSet } from "./translations";
 
 const KEY = "test-key-never-forwarded";
@@ -46,10 +46,24 @@ function memoryCounts(): CountStore & { readonly months: Map<string, { total: nu
   };
 }
 
+/** Stands in for the per-key Durable Objects (attest/keys.ts, tested in attest/attest.test.ts): "good" signs. */
+function fakeAttest(): AttestClient & { readonly seen: string[] } {
+  const seen: string[] = [];
+  return {
+    seen,
+    challenge: async () => "challenge",
+    register: async (_keyId, attestation) => attestation === "good",
+    assert: async (_keyId, clientData, assertion) => {
+      seen.push(clientData);
+      return assertion === "good";
+    },
+  };
+}
+
 /** A real Gate over memory stores, so the tests exercise the same miss path as the Durable Object. */
-function deps(fetch: Fetch, store = memoryStore(), counts = memoryCounts(), now = () => NOW) {
+function deps(fetch: Fetch, store = memoryStore(), counts = memoryCounts(), now = () => NOW, attest = fakeAttest()) {
   const gate = new Gate({ fetch, store, counts, now, key: KEY, base: "https://upstream.example.test", planDay: 10 });
-  return { gate, store, now };
+  return { gate, attest, store, now };
 }
 
 const env = (over: Partial<Env> = {}): Env => ({
@@ -188,7 +202,7 @@ describe("servedSet", () => {
 
 describe("the Worker's source", () => {
   const dir = path.dirname(fileURLToPath(import.meta.url));
-  const files = ["index.ts", "proxy.ts", "translations.ts", "gate.ts", "budget.ts"].map((f) => readFileSync(path.join(dir, f), "utf8"));
+  const files = ["index.ts", "proxy.ts", "translations.ts", "gate.ts", "budget.ts", "attest/cbor.ts", "attest/der.ts", "attest/keys.ts", "attest/verify.ts"].map((f) => readFileSync(path.join(dir, f), "utf8"));
 
   it("logs nothing (no client IP or identifier is ever written by this code)", () => {
     for (const text of files) expect(text).not.toMatch(/console\.|\.log\(/);
@@ -196,7 +210,7 @@ describe("the Worker's source", () => {
 
   it("imports nothing but itself, @yada/schema's book table and the Workers runtime (no AI, rule 9)", () => {
     const imports = files.flatMap((text) => [...text.matchAll(/from\s+"([^"]+)"/g)].map((m) => m[1]));
-    expect(new Set(imports)).toEqual(new Set(["./proxy", "./translations", "./gate", "./budget", "@yada/schema", "cloudflare:workers"]));
+    expect(new Set(imports)).toEqual(new Set(["./proxy", "./translations", "./gate", "./budget", "./attest/keys", "./verify", "./cbor", "./der", "@yada/schema", "cloudflare:workers"]));
   });
 
   it("ships NIV off and MSG on in wrangler.toml, and no secret", () => {
@@ -332,5 +346,53 @@ describe("the call budget (docs/licensed-online-plan.md, stress test)", () => {
     now = new Date("2026-11-10T00:00:01Z");
     expect((await handle(get("/v1/chapter/NKJV/JHN.3"), env(), d)).status).toBe(200);
     expect(counts.months.get("2026-11-10")).toEqual({ total: 1, search: 0 });
+  });
+});
+
+describe("App Attest at the door (attest/)", () => {
+  const signed = (p: string, assertion = "good") =>
+    get(p, { headers: { "CF-Connecting-IP": "203.0.113.7", "Yada-Key-Id": `${"A".repeat(43)}=`, "Yada-Assertion": assertion } });
+  const post = (p: string, body: unknown) =>
+    new Request(`https://proxy.example.test${p}`, { method: "POST", headers: { "CF-Connecting-IP": "203.0.113.7" }, body: JSON.stringify(body) });
+  const on = () => env({ APP_ATTEST_ID: "TEAM.app", ATTEST_REQUIRED: "on" });
+
+  it("while off, still serves a GET with no assertion (older builds)", async () => {
+    expect((await handle(get("/v1/chapter/NKJV/JHN.3"), env({ APP_ATTEST_ID: "TEAM.app" }), deps(fetchMock))).status).toBe(200);
+  });
+
+  it("when on, refuses a GET with no assertion before any call upstream", async () => {
+    const res = await handle(get("/v1/chapter/NKJV/JHN.3"), on(), deps(fetchMock));
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: "attest" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("checks the assertion over the method, path and query, and refuses a bad one even while off", async () => {
+    const d = deps(fetchMock);
+    expect((await handle(signed("/v1/chapter/NKJV/JHN.3"), on(), d)).status).toBe(200);
+    expect(d.attest.seen).toEqual(["GET /v1/chapter/NKJV/JHN.3"]);
+    expect((await handle(signed("/v1/chapter/NKJV/JHN.3", "bad"), env({ APP_ATTEST_ID: "TEAM.app" }), d)).status).toBe(401);
+    const half = get("/v1/chapter/NKJV/JHN.3", { headers: { "Yada-Assertion": "good" } });
+    expect((await handle(half, on(), d)).status).toBe(401);
+  });
+
+  it("hands out a challenge and registers a key, and refuses malformed bodies", async () => {
+    const keyId = `${"B".repeat(43)}=`;
+    const challenge = await handle(post("/v1/attest/challenge", { keyId }), on(), deps(fetchMock));
+    expect(await challenge.json()).toEqual({ challenge: "challenge" });
+    expect((await handle(post("/v1/attest", { keyId, attestation: "good" }), on(), deps(fetchMock))).status).toBe(204);
+    expect((await handle(post("/v1/attest", { keyId, attestation: "bad" }), on(), deps(fetchMock))).status).toBe(401);
+    expect((await handle(post("/v1/attest", { keyId: "short", attestation: "good" }), on(), deps(fetchMock))).status).toBe(400);
+    expect((await handle(post("/v1/attest/other", { keyId }), on(), deps(fetchMock))).status).toBe(404);
+  });
+
+  it("says it is unconfigured without an app id", async () => {
+    expect((await handle(post("/v1/attest/challenge", { keyId: `${"B".repeat(43)}=` }), env(), deps(fetchMock))).status).toBe(503);
+  });
+
+  it("ships the team's app id and the check off in wrangler.toml", () => {
+    const toml = readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "../wrangler.toml"), "utf8");
+    expect(toml).toMatch(/^APP_ATTEST_ID = "7X984JHGT2\.studio\.yada\.reader"$/m);
+    expect(toml).toMatch(/^ATTEST_REQUIRED = "off"$/m);
   });
 });

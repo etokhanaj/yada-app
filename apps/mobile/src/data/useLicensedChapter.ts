@@ -32,6 +32,8 @@ import {
   licensedSearchLeft,
   searchLicensed,
 } from "./licensed";
+import { appAttest } from "../../modules/yada-attest";
+import { type Attestor, createAttestor } from "./attest";
 import { ONLINE_PLACEHOLDERS, registerOnlineProvider } from "./online";
 import { type InstalledTranslation, translationName } from "./translations";
 
@@ -65,6 +67,16 @@ export function licensedConfig(): LicensedConfig {
     if (typeof url === "string" && url !== "") return { via: "proxy", url, enabled: true };
   }
   return OFF;
+}
+
+let attestor: { url: string; value: Attestor } | null = null;
+
+/** The proxy's App Attest proof (attest.ts), one per proxy URL; none on the dev path straight to API.Bible. */
+function proxyAttest(): Attestor | undefined {
+  const config = licensedConfig();
+  if (config.via !== "proxy" || config.url === "") return undefined;
+  if (attestor?.url !== config.url) attestor = { url: config.url, value: createAttestor(appAttest, config.url, (url, init) => fetch(url, init)) };
+  return attestor.value;
 }
 
 /** Whether licensed translations may be offered at all in this build. */
@@ -106,6 +118,7 @@ export function useLicensedChapter(translation: LicensedCode | null, book: BookC
               db: user,
               config: licensedConfig(),
               fetch: (url, init) => fetch(url, init),
+              attest: proxyAttest(),
               onServed: (codes) => followServed(user, codes),
             },
             translation,
@@ -149,7 +162,7 @@ export function useLicensedSearch(translation: LicensedCode | null, query: strin
   const { data } = useQuery(async () => {
     if (translation === null || query.length < 2) return undefined;
     if (!(await licensedSearchLeft(user))) return { status: "limit", translation } satisfies LicensedSearch;
-    const result = await searchLicensed({ config: licensedConfig(), fetch: (url, init) => fetch(url, init) }, translation, query);
+    const result = await searchLicensed({ config: licensedConfig(), fetch: (url, init) => fetch(url, init), attest: proxyAttest() }, translation, query);
     if (result.status === "ok") await countLicensedSearch(user);
     return result;
   }, [translation, query]);
@@ -169,7 +182,7 @@ export async function loadLicensedVerses(
   const texts = new Map<number, string>();
   let copyright: string | null = null;
   for (const chapter of chapters) {
-    const result = await getLicensedChapter({ db, config: licensedConfig(), fetch: (url, init) => fetch(url, init) }, translation, book, chapter);
+    const result = await getLicensedChapter({ db, config: licensedConfig(), fetch: (url, init) => fetch(url, init), attest: proxyAttest() }, translation, book, chapter);
     if (result.status !== "ok") return { texts, copyright, available: false };
     copyright = result.copyright;
     for (const v of result.verses) texts.set(verseOrd(book, chapter, v.verse), v.text);

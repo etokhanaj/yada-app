@@ -111,6 +111,9 @@ export default ({ config }: ConfigContext): ExpoConfig & { newArchEnabled: boole
         // Pray together (11e): SharePlay over FaceTime carries where a circle is in its requests. The App ID needs the
         // Group Activities capability before the archive, as it needed iCloud (16 Oct 2026).
         "com.apple.developer.group-session": true,
+        // App Attest for the licensed proxy (modules/yada-attest; John, 18 Nov 2026: the source is public, so the
+        // proxy serves only genuine Yada). The App ID needs the App Attest capability before the archive, as above.
+        "com.apple.developer.devicecheck.appattest-environment": "production",
       },
       // Audio read-along keeps reading with the screen locked (AU-02; modules/yada-speech).
       infoPlist: {

@@ -21,6 +21,8 @@
 
 import type { BookCode } from "@yada/schema";
 
+import type { Attestor } from "./attest";
+
 export type LicensedCode = "NIV" | "NKJV" | "NLT" | "MSG";
 
 export const LICENSED: ReadonlyArray<{ code: LicensedCode; name: string; bibleId: string }> = [
@@ -153,6 +155,38 @@ export interface LicensedDeps {
   readonly onServed?: (codes: LicensedCode[]) => void;
   /** How long a load may take before the page says it needs a connection (US-07); tests shorten it. */
   readonly timeoutMs?: number;
+  /** App Attest proof for proxy requests (attest.ts); absent on the dev path, which goes straight to API.Bible. */
+  readonly attest?: Attestor;
+}
+
+/** The first proof talks to Apple and the proxy; the load's timeout must still end the wait. */
+function untilAborted<T>(work: Promise<T> | undefined, signal: AbortSignal): Promise<T | undefined> {
+  if (work === undefined) return Promise.resolve(undefined);
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) reject(new Error("aborted"));
+    signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+    work.then(resolve, reject);
+  });
+}
+
+/**
+ * The query as the proxy's URL parser will see it: encodeURIComponent leaves an apostrophe bare, but a
+ * Worker's URL gives it back as %27, so an assertion over the bare one would not match (App Attest).
+ */
+export function queryParam(query: string): string {
+  return encodeURIComponent(query).replace(/'/g, "%27");
+}
+
+/**
+ * A GET to the proxy with its App Attest proof. A 401 means the proxy no longer knows the key (or never
+ * took it), so the key is dropped, a new one proved, and the request tried once more.
+ */
+async function proxyGet(deps: Omit<LicensedDeps, "db">, url: string, signal: AbortSignal) {
+  const send = async () => deps.fetch(url, { headers: { Accept: "application/json", ...(await untilAborted(deps.attest?.headers(url), signal)) }, signal });
+  const first = await send();
+  if (first.status !== 401 || deps.attest === undefined) return first;
+  deps.attest.reset();
+  return send();
 }
 
 /**
@@ -261,7 +295,7 @@ export async function getLicensedChapter(
   try {
     response =
       config.via === "proxy"
-        ? await deps.fetch(proxyChapterUrl(config.url, translation, chapterId), { headers: { Accept: "application/json" }, signal: controller.signal })
+        ? await proxyGet(deps, proxyChapterUrl(config.url, translation, chapterId), controller.signal)
         : await deps.fetch(chapterUrl(config.url, bible.bibleId, chapterId), { headers: { "api-key": config.key }, signal: controller.signal });
   } catch {
     clearTimeout(timer);
@@ -412,8 +446,8 @@ export async function searchLicensed(deps: Omit<LicensedDeps, "db">, translation
   const timer = setTimeout(() => controller.abort(), deps.timeoutMs ?? LICENSED_LOAD_TIMEOUT_MS);
   try {
     if (config.via === "proxy") {
-      const url = `${config.url.replace(/\/+$/, "")}/v1/search/${encodeURIComponent(translation)}?q=${encodeURIComponent(query)}`;
-      const response = await deps.fetch(url, { headers: { Accept: "application/json" }, signal: controller.signal });
+      const url = `${config.url.replace(/\/+$/, "")}/v1/search/${encodeURIComponent(translation)}?q=${queryParam(query)}`;
+      const response = await proxyGet(deps, url, controller.signal);
       if (!response.ok) return { status: response.status === 503 && (await errorOf(response)) === "budget" ? "limit" : "error", translation };
       const body = (await response.json()) as { total?: unknown; verses?: unknown; copyright?: unknown };
       return searchResult(translation, body.total, body.verses, body.copyright);

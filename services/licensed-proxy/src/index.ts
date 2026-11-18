@@ -1,14 +1,16 @@
 import { DurableObject } from "cloudflare:workers";
 
 import { parsePlanDay, type CallKind, type Counts } from "./budget";
+import { AttestKey } from "./attest/keys";
 import { codeOfKey, Gate, isFresh, type ChapterStore, type CountStore, type GateResult, type SearchFound, type Stored } from "./gate";
-import { handle, type Env as ProxyEnv } from "./proxy";
+import { handle, type AttestClient, type Env as ProxyEnv } from "./proxy";
 import { servedSet, type LicensedCode } from "./translations";
 
 interface Env extends ProxyEnv {
   /** Private bucket (never public: a public copy would "mirror" the API, §8(e)). */
   readonly CACHE: R2Bucket;
   readonly GATE: DurableObjectNamespace<GateObject>;
+  readonly KEYS: DurableObjectNamespace<KeyObject>;
 }
 
 function r2Store(bucket: R2Bucket): ChapterStore {
@@ -63,6 +65,45 @@ export class GateObject extends DurableObject<Env> {
   }
 }
 
+/** One install's App Attest key (attest/keys.ts), addressed by its key id. */
+export class KeyObject extends DurableObject<Env> {
+  private readonly key: AttestKey;
+
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+    this.key = new AttestKey({
+      storage: {
+        get: (k) => ctx.storage.get(k),
+        put: (k, v) => ctx.storage.put(k, v),
+        delete: (k) => ctx.storage.delete(k),
+      },
+      appId: env.APP_ATTEST_ID ?? "",
+      now: () => new Date(),
+    });
+  }
+
+  challenge(): Promise<string> {
+    return this.key.challenge();
+  }
+
+  register(keyId: string, attestation: string): Promise<boolean> {
+    return this.key.register(keyId, attestation);
+  }
+
+  assert(clientData: string, assertion: string): Promise<boolean> {
+    return this.key.assert(clientData, assertion);
+  }
+}
+
+function keys(env: Env): AttestClient {
+  const of = (keyId: string) => env.KEYS.get(env.KEYS.idFromName(keyId));
+  return {
+    challenge: (keyId) => of(keyId).challenge(),
+    register: (keyId, attestation) => of(keyId).register(keyId, attestation),
+    assert: (keyId, clientData, assertion) => of(keyId).assert(clientData, assertion),
+  };
+}
+
 /**
  * Daily: delete every copy past its time (§11) and every copy of a version no longer served (§10,
  * §18.8: content goes within 72 hours of termination, 24 hours of a request; SERVED = "" and a deploy
@@ -87,7 +128,7 @@ async function prune(env: Env, now: Date): Promise<void> {
 export default {
   fetch(request, env) {
     const gate = env.GATE.get(env.GATE.idFromName("gate"));
-    return handle(request, env, { gate, store: r2Store(env.CACHE), now: () => new Date() });
+    return handle(request, env, { gate, attest: keys(env), store: r2Store(env.CACHE), now: () => new Date() });
   },
   async scheduled(_controller, env) {
     await prune(env, new Date());

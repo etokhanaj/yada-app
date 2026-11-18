@@ -1,6 +1,9 @@
 /**
  * Two routes: GET /v1/chapter/{translation}/{BOOK}.{chapter}, and GET /v1/search/{translation}?q=…
  * (John, 12 Oct 2026: search follows the translation, EG-06; results are display-only, never stored).
+ * Two more prove the app with App Attest (attest/verify.ts): POST /v1/attest/challenge, POST /v1/attest.
+ * Every GET then carries an assertion in Yada-Key-Id and Yada-Assertion; with ATTEST_REQUIRED = "on" a GET
+ * without one is refused, so only genuine Yada can spend the plan's calls (John, 18 Nov 2026).
  *
  * Why a proxy: Expo `extra` is embedded in the app binary, so a key shipped in a build can be
  * extracted by anyone holding it (docs/licensed-translations.md), and §12 forbids making the key
@@ -13,8 +16,9 @@
  *   the app's own copy counts its 30 days from `fetchedAt`, when API.Bible sent it.
  * - Calls are counted and capped (budget.ts, gate.ts) so the 5,000-a-month Starter plan holds.
  * - Display-only: no AI anywhere near this.
- * - Privacy: no logging at all, and nothing about readers is stored: R2 holds Bible text and the
- *   Durable Object holds two call counts. The client IP is used only as a hashed rate-limit key.
+ * - Privacy: no logging at all, and nothing about what anyone reads is stored: R2 holds Bible text, the
+ *   gate's Durable Object two call counts, and each install's key object a random key's public half and a
+ *   counter. The client IP is used only as a hashed rate-limit key.
  *
  * Pure: the gate, the store and the limiter come in through `env` and `deps`, so tests run with
  * all of them in memory and never touch the network.
@@ -40,6 +44,13 @@ export interface Env {
   /** Day of the month the API.Bible plan took effect (1–28): when the 5,000 calls reset. */
   readonly PLAN_MONTH_DAY?: string;
   readonly LIMITER: RateLimiter;
+  /** `{TEAM_ID}.{bundle id}`: what App Attest's rpIdHash must match. */
+  readonly APP_ATTEST_ID?: string;
+  /**
+   * "on": a GET without an assertion is refused. Off until a build that attests is the one testers have,
+   * so older builds keep NKJV/NLT/MSG until then; a GET that does carry one is checked either way.
+   */
+  readonly ATTEST_REQUIRED?: string;
 }
 
 /** Every API.Bible call: the Durable Object in production (index.ts), a plain Gate in tests. */
@@ -48,8 +59,23 @@ export interface GateClient {
   search(code: LicensedCode, query: string): Promise<GateResult<SearchFound>>;
 }
 
+/** One install's App Attest key (attest/keys.ts): a Durable Object per key id in production. */
+export interface AttestClient {
+  challenge(keyId: string): Promise<string>;
+  register(keyId: string, attestation: string): Promise<boolean>;
+  assert(keyId: string, clientData: string, assertion: string): Promise<boolean>;
+}
+
+export const KEY_HEADER = "Yada-Key-Id";
+export const ASSERTION_HEADER = "Yada-Assertion";
+/** A key id is the base64 SHA-256 of the key: 44 characters. */
+const KEY_ID = /^[A-Za-z0-9+/]{43}=$/;
+/** An attestation is a few kilobytes; anything far larger is not one. */
+const MAX_BODY = 16_384;
+
 export interface Deps {
   readonly gate: GateClient;
+  readonly attest: AttestClient;
   /** Read directly for a fresh copy, so most readers never reach the Durable Object. */
   readonly store: ChapterStore;
   readonly now: () => Date;
@@ -103,8 +129,18 @@ export async function handle(request: Request, env: Env, deps: Deps): Promise<Re
   const { success } = await env.LIMITER.limit({ key: await limiterKey(request) });
   if (!success) return reply(429, { error: "rate-limited" }, { "Retry-After": "60" });
 
-  if (request.method !== "GET") return reply(405, { error: "method" }, { Allow: "GET" });
   const url = new URL(request.url);
+  if (request.method === "POST" && url.pathname.startsWith("/v1/attest")) return attestRoute(request, url, env, deps, reply);
+  if (request.method !== "GET") return reply(405, { error: "method" }, { Allow: "GET" });
+
+  const keyId = request.headers.get(KEY_HEADER);
+  const assertion = request.headers.get(ASSERTION_HEADER);
+  if (keyId !== null || assertion !== null) {
+    if (keyId === null || assertion === null || !KEY_ID.test(keyId) || (env.APP_ATTEST_ID ?? "") === "") return reply(401, { error: "attest" });
+    if (!(await deps.attest.assert(keyId, `GET ${url.pathname}${url.search}`, assertion))) return reply(401, { error: "attest" });
+  } else if (env.ATTEST_REQUIRED === "on") {
+    return reply(401, { error: "attest" });
+  }
   const search = SEARCH_ROUTE.exec(url.pathname);
   if (search !== null) return searchRoute(search[1] ?? "", url, env, deps, served, reply);
   const match = ROUTE.exec(url.pathname);
@@ -139,6 +175,24 @@ function failed(result: { status: number; error: string }, reply: Reply): Respon
 }
 
 type Reply = (status: number, body: unknown, headers?: Record<string, string>) => Response;
+
+/** POST /v1/attest/challenge {keyId} → {challenge}; POST /v1/attest {keyId, attestation} → 204, or 401. */
+async function attestRoute(request: Request, url: URL, env: Env, deps: Deps, reply: Reply): Promise<Response> {
+  if (url.pathname !== "/v1/attest/challenge" && url.pathname !== "/v1/attest") return reply(404, { error: "not-found" });
+  if ((env.APP_ATTEST_ID ?? "") === "") return reply(503, { error: "unconfigured" });
+  const text = await request.text();
+  let body: { keyId?: unknown; attestation?: unknown };
+  try {
+    body = text.length > MAX_BODY ? {} : (JSON.parse(text) as typeof body);
+  } catch {
+    body = {};
+  }
+  const { keyId, attestation } = body;
+  if (typeof keyId !== "string" || !KEY_ID.test(keyId)) return reply(400, { error: "key" });
+  if (url.pathname === "/v1/attest/challenge") return reply(200, { challenge: await deps.attest.challenge(keyId) });
+  if (typeof attestation !== "string" || attestation === "") return reply(400, { error: "attestation" });
+  return (await deps.attest.register(keyId, attestation)) ? new Response(null, { status: 204 }) : reply(401, { error: "attest" });
+}
 
 /**
  * Search in one licensed translation: verses as API.Bible sends them, and the Bible's copyright line.
